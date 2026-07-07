@@ -5,6 +5,7 @@ import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { scrollState } from '../lib/scrollState';
+import { measureBeats } from '../lib/beatProgress';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -42,11 +43,26 @@ export default function SmoothScroll({ children }) {
     };
     document.addEventListener('click', onClick);
 
+    // Measure real section boundaries whenever layout can have changed —
+    // font swap, image load, the loader animating off, viewport resize.
+    // A window 'load' listener is unreliable here: it's registered inside
+    // an effect that runs after hydration, by which point the browser's
+    // load event has often already fired and the listener never triggers.
+    // ResizeObserver on <body> instead re-measures on any actual size
+    // change, whenever it happens. Always measure against lenis.limit (see
+    // beatProgress.js) so these fractions share scrollState.progress's
+    // exact baseline.
+    const remeasure = () => measureBeats(lenis.limit);
+    remeasure();
+    const ro = new ResizeObserver(remeasure);
+    ro.observe(document.body);
+
     return () => {
       document.removeEventListener('click', onClick);
       gsap.ticker.remove(tick);
       lenis.off('scroll', onScroll);
       lenis.destroy();
+      ro.disconnect();
     };
   }, []);
 

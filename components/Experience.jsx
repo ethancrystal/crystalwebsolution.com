@@ -10,9 +10,11 @@ import FocusVeil from './FocusVeil';
 import Hero from './sections/Hero';
 import Services from './sections/Services';
 import Showcase from './sections/Showcase';
+import Stories from './sections/Stories';
 import Mark from './sections/Mark';
 import About from './sections/About';
 import Facts from './sections/Facts';
+import Motion from './sections/Motion';
 import Contact from './sections/Contact';
 
 // The Scene touches window + ships heavy libs — client-only.
@@ -31,9 +33,11 @@ export default function Experience() {
         <Hero />
         <Services />
         <Showcase />
+        <Stories />
         <Mark />
         <About />
         <Facts />
+        <Motion />
         <Contact />
       </main>
     </SmoothScroll>

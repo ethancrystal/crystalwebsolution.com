@@ -21,13 +21,17 @@ export default function BackdropMorph() {
     mesh.current.rotation.x += dt * 0.006;
     tmpColor.copy(COLOR_A).lerp(COLOR_B, scrollState.progress);
     mesh.current.material.color.lerp(tmpColor, 1 - Math.exp(-dt * 3));
-    mesh.current.position.z = -50 + scrollState.progress * -30;
+    // Journey now runs to CLUSTERS.contact = -128 (was -100); keep the shell
+    // receding at the same proportion of total depth.
+    mesh.current.position.z = -50 + scrollState.progress * -45;
   });
 
   return (
     <mesh ref={mesh} position={[0, 0, -50]}>
       <icosahedronGeometry args={[90, 2]} />
-      <meshBasicMaterial wireframe transparent opacity={0.08} color="#0b2740" side={THREE.BackSide} />
+      {/* fog={false}: the shell sits at radius 90, past the fog far plane —
+          it is the atmosphere itself, so scene fog must not swallow it. */}
+      <meshBasicMaterial wireframe transparent opacity={0.08} color="#0b2740" side={THREE.BackSide} fog={false} />
     </mesh>
   );
 }
