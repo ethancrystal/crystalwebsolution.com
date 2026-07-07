@@ -13,9 +13,11 @@ const FACTS = [
 
 export default function Facts() {
   return (
-    <section className="section facts" id="facts">
-      <p className="eyebrow"><Reveal as="span">Key facts</Reveal></p>
-      <DecodeText as="h2" text="A snapshot of experience and impact." className="section-title" />
+    <section className="section facts" id="facts" data-quiet>
+      <div className="text-plate">
+        <p className="eyebrow"><Reveal as="span">Key facts</Reveal></p>
+        <DecodeText as="h2" text="A snapshot of experience and impact." className="section-title" />
+      </div>
       <div className="facts-grid">
         {FACTS.map((f, i) => (
           <Reveal key={f.label} className="fact-card" delay={i * 0.08}>

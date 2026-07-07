@@ -6,6 +6,7 @@ import Loader from './Loader';
 import Cursor from './Cursor';
 import Nav from './Nav';
 import ScrollProgress from './ScrollProgress';
+import FocusVeil from './FocusVeil';
 import Hero from './sections/Hero';
 import Services from './sections/Services';
 import Showcase from './sections/Showcase';
@@ -23,6 +24,7 @@ export default function Experience() {
       <Loader />
       <Cursor />
       <Scene />
+      <FocusVeil />
       <Nav />
       <ScrollProgress />
       <main className="page">

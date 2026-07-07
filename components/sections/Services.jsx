@@ -34,9 +34,11 @@ const SERVICES = [
 
 export default function Services() {
   return (
-    <section className="section services" id="services">
-      <p className="eyebrow"><Reveal as="span">What we do</Reveal></p>
-      <DecodeText as="h2" text="Focused vision. Measured execution." className="section-title" />
+    <section className="section services" id="services" data-quiet>
+      <div className="text-plate">
+        <p className="eyebrow"><Reveal as="span">What we do</Reveal></p>
+        <DecodeText as="h2" text="Focused vision. Measured execution." className="section-title" />
+      </div>
       <div className="services-list">
         {SERVICES.map((s, i) => (
           <Reveal key={s.n} className="service-row" delay={i * 0.06} as="div">

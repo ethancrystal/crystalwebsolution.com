@@ -10,6 +10,21 @@
   --font-display: 'Space Grotesk', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'Space Mono', monospace;
+
+  /* --- foreground prominence upgrade --- */
+  --text-lift: 0 1px 2px rgba(2, 4, 8, 0.7), 0 14px 44px rgba(2, 4, 8, 0.5);
+  --plate: radial-gradient(
+    120% 110% at 28% 50%,
+    rgba(4, 7, 13, 0.72) 0%,
+    rgba(4, 7, 13, 0.34) 52%,
+    rgba(4, 7, 13, 0) 72%
+  );
+  --plate-centered: radial-gradient(
+    90% 130% at 50% 50%,
+    rgba(4, 7, 13, 0.7) 0%,
+    rgba(4, 7, 13, 0.32) 55%,
+    rgba(4, 7, 13, 0) 75%
+  );
 }
 
 /* ---------- base ---------- */
@@ -42,7 +57,52 @@ html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: none; }
   pointer-events: none;
 }
 
-.page { position: relative; z-index: 1; }
+.page { position: relative; z-index: 2; }
+
+/* ---------- focus system (DOM half) ---------- */
+/* Sits between the canvas (z-index 0) and .page (z-index 2). Invisible by
+   default; FocusVeil.jsx eases it in while a [data-quiet] section owns the
+   viewport. Asymmetric on purpose — never a flat full-viewport wash — so the
+   3D scene stays visible around every text block. No backdrop-filter here:
+   that would cost a live-WebGL-canvas blur on every frame. */
+.focus-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(3, 5, 9, 0.5) 0%,
+      rgba(3, 5, 9, 0) 20%,
+      rgba(3, 5, 9, 0) 80%,
+      rgba(3, 5, 9, 0.5) 100%
+    ),
+    radial-gradient(95rem 62rem at 28% 55%, rgba(3, 5, 9, 0.46) 0%, rgba(3, 5, 9, 0) 62%);
+}
+
+/* ---------- local text plates ---------- */
+/* Wrap a headline BLOCK (eyebrow + h1/h2 + lede), never a whole section.
+   The scrim hugs the copy only — everything around it stays fully lit. */
+.text-plate { position: relative; }
+.text-plate::before {
+  content: '';
+  position: absolute;
+  inset: -1.75rem -3rem;
+  z-index: -1;
+  border-radius: 28px;
+  background: var(--plate);
+  filter: blur(2px);
+  pointer-events: none;
+}
+/* Centered sections (Hero stays centered pre-off-axis media query, Contact)
+   get a plate centered on the text instead of weighted left. */
+.hero .text-plate::before,
+.contact .text-plate::before {
+  background: var(--plate-centered);
+}
 
 /* ---------- layout primitives ---------- */
 .section {
@@ -73,6 +133,17 @@ html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: none; }
 
 .decode { display: inline-block; }
 .decode .char { display: inline-block; will-change: transform, opacity; }
+
+/* ---------- assertive display type ---------- */
+/* Element-level rules; existing classes (.hero-title, .section-title, etc.)
+   are more specific and keep controlling size — this only adds separation
+   from the scene via a layered shadow (inherited by the split .char spans). */
+h1, h2 {
+  text-shadow: var(--text-lift);
+}
+.eyebrow {
+  text-shadow: 0 1px 2px rgba(2, 4, 8, 0.75);
+}
 
 /* ---------- buttons ---------- */
 .btn {
@@ -284,6 +355,29 @@ html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: none; }
 
 /* ---------- hero ---------- */
 .hero { align-items: center; text-align: center; min-height: 100vh; }
+
+/* Off-axis composition (consensus item #1): text moves to a left column so
+   the crystal — framed via the matching look-target nudge in journey.js —
+   sits beside the copy instead of dead behind it. Falls back to the
+   original centered layout below 900px, where there's no room for two
+   focal points side by side. Delete this block to fully revert to the
+   original centered hero. */
+@media (min-width: 900px) {
+  .hero-off-axis {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .hero-off-axis .text-plate {
+    max-width: 58%;
+  }
+  .hero-off-axis .hero-cta {
+    align-items: flex-start;
+  }
+  .hero-off-axis .hero-scroll {
+    left: 6vw;
+    transform: none;
+  }
+}
 .hero-eyebrow { margin-bottom: 2rem; }
 .hero-title {
   font-family: var(--font-display);
@@ -374,6 +468,8 @@ html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: none; }
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--line);
+  border-top-color: rgba(255, 255, 255, 0.16); /* top-edge light */
+  background-color: rgba(255, 255, 255, 0.02); /* slight surface presence under the gradient layers */
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.4s;
 }
 .showcase-link:hover .project-visual { transform: scale(1.02); border-color: rgba(89, 243, 255, 0.5); }
@@ -430,9 +526,10 @@ html.has-cursor, html.has-cursor a, html.has-cursor button { cursor: none; }
 }
 .fact-card {
   border: 1px solid var(--line);
+  border-top-color: rgba(255, 255, 255, 0.16); /* top-edge light */
   border-radius: 14px;
   padding: 2rem 1.8rem;
-  background: rgba(10, 16, 30, 0.45);
+  background: rgba(10, 16, 30, 0.5);
   backdrop-filter: blur(8px);
   transition: border-color 0.35s, transform 0.35s;
 }

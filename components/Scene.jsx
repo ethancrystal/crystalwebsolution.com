@@ -2,6 +2,7 @@
 
 import { Canvas } from '@react-three/fiber';
 import CameraRig from './three/CameraRig';
+import FocusDimmer from './three/FocusDimmer';
 import Crystal from './three/Crystal';
 import ShowcaseBoxes from './three/ShowcaseBoxes';
 import MarkAssembly from './three/MarkAssembly';
@@ -26,6 +27,7 @@ export default function Scene() {
         <fog attach="fog" args={['#04060c', 18, 120]} />
         <Lights />
         <CameraRig />
+        <FocusDimmer />
 
         {/* Hero beat */}
         <Crystal position={[0, 0, CLUSTERS.crystal]} />

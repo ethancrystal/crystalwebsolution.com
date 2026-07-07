@@ -6,12 +6,14 @@ import { SITE } from '../../lib/site';
 
 export default function About() {
   return (
-    <section className="section about" id="about">
-      <p className="eyebrow"><Reveal as="span">About</Reveal></p>
-      <Reveal as="h2" className="about-statement">
-        {SITE.name} is an independent studio crafting brand experiences
-        where strategy, design and real-time 3D meet.
-      </Reveal>
+    <section className="section about" id="about" data-quiet>
+      <div className="text-plate">
+        <p className="eyebrow"><Reveal as="span">About</Reveal></p>
+        <Reveal as="h2" className="about-statement">
+          {SITE.name} is an independent studio crafting brand experiences
+          where strategy, design and real-time 3D meet.
+        </Reveal>
+      </div>
       <div className="about-cols">
         <Reveal className="about-col" delay={0.1}>
           <p>

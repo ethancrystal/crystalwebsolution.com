@@ -7,10 +7,12 @@ import { SITE } from '../../lib/site';
 
 export default function Contact() {
   return (
-    <section className="section contact" id="contact">
-      <p className="eyebrow"><Reveal as="span">From idea to outcome</Reveal></p>
-      <DecodeText as="h2" text="Let's make" className="contact-line" />
-      <DecodeText as="h2" text="something rare." className="contact-line contact-line-accent" delay={0.3} />
+    <section className="section contact" id="contact" data-quiet>
+      <div className="text-plate">
+        <p className="eyebrow"><Reveal as="span">From idea to outcome</Reveal></p>
+        <DecodeText as="h2" text="Let's make" className="contact-line" />
+        <DecodeText as="h2" text="something rare." className="contact-line contact-line-accent" delay={0.3} />
+      </div>
       <Reveal className="contact-cta" delay={0.4}>
         <Magnetic strength={0.45}>
           <a href={`mailto:${SITE.email}`} className="btn btn-solid btn-xl" data-cursor="Write us">
