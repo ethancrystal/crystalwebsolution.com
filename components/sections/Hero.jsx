@@ -20,6 +20,9 @@ export default function Hero() {
       data-cursor="Tap"
       data-quiet
     >
+      <div className="hero-caustics" aria-hidden="true">
+        <span className="caustic-ray" />
+      </div>
       <div className="text-plate">
         <p className="eyebrow hero-eyebrow">
           <Reveal as="span" delay={2.6}>Est. {SITE.est} — {SITE.years} years shaping digital direction</Reveal>

@@ -30,10 +30,14 @@ npm run dev   # http://localhost:3000
    slide in; the marquee speeds up with your scroll velocity.
 3. **Showcase** — glass slabs (one per project) drift at this depth; cards link
    to generated-art case studies.
-4. **Mark** — 26 scattered shards assemble into a diamond ring as you scroll
+4. **Client Stories** — testimonial tabs swap the featured quote; a quiet,
+   centered beat (no off-axis text-plate) between Showcase and Mark.
+5. **Mark** — 26 scattered shards assemble into a diamond ring as you scroll
    through the section (MARK_WINDOW in `lib/journey.js`).
-5. **About / Facts** — statement typography, stat cards, second marquee.
-6. **Contact** — camera settles on a final crystal; magnetic email CTA; footer.
+6. **About / Facts** — statement typography, stat cards, second marquee.
+7. **Design in Motion** — a pinned typographic beat: two headline lines shear
+   apart and settle as the section scrubs, between Facts and Contact.
+8. **Contact** — camera settles on a final crystal; magnetic email CTA; footer.
 
 ## Architecture rules (read before editing)
 

@@ -387,12 +387,77 @@ h1, h2 {
   font-weight: 600;
 }
 .hero-line { display: block; }
+/* A moving highlight sweep layered over the base gradient, plus a cyan
+   drop-shadow — needed because the plain gradient reads as near-invisible
+   against the crystal's own cyan glow directly behind it. */
 .hero-line-accent {
-  background: linear-gradient(100deg, var(--cyan), var(--blue) 55%, var(--violet));
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0) 35%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0) 65%),
+    linear-gradient(100deg, var(--cyan), var(--blue) 55%, var(--violet));
+  background-size: 250% 100%, 100% 100%;
+  background-position: -120% 0, 0 0;
+  background-repeat: no-repeat;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  filter: drop-shadow(0 0 22px rgba(89, 243, 255, 0.6)) drop-shadow(0 0 46px rgba(60, 108, 255, 0.35));
+  animation: heroShine 3.4s ease-in-out infinite;
 }
+@keyframes heroShine {
+  0% { background-position: -120% 0, 0 0; }
+  55%, 100% { background-position: 220% 0, 0 0; }
+}
+
+/* Underwater light: soft drifting blurred blobs, code-generated (no
+   assets), sitting behind the hero copy and above the WebGL canvas. First
+   child in the DOM so later siblings (.text-plate etc.) paint over it. */
+.hero-caustics {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-caustics::before,
+.hero-caustics::after,
+.hero-caustics .caustic-ray {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  mix-blend-mode: screen;
+}
+.hero-caustics::before {
+  width: 55vw; height: 55vw;
+  left: -10%; top: -15%;
+  background: radial-gradient(circle, rgba(89, 243, 255, 0.28), transparent 70%);
+  animation: causticDrift1 16s ease-in-out infinite;
+}
+.hero-caustics::after {
+  width: 60vw; height: 60vw;
+  right: -15%; bottom: -20%;
+  background: radial-gradient(circle, rgba(60, 108, 255, 0.22), transparent 70%);
+  animation: causticDrift2 20s ease-in-out infinite;
+}
+.hero-caustics .caustic-ray {
+  width: 40vw; height: 40vw;
+  left: 30%; top: 20%;
+  background: radial-gradient(circle, rgba(192, 132, 252, 0.16), transparent 70%);
+  animation: causticDrift3 24s ease-in-out infinite;
+}
+@keyframes causticDrift1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(6%, 8%) scale(1.12); }
+}
+@keyframes causticDrift2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-8%, -6%) scale(1.08); }
+}
+@keyframes causticDrift3 {
+  0%, 100% { transform: translate(-6%, 4%) scale(0.95); }
+  50% { transform: translate(4%, -6%) scale(1.1); }
+}
+
 .hero-sub { margin-top: 2.2rem; color: var(--muted); font-size: clamp(0.95rem, 1.6vw, 1.15rem); line-height: 1.7; }
 .hero-cta { margin-top: 3rem; display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
 .hero-hint { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.18em; color: var(--muted); }
@@ -706,4 +771,8 @@ h1, h2 {
 
 @media (prefers-reduced-motion: reduce) {
   .hero-scroll-line { animation: none; }
+  .hero-line-accent { animation: none; background-position: -120% 0, 0 0; }
+  .hero-caustics::before,
+  .hero-caustics::after,
+  .hero-caustics .caustic-ray { animation: none; }
 }
