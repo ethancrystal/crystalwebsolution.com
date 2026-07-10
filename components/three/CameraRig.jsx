@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { scrollState } from '../../lib/scrollState';
 import { STOPS } from '../../lib/journey';
 import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
+import { motionScale } from '../../lib/motionScale';
 
 // Pre-built vectors — never allocate inside useFrame.
 const POS = STOPS.map((s) => new THREE.Vector3(...s.pos));
@@ -18,8 +19,12 @@ function smootherstep(t) {
   return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
+const FOV_BASE = 42;
+const FOV_SURGE_MAX = 4.5;
+
 export default function CameraRig() {
   const pointer = useRef({ x: 0, y: 0 });
+  const fov = useRef(FOV_BASE);
 
   useEffect(() => {
     const onMove = (e) => {
@@ -60,9 +65,25 @@ export default function CameraRig() {
     curLook.lerp(tmpLook, k);
     state.camera.lookAt(curLook);
 
-    // Velocity-based roll gives the flight some banking.
-    const roll = THREE.MathUtils.clamp(scrollState.velocity * 0.00035, -0.06, 0.06);
+    // Velocity-based roll gives the flight some banking. (× motionScale:
+    // the canvas-side reduced-motion gate zeroes velocity theatrics.)
+    const roll =
+      THREE.MathUtils.clamp(scrollState.velocity * 0.00035, -0.06, 0.06) *
+      motionScale.value;
     state.camera.rotation.z += (roll - state.camera.rotation.z) * k;
+
+    // FOV surge — fast scroll widens the lens a touch (42 → ~46.5) so
+    // velocity reads as speed, not just displacement. Damped like all else;
+    // the projection matrix is only rebuilt when the change is visible.
+    const surge =
+      Math.min(Math.abs(scrollState.velocity) * 0.004, 1) *
+      FOV_SURGE_MAX *
+      motionScale.value;
+    fov.current += (FOV_BASE + surge - fov.current) * (1 - Math.exp(-dt * 3));
+    if (Math.abs(state.camera.fov - fov.current) > 0.01) {
+      state.camera.fov = fov.current;
+      state.camera.updateProjectionMatrix();
+    }
   });
 
   return null;

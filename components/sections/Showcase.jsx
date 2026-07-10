@@ -5,6 +5,7 @@ import DecodeText from '../DecodeText';
 import Reveal from '../Reveal';
 import ProjectVisual from '../ProjectVisual';
 import { PROJECTS } from '../../lib/projects';
+import { focusSlab, blurSlab } from '../../lib/focusBeacon';
 
 export default function Showcase() {
   const featured = PROJECTS.slice(0, 4);
@@ -15,7 +16,15 @@ export default function Showcase() {
       <div className="showcase-grid">
         {featured.map((p, i) => (
           <Reveal key={p.slug} className={`showcase-card ${i % 2 ? 'is-offset' : ''}`} delay={i * 0.08}>
-            <Link href={`/work/${p.slug}`} className="showcase-link" data-cursor="View case">
+            <Link
+              href={`/work/${p.slug}`}
+              className="showcase-link"
+              data-cursor="View case"
+              onPointerEnter={() => focusSlab(i)}
+              onPointerLeave={blurSlab}
+              onFocus={() => focusSlab(i)}
+              onBlur={blurSlab}
+            >
               <ProjectVisual palette={p.palette} title={p.title} />
               <div className="showcase-meta">
                 <h3>{p.title}</h3>

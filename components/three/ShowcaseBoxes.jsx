@@ -4,8 +4,15 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PROJECTS } from '../../lib/projects';
+import { focusBeacon } from '../../lib/focusBeacon';
 
 // Glass slabs — one per project — drifting around the showcase depth.
+// Hovering (or keyboard-focusing) a project card in the DOM
+// (components/sections/Showcase.jsx) writes lib/focusBeacon.js; the
+// matching slab brightens toward its palette glow while the rest recede —
+// emissive only, so the drift/rotation system stays untouched. Showcase
+// features four cards; the fifth slab has no card and simply recedes with
+// the other siblings while any card is focused.
 const LAYOUT = [
   [-2.6, 0.9, -1.2],
   [2.4, -0.5, 0.6],
@@ -27,11 +34,15 @@ export default function ShowcaseBoxes({ position = [0, 0, 0] }) {
     const t = state.clock.elapsedTime;
     if (!group.current) return;
     group.current.rotation.y += dt * 0.05;
+    const idx = focusBeacon.index;
+    const damp = 1 - Math.exp(-dt * 6);
     for (let i = 0; i < group.current.children.length; i++) {
       const m = group.current.children[i];
       m.position.y = LAYOUT[i][1] + Math.sin(t * 0.6 + i * 1.7) * 0.25;
       m.rotation.x += dt * 0.1 * ((i % 2) ? 1 : -1);
       m.rotation.y += dt * 0.14;
+      const glow = idx === i ? 0.7 : idx >= 0 ? 0.05 : 0.12;
+      m.material.emissiveIntensity += (glow - m.material.emissiveIntensity) * damp;
     }
   });
 

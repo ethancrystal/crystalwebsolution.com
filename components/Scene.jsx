@@ -4,6 +4,7 @@ import { Canvas } from '@react-three/fiber';
 import CameraRig from './three/CameraRig';
 import FocusDimmer from './three/FocusDimmer';
 import Crystal from './three/Crystal';
+import ServiceRail from './three/ServiceRail';
 import ShowcaseBoxes from './three/ShowcaseBoxes';
 import MarkAssembly from './three/MarkAssembly';
 import ApproachCompass from './three/ApproachCompass';
@@ -26,9 +27,12 @@ export default function Scene() {
         camera={{ fov: 42, near: 0.1, far: 260, position: [0, 0.25, 7.5] }}
       >
         <color attach="background" args={['#04060c']} />
-        {/* Beats sit ~18 apart; far = 64 keeps only the current beat and the
-            next one in view, so a beat's mascot never lingers over another. */}
-        <fog attach="fog" args={['#04060c', 14, 64]} />
+        {/* Beats sit 9-18 apart and the camera trails ~8-9 units behind each
+            stop, so the current mascot is ~10 away (barely fogged) and the
+            next ~17-26. near=10/far=48 actually delivers what the old
+            14/64 range only promised: the next beat reads as a dim preview
+            instead of loose dark slabs floating over the current copy. */}
+        <fog attach="fog" args={['#04060c', 10, 48]} />
         <Lights />
         <CameraRig />
         <FocusDimmer />
@@ -37,10 +41,9 @@ export default function Scene() {
         <Crystal position={[0, 0, CLUSTERS.crystal]} />
         <Sparks position={[0, 0, CLUSTERS.crystal]} />
 
-        {/* Services beat — a loose orbit of small crystals */}
-        <group position={[0, 0, CLUSTERS.services]}>
-          <Crystal position={[0, 0, 0]} />
-        </group>
+        {/* Services beat — five emblems, one per service row, hover-linked
+            to the DOM list (see ServiceRail) */}
+        <ServiceRail position={[0, 0, CLUSTERS.services]} />
 
         {/* Approach beat — step-markers orbiting a small core */}
         <ApproachCompass position={[0, 0, CLUSTERS.approach]} />
