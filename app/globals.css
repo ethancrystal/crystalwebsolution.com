@@ -387,25 +387,19 @@ h1, h2 {
   font-weight: 600;
 }
 .hero-line { display: block; }
-/* A moving highlight sweep layered over the base gradient, plus a cyan
-   drop-shadow — needed because the plain gradient reads as near-invisible
-   against the crystal's own cyan glow directly behind it. */
+/* --accent-grad is the source of truth DecodeText.jsx reads to re-paint the
+   gradient per split .char (background-clip:text can't survive SplitType
+   turning the line's text into child nodes — the parent has none left to
+   clip). The background/-webkit-background-clip pair below is a fallback
+   for the pre-hydration flash, when the line is still one plain text node. */
 .hero-line-accent {
-  background:
-    linear-gradient(110deg, rgba(255, 255, 255, 0) 35%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0) 65%),
-    linear-gradient(100deg, var(--cyan), var(--blue) 55%, var(--violet));
-  background-size: 250% 100%, 100% 100%;
-  background-position: -120% 0, 0 0;
-  background-repeat: no-repeat;
+  --accent-grad: linear-gradient(100deg, var(--cyan), var(--blue) 55%, var(--violet));
+  background: var(--accent-grad);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  text-shadow: none;
   filter: drop-shadow(0 0 22px rgba(89, 243, 255, 0.6)) drop-shadow(0 0 46px rgba(60, 108, 255, 0.35));
-  animation: heroShine 3.4s ease-in-out infinite;
-}
-@keyframes heroShine {
-  0% { background-position: -120% 0, 0 0; }
-  55%, 100% { background-position: 220% 0, 0 0; }
 }
 
 /* Underwater light: soft drifting blurred blobs, code-generated (no
@@ -564,10 +558,13 @@ h1, h2 {
 .mark { align-items: center; text-align: center; }
 .mark-line { font-family: var(--font-display); font-size: clamp(2.2rem, 6vw, 4.6rem); line-height: 1.08; }
 .mark-line-accent {
-  background: linear-gradient(100deg, var(--violet), var(--cyan));
+  --accent-grad: linear-gradient(100deg, var(--violet), var(--cyan));
+  background: var(--accent-grad);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 1px 2px rgba(2, 4, 8, 0.5));
 }
 .mark-sub { margin-top: 2rem; color: var(--muted); max-width: 44ch; line-height: 1.7; }
 
@@ -623,6 +620,8 @@ h1, h2 {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 1px 2px rgba(2, 4, 8, 0.5));
 }
 .motion-sub { margin-top: 2rem; color: var(--muted); max-width: 44ch; line-height: 1.7; }
 .motion-cta { margin-top: 2.6rem; }
@@ -670,10 +669,13 @@ h1, h2 {
 .contact { align-items: center; text-align: center; }
 .contact-line { font-family: var(--font-display); font-size: clamp(2.6rem, 8vw, 6.4rem); line-height: 1.04; }
 .contact-line-accent {
-  background: linear-gradient(100deg, var(--cyan), var(--violet));
+  --accent-grad: linear-gradient(100deg, var(--cyan), var(--violet));
+  background: var(--accent-grad);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 1px 2px rgba(2, 4, 8, 0.5));
 }
 .contact-cta { margin-top: 3.4rem; }
 
@@ -771,7 +773,6 @@ h1, h2 {
 
 @media (prefers-reduced-motion: reduce) {
   .hero-scroll-line { animation: none; }
-  .hero-line-accent { animation: none; background-position: -120% 0, 0 0; }
   .hero-caustics::before,
   .hero-caustics::after,
   .hero-caustics .caustic-ray { animation: none; }
@@ -812,7 +813,7 @@ h1, h2 {
   cursor: default;
 }
 .recognition-row-inner:hover { padding-left: 1.2rem; }
-.recognition-year-wrap { display: inline-block; height: 1.15em; overflow: hidden; vertical-align: top; }
+.recognition-year-wrap { display: inline-block; font-size: 0.75rem; height: 1.15em; overflow: hidden; vertical-align: top; }
 .recognition-year-stack {
   display: flex;
   flex-direction: column;

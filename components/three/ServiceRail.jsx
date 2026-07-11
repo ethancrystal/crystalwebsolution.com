@@ -23,7 +23,7 @@ import { beacon } from '../../lib/beacon';
 // mass-spring-damper per emblem (ApproachCompass's constants) driving
 // emissive + scale, so responses overshoot slightly and settle alive.
 const COUNT = 5;
-const RAIL_X = 2.0;
+const RAIL_X = 2.3;
 const TOP_Y = 1.4;
 const STEP_Y = 0.7;
 // z-stagger capped at ±0.6: enough depth for CameraRig's pointer parallax
