@@ -952,7 +952,7 @@ h1, h2 {
   .about-cols { grid-template-columns: 1fr; gap: 2rem; }
   .footer { grid-template-columns: 1fr; gap: 2rem; }
   .work-row { grid-template-columns: 1fr; }
-  .nav-logo-text { display: none; }
+  .nav-logo-text { font-size: 0.85rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
