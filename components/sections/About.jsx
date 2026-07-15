@@ -9,17 +9,17 @@ gsap.registerPlugin(ScrollTrigger);
 
 const WORDS = [
   { text: 'WE', x: 80, y: 250 },
-  { text: 'BUILD', x: 220, y: 250 },
-  { text: 'DIGITAL', x: 560, y: 250 },
+  { text: 'BUILD', x: 507, y: 250 },
+  { text: 'DIGITAL', x: 1062, y: 250 },
   { text: 'EXPERIENCES', x: 80, y: 370 },
-  { text: 'THAT', x: 690, y: 370 },
-  { text: 'TURN', x: 970, y: 370 },
+  { text: 'THAT', x: 785, y: 370 },
+  { text: 'TURN', x: 1191, y: 370 },
   { text: 'CLEAR', x: 80, y: 490 },
-  { text: 'STRATEGY', x: 390, y: 490 },
-  { text: 'INTO', x: 890, y: 490 },
+  { text: 'STRATEGY', x: 571, y: 490 },
+  { text: 'INTO', x: 1190, y: 490 },
   { text: 'BRANDS', x: 80, y: 610 },
-  { text: 'PEOPLE', x: 470, y: 610 },
-  { text: 'REMEMBER.', x: 830, y: 610 },
+  { text: 'PEOPLE', x: 529, y: 610 },
+  { text: 'REMEMBER.', x: 978, y: 610 },
 ];
 
 export default function About() {
