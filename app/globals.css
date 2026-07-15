@@ -360,7 +360,7 @@ h1, h2 {
 }
 
 /* ---------- hero ---------- */
-.hero { align-items: center; text-align: center; min-height: 100vh; }
+.hero { align-items: center; text-align: center; min-height: 100vh; padding-top: 12vh; }
 
 /* Off-axis composition (consensus item #1): text moves to a left column so
    the crystal — framed via the matching look-target nudge in journey.js —
