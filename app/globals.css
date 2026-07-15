@@ -171,7 +171,13 @@ h1, h2 {
 .btn-solid:hover { box-shadow: 0 0 42px rgba(89, 243, 255, 0.45); }
 
 .btn-outline:hover, .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
-.btn-ghost { border-color: transparent; }
+.btn-ghost {
+  border-color: rgba(89, 243, 255, 0.5);
+  box-shadow: 0 0 0 1px rgba(89, 243, 255, 0.12), 0 0 22px rgba(89, 243, 255, 0.22);
+}
+.btn-ghost:hover {
+  box-shadow: 0 0 0 1px rgba(89, 243, 255, 0.3), 0 0 32px rgba(89, 243, 255, 0.42);
+}
 
 .btn-arrow { transition: transform 0.35s; }
 .btn:hover .btn-arrow { transform: translateX(6px); }
@@ -277,7 +283,7 @@ h1, h2 {
   mix-blend-mode: normal;
 }
 .nav-logo { display: flex; align-items: center; gap: 0.6rem; font-family: var(--font-display); font-weight: 600; }
-.nav-logo-img { height: 40px; width: auto; display: block; }
+.nav-logo-img { height: 60px; width: auto; display: block; }
 .nav-right { display: flex; align-items: center; gap: 0.8rem; }
 
 .nav-burger {
@@ -381,8 +387,8 @@ h1, h2 {
 .hero-eyebrow { margin-bottom: 2rem; }
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(3rem, 10vw, 8rem);
-  line-height: 1.02;
+  font-size: clamp(2rem, 5.2vw, 4.25rem);
+  line-height: 1.08;
   font-weight: 600;
 }
 .hero-line { display: block; }
@@ -597,9 +603,9 @@ h1, h2 {
   font-family: var(--font-display);
   letter-spacing: 0;
 }
-.showcase-smil-title { fill: #151612; font-size: 29px; }
-.showcase-smil-meta { fill: #545650; font-family: var(--font-mono); font-size: 13px; }
-.showcase-smil-open { fill: #151612; font-family: var(--font-mono); font-size: 12px; }
+.showcase-smil-title { fill: #151612; font-size: 44px; }
+.showcase-smil-meta { fill: #545650; font-family: var(--font-mono); font-size: 20px; }
+.showcase-smil-open { fill: #151612; font-family: var(--font-mono); font-size: 18px; }
 .showcase-curtain-label { font-size: 142px; }
 .showcase-smil-all {
   position: absolute;
@@ -951,7 +957,7 @@ h1, h2 {
   .about-cols { grid-template-columns: 1fr; gap: 2rem; }
   .footer { grid-template-columns: 1fr; gap: 2rem; }
   .work-row { grid-template-columns: 1fr; }
-  .nav-logo-img { height: 32px; }
+  .nav-logo-img { height: 44px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

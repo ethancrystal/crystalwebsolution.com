@@ -5,7 +5,9 @@ import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { scrollState } from '../lib/scrollState';
-import { measureBeats } from '../lib/beatProgress';
+import { BEAT_IDS, beatProgress, measureBeats } from '../lib/beatProgress';
+import { pinnedRanges } from '../lib/pinnedRanges';
+import { EASE_SNAP, DURATION_SLOW } from '../lib/easing';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -13,16 +15,64 @@ gsap.registerPlugin(ScrollTrigger);
 // Every Lenis scroll event updates ScrollTrigger AND the scrollState singleton.
 export default function SmoothScroll({ children }) {
   useEffect(() => {
+    // Heavier, more deliberate feel: longer settle duration and a lower
+    // wheel/touch multiplier mean a single scroll gesture covers less
+    // ground, so sections read as places to arrive at rather than blur past.
     const lenis = new Lenis({
-      duration: 1.25,
-      lerp: 0.1,
+      duration: 1.6,
+      lerp: 0.085,
       smoothWheel: true,
+      wheelMultiplier: 0.82,
+      touchMultiplier: 0.9,
     });
+
+    // Magnetic section snap: once scrolling has fully settled (the user
+    // let go AND Lenis's own inertia has drained), ease the rest of the way
+    // to whichever section is nearest, so a scroll gesture never strands
+    // someone half between two sections. Skipped while inside a pinned
+    // ScrollTrigger's own range (e.g. Showcase's card belt) — that
+    // animation already maps scroll 1:1 to its own progress and has its
+    // own hold points; snapping would fight it. Also skipped for
+    // prefers-reduced-motion, since this is an extra animated scroll on
+    // top of whatever the user just did.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const snapEase = gsap.parseEase(EASE_SNAP);
+    let idleTimer = null;
+
+    const withinPinnedRange = (scroll) =>
+      pinnedRanges.some((range) => scroll >= range.start - 1 && scroll <= range.end + 1);
+
+    const scheduleSnap = () => {
+      if (reduceMotion) return;
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        if (!document.getElementById('hero')) return;
+        const scroll = lenis.scroll;
+        const limit = lenis.limit;
+        if (!limit || withinPinnedRange(scroll)) return;
+
+        const current = scroll / limit;
+        let nearestId = BEAT_IDS[0];
+        let nearestDist = Infinity;
+        for (const id of BEAT_IDS) {
+          const dist = Math.abs(beatProgress[id] - current);
+          if (dist < nearestDist) {
+            nearestDist = dist;
+            nearestId = id;
+          }
+        }
+
+        const target = beatProgress[nearestId] * limit;
+        if (Math.abs(target - scroll) < 2 || withinPinnedRange(target)) return;
+        lenis.scrollTo(target, { duration: DURATION_SLOW, easing: snapEase });
+      }, 220);
+    };
 
     const onScroll = ({ progress, velocity }) => {
       scrollState.progress = progress;
       scrollState.velocity = velocity * 1000;
       ScrollTrigger.update();
+      scheduleSnap();
     };
     lenis.on('scroll', onScroll);
 
@@ -58,6 +108,7 @@ export default function SmoothScroll({ children }) {
     ro.observe(document.body);
 
     return () => {
+      clearTimeout(idleTimer);
       document.removeEventListener('click', onClick);
       gsap.ticker.remove(tick);
       lenis.off('scroll', onScroll);
