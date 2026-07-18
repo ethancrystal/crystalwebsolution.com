@@ -4,6 +4,8 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { chime } from '../../lib/chime';
+import { scrollState } from '../../lib/scrollState';
+import { beatProgress } from '../../lib/beatProgress';
 
 // The recognition beat: four medal-toruses drift in a loose ring. Hovering
 // an award row in the DOM (components/sections/Recognition.jsx) writes
@@ -13,10 +15,22 @@ import { chime } from '../../lib/chime';
 // reused here for a DOM-hover -> 3D-spark idiom instead of click -> 3D.
 // Sparks live as children of the same slowly-rotating group as the medals,
 // so a burst stays visually anchored to the medal it came from.
+//
+// docs/HIVE-AUDIT.md Judge item 4 / docs/PIXEL-POLISH-PLAN.md Phase 1:
+// lib/journey.js flies the camera from STOPS[recognition] (z=-122, in front
+// of this ring's z=-130) to STOPS[motion] (z=-138, behind it) — the straight
+// line between those stops crosses this ring's exact depth, close to its x/y
+// center, at the segment's midpoint. Left alone, the medals swim huge and
+// unfogged across the lens right as Motion's pinned headline arrives. The
+// whole group fades/shrinks out well before that crossing (and back in on
+// the way back up) driven by the same measured beatProgress CameraRig uses,
+// so it tracks the real section bounds rather than a guessed scroll number.
 const COUNT = 4;
 const ANGLES = Array.from({ length: COUNT }, (_, i) => (i / COUNT) * Math.PI * 2);
 const RADIUS = 2.1;
 const SPARK_COUNT = 18;
+const FADE_START = 0.3; // fraction through the recognition→motion segment
+const FADE_END = 0.48; // fully hidden before the z-crossing at ~0.5
 
 function buildSparkVelocities(seed) {
   const vel = new Float32Array(SPARK_COUNT * 3);
@@ -50,6 +64,15 @@ export default function RecognitionRing({ position = [0, 0, 0] }) {
     const dt = Math.min(delta, 0.05);
     const t = state.clock.elapsedTime;
     if (!group.current) return;
+
+    // Camera-crossing fade — see file header. Reads live scroll progress so
+    // it's correct scrubbing in either direction, not a one-shot trigger.
+    const segStart = beatProgress.recognition;
+    const segEnd = beatProgress.motion;
+    const span = Math.max(segEnd - segStart, 0.0001);
+    const local = THREE.MathUtils.clamp((scrollState.progress - segStart) / span, 0, 1);
+    const fade = 1 - THREE.MathUtils.smoothstep(local, FADE_START, FADE_END);
+    group.current.scale.setScalar(fade);
 
     if (chime.t !== lastChime.current) {
       lastChime.current = chime.t;

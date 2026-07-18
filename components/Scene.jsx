@@ -53,9 +53,15 @@ export default function Scene() {
         {/* Recognition beat — medal ring, brightens on DOM row hover */}
         <RecognitionRing position={[0, 0, CLUSTERS.recognition]} />
 
-        {/* About + Facts + Contact share the ambient field */}
+        {/* About + Facts + Contact share the ambient field. The Sparks
+            instance here is the "closing roar" payoff for Contact.jsx's
+            onRoar handler — same component as the hero's, just re-instanced
+            at the contact crystal's own position (see docs/PIXEL-POLISH-PLAN.md
+            Phase 2); without it the hero's Sparks would fire uselessly back
+            at z=0, nowhere near the camera by the time contact is on screen. */}
         <group position={[0, 0, CLUSTERS.contact]}>
           <Crystal position={[0, 0, -3]} />
+          <Sparks position={[0, 0, -3]} />
         </group>
 
         <Particles count={900} />

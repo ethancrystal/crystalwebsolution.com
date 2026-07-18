@@ -3,9 +3,21 @@
 import DecodeText from '../DecodeText';
 import Reveal from '../Reveal';
 import Magnetic from '../Magnetic';
+import { blast } from '../../lib/pulse';
 import { SITE } from '../../lib/site';
 
+// "Closing roar" (docs/PIXEL-POLISH-PLAN.md Phase 2): reaching for the email
+// CTA fires the same lib/pulse.js blast() the hero's click already drives.
+// Crystal.jsx reads the pulse singleton globally, so the contact crystal
+// (Scene.jsx) picks up the scale-pulse/spin-burst for free; the matching
+// Sparks instance added alongside it there gives it the spark-ejection half
+// too — full-circle callback to the hero gesture, no new systems.
 export default function Contact() {
+  const onRoar = (e) => {
+    if (typeof e.clientX === 'number') blast(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
+    else blast();
+  };
+
   return (
     <section className="section contact" id="contact" data-quiet>
       <div className="text-plate">
@@ -18,7 +30,13 @@ export default function Contact() {
       </div>
       <Reveal className="contact-cta" delay={0.4}>
         <Magnetic strength={0.45}>
-          <a href={`mailto:${SITE.email}`} className="btn btn-solid btn-xl" data-cursor="Write us">
+          <a
+            href={`mailto:${SITE.email}`}
+            className="btn btn-solid btn-xl"
+            data-cursor="Write us"
+            onPointerEnter={onRoar}
+            onFocus={onRoar}
+          >
             {SITE.email}
           </a>
         </Magnetic>
