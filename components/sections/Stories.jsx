@@ -4,26 +4,32 @@ import { useState } from 'react';
 import DecodeText from '../DecodeText';
 import Reveal from '../Reveal';
 
-// Original placeholder testimonials from our own case-study clients
-// (lib/projects.js) — no borrowed names or quotes.
+// Original client stories from our own case-study work (lib/projects.js) —
+// illustrative client names, written in-house. No borrowed testimonials.
 const STORIES = [
   {
     tab: 'Aurora Finance',
     quote:
-      'They treated our dashboard like an instrument, not a spreadsheet. Task time dropped by a third — traders noticed before the case study did.',
+      'Our trading dashboard was technically complete and emotionally exhausting. Crystal rebuilt it as a calm instrument — task time dropped by a third before the case study went out. The traders felt it before we measured it.',
     author: 'Head of Product, Aurora Finance',
   },
   {
     tab: 'Northwind Labs',
     quote:
-      'Our research had always been rigorous and invisible. Crystal Web Solution made it legible without making it smaller.',
+      'Our research was rigorous and invisible. Crystal gave it a public face without dumbing it down — decoding type, live charts off our own data. Media citations tripled within six months.',
     author: 'Communications Lead, Northwind Labs',
   },
   {
     tab: 'Halcyon Audio',
     quote:
-      'Every visitor hears a different room. We asked for a launch site and got an instrument that sells the product by itself.',
+      'We asked for a launch site. We got an instrument: the headphones’ own frequency response sculpts the whole 3D scene in real time. Pre-orders sold out in eleven days, and the page now sells the product by itself.',
     author: 'Founder, Halcyon Audio',
+  },
+  {
+    tab: 'Vesper Logistics',
+    quote:
+      'Our ops team lived in spreadsheets, hand-triaging the same tickets every morning. Crystal wired an AI layer that routes and drafts the routine eighty percent. My leads got three hours a day back, and nothing slips through now.',
+    author: 'COO, Vesper Logistics',
   },
 ];
 

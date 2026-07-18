@@ -9,7 +9,7 @@ const mono = Space_Mono({ subsets: ['latin'], weight: ['400', '700'], variable: 
 export const metadata = {
   title: `${SITE.name} | Immersive Web, Designed in Three Dimensions`,
   description:
-    'Independent studio crafting brand experiences where strategy, design and real-time 3D meet. Websites, brands and interactive experiences built for clarity and impact.',
+    'Tired of a site that blends in? Crystal Web Solution designs, builds and automates web, brand, logo, marketing, animation and AI/workflow — as one studio.',
 };
 
 export const viewport = {

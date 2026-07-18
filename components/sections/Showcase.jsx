@@ -117,7 +117,8 @@ export default function Showcase() {
     <section className="section showcase showcase-smil" id="work" ref={rootRef} data-work-stage="building">
       <div className="showcase-smil-heading">
         <p>Selected work &amp; explorations</p>
-        <h2>Hi, I&apos;m Terra.</h2>
+        <h2>Before the rebuild, most of these were a mess. Here&apos;s the after.</h2>
+        <p className="showcase-smil-sub">Eight projects across web, brand, motion and automation — each one a real problem we walked into, the work we did, and what changed. I&apos;m Terra; scroll to meet the work.</p>
       </div>
       <svg ref={svgRef} className="showcase-smil-stage" viewBox="0 0 1600 900" role="img" aria-label="Selected projects move horizontally before service curtains close">
         <g>

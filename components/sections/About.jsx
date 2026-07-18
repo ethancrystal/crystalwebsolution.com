@@ -95,7 +95,7 @@ export default function About() {
       }}
       aria-label="About Crystal Web Solution. Move over the statement to refract it."
     >
-      <p className="about-kicker">Crystal Web Solution / Independent digital studio</p>
+      <p className="about-kicker">Crystal Web Solution — an independent digital studio for brands built to stand out, not blend in.</p>
       <h2 className="sr-only">We build digital experiences that turn clear strategy into brands people remember.</h2>
       <svg ref={svgRef} className="about-smil-copy" viewBox="0 0 1440 900" aria-hidden="true">
         {WORDS.map((word, index) => (
@@ -108,7 +108,7 @@ export default function About() {
           </g>
         ))}
       </svg>
-      <p className="about-hint">Pointer and touch responsive</p>
+      <p className="about-hint">Move across the statement — pointer or touch — and watch the words refract.</p>
     </section>
   );
 }

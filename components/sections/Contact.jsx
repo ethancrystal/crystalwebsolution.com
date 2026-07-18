@@ -12,6 +12,9 @@ export default function Contact() {
         <p className="eyebrow"><Reveal as="span">From idea to outcome</Reveal></p>
         <DecodeText as="h2" text="Let's make" className="contact-line" />
         <DecodeText as="h2" text="something rare." className="contact-line contact-line-accent" delay={0.3} />
+        <Reveal className="contact-sub" delay={0.5}>
+          <p>Send us your brief. We reply within two business days with a straight read on scope, timeline and cost — and the first move if it&apos;s a fit.</p>
+        </Reveal>
       </div>
       <Reveal className="contact-cta" delay={0.4}>
         <Magnetic strength={0.45}>

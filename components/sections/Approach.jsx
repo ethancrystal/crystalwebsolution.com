@@ -19,22 +19,22 @@ const STEPS = [
   {
     n: '01',
     title: 'Discover',
-    desc: 'Audit, research, positioning. We decide what deserves to exist before we design how it looks.',
+    desc: 'Teams commit budget before they know the goal — so they build the wrong thing beautifully. We audit your brand, market and funnel first, then decide what’s worth building.',
   },
   {
     n: '02',
     title: 'Design',
-    desc: 'System, motion and tone drafted together, so nothing ships as an afterthought.',
+    desc: 'Brand and product get designed in silos, so the launch feels stitched together. We draft system, motion and tone as one instrument — so it reads as one company everywhere it ships.',
   },
   {
     n: '03',
     title: 'Build',
-    desc: 'Design systems shipped as production code — one team, no hand-off gap, no translation loss.',
+    desc: 'The design-to-code hand-off is where fidelity and budget leak. We ship the design system as production code — one team, no translation loss between mockup and live build.',
   },
   {
     n: '04',
     title: 'Launch',
-    desc: 'Ship, measure, iterate. The relationship starts at launch — it doesn\u2019t end there.',
+    desc: 'Most studios go quiet at go-live and leave you guessing what works. We ship, instrument and iterate with you — the relationship starts at launch, not after it.',
   },
 ];
 
@@ -81,7 +81,7 @@ export default function Approach() {
           <RevealPop key={s.n} className="approach-row" delay={i * 0.08} as="div">
             <div ref={(el) => (rowRefs.current[i] = el)} className="approach-row-inner">
               <span className="approach-num">{s.n}</span>
-              <h3 className="approach-title" data-hover data-cursor="\u2726">{s.title}</h3>
+              <h3 className="approach-title" data-hover data-cursor="✦">{s.title}</h3>
               <p className="approach-desc">{s.desc}</p>
             </div>
           </RevealPop>

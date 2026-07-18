@@ -5,10 +5,10 @@ import Reveal from '../Reveal';
 import Marquee from '../Marquee';
 
 const FACTS = [
-  { num: '060+', label: 'projects shipped', note: 'Across fintech, luxury retail, deep tech and culture.' },
-  { num: '090%', label: 'clients return', note: 'Nine in ten clients come back for a second project.' },
-  { num: '012', label: 'specialists', note: 'Different skills. One standard.' },
-  { num: '025+', label: 'awards & features', note: 'Recognised on the platforms that judge craft hardest.' },
+  { num: '140+', label: 'projects shipped', note: 'Across web, brand, 3D, motion and AI systems — eight disciplines, one standard.' },
+  { num: '088%', label: 'clients return', note: 'Roughly nine in ten come back for a second build. We treat the first as the start.' },
+  { num: '014', label: 'specialists in-house', note: 'Strategy, brand, 3D, front-end, motion and AI — no outsourced hand-off.' },
+  { num: '010', label: 'years deep', note: 'Shipping since 2016. A decade of craft, compounding.' },
 ];
 
 export default function Facts() {

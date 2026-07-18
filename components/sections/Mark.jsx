@@ -16,7 +16,7 @@ export default function Mark() {
         start="top 45%"
       />
       <Reveal className="mark-sub">
-        <p>Keep scrolling — the mark finds its shape the way every project does: piece by piece, on purpose.</p>
+        <p>Scroll on — the mark resolves the way every build does: shards first, then clarity, assembled on purpose.</p>
       </Reveal>
     </section>
   );

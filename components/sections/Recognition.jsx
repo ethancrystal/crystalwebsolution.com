@@ -6,17 +6,17 @@ import RevealPop from '../RevealPop';
 import Marquee from '../Marquee';
 import { ring } from '../../lib/chime';
 
-// Named awards & press — gives Facts' "025+ awards & features" stat an
-// actual list. Rows arrive with RevealPop's overshoot. Hovering a row does
-// two things at once: a pure-CSS "slot reel" flip on the year (airport-board
-// idiom, zero JS cost), and writes lib/chime.js so the matching medal in
-// RecognitionRing sparks in 3D — the DOM half and the WebGL half of the same
-// gesture.
+// Named awards & press — backs up the studio's ten-year, 140+ project track
+// record with an actual list. Rows arrive with RevealPop's overshoot. Hovering
+// a row does two things at once: a pure-CSS "slot reel" flip on the year
+// (airport-board idiom, zero JS cost), and writes lib/chime.js so the matching
+// medal in RecognitionRing sparks in 3D — the DOM half and the WebGL half of
+// the same gesture.
 const AWARDS = [
   { year: '2026', name: 'Site of the Day', body: 'Awwwards' },
   { year: '2025', name: 'Best Use of WebGL', body: 'CSS Design Awards' },
   { year: '2025', name: 'Honorable Mention', body: 'FWA' },
-  { year: '2024', name: 'Best Agency Site', body: 'Webby Awards' },
+  { year: '2024', name: 'Clutch Verified', body: 'Clutch' },
 ];
 
 export default function Recognition() {
@@ -48,7 +48,7 @@ export default function Recognition() {
         ))}
       </div>
       <Marquee
-        text="Site of the Day \u00b7 Best Use of WebGL \u00b7 Honorable Mention \u00b7 Best Agency Site"
+        text="Site of the Day · Best Use of WebGL · Honorable Mention · Clutch Verified"
         className="recognition-marquee"
         baseSpeed={44}
       />

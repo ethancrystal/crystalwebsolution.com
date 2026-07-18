@@ -5,31 +5,49 @@ import Reveal from '../Reveal';
 import Marquee from '../Marquee';
 import { light, dim } from '../../lib/beacon';
 
+// Copy follows the website-app-copy skill: PAS (Problem–Agitation–Solution)
+// compressed into one line per card. Visitors arrive in pain; we name it,
+// twist it, then present Crystal as the inevitable answer.
 const SERVICES = [
   {
     n: '01',
-    title: 'Strategy & Direction',
-    desc: 'Positioning, naming, product thinking. We decide what deserves to exist before we design how it looks.',
+    title: 'Web Design',
+    desc: 'Your site looks like everyone else and quietly loses the deal before a word is read — so we design with intent, clarity and craft that earns the click and the close.',
   },
   {
     n: '02',
-    title: 'Brand & Identity',
-    desc: 'Marks, systems and voices built for longevity — clarity first, craft always.',
+    title: 'Development',
+    desc: 'That internal tool or product idea keeps stalling in hand-off limbo while technical debt piles up — we architect and ship web apps your team can own and extend.',
   },
   {
     n: '03',
-    title: 'Immersive Web & 3D',
-    desc: 'WebGL scenes, scroll choreography and real-time interaction that make a page feel like a place.',
+    title: 'Branding',
+    desc: 'If prospects cannot tell you apart from the next vendor, every ad dollar works twice as hard for half the return — we build brand systems grounded in strategy and craft, not trends.',
   },
   {
     n: '04',
-    title: 'Design & Development',
-    desc: 'Design systems shipped as production code. One team, no hand-off gap, no translation loss.',
+    title: 'Logo Design',
+    desc: 'A templated mark signals "not serious" in every deck and profile you send — we design logos with restraint and meaning that hold up at any size and age well.',
   },
   {
     n: '05',
-    title: 'Motion & Interaction',
-    desc: 'Micro-interactions, transitions and choreography — motion that carries meaning, never decoration.',
+    title: 'Digital Marketing',
+    desc: 'You pour budget into channels with no clear line to revenue while sharper competitors take the pipeline — we run campaigns tied to outcomes, measured and sharpened, not vanity metrics.',
+  },
+  {
+    n: '06',
+    title: 'Animation',
+    desc: 'When your product needs a paragraph to explain, the room has already tuned out — we craft motion, explainers and 3D that make the complex obvious and stick.',
+  },
+  {
+    n: '07',
+    title: 'AI Automation',
+    desc: 'Your team burns hours on work software should own, handing velocity to whoever automates first — we build AI automations that take the repetitive load off your plate.',
+  },
+  {
+    n: '08',
+    title: 'Workflow Automation',
+    desc: 'When your tools do not talk, every hand-off drops a deadline and a customer nobody owns — we wire your stack together and automate the workflows that leak.',
   },
 ];
 

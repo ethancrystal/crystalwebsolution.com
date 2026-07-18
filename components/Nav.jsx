@@ -18,7 +18,7 @@ export default function Nav() {
         <div className="nav-right">
           <Magnetic>
             <a href="/#contact" className="btn btn-ghost" data-cursor="Say hi">
-              let&apos;s talk
+              Start a project
             </a>
           </Magnetic>
           <Magnetic>
