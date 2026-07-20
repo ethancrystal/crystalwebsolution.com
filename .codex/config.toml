@@ -1,2 +1,6 @@
+sandbox_mode = "workspace-write"
 [mcp_servers.supabase]
 url = "https://mcp.supabase.com/mcp?project_ref=wmnjosiikehsuaqucvja&features=branching%2Cfunctions%2Cdevelopment%2Cdebugging%2Cdatabase%2Cstorage%2Caccount%2Cdocs"
+
+[sandbox_workspace_write]
+network_access = true
