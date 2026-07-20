@@ -18,22 +18,22 @@ const STEPS = [
   {
     n: '01',
     title: 'Discover',
-    desc: 'Teams commit budget before they know the goal — so they build the wrong thing beautifully. We audit your brand, market and funnel first, then decide what’s worth building.',
+    desc: 'We audit your brand, market, audience, funnel, and operations before deciding what is worth building.',
   },
   {
     n: '02',
     title: 'Design',
-    desc: 'Brand and product get designed in silos, so the launch feels stitched together. We draft system, motion and tone as one instrument — so it reads as one company everywhere it ships.',
+    desc: 'We shape strategy, visual system, motion, content, and user experience as one coherent instrument.',
   },
   {
     n: '03',
     title: 'Build',
-    desc: 'The design-to-code hand-off is where fidelity and budget leak. We ship the design system as production code — one team, no translation loss between mockup and live build.',
+    desc: 'The team that designs the system ships it as production code, reducing translation loss and rework.',
   },
   {
     n: '04',
     title: 'Launch',
-    desc: 'Most studios go quiet at go-live and leave you guessing what works. We ship, instrument and iterate with you — the relationship starts at launch, not after it.',
+    desc: 'We test, instrument, launch, and improve with you. Go-live is the beginning of the feedback loop.',
   },
 ];
 

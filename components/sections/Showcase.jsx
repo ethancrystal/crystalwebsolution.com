@@ -87,7 +87,7 @@ function StaticProjectCard({ project, index }) {
     <a
       href={`/work/${project.slug}`}
       className="showcase-static-card"
-      aria-label={`View ${project.title} case study`}
+      aria-label={`View ${project.title} concept study`}
       data-showcase-static-card
       tabIndex={-1}
     >
@@ -97,7 +97,7 @@ function StaticProjectCard({ project, index }) {
       <span className="showcase-static-body">
         <strong>{project.title}</strong>
         <span>{project.category} / {project.year}</span>
-        <span>OPEN CASE STUDY →</span>
+        <span>OPEN CONCEPT STUDY →</span>
       </span>
     </a>
   );
@@ -221,8 +221,8 @@ export default function Showcase() {
     <section className="section showcase showcase-smil" id="work" ref={rootRef} data-nav-tone="light" data-work-stage="building">
       <div className="showcase-smil-heading">
         <p>Selected work &amp; explorations</p>
-        <h2>Before the rebuild, most of these were a mess. Here&apos;s the after.</h2>
-        <p className="showcase-smil-sub">Eight projects across web, brand, motion and automation — each one a real problem we walked into, the work we did, and what changed. I&apos;m Terra; scroll to meet the work.</p>
+        <h2>Every rebuild starts with a problem worth solving.</h2>
+        <p className="showcase-smil-sub">Explore websites, identities, motion systems, and automations shaped around a clear business problem—the work, the decisions, and what changed after launch.</p>
       </div>
       <svg ref={svgRef} className="showcase-smil-stage" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Selected projects move horizontally before service curtains close">
         <g>
@@ -233,7 +233,7 @@ export default function Showcase() {
               <a
                 key={project.slug}
                 href={`/work/${project.slug}`}
-                aria-label={`View ${project.title} case study`}
+                aria-label={`View ${project.title} concept study`}
                 data-showcase-card
                 onPointerEnter={() => focusSlab(index)}
                 onPointerLeave={blurSlab}
@@ -248,7 +248,7 @@ export default function Showcase() {
                   </g>
                   <text x="28" y="400" className="showcase-smil-title">{project.title}</text>
                   <text x="28" y="438" className="showcase-smil-meta">{project.category} / {project.year}</text>
-                  <text x="28" y="464" className="showcase-smil-open">OPEN CASE STUDY →</text>
+                  <text x="28" y="464" className="showcase-smil-open">OPEN CONCEPT STUDY →</text>
                 </g>
               </a>
             );
@@ -267,7 +267,7 @@ export default function Showcase() {
           <StaticProjectCard key={project.slug} project={project} index={index} />
         ))}
       </div>
-      <a href="/work" className="showcase-smil-all">All projects <span aria-hidden="true">→</span></a>
+      <a href="/work" className="showcase-smil-all">View all work <span aria-hidden="true">→</span></a>
     </section>
   );
 }

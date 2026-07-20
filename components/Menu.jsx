@@ -99,14 +99,18 @@ export default function Menu({ open, onClose }) {
         <div>
           <p className="menu-meta-label">Business enquiry</p>
           <a href={`mailto:${SITE.email}`} tabIndex={open ? 0 : -1}>{SITE.email}</a>
-          <a href={`tel:${SITE.phone.replace(/[^+\d]/g, '')}`} tabIndex={open ? 0 : -1}>{SITE.phone}</a>
+          {SITE.phone && (
+            <a href={`tel:${SITE.phone.replace(/[^+\d]/g, '')}`} tabIndex={open ? 0 : -1}>{SITE.phone}</a>
+          )}
         </div>
-        <div>
-          <p className="menu-meta-label">Social</p>
-          {SITE.socials.map((s) => (
-            <a key={s.label} href={s.href} target="_blank" rel="noreferrer" tabIndex={open ? 0 : -1}>{s.label}</a>
-          ))}
-        </div>
+        {SITE.socials.length > 0 && (
+          <div>
+            <p className="menu-meta-label">Social</p>
+            {SITE.socials.map((s) => (
+              <a key={s.label} href={s.href} target="_blank" rel="noreferrer" tabIndex={open ? 0 : -1}>{s.label}</a>
+            ))}
+          </div>
+        )}
         <div>
           <p className="menu-meta-label">Est. {SITE.est}</p>
           <p className="menu-meta-note">{SITE.years} years shaping<br />digital direction.</p>

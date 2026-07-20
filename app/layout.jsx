@@ -15,7 +15,7 @@ export const metadata = {
     template: `%s | ${SITE.name}`,
   },
   description:
-    'Custom web design for small businesses that refuse to blend in. We design, build, and automate websites, brands, and AI workflows — one studio, since 2016.',
+    'Crystal Web Solution designs and builds distinctive websites, brand systems, motion experiences, and AI automations for businesses ready to stand apart.',
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
@@ -23,15 +23,13 @@ export const metadata = {
     siteName: SITE.name,
     title: `Custom Web Design & AI Automation | ${SITE.name}`,
     description:
-      'Custom web design for small businesses that refuse to blend in. Websites, brands, and AI workflows — one studio, since 2016.',
-    images: [{ url: '/cws-header-logo.png', width: 1000, height: 382, alt: SITE.name }],
+      'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',
   },
   twitter: {
     card: 'summary_large_image',
     title: `Custom Web Design & AI Automation | ${SITE.name}`,
     description:
-      'Custom web design for small businesses that refuse to blend in. Websites, brands, and AI workflows — one studio, since 2016.',
-    images: ['/cws-header-logo.png'],
+      'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',
   },
   robots: { index: true, follow: true },
 };
@@ -47,7 +45,7 @@ const JSON_LD = {
   email: SITE.email,
   foundingDate: SITE.est,
   description:
-    'Web design studio building custom websites, brand identities, and AI automation for small businesses.',
+    'Digital studio designing distinctive websites, brand systems, motion experiences, and AI automation.',
   slogan: SITE.tagline,
   knowsAbout: ['web design', 'web development', 'branding', 'logo design', 'AI automation', 'motion design'],
   areaServed: 'US',

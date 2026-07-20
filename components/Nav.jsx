@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import Magnetic from './Magnetic';
 import Menu from './Menu';
@@ -32,15 +31,8 @@ export default function Nav() {
     <>
       <header className={`nav ${onLightSurface && !open ? 'nav-on-light' : ''}`}>
         <Link href="/" className="nav-logo" data-cursor="Home">
-          <Image
-            className="nav-logo-image"
-            src="/cws-header-logo.png"
-            alt="CWS — Crystal Web Solutions. Empower your vision through technology."
-            width={1000}
-            height={382}
-            sizes="(max-width: 767px) 64vw, (max-width: 1260px) 31vw, 390px"
-            priority
-          />
+          <span className="nav-logo-monogram" aria-hidden="true">CWS</span>
+          <span className="nav-logo-name">Crystal Web Solution</span>
         </Link>
         <div className="nav-right">
           <Magnetic>

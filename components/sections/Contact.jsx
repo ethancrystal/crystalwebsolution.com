@@ -33,14 +33,16 @@ export default function Contact() {
         <div className="footer-col">
           <p className="footer-label">Enquiry</p>
           <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
-          <a href={`tel:${SITE.phone.replace(/[^+\d]/g, '')}`}>{SITE.phone}</a>
+          {SITE.phone && <a href={`tel:${SITE.phone.replace(/[^+\d]/g, '')}`}>{SITE.phone}</a>}
         </div>
-        <div className="footer-col">
-          <p className="footer-label">Social</p>
-          {SITE.socials.map((s) => (
-            <a key={s.label} href={s.href} target="_blank" rel="noreferrer">{s.label}</a>
-          ))}
-        </div>
+        {SITE.socials.length > 0 && (
+          <div className="footer-col">
+            <p className="footer-label">Social</p>
+            {SITE.socials.map((s) => (
+              <a key={s.label} href={s.href} target="_blank" rel="noreferrer">{s.label}</a>
+            ))}
+          </div>
+        )}
         <div className="footer-col">
           <p className="footer-label">Studio</p>
           <p>{SITE.city}</p>

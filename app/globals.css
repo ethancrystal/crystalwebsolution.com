@@ -288,23 +288,35 @@ html[data-cws-intro-seen='1'] .loader {
   mix-blend-mode: normal;
 }
 .nav-logo {
-  display: block;
-  width: clamp(270px, 31vw, 390px);
-  aspect-ratio: 7.6 / 1;
-  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: auto;
   flex-shrink: 1;
-  line-height: 0;
+  line-height: 1;
 }
-.nav-logo-image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 50%;
-  transition: filter 0.25s ease;
+.nav-logo-monogram {
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 2.4vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: -0.11em;
+  color: var(--ink);
+  transition: color 0.25s ease;
+}
+.nav-logo-name {
+  max-width: 13ch;
+  font-family: var(--font-display);
+  font-size: clamp(0.72rem, 1.05vw, 0.92rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+  transition: color 0.25s ease;
 }
 .nav-right { display: flex; align-items: center; gap: 0.8rem; }
-.nav-on-light .nav-logo-image { filter: invert(1); }
+.nav-on-light .nav-logo-monogram,
+.nav-on-light .nav-logo-name { color: #151612; }
 .nav-on-light .btn-ghost {
   color: #151612;
   border-color: rgba(21, 22, 18, 0.32);
@@ -315,7 +327,8 @@ html[data-cws-intro-seen='1'] .loader {
 .nav-on-light .nav-burger span { background: #151612; }
 
 @media (max-width: 767.5px) {
-  .nav-logo { width: min(64vw, 240px); }
+  .nav-logo { gap: 0.65rem; }
+  .nav-logo-name { font-size: 0.68rem; }
   .nav-right .btn-ghost { display: none; }
 }
 
@@ -809,6 +822,12 @@ html[data-cws-intro-seen='1'] .loader {
 /* ---------- stories ---------- */
 .stories { align-items: center; text-align: left; }
 .stories .text-plate { width: min(100%, 68rem); }
+.stories-intro {
+  max-width: 56ch;
+  margin: -1.8rem 0 2.5rem;
+  color: var(--muted);
+  line-height: 1.75;
+}
 .stories-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -1023,14 +1042,14 @@ html[data-cws-intro-seen='1'] .loader {
 .motion-static-meta span:last-child { grid-column: 2; grid-row: 1 / span 2; }
 
 @media (max-width: 900px), (prefers-reduced-motion: reduce) {
-  .motion:not([data-motion-layout='animated']) {
+  .motion[data-motion-layout='static'] {
     display: flex;
     flex-direction: column;
     min-height: auto;
     padding: clamp(7rem, 16vw, 8.5rem) max(1rem, 5vw) clamp(4rem, 10vw, 6rem);
     overflow: clip;
   }
-  .motion:not([data-motion-layout='animated']) .motion-copy {
+  .motion[data-motion-layout='static'] .motion-copy {
     position: relative;
     inset: auto;
     order: 1;
@@ -1040,7 +1059,7 @@ html[data-cws-intro-seen='1'] .loader {
     font-size: clamp(3rem, 13vw, 7rem);
     line-height: 0.82;
   }
-  .motion:not([data-motion-layout='animated']) .motion-caption {
+  .motion[data-motion-layout='static'] .motion-caption {
     position: relative;
     left: auto;
     bottom: auto;
@@ -1050,8 +1069,8 @@ html[data-cws-intro-seen='1'] .loader {
     font-size: clamp(0.9rem, 2.4vw, 1.1rem);
     line-height: 1.45;
   }
-  .motion:not([data-motion-layout='animated']) .motion-smil-stage { display: none; }
-  .motion:not([data-motion-layout='animated']) .motion-static-grid {
+  .motion[data-motion-layout='static'] .motion-smil-stage { display: none; }
+  .motion[data-motion-layout='static'] .motion-static-grid {
     position: relative;
     z-index: 2;
     order: 3;
@@ -1060,7 +1079,7 @@ html[data-cws-intro-seen='1'] .loader {
     gap: clamp(1rem, 3vw, 1.75rem);
     margin-top: clamp(2.5rem, 7vw, 4.5rem);
   }
-  .motion:not([data-motion-layout='animated']) .motion-link {
+  .motion[data-motion-layout='static'] .motion-link {
     position: relative;
     right: auto;
     bottom: auto;
@@ -1245,7 +1264,7 @@ html[data-cws-intro-seen='1'] .loader {
     radial-gradient(900px 500px at 10% 110%, rgba(192, 132, 252, 0.08), transparent),
     var(--bg);
 }
-.work-index, .case { padding: 18vh 8vw 12vh; max-width: 1200px; margin: 0 auto; }
+.work-index, .case, .reviews-index { padding: 18vh 8vw 12vh; max-width: 1200px; margin: 0 auto; }
 .page-title {
   font-family: var(--font-display);
   font-size: clamp(2.4rem, 6vw, 4.6rem);
@@ -1253,6 +1272,44 @@ html[data-cws-intro-seen='1'] .loader {
   margin-bottom: 4.5rem;
 }
 .work-list { display: flex; flex-direction: column; gap: 5rem; }
+.work-index .page-title { margin-bottom: 1.4rem; }
+.work-index-intro {
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  line-height: 1.75;
+  margin-bottom: 4.5rem;
+}
+.client-record {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.8fr) minmax(20rem, 1.2fr);
+  gap: 4rem;
+  padding: clamp(3.5rem, 7vw, 6rem) 0;
+  margin-bottom: clamp(5rem, 9vw, 8rem);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.client-record h2,
+.work-library-heading h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1.08;
+  max-width: 15ch;
+}
+.client-record ul { list-style: none; border-top: 1px solid var(--line); }
+.client-record li {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.client-record strong { font-family: var(--font-display); }
+.client-record span { color: var(--muted); text-align: right; }
+.client-record a { color: var(--cyan); }
+.client-record a:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+.work-library-heading { margin-bottom: 3.5rem; }
+.work-library-heading .eyebrow { margin-bottom: 1rem; }
 .work-row {
   display: grid;
   grid-template-columns: 1.3fr 1fr;
@@ -1286,6 +1343,112 @@ html[data-cws-intro-seen='1'] .loader {
 }
 .case-next:hover .case-next-title { color: var(--cyan); letter-spacing: 0.02em; }
 
+/* ---------- reviews archive ---------- */
+.reviews-hero { padding-bottom: clamp(5rem, 10vw, 8rem); }
+.reviews-hero .page-title { max-width: 16ch; margin-bottom: 1.5rem; }
+.reviews-lede {
+  max-width: 66ch;
+  color: var(--muted);
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  line-height: 1.8;
+}
+.reviews-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 3.5rem;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.reviews-summary > div { padding: 1.6rem 1.4rem 1.8rem 0; }
+.reviews-summary > div + div { padding-left: 1.4rem; border-left: 1px solid var(--line); }
+.reviews-summary dt {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.55rem;
+}
+.reviews-summary dd { font-family: var(--font-display); font-size: clamp(1.1rem, 2vw, 1.45rem); }
+.reviews-transparency {
+  max-width: 74ch;
+  margin-top: 2rem;
+  padding: 1.2rem 1.4rem;
+  border-left: 3px solid var(--cyan);
+  background: rgba(89, 243, 255, 0.07);
+}
+.reviews-transparency strong {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 0.45rem;
+}
+.reviews-transparency p { color: var(--muted); line-height: 1.7; }
+.reviews-standard {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.8fr) minmax(18rem, 1.2fr);
+  gap: 4rem;
+  padding: clamp(4rem, 8vw, 7rem) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.reviews-standard .eyebrow { grid-column: 1 / -1; margin-bottom: -2rem; }
+.reviews-standard h2,
+.review-archive-heading h2,
+.reviews-close h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.5vw, 3.5rem);
+  line-height: 1.08;
+}
+.reviews-standard ul { list-style: none; border-top: 1px solid var(--line); }
+.reviews-standard li { color: var(--muted); line-height: 1.65; padding: 1.1rem 0; border-bottom: 1px solid var(--line); }
+.reviews-standard li::before { content: '—'; color: var(--cyan); margin-right: 0.8rem; }
+.review-archive { padding-top: clamp(5rem, 10vw, 8rem); }
+.review-archive-heading { max-width: 62ch; margin-bottom: 3.5rem; }
+.review-archive-heading h2 { margin-bottom: 1rem; }
+.review-archive-heading > p:last-child { color: var(--muted); line-height: 1.7; }
+.review-list { border-top: 1px solid var(--line); }
+.review-card { padding: clamp(2rem, 5vw, 3.6rem) 0; border-bottom: 1px solid var(--line); }
+.review-card-1 { border-left: 2px solid rgba(255, 107, 107, 0.6); padding-left: clamp(1rem, 3vw, 2rem); }
+.review-card-header { display: flex; justify-content: space-between; gap: 2rem; align-items: flex-start; }
+.review-card h3 { font-family: var(--font-display); font-size: clamp(1.4rem, 3vw, 2rem); }
+.review-client {
+  margin-top: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+.review-headline { color: var(--muted); margin-top: 0.35rem; }
+.review-rating { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; flex-shrink: 0; }
+.review-rating > span:first-child { color: var(--cyan); letter-spacing: 0.08em; }
+.review-rating > span:last-child { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
+.review-meta {
+  margin: 1.15rem 0 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+.review-body { max-width: 76ch; }
+.review-body p { line-height: 1.85; margin-bottom: 1rem; }
+.review-reply {
+  max-width: 76ch;
+  margin-top: 1.5rem;
+  padding: 1.2rem 1.4rem;
+  border-left: 3px solid var(--violet);
+  background: rgba(192, 132, 252, 0.07);
+}
+.review-reply strong { display: block; color: var(--violet); font-family: var(--font-mono); font-size: 0.7rem; margin-bottom: 0.45rem; }
+.review-reply p { color: var(--muted); line-height: 1.7; }
+.reviews-close { padding: clamp(6rem, 12vw, 10rem) 0 2rem; }
+.reviews-close h2 { max-width: 14ch; margin-bottom: 1.5rem; }
+.reviews-close > p:not(.eyebrow) { max-width: 58ch; color: var(--muted); line-height: 1.75; margin-bottom: 2rem; }
+
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
   /* The desktop text glow extends 3rem past its host. On narrow viewports
@@ -1307,6 +1470,16 @@ html[data-cws-intro-seen='1'] .loader {
   .work-row { grid-template-columns: 1fr; }
   .stories-tabs { gap: 0.75rem 1.35rem; }
   .stories-quote { max-width: 100%; }
+  .reviews-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reviews-summary > div:nth-child(3) { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+  .reviews-summary > div:nth-child(4) { border-top: 1px solid var(--line); }
+  .reviews-standard { grid-template-columns: 1fr; gap: 2.5rem; }
+  .reviews-standard .eyebrow { margin-bottom: -1rem; }
+  .review-card-header { flex-direction: column; gap: 1rem; }
+  .review-rating { align-items: flex-start; }
+  .client-record { grid-template-columns: 1fr; gap: 2.5rem; }
+  .client-record li { flex-direction: column; gap: 0.45rem; }
+  .client-record span { text-align: left; }
   .approach-row-inner,
   .recognition-row-inner { grid-template-columns: 3rem 1fr; }
   .approach-desc,
@@ -1329,6 +1502,56 @@ html[data-cws-intro-seen='1'] .loader {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* The server cannot read this preference. Keep the legacy SMIL scene static
+     before hydration (and if JavaScript fails); an explicit full-motion WebGL
+     preview can still take over after it reports a successful frame. */
+  .motion:not([data-motion-renderer='webgl']) {
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+    padding: clamp(7rem, 16vw, 8.5rem) max(1rem, 5vw) clamp(4rem, 10vw, 6rem);
+    overflow: clip;
+  }
+  .motion:not([data-motion-renderer='webgl']) .motion-copy {
+    position: relative;
+    inset: auto;
+    order: 1;
+    display: grid;
+    align-content: start;
+    padding: 0;
+    font-size: clamp(3rem, 13vw, 7rem);
+    line-height: 0.82;
+  }
+  .motion:not([data-motion-renderer='webgl']) .motion-caption {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    order: 2;
+    width: min(100%, 32rem);
+    margin-top: clamp(1.5rem, 4vw, 2.5rem);
+    font-size: clamp(0.9rem, 2.4vw, 1.1rem);
+    line-height: 1.45;
+  }
+  .motion:not([data-motion-renderer='webgl']) .motion-smil-stage { display: none; }
+  .motion:not([data-motion-renderer='webgl']) .motion-static-grid {
+    position: relative;
+    z-index: 2;
+    order: 3;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+    gap: clamp(1rem, 3vw, 1.75rem);
+    margin-top: clamp(2.5rem, 7vw, 4.5rem);
+  }
+  .motion:not([data-motion-renderer='webgl']) .motion-link {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    order: 4;
+    align-self: flex-end;
+    width: min(100%, 18rem);
+    min-width: 0;
+    margin-top: clamp(2.5rem, 7vw, 4.5rem);
+  }
   .loader { display: none; }
   .hero-scroll-line { animation: none; }
   .hero-caustics::before,

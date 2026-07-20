@@ -14,17 +14,17 @@ export function generateMetadata({ params }) {
   const description =
     p.summary.length > 157 ? `${p.summary.slice(0, 157).trimEnd()}…` : p.summary;
   return {
-    title: `${p.title} — ${p.category} Case Study`,
+    title: `${p.title} — ${p.category} Concept Study`,
     description,
     alternates: { canonical: `/work/${p.slug}` },
     openGraph: {
       type: 'article',
-      title: `${p.title} — ${p.category} Case Study | ${SITE.name}`,
+      title: `${p.title} — ${p.category} Concept Study | ${SITE.name}`,
       description,
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${p.title} — ${p.category} Case Study | ${SITE.name}`,
+      title: `${p.title} — ${p.category} Concept Study | ${SITE.name}`,
       description,
     },
   };
@@ -41,13 +41,13 @@ export default function CaseStudy({ params }) {
     <div className="subpage">
       <header className="nav">
         <Link href="/" className="nav-logo" data-cursor="Home">
-          <span className="nav-logo-mark">◆</span>
-          <span className="nav-logo-text">{SITE.name}</span>
+          <span className="nav-logo-monogram" aria-hidden="true">CWS</span>
+          <span className="nav-logo-name">{SITE.name}</span>
         </Link>
         <Link href="/work" className="btn btn-ghost" data-cursor="Back">all work</Link>
       </header>
       <main className="case">
-        <p className="eyebrow">{p.category} — {p.year}</p>
+        <p className="eyebrow">Concept study • {p.category} • {p.year}</p>
         <h1 className="page-title">{p.title}</h1>
         <p className="case-summary">{p.summary}</p>
         <ul className="case-services">
@@ -58,7 +58,7 @@ export default function CaseStudy({ params }) {
           {p.body.map((para, i) => <p key={i}>{para}</p>)}
         </div>
         <Link href={`/work/${next.slug}`} className="case-next" data-cursor="Next">
-          <span className="eyebrow">Next project</span>
+          <span className="eyebrow">Next concept study</span>
           <span className="case-next-title">{next.title} →</span>
         </Link>
       </main>
