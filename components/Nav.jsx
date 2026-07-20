@@ -1,28 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { SITE } from '../lib/site';
 import Magnetic from './Magnetic';
 import Menu from './Menu';
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
+  const [onLightSurface, setOnLightSurface] = useState(false);
+  const closeMenu = useCallback(() => setOpen(false), []);
+
+  useEffect(() => {
+    const lightSections = Array.from(document.querySelectorAll('[data-nav-tone="light"]'));
+    if (!lightSections.length) return undefined;
+
+    const activeSections = new Set();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) activeSections.add(entry.target);
+        else activeSections.delete(entry.target);
+      });
+      setOnLightSurface(activeSections.size > 0);
+    }, { rootMargin: '-16px 0px -88% 0px', threshold: 0 });
+
+    lightSections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <>
-      <header className="nav">
+      <header className={`nav ${onLightSurface && !open ? 'nav-on-light' : ''}`}>
         <Link href="/" className="nav-logo" data-cursor="Home">
-          <svg className="nav-logo-mark" viewBox="0 0 40 40" aria-hidden="true">
-            <polygon points="20,2 36,14 30,38 10,38 4,14" fill="none" stroke="var(--cyan)" strokeWidth="1.5" />
-            <polygon points="20,2 36,14 20,20" fill="var(--cyan)" fillOpacity="0.4" />
-            <polygon points="4,14 20,20 10,38" fill="var(--blue)" fillOpacity="0.35" />
-            <polygon points="36,14 30,38 20,20" fill="var(--violet)" fillOpacity="0.3" />
-          </svg>
-          <span className="nav-logo-text">
-            <strong>{SITE.short}</strong>
-            <span className="nav-logo-sub">{SITE.name}</span>
-          </span>
+          <Image
+            className="nav-logo-image"
+            src="/cws-header-logo.png"
+            alt="CWS — Crystal Web Solutions. Empower your vision through technology."
+            width={1000}
+            height={382}
+            sizes="(max-width: 767px) 64vw, (max-width: 1260px) 31vw, 390px"
+            priority
+          />
         </Link>
         <div className="nav-right">
           <Magnetic>
@@ -32,9 +50,12 @@ export default function Nav() {
           </Magnetic>
           <Magnetic>
             <button
+              type="button"
               className={`nav-burger ${open ? 'is-open' : ''}`}
               onClick={() => setOpen((v) => !v)}
               aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+              aria-controls="site-menu"
               data-cursor={open ? 'Close' : 'Menu'}
             >
               <span />
@@ -43,7 +64,7 @@ export default function Nav() {
           </Magnetic>
         </div>
       </header>
-      <Menu open={open} onClose={() => setOpen(false)} />
+      <Menu open={open} onClose={closeMenu} />
     </>
   );
 }

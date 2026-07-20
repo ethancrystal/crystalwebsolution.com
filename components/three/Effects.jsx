@@ -25,7 +25,7 @@ function useMotionEffectMode() {
   return enabled;
 }
 
-function EffectPasses() {
+function EffectPasses({ mode }) {
   const motionMode = useMotionEffectMode();
 
   return (
@@ -35,10 +35,10 @@ function EffectPasses() {
           intensity={0.85}
           luminanceThreshold={0.35}
           luminanceSmoothing={0.6}
-          mipmapBlur
+          mipmapBlur={mode === 'full'}
         />
       )}
-      {motionMode && (
+      {motionMode && mode === 'full' && (
         <CanvasFeatureBoundary>
           <DepthOfField
             worldFocusDistance={8}
@@ -55,10 +55,10 @@ function EffectPasses() {
   );
 }
 
-export default function Effects() {
+export default function Effects({ mode = 'full' }) {
   return (
     <EffectComposer multisampling={0}>
-      <EffectPasses />
+      <EffectPasses mode={mode} />
     </EffectComposer>
   );
 }

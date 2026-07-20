@@ -2,3 +2,16 @@ node_modules/
 .next/
 .env
 .env.local
+
+# Local browser QA and editor state
+.playwright-mcp/
+.zcode/
+
+# Temporary logo inspection exports
+/logo-preview.png
+/public/logo-cropped.png
+/public/temp-logo-preview.png
+
+# Local linked worktrees and recoverable cleanup staging
+/.worktrees/
+/_to_delete/

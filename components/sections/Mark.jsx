@@ -1,23 +1,26 @@
 'use client';
 
-import DecodeText from '../DecodeText';
-import Reveal from '../Reveal';
+import SectionReveal from '../SectionReveal';
 
 export default function Mark() {
   return (
     <section className="section mark" id="mark">
-      <p className="eyebrow"><Reveal as="span">The idea</Reveal></p>
-      <DecodeText as="h2" text="Scattered thoughts," className="mark-line" start="top 45%" />
-      <DecodeText
+      <p className="eyebrow"><SectionReveal as="span" direction="left" start="top 65%">The idea</SectionReveal></p>
+      <SectionReveal as="h2" direction="left" className="mark-line" start="top 65%">
+        Scattered thoughts,
+      </SectionReveal>
+      <SectionReveal
         as="h2"
-        text="assembled with intent."
+        direction="left"
         className="mark-line mark-line-accent"
         delay={0.3}
-        start="top 45%"
-      />
-      <Reveal className="mark-sub">
+        start="top 65%"
+      >
+        assembled with intent.
+      </SectionReveal>
+      <SectionReveal className="mark-sub" direction="up">
         <p>Scroll on — the mark resolves the way every build does: shards first, then clarity, assembled on purpose.</p>
-      </Reveal>
+      </SectionReveal>
     </section>
   );
 }

@@ -5,6 +5,9 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PROJECTS } from '../../lib/projects';
 import { focusBeacon } from '../../lib/focusBeacon';
+import { scrollState } from '../../lib/scrollState';
+import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
+import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
 
 // Glass slabs — one per project — drifting around the showcase depth.
 // Hovering (or keyboard-focusing) a project card in the DOM
@@ -21,7 +24,7 @@ const LAYOUT = [
   [0.2, 0.1, -2.2],
 ];
 
-export default function ShowcaseBoxes({ position = [0, 0, 0] }) {
+export default function ShowcaseBoxes({ position = [0, 0, 0], animate = true }) {
   const group = useRef();
 
   const colors = useMemo(
@@ -30,6 +33,13 @@ export default function ShowcaseBoxes({ position = [0, 0, 0] }) {
   );
 
   useFrame((state, delta) => {
+    if (!animate) return;
+    if (!isBeatProgressActive(
+      scrollState.progress,
+      'work',
+      BEAT_IDS,
+      beatProgress,
+    )) return;
     const dt = Math.min(delta, 0.05);
     const t = state.clock.elapsedTime;
     if (!group.current) return;

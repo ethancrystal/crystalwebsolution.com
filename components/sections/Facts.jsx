@@ -1,8 +1,8 @@
 'use client';
 
-import DecodeText from '../DecodeText';
-import Reveal from '../Reveal';
+import SectionReveal from '../SectionReveal';
 import Marquee from '../Marquee';
+import { STAGGER_ROW } from '../../lib/easing';
 
 const FACTS = [
   { num: '140+', label: 'projects shipped', note: 'Across web, brand, 3D, motion and AI systems — eight disciplines, one standard.' },
@@ -15,16 +15,19 @@ export default function Facts() {
   return (
     <section className="section facts" id="facts" data-quiet>
       <div className="text-plate">
-        <p className="eyebrow"><Reveal as="span">Key facts</Reveal></p>
-        <DecodeText as="h2" text="A snapshot of experience and impact." className="section-title" />
+        <p className="eyebrow"><SectionReveal as="span" direction="left">Key facts</SectionReveal></p>
+        <SectionReveal as="h2" direction="left" className="section-title">
+          A snapshot of experience and impact.
+        </SectionReveal>
       </div>
       <div className="facts-grid">
         {FACTS.map((f, i) => (
-          <Reveal key={f.label} className="fact-card" delay={i * 0.08}>
+          <SectionReveal key={f.label} className="fact-card" delay={i * STAGGER_ROW} direction="up">
+            <span className="fact-index" aria-hidden="true">0{i + 1}</span>
             <span className="fact-num">{f.num}</span>
             <h3 className="fact-label">{f.label}</h3>
             <p className="fact-note">{f.note}</p>
-          </Reveal>
+          </SectionReveal>
         ))}
       </div>
       <Marquee text="Clarity · Craft · Impact" className="facts-marquee" baseSpeed={40} />

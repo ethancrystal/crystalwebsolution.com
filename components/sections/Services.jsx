@@ -1,9 +1,9 @@
 'use client';
 
-import DecodeText from '../DecodeText';
-import Reveal from '../Reveal';
+import SectionReveal from '../SectionReveal';
 import Marquee from '../Marquee';
 import { light, dim } from '../../lib/beacon';
+import { STAGGER_ROW } from '../../lib/easing';
 
 // Copy follows the website-app-copy skill: PAS (Problem–Agitation–Solution)
 // compressed into one line per card. Visitors arrive in pain; we name it,
@@ -54,25 +54,30 @@ const SERVICES = [
 export default function Services() {
   return (
     <section className="section services" id="services" data-quiet>
-      <div className="text-plate">
-        <p className="eyebrow"><Reveal as="span">What we do</Reveal></p>
-        <DecodeText as="h2" text="Focused vision. Measured execution." className="section-title" />
-      </div>
-      <div className="services-list">
-        {SERVICES.map((s, i) => (
-          <Reveal
-            key={s.n}
-            className="service-row"
-            delay={i * 0.06}
-            as="div"
-            onPointerEnter={() => light(i)}
-            onPointerLeave={dim}
-          >
-            <span className="service-num">{s.n}</span>
-            <h3 className="service-title" data-hover data-cursor="✦">{s.title}</h3>
-            <p className="service-desc">{s.desc}</p>
-          </Reveal>
-        ))}
+      <div className="services-catalogue">
+        <div className="text-plate services-intro">
+          <p className="eyebrow"><SectionReveal as="span" direction="left">What we do</SectionReveal></p>
+          <SectionReveal as="h2" direction="left" className="section-title">
+            Focused vision. Measured execution.
+          </SectionReveal>
+        </div>
+        <div className="services-list">
+          {SERVICES.map((s, i) => (
+            <SectionReveal
+              key={s.n}
+              className="service-row"
+              delay={i * STAGGER_ROW}
+              direction="left"
+              as="div"
+              onPointerEnter={() => light(i)}
+              onPointerLeave={dim}
+            >
+              <span className="service-num">{s.n}</span>
+              <h3 className="service-title" data-hover data-cursor="✦">{s.title}</h3>
+              <p className="service-desc">{s.desc}</p>
+            </SectionReveal>
+          ))}
+        </div>
       </div>
       <Marquee text="Strategy · Brand · Immersive 3D · Development · Motion" className="services-marquee" />
     </section>

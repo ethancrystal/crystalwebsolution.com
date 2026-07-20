@@ -24,14 +24,14 @@ export const metadata = {
     title: `Custom Web Design & AI Automation | ${SITE.name}`,
     description:
       'Custom web design for small businesses that refuse to blend in. Websites, brands, and AI workflows — one studio, since 2016.',
-    images: [{ url: '/logo-main.png', width: 512, height: 512, alt: SITE.name }],
+    images: [{ url: '/cws-header-logo.png', width: 1000, height: 382, alt: SITE.name }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `Custom Web Design & AI Automation | ${SITE.name}`,
     description:
       'Custom web design for small businesses that refuse to blend in. Websites, brands, and AI workflows — one studio, since 2016.',
-    images: ['/logo-main.png'],
+    images: ['/cws-header-logo.png'],
   },
   robots: { index: true, follow: true },
 };
@@ -59,7 +59,18 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${grotesk.variable} ${inter.variable} ${mono.variable}`}>
+    <html
+      lang="en"
+      className={`${grotesk.variable} ${inter.variable} ${mono.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(sessionStorage.getItem('cws:intro-seen')==='1')document.documentElement.dataset.cwsIntroSeen='1'}catch(e){}",
+          }}
+        />
+      </head>
       <body>
         <script
           type="application/ld+json"
