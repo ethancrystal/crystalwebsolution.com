@@ -3,7 +3,12 @@ import ProjectVisual from '../../components/ProjectVisual';
 import { PROJECTS } from '../../lib/projects';
 import { SITE } from '../../lib/site';
 
-export const metadata = { title: `Work | ${SITE.name}` };
+export const metadata = {
+  title: 'Web Design Work & Case Studies',
+  description:
+    'Custom web design case studies from Crystal Web Solution — real projects across finance, retail, healthcare, and logistics, with the results to show for it.',
+  alternates: { canonical: '/work' },
+};
 
 export default function WorkIndex() {
   return (

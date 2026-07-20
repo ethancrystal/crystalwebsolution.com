@@ -10,7 +10,19 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }) {
   const p = getProject(params.slug);
-  return { title: p ? `${p.title} | ${SITE.name}` : SITE.name };
+  if (!p) return { title: SITE.name };
+  const description =
+    p.summary.length > 157 ? `${p.summary.slice(0, 157).trimEnd()}…` : p.summary;
+  return {
+    title: `${p.title} — ${p.category} Case Study`,
+    description,
+    alternates: { canonical: `/work/${p.slug}` },
+    openGraph: {
+      type: 'article',
+      title: `${p.title} — ${p.category} Case Study | ${SITE.name}`,
+      description,
+    },
+  };
 }
 
 export default function CaseStudy({ params }) {
