@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "check:v2": "node scripts/check-v2-content.mjs && node scripts/check-v2-motion.mjs && node scripts/check-v2-boundaries.mjs",
+    "generate:measurements": "node scripts/generate-v2-measurement-sheet.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.12",
