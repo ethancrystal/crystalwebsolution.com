@@ -961,6 +961,23 @@ h1, h2 {
 }
 .case-body { max-width: 62ch; margin: 4rem 0; }
 .case-body p { color: var(--muted); line-height: 1.9; margin-bottom: 1.6rem; font-size: 1.02rem; }
+.case-body p strong { color: var(--ink); }
+.case-body h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+  color: var(--ink);
+  margin: 3rem 0 1.2rem;
+}
+.callout {
+  max-width: 62ch;
+  border-left: 3px solid var(--cyan);
+  background: rgba(89, 243, 255, 0.05);
+  padding: 1.4rem 1.8rem;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 3rem;
+}
+.callout p { color: var(--ink); font-size: 1.05rem; line-height: 1.8; margin: 0; }
+.callout strong { color: var(--cyan); }
 .case-next { display: block; border-top: 1px solid var(--line); padding-top: 2.6rem; }
 .case-next-title {
   font-family: var(--font-display);
