@@ -13,11 +13,17 @@ import Sparks from './three/Sparks';
 import BackdropMorph from './three/BackdropMorph';
 import Lights from './three/Lights';
 import Effects from './three/Effects';
+import FlyingCarousel from './three/FlyingCarousel';
+import CanvasFeatureBoundary from './three/CanvasFeatureBoundary';
 import { CLUSTERS } from '../lib/journey';
+import { setMotionReady } from '../lib/motionFlight.mjs';
+import { useExperienceFeatures } from '../lib/useExperienceFeatures';
 
 // One fixed, non-interactive canvas behind the whole page.
 // The DOM scrolls over it; the camera flies through one continuous space.
 export default function Scene() {
+  const { flyingCarousel } = useExperienceFeatures();
+
   return (
     <div className="scene-canvas" aria-hidden="true">
       <Canvas
@@ -52,6 +58,17 @@ export default function Scene() {
 
         {/* Recognition beat — medal ring, brightens on DOM row hover */}
         <RecognitionRing position={[0, 0, CLUSTERS.recognition]} />
+
+        {/* Motion beat — additive only. Motion.jsx keeps its complete SVG
+            path visible until this feature reports a successful frame. */}
+        {flyingCarousel && (
+          <CanvasFeatureBoundary
+            resetKey={flyingCarousel}
+            onError={() => setMotionReady(false)}
+          >
+            <FlyingCarousel position={[0, 0, CLUSTERS.motion]} />
+          </CanvasFeatureBoundary>
+        )}
 
         {/* About + Facts + Contact share the ambient field. The Sparks
             instance here is the "closing roar" payoff for Contact.jsx's

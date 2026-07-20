@@ -792,7 +792,44 @@ h1, h2 {
 .motion-study-sub { font-size: 11px; text-transform: uppercase; }
 .motion-study-index { font-size: 12px; }
 
-@media (max-width: 767px) {
+/* The original light SVG scene is the readiness and preference fallback.
+   Only a successfully rendered desktop WebGL carousel can make this section
+   transparent enough to reveal the shared fixed Canvas. */
+.motion[data-motion-renderer='webgl'] {
+  background: rgba(215, 214, 210, 0.04);
+  color: #292a27;
+}
+.motion[data-motion-renderer='webgl']::after {
+  background-image: linear-gradient(rgba(36, 38, 34, 0.045) 1px, transparent 1px);
+}
+.motion[data-motion-renderer='webgl'] .motion-copy {
+  color: rgba(41, 42, 39, 0.88);
+  text-shadow: none;
+  transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.motion[data-motion-renderer='webgl'][data-motion-stage='hold'] .motion-copy {
+  opacity: 0.92;
+}
+.motion[data-motion-renderer='webgl'][data-motion-stage='ribbon'] .motion-copy {
+  opacity: 0.38;
+}
+.motion[data-motion-renderer='webgl'][data-motion-stage='detach'] .motion-copy {
+  opacity: 0.14;
+}
+.motion[data-motion-renderer='webgl'][data-motion-stage='grid'] .motion-copy {
+  opacity: 0;
+}
+.motion[data-motion-renderer='webgl'] .motion-caption,
+.motion[data-motion-renderer='webgl'] .motion-link {
+  color: rgba(41, 42, 39, 0.82);
+}
+.motion[data-motion-renderer='webgl'] .motion-link {
+  border-color: rgba(41, 42, 39, 0.38);
+}
+.motion-smil-stage { transition: opacity 220ms ease; }
+.motion[data-motion-renderer='webgl'] .motion-smil-stage { opacity: 0; }
+
+@media (max-width: 767.5px) {
   .motion { min-height: 82svh; }
   .motion-copy { align-content: start; padding-top: 11vh; font-size: clamp(3.2rem, 18vw, 5.2rem); }
   .motion-caption { width: 45vw; bottom: 3.5vh; }
