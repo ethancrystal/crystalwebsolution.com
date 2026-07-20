@@ -5,6 +5,8 @@ const featureModule = await import('../lib/experienceFeatures.mjs').catch(() => 
 const layoutModule = await import('../lib/flyingCarouselLayout.mjs').catch(() => ({}));
 const motionModule = await import('../lib/motionFlight.mjs').catch(() => ({}));
 const studiesModule = await import('../lib/motionStudies.mjs').catch(() => ({}));
+const qualityModule = await import('../lib/renderQuality.mjs').catch(() => ({}));
+const activityModule = await import('../lib/sceneActivity.mjs').catch(() => ({}));
 
 test('latest experience features default to the additive WebGL carousel', () => {
   assert.equal(typeof featureModule.resolveExperienceFeatures, 'function');
@@ -55,6 +57,21 @@ test('compact and reduced-motion modes retain the SVG carousel fallback', () => 
 
   assert.equal(compact.flyingCarousel, false);
   assert.equal(reduced.flyingCarousel, false);
+});
+
+test('explicit full-motion preview opts into the WebGL carousel', () => {
+  assert.equal(typeof featureModule.resolveExperienceFeatures, 'function');
+  if (!featureModule.resolveExperienceFeatures) return;
+
+  assert.deepEqual(
+    featureModule.resolveExperienceFeatures({
+      search: '?motion=full',
+      compact: false,
+      reducedMotion: true,
+      webgl: true,
+    }),
+    { flyingCarousel: true },
+  );
 });
 
 test('carousel query switch and missing WebGL fail closed', () => {
@@ -172,10 +189,27 @@ test('recording-derived phases finish the grid early and hold it', () => {
     ribbonOut: 0.5,
     recede: 0.57,
     detach: 0.57,
-    grid: 0.73,
+    grid: 0.78,
   });
   assert.deepEqual(layoutModule.sampleFlyingCard(card, phases.grid), card.target);
   assert.deepEqual(layoutModule.sampleFlyingCard(card, 0.94), card.target);
+});
+
+test('carousel departure clears the frame instead of leaving bright specks', () => {
+  const layout = layoutModule.createFlyingCarouselLayout({ viewportWidth: 10 });
+  const departing = layout.map((card) =>
+    layoutModule.sampleFlyingCard(card, 0.535),
+  );
+  const vanished = layout.map((card) =>
+    layoutModule.sampleFlyingCard(card, 0.56),
+  );
+
+  // The departure remains readable through its midpoint, then alternates
+  // across both outer edges and is effectively invisible before re-entry.
+  assert.ok(departing.some((sample) => sample.scale > 0.24));
+  assert.ok(vanished.every((sample) => sample.scale < 0.035));
+  assert.ok(vanished.some((sample) => sample.position[0] < -7));
+  assert.ok(vanished.some((sample) => sample.position[0] > 7));
 });
 
 test('shared motion studies preserve the six legacy study identities', () => {
@@ -198,6 +232,7 @@ test('motion flight state can be reset to the preserved SVG fallback', () => {
     progress: 0.72,
     active: true,
     enabled: true,
+    prewarm: true,
     ready: true,
   });
   motionModule.resetMotionFlight();
@@ -206,8 +241,107 @@ test('motion flight state can be reset to the preserved SVG fallback', () => {
     progress: 0,
     active: false,
     enabled: false,
+    prewarm: false,
     ready: false,
   });
+});
+
+test('render quality policy favors frame stability deterministically', () => {
+  assert.equal(typeof qualityModule.resolveRenderQuality, 'function');
+  if (!qualityModule.resolveRenderQuality) return;
+
+  const high = qualityModule.resolveRenderQuality({
+    deviceMemory: 16,
+    hardwareConcurrency: 12,
+    devicePixelRatio: 1.5,
+  });
+  const balanced = qualityModule.resolveRenderQuality({
+    deviceMemory: 8,
+    hardwareConcurrency: 8,
+    devicePixelRatio: 2,
+  });
+  const eco = qualityModule.resolveRenderQuality({
+    reducedMotion: true,
+    deviceMemory: 16,
+    hardwareConcurrency: 12,
+  });
+
+  assert.equal(high.tier, 'high');
+  assert.equal(high.maxDpr, 1.35);
+  assert.equal(balanced.tier, 'balanced');
+  assert.equal(eco.tier, 'eco');
+  assert.equal(eco.animate, false);
+  assert.equal(eco.postprocessing, 'off');
+  assert.ok(high.particleCount > balanced.particleCount);
+  assert.ok(balanced.particleCount > eco.particleCount);
+});
+
+test('scene activity windows overlap camera approaches but idle distant beats', () => {
+  assert.equal(typeof activityModule.getBeatActivityWindow, 'function');
+  assert.equal(typeof activityModule.isBeatActive, 'function');
+  assert.equal(typeof activityModule.isBeatProgressActive, 'function');
+  if (
+    !activityModule.getBeatActivityWindow ||
+    !activityModule.isBeatActive ||
+    !activityModule.isBeatProgressActive
+  ) return;
+
+  const beatIds = ['hero', 'work', 'motion', 'contact'];
+  const beatProgress = { hero: 0, work: 0.25, motion: 0.75, contact: 1 };
+  const window = activityModule.getBeatActivityWindow({
+    beatId: 'motion',
+    beatIds,
+    beatProgress,
+  });
+
+  assert.deepEqual(window, { start: 0.475, end: 0.9 });
+  assert.equal(activityModule.isBeatActive({
+    progress: 0.74,
+    beatId: 'motion',
+    beatIds,
+    beatProgress,
+  }), true);
+  assert.equal(activityModule.isBeatActive({
+    progress: 0.2,
+    beatId: 'motion',
+    beatIds,
+    beatProgress,
+  }), false);
+  assert.equal(activityModule.isBeatActive({
+    progress: 0.5,
+    beatId: 'missing',
+    beatIds,
+    beatProgress,
+  }), false);
+  assert.equal(
+    activityModule.isBeatProgressActive(
+      0.74,
+      'motion',
+      beatIds,
+      beatProgress,
+    ),
+    true,
+  );
+});
+
+test('motion lifecycle distinguishes dormant preparation from active flight', () => {
+  assert.equal(typeof motionModule.getMotionLifecycle, 'function');
+  if (!motionModule.getMotionLifecycle) return;
+
+  assert.equal(motionModule.getMotionLifecycle({ enabled: false }), 'disabled');
+  assert.equal(motionModule.getMotionLifecycle({ enabled: true }), 'dormant');
+  assert.equal(
+    motionModule.getMotionLifecycle({ enabled: true, prewarm: true }),
+    'prewarming',
+  );
+  assert.equal(
+    motionModule.getMotionLifecycle({ enabled: true, prewarm: true, ready: true }),
+    'ready',
+  );
+  assert.equal(
+    motionModule.getMotionLifecycle({ enabled: true, ready: true, active: true }),
+    'active',
+  );
 });
 
 test('carousel compact breakpoint has no fractional-DPR gap below 768px', () => {

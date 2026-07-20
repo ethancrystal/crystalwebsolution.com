@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import CameraRig from './three/CameraRig';
 import FocusDimmer from './three/FocusDimmer';
@@ -16,13 +17,36 @@ import Effects from './three/Effects';
 import FlyingCarousel from './three/FlyingCarousel';
 import CanvasFeatureBoundary from './three/CanvasFeatureBoundary';
 import { CLUSTERS } from '../lib/journey';
-import { setMotionReady } from '../lib/motionFlight.mjs';
+import {
+  motionFlight,
+  setMotionReady,
+  subscribeMotionFlight,
+} from '../lib/motionFlight.mjs';
 import { useExperienceFeatures } from '../lib/useExperienceFeatures';
+import { useRenderQuality } from '../lib/useRenderQuality';
+
+function useCarouselMount(enabled) {
+  const shouldMount = (state) => enabled && (state.prewarm || state.active);
+  const [mounted, setMounted] = useState(() => shouldMount(motionFlight));
+
+  useEffect(() => {
+    const sync = (state) => setMounted((current) => {
+      const next = shouldMount(state);
+      return current === next ? current : next;
+    });
+    sync(motionFlight);
+    return subscribeMotionFlight(sync);
+  }, [enabled]);
+
+  return mounted;
+}
 
 // One fixed, non-interactive canvas behind the whole page.
 // The DOM scrolls over it; the camera flies through one continuous space.
 export default function Scene() {
   const { flyingCarousel } = useExperienceFeatures();
+  const mountCarousel = useCarouselMount(flyingCarousel);
+  const quality = useRenderQuality();
 
   return (
     <div className="scene-canvas" aria-hidden="true">
@@ -46,40 +70,33 @@ export default function Scene() {
         <Crystal position={[0, 0, CLUSTERS.crystal]} />
         <Sparks position={[0, 0, CLUSTERS.crystal]} />
 
-        {/* Services beat — five emblems, one per service row, hover-linked
+        {/* Services beat — eight signal instruments, one per service row, hover-linked
             to the DOM list (see ServiceRail) */}
-        <ServiceRail position={[0, 0, CLUSTERS.services]} />
+        <ServiceRail position={[0, 0, CLUSTERS.services]} animate={quality.animate} />
 
         {/* Approach beat — step-markers orbiting a small core */}
-        <ApproachCompass position={[0, 0, CLUSTERS.approach]} />
+        <ApproachCompass position={[0, 0, CLUSTERS.approach]} animate={quality.animate} />
 
         {/* Showcase beat */}
-        <ShowcaseBoxes position={[0, 0, CLUSTERS.showcase]} />
+        <ShowcaseBoxes position={[0, 0, CLUSTERS.showcase]} animate={quality.animate} />
 
         {/* Recognition beat — medal ring, brightens on DOM row hover */}
-        <RecognitionRing position={[0, 0, CLUSTERS.recognition]} />
+        <RecognitionRing position={[0, 0, CLUSTERS.recognition]} animate={quality.animate} />
 
         {/* Motion beat — additive only. Motion.jsx keeps its complete SVG
             path visible until this feature reports a successful frame. */}
-        {flyingCarousel && (
+        {mountCarousel && (
           <CanvasFeatureBoundary
-            resetKey={flyingCarousel}
+            resetKey={mountCarousel}
             onError={() => setMotionReady(false)}
           >
-            <FlyingCarousel position={[0, 0, CLUSTERS.motion]} />
+            <FlyingCarousel
+              position={[0, 0, CLUSTERS.motion]}
+              textureWidth={quality.carouselTextureWidth}
+              backdropWidth={quality.carouselBackdropWidth}
+            />
           </CanvasFeatureBoundary>
         )}
-
-        {/* About + Facts + Contact share the ambient field. The Sparks
-            instance here is the "closing roar" payoff for Contact.jsx's
-            onRoar handler — same component as the hero's, just re-instanced
-            at the contact crystal's own position (see docs/PIXEL-POLISH-PLAN.md
-            Phase 2); without it the hero's Sparks would fire uselessly back
-            at z=0, nowhere near the camera by the time contact is on screen. */}
-        <group position={[0, 0, CLUSTERS.contact]}>
-          <Crystal position={[0, 0, -3]} />
-          <Sparks position={[0, 0, -3]} />
-        </group>
 
         <Particles count={900} />
         <BackdropMorph />

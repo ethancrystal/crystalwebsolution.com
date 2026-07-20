@@ -5,7 +5,8 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { chime } from '../../lib/chime';
 import { scrollState } from '../../lib/scrollState';
-import { beatProgress } from '../../lib/beatProgress';
+import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
+import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
 
 // The recognition beat: four medal-toruses drift in a loose ring. Hovering
 // an award row in the DOM (components/sections/Recognition.jsx) writes
@@ -50,7 +51,7 @@ function buildSparkVelocities(seed) {
   return vel;
 }
 
-export default function RecognitionRing({ position = [0, 0, 0] }) {
+export default function RecognitionRing({ position = [0, 0, 0], animate = true }) {
   const group = useRef();
   const lastChime = useRef(0);
   const energy = useRef(new Array(COUNT).fill(0));
@@ -61,6 +62,31 @@ export default function RecognitionRing({ position = [0, 0, 0] }) {
   const sparkPositions = useMemo(() => ANGLES.map(() => new Float32Array(SPARK_COUNT * 3)), []);
 
   useFrame((state, delta) => {
+    if (!animate) {
+      lastChime.current = chime.t;
+      energy.current.fill(0);
+      sparkLife.current.fill(0);
+      if (group.current) {
+        group.current.scale.setScalar(1);
+        for (let i = 0; i < COUNT; i++) {
+          const medal = group.current.children[i];
+          if (!medal) continue;
+          medal.scale.setScalar(0.24);
+          medal.material.emissiveIntensity = 0.25;
+        }
+      }
+      for (let i = 0; i < sparkRefs.current.length; i++) {
+        const sparks = sparkRefs.current[i];
+        if (sparks) sparks.material.opacity = 0;
+      }
+      return;
+    }
+    if (!isBeatProgressActive(
+      scrollState.progress,
+      'recognition',
+      BEAT_IDS,
+      beatProgress,
+    )) return;
     const dt = Math.min(delta, 0.05);
     const t = state.clock.elapsedTime;
     if (!group.current) return;

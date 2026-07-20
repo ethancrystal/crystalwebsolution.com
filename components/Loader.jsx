@@ -7,6 +7,7 @@ import { SITE } from '../lib/site';
 // Intro loader: three brand words cycle while a counter climbs,
 // then the curtain lifts to reveal the scene.
 const WORDS = SITE.tagline.split('. ').map((w) => w.replace('.', ''));
+const SESSION_KEY = 'cws:intro-seen';
 
 export default function Loader() {
   const root = useRef(null);
@@ -15,14 +16,37 @@ export default function Loader() {
   const [gone, setGone] = useState(false);
 
   useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let seen = false;
+    try {
+      seen = window.sessionStorage.getItem(SESSION_KEY) === '1';
+    } catch {
+      // Storage may be unavailable in hardened/private browsing modes.
+    }
+    if (seen) {
+      document.documentElement.dataset.cwsIntroSeen = '1';
+    }
+    if (reduced || seen) {
+      setGone(true);
+      return undefined;
+    }
+
     const tl = gsap.timeline({
-      onComplete: () => setGone(true),
+      onComplete: () => {
+        try {
+          window.sessionStorage.setItem(SESSION_KEY, '1');
+          document.documentElement.dataset.cwsIntroSeen = '1';
+        } catch {
+          // The intro remains non-blocking even if storage is unavailable.
+        }
+        setGone(true);
+      },
     });
 
     const count = { v: 0 };
     tl.to(count, {
       v: 100,
-      duration: 2.1,
+      duration: 0.65,
       ease: 'power2.inOut',
       onUpdate: () => {
         if (counter.current) counter.current.textContent = String(Math.round(count.v)).padStart(3, '0');
@@ -32,17 +56,17 @@ export default function Loader() {
     WORDS.forEach((_, i) => {
       const el = wordRefs.current[i];
       if (!el) return;
-      tl.fromTo(el, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, i * 0.65);
+      tl.fromTo(el, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.18, ease: 'power2.out' }, i * 0.18);
       if (i < WORDS.length - 1) {
-        tl.to(el, { opacity: 0, y: -24, duration: 0.35, ease: 'power2.in' }, i * 0.65 + 0.5);
+        tl.to(el, { opacity: 0, y: -16, duration: 0.16, ease: 'power2.in' }, i * 0.18 + 0.16);
       }
     });
 
     tl.to(root.current, {
       yPercent: -100,
-      duration: 0.9,
+      duration: 0.38,
       ease: 'power4.inOut',
-    }, 2.25);
+    }, 0.62);
 
     return () => tl.kill();
   }, []);

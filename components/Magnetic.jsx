@@ -9,7 +9,11 @@ export default function Magnetic({ strength = 0.35, children, className = '' }) 
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || window.matchMedia('(pointer: coarse)').matches) return;
+    if (
+      !el
+      || window.matchMedia('(pointer: coarse)').matches
+      || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) return;
 
     const xTo = gsap.quickTo(el, 'x', { duration: 0.6, ease: 'elastic.out(1, 0.4)' });
     const yTo = gsap.quickTo(el, 'y', { duration: 0.6, ease: 'elastic.out(1, 0.4)' });

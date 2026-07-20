@@ -11,12 +11,12 @@ const COLOR_A = new THREE.Color('#0b2740');
 const COLOR_B = new THREE.Color('#241040');
 const tmpColor = new THREE.Color();
 
-export default function BackdropMorph() {
+export default function BackdropMorph({ animate = true }) {
   const mesh = useRef();
 
   useFrame((state, delta) => {
+    if (!mesh.current || !animate) return;
     const dt = Math.min(delta, 0.05);
-    if (!mesh.current) return;
     mesh.current.rotation.y += dt * 0.015;
     mesh.current.rotation.x += dt * 0.006;
     tmpColor.copy(COLOR_A).lerp(COLOR_B, scrollState.progress);

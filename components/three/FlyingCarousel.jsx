@@ -20,8 +20,6 @@ import { MOTION_STUDIES } from '../../lib/motionStudies.mjs';
 const CWS_CYAN = '#59f3ff';
 const CWS_BLUE = '#3c6cff';
 const FRAME = '#ccd2d8';
-const TEXTURE_WIDTH = 768;
-const TEXTURE_HEIGHT = Math.round(TEXTURE_WIDTH * (CARD_HEIGHT / CARD_WIDTH));
 const FACE_OFFSET = 0.0185;
 
 function roundedRectPath(context, x, y, width, height, radius) {
@@ -54,10 +52,10 @@ function createCanvasTexture(canvas, anisotropy) {
   return texture;
 }
 
-function createBackdropTexture(anisotropy) {
+function createBackdropTexture(anisotropy, textureWidth) {
   const canvas = document.createElement('canvas');
-  canvas.width = 960;
-  canvas.height = 640;
+  canvas.width = textureWidth;
+  canvas.height = Math.round(textureWidth * (2 / 3));
 
   const context = canvas.getContext('2d', { alpha: false });
   if (!context) {
@@ -112,18 +110,19 @@ function createBackdropTexture(anisotropy) {
   return createCanvasTexture(canvas, anisotropy);
 }
 
-function createStudyTexture(study, index, anisotropy) {
+function createStudyTexture(study, index, anisotropy, textureWidth) {
   const canvas = document.createElement('canvas');
-  canvas.width = TEXTURE_WIDTH;
-  canvas.height = TEXTURE_HEIGHT;
+  const textureHeight = Math.round(textureWidth * (CARD_HEIGHT / CARD_WIDTH));
+  canvas.width = textureWidth;
+  canvas.height = textureHeight;
 
   const context = canvas.getContext('2d', { alpha: true });
   if (!context) {
     throw new Error('FlyingCarousel could not create a procedural card texture.');
   }
 
-  const width = TEXTURE_WIDTH;
-  const height = TEXTURE_HEIGHT;
+  const width = textureWidth;
+  const height = textureHeight;
   const number = String(index + 1).padStart(2, '0');
   const inset = Math.max(5, height * 0.01);
   const radius = height * 0.06;
@@ -330,7 +329,7 @@ function disposeCarouselResources(resources) {
   }
 }
 
-function createCarouselResources(gl) {
+function createCarouselResources(gl, textureWidth, backdropWidth) {
   const anisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), 8);
   const backdropGeometry = new THREE.PlaneGeometry(30, 20, 1, 1);
   const frameGeometry = new RoundedBoxGeometry(
@@ -356,14 +355,19 @@ function createCarouselResources(gl) {
   const faceMaterials = new Array(MOTION_STUDIES.length);
 
   try {
-    backdropTexture = createBackdropTexture(anisotropy);
+    backdropTexture = createBackdropTexture(anisotropy, backdropWidth);
     backdropMaterial = new THREE.MeshBasicMaterial({
       map: backdropTexture,
       toneMapped: false,
       fog: false,
     });
     for (let index = 0; index < MOTION_STUDIES.length; index++) {
-      const texture = createStudyTexture(MOTION_STUDIES[index], index, anisotropy);
+      const texture = createStudyTexture(
+        MOTION_STUDIES[index],
+        index,
+        anisotropy,
+        textureWidth,
+      );
       textures[index] = texture;
       faceMaterials[index] = new THREE.MeshBasicMaterial({
         map: texture,
@@ -432,7 +436,11 @@ function StudyCard({ study, index, register, resources }) {
 // Six deterministic cards consume Motion.jsx's shared scroll state. Each card
 // is two draw calls (chrome body + textured face), replacing the former stack
 // of individual artwork meshes without adding another animation clock.
-export default function FlyingCarousel({ position = [0, 0, 0] }) {
+export default function FlyingCarousel({
+  position = [0, 0, 0],
+  textureWidth = 640,
+  backdropWidth = 800,
+}) {
   const stageRef = useRef(null);
   const cardRefs = useRef([]);
   const reportedReady = useRef(false);
@@ -442,7 +450,10 @@ export default function FlyingCarousel({ position = [0, 0, 0] }) {
   const gl = useThree((state) => state.gl);
   const viewport = useThree((state) => state.viewport);
   const renderFrameAtArm = useRef(gl.info.render.frame);
-  const resources = useMemo(() => createCarouselResources(gl), [gl]);
+  const resources = useMemo(
+    () => createCarouselResources(gl, textureWidth, backdropWidth),
+    [gl, textureWidth, backdropWidth],
+  );
   const sampleBuffers = useMemo(createSampleBuffers, []);
   const layout = useMemo(
     () => createFlyingCarouselLayout({ viewportWidth: viewport.width }),
@@ -479,7 +490,7 @@ export default function FlyingCarousel({ position = [0, 0, 0] }) {
       readinessArmed.current = false;
       setMotionReady(false);
     };
-  }, [gl]);
+  }, [gl, resources]);
 
   useFrame(() => {
     const progress = THREE.MathUtils.clamp(motionFlight.progress, 0, 1);

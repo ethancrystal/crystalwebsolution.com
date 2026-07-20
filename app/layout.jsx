@@ -18,7 +18,18 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${grotesk.variable} ${inter.variable} ${mono.variable}`}>
+    <html
+      lang="en"
+      className={`${grotesk.variable} ${inter.variable} ${mono.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(sessionStorage.getItem('cws:intro-seen')==='1')document.documentElement.dataset.cwsIntroSeen='1'}catch(e){}",
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

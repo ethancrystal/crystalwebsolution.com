@@ -3,9 +3,8 @@
 import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import DecodeText from '../DecodeText';
-import Reveal from '../Reveal';
-import RevealPop from '../RevealPop';
+import SectionReveal from '../SectionReveal';
+import { DURATION_FAST, DURATION_SLOW, EASE_SETTLE, STAGGER_ROW } from '../../lib/easing';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -58,11 +57,11 @@ export default function Approach() {
         lastActive.current = step;
         const row = rowRefs.current[step];
         if (!row) return;
-        gsap.fromTo(row, { scale: 1 }, { scale: 1.018, duration: 0.22, ease: 'power3.out', yoyo: true, repeat: 1, overwrite: true });
+        gsap.fromTo(row, { scale: 1 }, { scale: 1.018, duration: DURATION_FAST, ease: EASE_SETTLE, yoyo: true, repeat: 1, overwrite: true });
         gsap.fromTo(
           row,
           { borderBottomColor: 'rgba(89, 243, 255, 0.9)' },
-          { borderBottomColor: 'rgba(139, 152, 184, 0.18)', duration: 0.7, ease: 'power2.out', overwrite: 'auto' }
+          { borderBottomColor: 'rgba(139, 152, 184, 0.18)', duration: DURATION_SLOW, ease: EASE_SETTLE, overwrite: 'auto' }
         );
       },
     });
@@ -73,18 +72,20 @@ export default function Approach() {
   return (
     <section className="section approach" id="approach" data-quiet ref={sectionRef}>
       <div className="text-plate">
-        <p className="eyebrow"><Reveal as="span">How we work</Reveal></p>
-        <DecodeText as="h2" text="Four steps. No shortcuts." className="section-title" />
+        <p className="eyebrow"><SectionReveal as="span" direction="left">How we work</SectionReveal></p>
+        <SectionReveal as="h2" direction="left" className="section-title">
+          Four steps. No shortcuts.
+        </SectionReveal>
       </div>
       <div className="approach-list">
         {STEPS.map((s, i) => (
-          <RevealPop key={s.n} className="approach-row" delay={i * 0.08} as="div">
+          <SectionReveal key={s.n} className="approach-row" delay={i * STAGGER_ROW} direction="left" as="div">
             <div ref={(el) => (rowRefs.current[i] = el)} className="approach-row-inner">
               <span className="approach-num">{s.n}</span>
               <h3 className="approach-title" data-hover data-cursor="✦">{s.title}</h3>
               <p className="approach-desc">{s.desc}</p>
             </div>
-          </RevealPop>
+          </SectionReveal>
         ))}
       </div>
     </section>

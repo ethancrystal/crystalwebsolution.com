@@ -4,11 +4,12 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { scrollState } from '../../lib/scrollState';
-import { beatProgress } from '../../lib/beatProgress';
+import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
+import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
 
 // The approach beat: four step-markers ("Discover / Design / Build /
 // Launch") orbit a small core, dark until Approach's own measured scroll
-// span opens (beatProgress.approach -> beatProgress.work). Four equal
+// span opens (beatProgress.approach -> beatProgress.stories). Four equal
 // sub-ranges of one ease value light up in turn.
 //
 // Each marker's glow is a tiny mass-spring-damper (critically-underdamped,
@@ -22,19 +23,26 @@ const RADIUS = 1.9;
 const STIFFNESS = 90;
 const DAMPING = 9;
 
-export default function ApproachCompass({ position = [0, 0, 0] }) {
+export default function ApproachCompass({ position = [0, 0, 0], animate = true }) {
   const group = useRef();
   const core = useRef();
   // { value, velocity } per marker — a tiny spring simulation, no React state.
   const springs = useRef(Array.from({ length: COUNT }, () => ({ value: 0.18, velocity: 0 })));
 
   useFrame((state, delta) => {
+    if (!animate) return;
+    if (!isBeatProgressActive(
+      scrollState.progress,
+      'approach',
+      BEAT_IDS,
+      beatProgress,
+    )) return;
     const dt = Math.min(delta, 0.05);
     const t = state.clock.elapsedTime;
     if (!group.current) return;
 
     const a = beatProgress.approach;
-    const b = beatProgress.work;
+    const b = beatProgress.stories;
     const span = Math.max(b - a, 0.0001);
     const ease = THREE.MathUtils.clamp((scrollState.progress - a) / span, 0, 1);
     const activeStep = Math.min(COUNT - 1, Math.floor(ease * COUNT));

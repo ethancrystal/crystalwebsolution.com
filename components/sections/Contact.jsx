@@ -1,47 +1,35 @@
 'use client';
 
-import DecodeText from '../DecodeText';
-import Reveal from '../Reveal';
+import SectionReveal from '../SectionReveal';
 import Magnetic from '../Magnetic';
-import { blast } from '../../lib/pulse';
 import { SITE } from '../../lib/site';
 
-// "Closing roar" (docs/PIXEL-POLISH-PLAN.md Phase 2): reaching for the email
-// CTA fires the same lib/pulse.js blast() the hero's click already drives.
-// Crystal.jsx reads the pulse singleton globally, so the contact crystal
-// (Scene.jsx) picks up the scale-pulse/spin-burst for free; the matching
-// Sparks instance added alongside it there gives it the spark-ejection half
-// too — full-circle callback to the hero gesture, no new systems.
+// Contact deliberately closes quietly. The hero owns the crystal and its
+// pulse language; this CTA uses a contained CSS sweep instead of replaying
+// that 3D gesture at the end of the page.
 export default function Contact() {
-  const onRoar = (e) => {
-    if (typeof e.clientX === 'number') blast(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
-    else blast();
-  };
-
   return (
     <section className="section contact" id="contact" data-quiet>
       <div className="text-plate">
-        <p className="eyebrow"><Reveal as="span">From idea to outcome</Reveal></p>
-        <DecodeText as="h2" text="Let's make" className="contact-line" />
-        <DecodeText as="h2" text="something rare." className="contact-line contact-line-accent" delay={0.3} />
-        <Reveal className="contact-sub" delay={0.5}>
+        <p className="eyebrow"><SectionReveal as="span" direction="left">From idea to outcome</SectionReveal></p>
+        <SectionReveal as="h2" direction="left" className="contact-line">Let&apos;s make</SectionReveal>
+        <SectionReveal as="h2" direction="left" className="contact-line contact-line-accent" delay={0.3}>something rare.</SectionReveal>
+        <SectionReveal className="contact-sub" direction="up" delay={0.5}>
           <p>Send us your brief. We reply within two business days with a straight read on scope, timeline and cost — and the first move if it&apos;s a fit.</p>
-        </Reveal>
+        </SectionReveal>
       </div>
-      <Reveal className="contact-cta" delay={0.4}>
+      <SectionReveal className="contact-cta" direction="up" delay={0.4}>
         <Magnetic strength={0.45}>
           <a
             href={`mailto:${SITE.email}`}
-            className="btn btn-solid btn-xl"
+            className="btn btn-solid btn-xl contact-email"
             data-cursor="Write us"
-            onPointerEnter={onRoar}
-            onFocus={onRoar}
           >
             {SITE.email}
           </a>
         </Magnetic>
-      </Reveal>
-      <footer className="footer">
+      </SectionReveal>
+      <SectionReveal as="footer" className="footer" direction="left" start="top 94%">
         <div className="footer-col">
           <p className="footer-label">Enquiry</p>
           <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
@@ -61,7 +49,7 @@ export default function Contact() {
         <p className="footer-bottom">
           © {new Date().getFullYear()} {SITE.name}. {SITE.tagline}
         </p>
-      </footer>
+      </SectionReveal>
     </section>
   );
 }
