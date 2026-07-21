@@ -20,6 +20,13 @@ test('navigation uses the supplied full logo and menu icon artwork', () => {
   assert.match(navSource, /crystal-web-solution-icon\.svg/);
 });
 
+test('short desktop viewports keep the Stories heading below the fixed navigation', () => {
+  assert.match(
+    globalCss,
+    /@media \(min-width: 768px\) and \(max-height: 720px\)[\s\S]*?\.stories\s*\{[^}]*justify-content:\s*flex-start;[^}]*padding-top:\s*max\(7rem, 14vh\);/,
+  );
+});
+
 test('latest experience features default to the additive WebGL carousel', () => {
   assert.equal(typeof featureModule.resolveExperienceFeatures, 'function');
   if (!featureModule.resolveExperienceFeatures) return;
