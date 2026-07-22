@@ -12,8 +12,6 @@ import Approach from './sections/Approach';
 import Stories from './sections/Stories';
 import Mark from './sections/Mark';
 import About from './sections/About';
-import Facts from './sections/Facts';
-import Recognition from './sections/Recognition';
 import Motion from './sections/Motion';
 import Contact from './sections/Contact';
 
@@ -31,12 +29,10 @@ export default function Experience() {
       <main className="page">
         <Hero />
         <About />
-        <Facts />
         <Services />
         <Approach />
         <Stories />
         <Mark />
-        <Recognition />
         <Motion />
         <Contact />
       </main>

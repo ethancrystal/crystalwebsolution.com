@@ -8,33 +8,32 @@ import { scrollState } from '../../lib/scrollState';
 import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
 import { beacon } from '../../lib/beacon';
 import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
+import { SERVICES } from '../../lib/services.mjs';
 
-// The services beat: eight abstract emblems on a vertical rail, one per
+// The services beat: six abstract emblems on a vertical rail, one per
 // service row in components/sections/Services.jsx. They deliberately describe
-// the craft without becoming a second CWS logo: screen, lattice, facet,
-// construction ring, radar, motion knot, connected AI nodes, and a pipeline.
+// the craft without becoming a second CWS logo: screen, facet, motion knot,
+// radar, connected AI nodes, and a pipeline.
 // Top-to-bottom order exactly follows the DOM list:
-//   01 Web Design           — framed responsive screen
-//   02 Development          — code/system lattice
-//   03 Branding             — faceted identity plane
-//   04 Logo Design          — abstract construction ring
-//   05 Digital Marketing    — radar and directional needle
-//   06 Animation            — torus knot motion path
-//   07 AI Automation        — connected decision nodes
-//   08 Workflow Automation  — linked process pipeline
-// Sync is two house idioms at once: emblems ignite 01→08 as Services' own
+//   01 Web Design & Development — framed responsive screen
+//   02 Branding & Identity      — faceted identity plane
+//   03 Immersive 3D & Motion    — torus knot motion path
+//   04 Digital Marketing        — radar and directional needle
+//   05 AI Automation            — connected decision nodes
+//   06 Workflow Automation      — linked process pipeline
+// Sync is two house idioms at once: emblems ignite 01→06 as Services' own
 // measured scroll span opens (ApproachCompass's windowing), and hovering a
 // DOM row lifts its emblem via the lib/beacon.js singleton. Both feed one
 // mass-spring-damper per emblem (ApproachCompass's constants) driving
 // emissive + scale, so responses overshoot slightly and settle alive.
-const COUNT = 8;
+const COUNT = SERVICES.length;
 const RAIL_X = -1.15;
 const TOP_Y = 1.05;
 const STEP_Y = 1.4;
 // This shallow stagger gives pointer parallax depth without losing the
 // top-to-bottom service mapping in CameraRig's framed services beat.
-const Z_OFF = [0.35, -0.56, 0.1, -0.42, 0.54, -0.16, 0.62, -0.58];
-const ROT_SPEED = [0.19, 0.28, 0.24, 0.17, 0.3, 0.9, 0.36, 0.22];
+const Z_OFF = [0.35, -0.56, 0.1, -0.42, 0.54, -0.16];
+const ROT_SPEED = [0.19, 0.24, 0.9, 0.3, 0.36, 0.22];
 const BASE_SCALE = 0.19;
 
 // Spring levels: dark until the scroll window ignites a row, bright while
@@ -124,7 +123,7 @@ function cylinderBetween(start, end, radius = 0.035) {
 }
 
 function createSignalGeometries() {
-  // 01 / Frame — an open viewport with a split horizon and signal cursor.
+  // 01 / Web — an open viewport with a split horizon and signal cursor.
   const frame = mergeSignalParts([
     box([0, 0.61, 0], [1.42, 0.1, 0.14]),
     box([0, -0.61, 0], [1.42, 0.1, 0.14]),
@@ -138,21 +137,7 @@ function createSignalGeometries() {
     }),
   ]);
 
-  // 02 / Lattice — a nine-cell computational field crossed by two buses.
-  const latticeParts = [];
-  for (const x of [-0.46, 0, 0.46]) {
-    for (const y of [-0.46, 0, 0.46]) {
-      const depth = x === 0 || y === 0 ? 0.24 : 0.16;
-      latticeParts.push(box([x, y, 0], [0.24, 0.24, depth]));
-    }
-  }
-  latticeParts.push(
-    box([0, 0, -0.13], [1.18, 0.045, 0.045], [0, 0, 0.72]),
-    box([0, 0, -0.13], [1.18, 0.045, 0.045], [0, 0, -0.72])
-  );
-  const lattice = mergeSignalParts(latticeParts);
-
-  // 03 / Facet — a cut identity stone held inside a drafting orbit.
+  // 02 / Brand — a cut identity stone held inside a drafting orbit.
   const facet = mergeSignalParts([
     transformed(new THREE.OctahedronGeometry(0.72, 0), {
       rotation: [0.18, 0.28, Math.PI / 4],
@@ -161,15 +146,7 @@ function createSignalGeometries() {
     torus(0.88, 0.035, [0, 0, -0.04], [Math.PI / 2, 0, Math.PI / 4], 5, 28),
   ]);
 
-  // 04 / Construction orbit — three orthogonal measuring rings and a datum.
-  const orbit = mergeSignalParts([
-    torus(0.72, 0.045, [0, 0, 0], [0, 0, 0], 6, 28),
-    torus(0.72, 0.045, [0, 0, 0], [Math.PI / 2, 0, 0], 6, 28),
-    torus(0.72, 0.045, [0, 0, 0], [0, Math.PI / 2, 0], 6, 28),
-    sphere(0.15, [0, 0, 0], 8, 6),
-  ]);
-
-  // 05 / Radar — calibrated rings, sweep arm and three acquired points.
+  // 04 / Marketing — calibrated rings, sweep arm and acquired points.
   const radar = mergeSignalParts([
     torus(0.76, 0.035, [0, 0, 0], [0, 0, 0], 5, 28),
     torus(0.5, 0.025, [0, 0, 0], [0, 0, 0], 5, 24),
@@ -184,14 +161,14 @@ function createSignalGeometries() {
     sphere(0.045, [-0.14, -0.58, 0.04], 7, 5),
   ]);
 
-  // 06 / Motion knot — a continuous path with enough facets to catch light.
+  // 03 / 3D motion — a continuous path with enough facets to catch light.
   const motion = transformed(new THREE.TorusKnotGeometry(0.5, 0.11, 52, 7), {
     rotation: [0.22, -0.18, 0.12],
     scale: [1.2, 1.2, 1.2],
   });
   motion.computeBoundingSphere();
 
-  // 07 / Decision nodes — one source branching into three resolved outcomes.
+  // 05 / AI — one source branching into three resolved outcomes.
   const decisionPoints = [
     [-0.56, 0.12, 0],
     [-0.04, 0.48, 0.04],
@@ -208,7 +185,7 @@ function createSignalGeometries() {
     cylinderBetween(decisionPoints[4], decisionPoints[3]),
   ]);
 
-  // 08 / Relay pipeline — alternating stations with directional hand-offs.
+  // 06 / Workflow — alternating stations with directional hand-offs.
   const relayPoints = [
     [-0.65, 0.28, 0],
     [-0.22, -0.2, 0.04],
@@ -233,7 +210,7 @@ function createSignalGeometries() {
     }),
   ]);
 
-  return [frame, lattice, facet, orbit, radar, motion, decisions, relay];
+  return [frame, facet, motion, radar, decisions, relay];
 }
 
 export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
@@ -246,7 +223,7 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
   const geometries = useMemo(() => createSignalGeometries(), []);
 
   // One material per emblem, shared by all of that emblem's meshes, so the
-  // frame loop mutates eight materials instead of traversing children.
+  // frame loop mutates six materials instead of traversing children.
   const materials = useMemo(
     () =>
       Array.from(
@@ -297,7 +274,7 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
     // The DOM list is much taller than the viewport. Advance the authored
     // instrument rail by the same local progress so the current forms occupy
     // the quiet gutter beside the row being read instead of stacking over all
-    // eight pieces of copy at once.
+    // six pieces of copy at once.
     if (rail.current) {
       rail.current.position.y = position[1] + ease * STEP_Y * (COUNT - 1);
     }

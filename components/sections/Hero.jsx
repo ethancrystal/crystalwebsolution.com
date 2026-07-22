@@ -1,5 +1,7 @@
 'use client';
 
+import { useRef } from 'react';
+
 import DecodeText from '../DecodeText';
 import Reveal from '../Reveal';
 import Magnetic from '../Magnetic';
@@ -8,8 +10,11 @@ import { SITE } from '../../lib/site';
 
 // Clicking anywhere in the hero makes the crystal "roar" (blast pulse).
 export default function Hero() {
+  const hintRef = useRef(null);
+
   const onBlast = (e) => {
     blast(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
+    hintRef.current?.classList.add('is-dismissed');
   };
 
   return (
@@ -50,7 +55,7 @@ export default function Hero() {
               Start a project <span className="btn-arrow">→</span>
             </a>
           </Magnetic>
-          <span className="hero-hint">click the space — the crystal reacts</span>
+          <span className="hero-hint" ref={hintRef}>click anywhere — the crystal reacts</span>
         </Reveal>
       </div>
       <div className="hero-scroll" aria-hidden="true">

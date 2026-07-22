@@ -15,12 +15,32 @@ import {
   motionFlight,
   setMotionReady,
 } from '../../lib/motionFlight.mjs';
-import { MOTION_STUDIES } from '../../lib/motionStudies.mjs';
+import { PROJECTS } from '../../lib/projects';
+import { scrollState } from '../../lib/scrollState';
+import { CLUSTERS, MOTION_WINDOW, STOPS } from '../../lib/journey';
 
 const CWS_CYAN = '#59f3ff';
 const CWS_BLUE = '#3c6cff';
 const FRAME = '#ccd2d8';
 const FACE_OFFSET = 0.0185;
+const MOTION_STOP = STOPS.find((stop) => stop.look[2] === CLUSTERS.motion);
+const MOTION_DISTANCE = Math.hypot(
+  MOTION_STOP.pos[0] - MOTION_STOP.look[0],
+  MOTION_STOP.pos[1] - MOTION_STOP.look[1],
+  MOTION_STOP.pos[2] - MOTION_STOP.look[2],
+);
+const MOTION_FOV = 42;
+
+function visibleWorldWidth(pixelWidth, pixelHeight) {
+  const aspect = pixelWidth / Math.max(pixelHeight, 1);
+  const height = 2 * Math.tan(THREE.MathUtils.degToRad(MOTION_FOV) / 2) * MOTION_DISTANCE;
+  return height * aspect;
+}
+
+function smoothstep01(value) {
+  const t = Math.min(1, Math.max(0, value));
+  return t * t * (3 - 2 * t);
+}
 
 function roundedRectPath(context, x, y, width, height, radius) {
   const right = x + width;
@@ -110,7 +130,7 @@ function createBackdropTexture(anisotropy, textureWidth) {
   return createCanvasTexture(canvas, anisotropy);
 }
 
-function createStudyTexture(study, index, anisotropy, textureWidth) {
+function createStudyTexture(project, index, anisotropy, textureWidth) {
   const canvas = document.createElement('canvas');
   const textureHeight = Math.round(textureWidth * (CARD_HEIGHT / CARD_WIDTH));
   canvas.width = textureWidth;
@@ -141,45 +161,45 @@ function createStudyTexture(study, index, anisotropy, textureWidth) {
   );
   context.clip();
 
-  context.fillStyle = '#f4f3ef';
+  context.fillStyle = '#f6f5f2';
   context.fillRect(0, 0, width, height);
 
-  const colorField = context.createLinearGradient(0, 0, width, height * 0.72);
-  colorField.addColorStop(0, study.color);
-  colorField.addColorStop(0.62, study.color);
-  colorField.addColorStop(1, '#edf0f2');
+  const colorField = context.createLinearGradient(0, 0, width * 0.92, height * 0.78);
+  colorField.addColorStop(0, project.palette[0]);
+  colorField.addColorStop(0.58, project.palette[1]);
+  colorField.addColorStop(1, '#e8eaee');
   context.save();
-  context.globalAlpha = 0.94;
+  context.globalAlpha = 0.96;
   context.fillStyle = colorField;
-  context.fillRect(0, 0, width, height * 0.72);
+  context.fillRect(0, 0, width, height * 0.78);
   context.restore();
 
   context.save();
-  context.globalAlpha = 0.28;
+  context.globalAlpha = 0.32;
   context.fillStyle = '#ffffff';
   context.beginPath();
-  context.moveTo(width * 0.62, 0);
+  context.moveTo(width * 0.64, 0);
   context.lineTo(width, 0);
-  context.lineTo(width, height * 0.55);
-  context.lineTo(width * 0.82, height * 0.43);
+  context.lineTo(width, height * 0.58);
+  context.lineTo(width * 0.84, height * 0.46);
   context.closePath();
   context.fill();
   context.restore();
 
   context.save();
-  context.globalAlpha = 0.1;
-  context.strokeStyle = '#111820';
-  context.lineWidth = 1;
-  for (let x = width * 0.06; x < width; x += width * 0.075) {
+  context.globalAlpha = 0.12;
+  context.strokeStyle = '#141a21';
+  context.lineWidth = 1.2;
+  for (let x = width * 0.055; x < width; x += width * 0.072) {
     context.beginPath();
-    context.moveTo(x, height * 0.08);
-    context.lineTo(x, height * 0.7);
+    context.moveTo(x, height * 0.07);
+    context.lineTo(x, height * 0.72);
     context.stroke();
   }
-  for (let y = height * 0.1; y < height * 0.72; y += height * 0.095) {
+  for (let y = height * 0.09; y < height * 0.72; y += height * 0.092) {
     context.beginPath();
-    context.moveTo(width * 0.035, y);
-    context.lineTo(width * 0.965, y);
+    context.moveTo(width * 0.03, y);
+    context.lineTo(width * 0.97, y);
     context.stroke();
   }
   context.restore();
@@ -252,7 +272,7 @@ function createStudyTexture(study, index, anisotropy, textureWidth) {
   const topRule = context.createLinearGradient(left, 0, right, 0);
   topRule.addColorStop(0, CWS_CYAN);
   topRule.addColorStop(0.58, CWS_BLUE);
-  topRule.addColorStop(1, study.color);
+  topRule.addColorStop(1, project.palette[0]);
   context.fillStyle = topRule;
   context.fillRect(left, height * 0.04, right - left, Math.max(4, height * 0.01));
 
@@ -260,7 +280,7 @@ function createStudyTexture(study, index, anisotropy, textureWidth) {
   context.fillStyle = '#202832';
   context.font = `700 ${Math.round(height * 0.034)}px "Space Mono", Consolas, monospace`;
   context.textAlign = 'left';
-  context.fillText('CWS / MOTION STUDY', left, height * 0.095);
+  context.fillText('CWS / SELECTED WORK', left, height * 0.095);
   context.textAlign = 'right';
   context.fillStyle = CWS_BLUE;
   context.font = `700 ${Math.round(height * 0.056)}px "Space Mono", Consolas, monospace`;
@@ -269,12 +289,12 @@ function createStudyTexture(study, index, anisotropy, textureWidth) {
   context.textAlign = 'left';
   context.fillStyle = '#111820';
   context.font = `700 ${Math.round(height * 0.096)}px "Space Grotesk", Arial, sans-serif`;
-  context.fillText(study.title, left, height * 0.79, width * 0.79);
+  context.fillText(project.title, left, height * 0.79, width * 0.79);
   context.fillStyle = '#3e4650';
   context.font = `500 ${Math.round(height * 0.054)}px Inter, Arial, sans-serif`;
-  context.fillText(study.subtitle, left, height * 0.89, width * 0.64);
+  context.fillText(project.category, left, height * 0.89, width * 0.64);
 
-  context.fillStyle = study.color;
+  context.fillStyle = project.palette[0];
   context.beginPath();
   context.arc(right - height * 0.025, height * 0.89, height * 0.024, 0, Math.PI * 2);
   context.fill();
@@ -342,28 +362,32 @@ function createCarouselResources(gl, textureWidth, backdropWidth) {
   const faceGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT, 1, 1);
   const frameMaterial = new THREE.MeshPhysicalMaterial({
     color: FRAME,
-    metalness: 0.48,
-    roughness: 0.34,
-    clearcoat: 0.24,
-    clearcoatRoughness: 0.32,
-    reflectivity: 0.5,
-    envMapIntensity: 0.46,
+    transparent: true,
+    opacity: 1,
+    metalness: 0.52,
+    roughness: 0.26,
+    clearcoat: 0.32,
+    clearcoatRoughness: 0.24,
+    reflectivity: 0.62,
+    envMapIntensity: 0.58,
   });
   let backdropTexture = null;
   let backdropMaterial = null;
-  const textures = new Array(MOTION_STUDIES.length);
-  const faceMaterials = new Array(MOTION_STUDIES.length);
+  const textures = new Array(PROJECTS.length);
+  const faceMaterials = new Array(PROJECTS.length);
 
   try {
     backdropTexture = createBackdropTexture(anisotropy, backdropWidth);
     backdropMaterial = new THREE.MeshBasicMaterial({
       map: backdropTexture,
+      transparent: true,
+      opacity: 1,
       toneMapped: false,
       fog: false,
     });
-    for (let index = 0; index < MOTION_STUDIES.length; index++) {
+    for (let index = 0; index < PROJECTS.length; index++) {
       const texture = createStudyTexture(
-        MOTION_STUDIES[index],
+        PROJECTS[index],
         index,
         anisotropy,
         textureWidth,
@@ -373,6 +397,7 @@ function createCarouselResources(gl, textureWidth, backdropWidth) {
         map: texture,
         alphaTest: 0.02,
         transparent: true,
+        opacity: 1,
         toneMapped: false,
       });
     }
@@ -403,7 +428,7 @@ function createCarouselResources(gl, textureWidth, backdropWidth) {
 }
 
 function createSampleBuffers() {
-  const buffers = new Array(MOTION_STUDIES.length);
+  const buffers = new Array(PROJECTS.length);
   for (let index = 0; index < buffers.length; index++) {
     buffers[index] = {
       position: [0, 0, 0],
@@ -414,9 +439,9 @@ function createSampleBuffers() {
   return buffers;
 }
 
-function StudyCard({ study, index, register, resources }) {
+function StudyCard({ project, index, register, resources }) {
   return (
-    <group ref={register} userData={{ study: study.id }}>
+    <group ref={register} userData={{ project: project.slug }}>
       <mesh
         geometry={resources.frameGeometry}
         material={resources.frameMaterial}
@@ -448,8 +473,8 @@ export default function FlyingCarousel({
   const renderedProgress = useRef(-1);
   const renderedLayout = useRef(null);
   const gl = useThree((state) => state.gl);
-  const viewport = useThree((state) => state.viewport);
   const viewportPixelWidth = useThree((state) => state.size.width);
+  const viewportPixelHeight = useThree((state) => state.size.height);
   const renderFrameAtArm = useRef(gl.info.render.frame);
   const resources = useMemo(
     () => createCarouselResources(gl, textureWidth, backdropWidth),
@@ -458,10 +483,10 @@ export default function FlyingCarousel({
   const sampleBuffers = useMemo(createSampleBuffers, []);
   const layout = useMemo(
     () => createFlyingCarouselLayout({
-      viewportWidth: viewport.width,
+      viewportWidth: visibleWorldWidth(viewportPixelWidth, viewportPixelHeight),
       viewportPixelWidth,
     }),
-    [viewport.width, viewportPixelWidth],
+    [viewportPixelHeight, viewportPixelWidth],
   );
 
   useEffect(() => () => disposeCarouselResources(resources), [resources]);
@@ -497,7 +522,12 @@ export default function FlyingCarousel({
   }, [gl, resources]);
 
   useFrame(() => {
-    const progress = THREE.MathUtils.clamp(motionFlight.progress, 0, 1);
+    const windowSpan = Math.max(MOTION_WINDOW.end - MOTION_WINDOW.start, 0.0001);
+    const progress = THREE.MathUtils.clamp(
+      (scrollState.progress - MOTION_WINDOW.start) / windowSpan,
+      0,
+      1,
+    );
     const renderProgress = Math.min(progress, FLIGHT_PHASES.grid);
     const layoutChanged = renderedLayout.current !== layout;
     const carouselActive = motionFlight.enabled && motionFlight.active;
@@ -513,13 +543,20 @@ export default function FlyingCarousel({
     // frames also idle until scroll/layout changes; the terminal grid is held.
     if (
       !layoutChanged &&
-      renderedProgress.current === renderProgress &&
+      renderedProgress.current === progress &&
       (!carouselActive || reportedReady.current)
     ) {
       return;
     }
     renderedLayout.current = layout;
-    renderedProgress.current = renderProgress;
+    renderedProgress.current = progress;
+
+    const handoff = smoothstep01((progress - 0.86) / 0.08);
+    const canvasOpacity = 1 - handoff;
+    resources.frameMaterial.opacity = canvasOpacity;
+    for (let index = 0; index < resources.faceMaterials.length; index++) {
+      resources.faceMaterials[index].opacity = canvasOpacity;
+    }
 
     let readyCount = 0;
     for (let index = 0; index < layout.length; index++) {
@@ -549,12 +586,12 @@ export default function FlyingCarousel({
     if (!reportedReady.current) {
       if (!carouselActive) {
         readinessArmed.current = false;
-      } else if (!readinessArmed.current && readyCount === MOTION_STUDIES.length) {
+      } else if (!readinessArmed.current && readyCount === PROJECTS.length) {
         readinessArmed.current = true;
         renderFrameAtArm.current = gl.info.render.frame;
       } else if (
         readinessArmed.current &&
-        readyCount === MOTION_STUDIES.length &&
+        readyCount === PROJECTS.length &&
         gl.info.render.frame > renderFrameAtArm.current
       ) {
         reportedReady.current = true;
@@ -588,10 +625,10 @@ export default function FlyingCarousel({
           decay={2}
         />
         <group dispose={null}>
-          {MOTION_STUDIES.map((study, index) => (
+          {PROJECTS.map((project, index) => (
             <StudyCard
-              key={study.id}
-              study={study}
+              key={project.slug}
+              project={project}
               index={index}
               register={(node) => { cardRefs.current[index] = node; }}
               resources={resources}

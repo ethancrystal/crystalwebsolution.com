@@ -69,7 +69,7 @@ export default function CameraRig() {
       tmpLook.copy(LOOK[seg]).lerp(LOOK[seg + 1], local);
     }
 
-    // The supplied Motion reference uses a locked camera; its depth comes
+    // The Motion stage uses a locked camera; its depth comes
     // entirely from the cards' elliptical path. Other beats keep the site's
     // established pointer parallax.
     if (!motionLocked) {

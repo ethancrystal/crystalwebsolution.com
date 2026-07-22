@@ -4,7 +4,7 @@ import { SITE } from '../../lib/site';
 
 const REVIEWS_TITLE = 'Client Reviews';
 const REVIEWS_DESCRIPTION =
-  'Read client feedback for Crystal Web Solution, including ratings, dates, company replies, and the complete supplied review archive.';
+  `Read all ${REVIEW_STATS.total} published client reviews for Crystal Web Solution, with ratings, dates, feedback, and company replies.`;
 
 export const metadata = {
   title: REVIEWS_TITLE,
@@ -45,19 +45,19 @@ export default function ReviewsPage() {
       <main className="reviews-index">
         <section className="reviews-hero" aria-labelledby="reviews-title">
           <p className="eyebrow">Client feedback</p>
-          <h1 id="reviews-title" className="page-title">Real feedback, carried forward with the brand.</h1>
+          <h1 id="reviews-title" className="page-title">What clients said, in their own words.</h1>
           <p className="reviews-lede">
-            The reviews below are presented under the Crystal Web Solution name and reproduced from the supplied review record. Ratings, dates, reviewer names, and meaning are retained.
+            {REVIEW_STATS.total} client reviews, published in full. Read the praise, the criticism, and the company replies in one place.
           </p>
-          <dl className="reviews-summary" aria-label="Review archive summary">
+          <dl className="reviews-summary" aria-label="Review summary">
             <div><dt>Reviews</dt><dd>{REVIEW_STATS.total}</dd></div>
             <div><dt>Average</dt><dd>{REVIEW_STATS.average}/5</dd></div>
             <div><dt>Four or five stars</dt><dd>{REVIEW_STATS.positive}</dd></div>
-            <div><dt>Latest supplied</dt><dd>{REVIEW_STATS.latest}</dd></div>
+            <div><dt>Latest review</dt><dd>{REVIEW_STATS.latest}</dd></div>
           </dl>
           <aside className="reviews-transparency">
             <strong>Transparency</strong>
-            <p>We publish the complete supplied archive, not only the positive reviews. Where the supplied record includes a company reply, it appears directly beneath the review.</p>
+            <p>Every published review appears here, including critical feedback. Company replies appear beneath the relevant review.</p>
           </aside>
         </section>
 
@@ -66,7 +66,7 @@ export default function ReviewsPage() {
           <h2 id="response-standard-title">Concerns deserve a clear, documented response.</h2>
           <ul>
             <li>Acknowledge the concern without arguing with the reviewer.</li>
-            <li>State what can be verified and what cannot be matched in the records.</li>
+            <li>State what can be confirmed and what still needs clarification.</li>
             <li>Avoid discussing confidential project details in public.</li>
             <li>Offer one current contact route and a specific next step.</li>
           </ul>
@@ -74,9 +74,8 @@ export default function ReviewsPage() {
 
         <section className="review-archive" aria-labelledby="archive-title">
           <div className="review-archive-heading">
-            <p className="eyebrow">Review archive</p>
-            <h2 id="archive-title">All supplied reviews</h2>
-            <p>Review spelling and grammar are retained as supplied.</p>
+            <p className="eyebrow">Published reviews</p>
+            <h2 id="archive-title">All client reviews</h2>
           </div>
 
           <div className="review-list">

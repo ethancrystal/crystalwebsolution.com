@@ -7,7 +7,6 @@ import FocusDimmer from './three/FocusDimmer';
 import Crystal from './three/Crystal';
 import ServiceRail from './three/ServiceRail';
 import ApproachCompass from './three/ApproachCompass';
-import RecognitionRing from './three/RecognitionRing';
 import Particles from './three/Particles';
 import Sparks from './three/Sparks';
 import BackdropMorph from './three/BackdropMorph';
@@ -69,15 +68,12 @@ export default function Scene() {
         <Crystal position={[0, 0, CLUSTERS.crystal]} />
         <Sparks position={[0, 0, CLUSTERS.crystal]} />
 
-        {/* Services beat — eight signal instruments, one per service row, hover-linked
+        {/* Services beat — six signal instruments, one per service row, hover-linked
             to the DOM list (see ServiceRail) */}
         <ServiceRail position={[0, 0, CLUSTERS.services]} animate={quality.animate} />
 
         {/* Approach beat — step-markers orbiting a small core */}
         <ApproachCompass position={[0, 0, CLUSTERS.approach]} animate={quality.animate} />
-
-        {/* Recognition beat — medal ring, brightens on DOM row hover */}
-        <RecognitionRing position={[0, 0, CLUSTERS.recognition]} animate={quality.animate} />
 
         {/* Motion beat — additive only. Motion.jsx keeps its complete SVG
             path visible until this feature reports a successful frame. */}
