@@ -9,12 +9,10 @@ import FocusVeil from './FocusVeil';
 import Hero from './sections/Hero';
 import Services from './sections/Services';
 import Approach from './sections/Approach';
-import Showcase from './sections/Showcase';
 import Stories from './sections/Stories';
 import Mark from './sections/Mark';
 import About from './sections/About';
-import Facts from './sections/Facts';
-import Recognition from './sections/Recognition';
+import Lab from './sections/Lab';
 import Motion from './sections/Motion';
 import Contact from './sections/Contact';
 
@@ -32,13 +30,11 @@ export default function Experience() {
       <main className="page">
         <Hero />
         <About />
-        <Facts />
-        <Showcase />
         <Services />
         <Approach />
         <Stories />
         <Mark />
-        <Recognition />
+        <Lab />
         <Motion />
         <Contact />
       </main>

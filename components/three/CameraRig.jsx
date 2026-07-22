@@ -8,6 +8,7 @@ import { STOPS } from '../../lib/journey';
 import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
 import { motionScale } from '../../lib/motionScale';
 import { motionFlight } from '../../lib/motionFlight.mjs';
+import { labFlight } from '../../lib/labFlight.mjs';
 import { pointerState } from '../../lib/pointerState';
 
 // Pre-built vectors — never allocate inside useFrame.
@@ -24,6 +25,7 @@ function smootherstep(t) {
 const FOV_BASE = 42;
 const FOV_SURGE_MAX = 4.5;
 const MOTION_INDEX = BEAT_IDS.indexOf('motion');
+const LAB_INDEX = BEAT_IDS.indexOf('lab');
 
 export default function CameraRig() {
   const fov = useRef(FOV_BASE);
@@ -46,15 +48,18 @@ export default function CameraRig() {
     const p = THREE.MathUtils.clamp(scrollState.progress, 0, 1);
     const segCount = STOPS.length - 1;
     const motionLocked = motionFlight.enabled && motionFlight.active;
+    const labLocked = labFlight.enabled && labFlight.active;
+    const flightLocked = motionLocked || labLocked;
 
     // Segment boundaries come from measured DOM section positions
     // (beatProgress), not a uniform index/(N-1) share of the page — beats
-    // vary in scroll length (Showcase's project grid dwarfs Hero/Services).
-    if (motionLocked) {
-      // The Motion section owns 400% of pinned scroll. Hold its declarative
-      // camera stop for the whole pin instead of drifting toward Contact.
-      tmpPos.copy(POS[MOTION_INDEX]);
-      tmpLook.copy(LOOK[MOTION_INDEX]);
+    // vary in scroll length.
+    if (flightLocked) {
+      // A flying beat owns its whole sticky span. Hold its declarative
+      // camera stop for the entire window instead of drifting onward.
+      const lockedIndex = motionLocked ? MOTION_INDEX : LAB_INDEX;
+      tmpPos.copy(POS[lockedIndex]);
+      tmpLook.copy(LOOK[lockedIndex]);
     } else {
       let seg = 0;
       for (let i = 0; i < segCount; i++) {
@@ -69,10 +74,10 @@ export default function CameraRig() {
       tmpLook.copy(LOOK[seg]).lerp(LOOK[seg + 1], local);
     }
 
-    // The supplied Motion reference uses a locked camera; its depth comes
+    // The flying stages use a locked camera; their depth comes
     // entirely from the cards' elliptical path. Other beats keep the site's
     // established pointer parallax.
-    if (!motionLocked) {
+    if (!flightLocked) {
       tmpPos.x += pointerState.x * 0.55;
       tmpPos.y += -pointerState.y * 0.35;
     }
@@ -85,7 +90,7 @@ export default function CameraRig() {
 
     // Velocity-based roll gives the flight some banking. (× motionScale:
     // the canvas-side reduced-motion gate zeroes velocity theatrics.)
-    const roll = motionLocked
+    const roll = flightLocked
       ? 0
       : THREE.MathUtils.clamp(scrollState.velocity * 0.00035, -0.06, 0.06) *
         motionScale.value;
@@ -94,7 +99,7 @@ export default function CameraRig() {
     // FOV surge — fast scroll widens the lens a touch (42 → ~46.5) so
     // velocity reads as speed, not just displacement. Damped like all else;
     // the projection matrix is only rebuilt when the change is visible.
-    const surge = motionLocked
+    const surge = flightLocked
       ? 0
       : Math.min(Math.abs(scrollState.velocity) * 0.004, 1) *
         FOV_SURGE_MAX *

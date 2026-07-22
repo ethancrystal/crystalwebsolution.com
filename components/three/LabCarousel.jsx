@@ -11,35 +11,38 @@ import {
   createFlyingCarouselLayout,
   sampleFlyingCard,
 } from '../../lib/flyingCarouselLayout.mjs';
-import {
-  motionFlight,
-  setMotionReady,
-} from '../../lib/motionFlight.mjs';
-import { PROJECTS } from '../../lib/projects';
+import { labFlight, setLabReady } from '../../lib/labFlight.mjs';
+import { MOTION_STUDIES } from '../../lib/motionStudies.mjs';
 import { scrollState } from '../../lib/scrollState';
-import { CLUSTERS, MOTION_WINDOW, STOPS } from '../../lib/journey';
+import { CLUSTERS, LAB_WINDOW, STOPS } from '../../lib/journey';
 
-const CWS_CYAN = '#59f3ff';
+// The lab beat's WebGL stage. Same flight machinery as FlyingCarousel, but
+// dressed as the design lab: cream concept-study cards over a paper backdrop
+// that carries the giant DESIGN IN MOTION statement, so the cards genuinely
+// fly in front of the type instead of under a DOM overlay.
 const CWS_BLUE = '#3c6cff';
+const CWS_CYAN = '#59f3ff';
 const FRAME = '#ccd2d8';
+const PAPER = '#d7d6d2';
+const INK = '#292a27';
+const CARD_FACE = '#f4f3ef';
+const CARD_INK = '#11130f';
 const FACE_OFFSET = 0.0185;
-const MOTION_STOP = STOPS.find((stop) => stop.look[2] === CLUSTERS.motion);
-const MOTION_DISTANCE = Math.hypot(
-  MOTION_STOP.pos[0] - MOTION_STOP.look[0],
-  MOTION_STOP.pos[1] - MOTION_STOP.look[1],
-  MOTION_STOP.pos[2] - MOTION_STOP.look[2],
+// A different scatter seed than the Selected Work beat, so the two flights
+// share physics but never read as the same choreography twice.
+const LAB_SEED = 0x1ab5eed;
+const LAB_STOP = STOPS.find((stop) => stop.look[2] === CLUSTERS.lab);
+const LAB_DISTANCE = Math.hypot(
+  LAB_STOP.pos[0] - LAB_STOP.look[0],
+  LAB_STOP.pos[1] - LAB_STOP.look[1],
+  LAB_STOP.pos[2] - LAB_STOP.look[2],
 );
-const MOTION_FOV = 42;
+const LAB_FOV = 42;
 
 function visibleWorldWidth(pixelWidth, pixelHeight) {
   const aspect = pixelWidth / Math.max(pixelHeight, 1);
-  const height = 2 * Math.tan(THREE.MathUtils.degToRad(MOTION_FOV) / 2) * MOTION_DISTANCE;
+  const height = 2 * Math.tan(THREE.MathUtils.degToRad(LAB_FOV) / 2) * LAB_DISTANCE;
   return height * aspect;
-}
-
-function smoothstep01(value) {
-  const t = Math.min(1, Math.max(0, value));
-  return t * t * (3 - 2 * t);
 }
 
 function roundedRectPath(context, x, y, width, height, radius) {
@@ -72,65 +75,48 @@ function createCanvasTexture(canvas, anisotropy) {
   return texture;
 }
 
-function createBackdropTexture(anisotropy, textureWidth) {
+function createLabBackdropTexture(anisotropy, textureWidth) {
   const canvas = document.createElement('canvas');
   canvas.width = textureWidth;
   canvas.height = Math.round(textureWidth * (2 / 3));
 
   const context = canvas.getContext('2d', { alpha: false });
   if (!context) {
-    throw new Error('FlyingCarousel could not create its procedural backdrop.');
+    throw new Error('LabCarousel could not create its procedural backdrop.');
   }
 
   const width = canvas.width;
   const height = canvas.height;
-  context.fillStyle = '#d9dde2';
+  context.fillStyle = PAPER;
   context.fillRect(0, 0, width, height);
 
+  // The same faint ruling the DOM sticky draws, so legacy and WebGL modes
+  // share one surface language.
   context.save();
-  context.strokeStyle = 'rgba(35, 43, 54, 0.075)';
+  context.strokeStyle = 'rgba(36, 38, 34, 0.055)';
   context.lineWidth = 2;
-  for (let index = 0; index < 6; index++) {
-    const y = height * (0.1 + index * 0.15);
+  for (let index = 1; index < 10; index++) {
+    const y = height * index * 0.1;
     context.beginPath();
-    context.moveTo(-width * 0.08, y);
-    context.bezierCurveTo(
-      width * 0.24,
-      y - height * (0.14 + index * 0.006),
-      width * 0.7,
-      y + height * (0.1 - index * 0.004),
-      width * 1.08,
-      y - height * 0.06,
-    );
+    context.moveTo(0, y);
+    context.lineTo(width, y);
     context.stroke();
   }
   context.restore();
 
-  const glyphX = width * 0.16;
-  const glyphY = height * 0.2;
-  context.save();
-  context.strokeStyle = 'rgba(35, 43, 54, 0.095)';
-  context.lineWidth = 2;
-  for (let ring = 1; ring <= 3; ring++) {
-    context.beginPath();
-    context.arc(glyphX, glyphY, ring * 18, 0, Math.PI * 2);
-    context.stroke();
-  }
-  context.strokeStyle = 'rgba(35, 43, 54, 0.08)';
-  context.lineWidth = 2;
-  context.beginPath();
-  context.arc(glyphX, glyphY, 54, -0.7, 0.4);
-  context.stroke();
-  context.fillStyle = 'rgba(35, 43, 54, 0.14)';
-  context.beginPath();
-  context.arc(glyphX, glyphY, 4, 0, Math.PI * 2);
-  context.fill();
-  context.restore();
+  // The giant statement lives on the backdrop here (not the DOM), so the
+  // cards fly in front of the type.
+  context.fillStyle = 'rgba(51, 53, 49, 0.92)';
+  context.textAlign = 'left';
+  context.textBaseline = 'alphabetic';
+  context.font = `400 ${Math.round(height * 0.26)}px "Space Grotesk", Arial, sans-serif`;
+  context.fillText('DESIGN IN', width * 0.03, height * 0.42);
+  context.fillText('MOTION', width * 0.03, height * 0.63);
 
   return createCanvasTexture(canvas, anisotropy);
 }
 
-function createStudyTexture(project, index, anisotropy, textureWidth) {
+function createLabStudyTexture(study, index, anisotropy, textureWidth) {
   const canvas = document.createElement('canvas');
   const textureHeight = Math.round(textureWidth * (CARD_HEIGHT / CARD_WIDTH));
   canvas.width = textureWidth;
@@ -138,204 +124,104 @@ function createStudyTexture(project, index, anisotropy, textureWidth) {
 
   const context = canvas.getContext('2d', { alpha: true });
   if (!context) {
-    throw new Error('FlyingCarousel could not create a procedural card texture.');
+    throw new Error('LabCarousel could not create a procedural card texture.');
   }
 
   const width = textureWidth;
   const height = textureHeight;
   const number = String(index + 1).padStart(2, '0');
-  const inset = Math.max(5, height * 0.01);
-  const radius = height * 0.06;
+  const inset = Math.max(5, height * 0.012);
+  const radius = height * 0.05;
   const left = width * 0.055;
   const right = width * 0.945;
 
   context.clearRect(0, 0, width, height);
   context.save();
-  roundedRectPath(
-    context,
-    inset,
-    inset,
-    width - inset * 2,
-    height - inset * 2,
-    radius,
-  );
+  roundedRectPath(context, inset, inset, width - inset * 2, height - inset * 2, radius);
   context.clip();
 
-  context.fillStyle = '#f6f5f2';
+  context.fillStyle = CARD_FACE;
   context.fillRect(0, 0, width, height);
 
-  const colorField = context.createLinearGradient(0, 0, width * 0.92, height * 0.78);
-  colorField.addColorStop(0, project.palette[0]);
-  colorField.addColorStop(0.58, project.palette[1]);
-  colorField.addColorStop(1, '#e8eaee');
-  context.save();
-  context.globalAlpha = 0.96;
-  context.fillStyle = colorField;
-  context.fillRect(0, 0, width, height * 0.78);
-  context.restore();
+  // Flat colour field, faithful to the SMIL card art.
+  const artX = width * 0.0375;
+  const artY = height * 0.1;
+  const artW = width * 0.925;
+  const artH = height * 0.6;
+  context.fillStyle = study.color;
+  context.fillRect(artX, artY, artW, artH);
 
+  // Soft sheen so the flat field reads as a surface under the beat's lights.
   context.save();
-  context.globalAlpha = 0.32;
+  context.globalAlpha = 0.16;
   context.fillStyle = '#ffffff';
   context.beginPath();
-  context.moveTo(width * 0.64, 0);
-  context.lineTo(width, 0);
-  context.lineTo(width, height * 0.58);
-  context.lineTo(width * 0.84, height * 0.46);
+  context.moveTo(artX + artW * 0.62, artY);
+  context.lineTo(artX + artW, artY);
+  context.lineTo(artX + artW, artY + artH * 0.55);
   context.closePath();
   context.fill();
   context.restore();
 
+  // The dark sweep and accent dot, drawn per-index like the SVG cards.
   context.save();
-  context.globalAlpha = 0.12;
-  context.strokeStyle = '#141a21';
-  context.lineWidth = 1.2;
-  for (let x = width * 0.055; x < width; x += width * 0.072) {
-    context.beginPath();
-    context.moveTo(x, height * 0.07);
-    context.lineTo(x, height * 0.72);
-    context.stroke();
-  }
-  for (let y = height * 0.09; y < height * 0.72; y += height * 0.092) {
-    context.beginPath();
-    context.moveTo(width * 0.03, y);
-    context.lineTo(width * 0.97, y);
-    context.stroke();
-  }
-  context.restore();
-
-  context.save();
-  context.translate(width * 0.5, height * (0.42 + index * 0.008));
-  context.rotate(-0.24 + index * 0.018);
-  context.globalAlpha = 0.92;
-  context.strokeStyle = '#141a21';
+  context.beginPath();
+  context.rect(artX, artY, artW, artH);
+  context.clip();
+  context.strokeStyle = '#0b0d0b';
   context.lineCap = 'round';
-  context.lineWidth = height * 0.052;
+  context.lineWidth = height * 0.024;
   context.beginPath();
-  context.moveTo(-width * 0.58, height * (0.08 - index * 0.006));
+  context.moveTo(width * 0.085, artY + artH * (0.83 - index * 0.03));
   context.bezierCurveTo(
-    -width * 0.28,
-    height * (-0.24 + index * 0.018),
-    width * 0.14,
-    height * (0.25 - index * 0.014),
-    width * 0.59,
-    height * (-0.11 + index * 0.009),
+    width * 0.29, artY + artH * (0.17 + index * 0.06),
+    width * 0.59, artY + artH * (1.05 - index * 0.05),
+    width * 0.91, artY + artH * (0.16 + index * 0.04),
   );
   context.stroke();
-  context.globalAlpha = 0.85;
-  context.strokeStyle = index % 2 === 0 ? CWS_BLUE : CWS_CYAN;
-  context.lineWidth = height * 0.009;
+  context.fillStyle = 'rgba(11, 13, 11, 0.9)';
   context.beginPath();
-  context.moveTo(-width * 0.59, height * 0.14);
-  context.bezierCurveTo(
-    -width * 0.24,
-    -height * 0.12,
-    width * 0.14,
-    height * 0.18,
-    width * 0.6,
-    -height * 0.16,
+  context.arc(
+    width * (0.18 + index * 0.097),
+    artY + artH * (0.32 + (index % 2) * 0.32),
+    height * (0.055 + index * 0.006),
+    0,
+    Math.PI * 2,
   );
-  context.stroke();
+  context.fill();
   context.restore();
 
-  const accentX = width * (0.14 + index * 0.105);
-  const accentY = height * (0.27 + (index % 2) * 0.17);
-  context.fillStyle = '#f4f3ef';
-  context.beginPath();
-  context.arc(accentX, accentY, height * (0.045 + index * 0.004), 0, Math.PI * 2);
-  context.fill();
-  context.lineWidth = height * 0.01;
-  context.strokeStyle = '#141a21';
-  context.stroke();
-  context.fillStyle = index % 2 === 0 ? CWS_CYAN : CWS_BLUE;
-  context.beginPath();
-  context.arc(accentX, accentY, height * 0.014, 0, Math.PI * 2);
-  context.fill();
-
-  context.save();
-  context.globalAlpha = 0.14;
-  context.font = `700 ${Math.round(height * 0.46)}px Arial, sans-serif`;
-  context.textAlign = 'right';
-  context.textBaseline = 'alphabetic';
-  context.strokeStyle = '#111820';
-  context.lineWidth = height * 0.006;
-  context.strokeText(number, right, height * 0.68);
-  context.restore();
-
-  const footerFade = context.createLinearGradient(0, height * 0.57, 0, height);
-  footerFade.addColorStop(0, 'rgba(244, 243, 239, 0)');
-  footerFade.addColorStop(0.28, 'rgba(244, 243, 239, 0.94)');
-  footerFade.addColorStop(1, '#f4f3ef');
-  context.fillStyle = footerFade;
-  context.fillRect(0, height * 0.57, width, height * 0.43);
-
-  const topRule = context.createLinearGradient(left, 0, right, 0);
-  topRule.addColorStop(0, CWS_CYAN);
-  topRule.addColorStop(0.58, CWS_BLUE);
-  topRule.addColorStop(1, project.palette[0]);
-  context.fillStyle = topRule;
-  context.fillRect(left, height * 0.04, right - left, Math.max(4, height * 0.01));
-
+  // Header row: provenance left, index right.
   context.textBaseline = 'middle';
+  context.textAlign = 'left';
   context.fillStyle = '#202832';
   context.font = `700 ${Math.round(height * 0.034)}px "Space Mono", Consolas, monospace`;
-  context.textAlign = 'left';
-  context.fillText('CWS / SELECTED WORK', left, height * 0.095);
+  context.fillText('CWS / MOTION STUDY', left, height * 0.055);
   context.textAlign = 'right';
   context.fillStyle = CWS_BLUE;
   context.font = `700 ${Math.round(height * 0.056)}px "Space Mono", Consolas, monospace`;
-  context.fillText(number, right, height * 0.095);
+  context.fillText(number, right, height * 0.055);
 
+  // Footer: study title and subtitle.
   context.textAlign = 'left';
-  context.fillStyle = '#111820';
-  context.font = `700 ${Math.round(height * 0.096)}px "Space Grotesk", Arial, sans-serif`;
-  context.fillText(project.title, left, height * 0.79, width * 0.79);
+  context.fillStyle = CARD_INK;
+  context.font = `700 ${Math.round(height * 0.078)}px "Space Mono", Consolas, monospace`;
+  context.fillText(study.title, left, height * 0.795, width * 0.7);
   context.fillStyle = '#3e4650';
-  context.font = `500 ${Math.round(height * 0.054)}px Inter, Arial, sans-serif`;
-  context.fillText(project.category, left, height * 0.89, width * 0.64);
-
-  context.fillStyle = project.palette[0];
-  context.beginPath();
-  context.arc(right - height * 0.025, height * 0.89, height * 0.024, 0, Math.PI * 2);
-  context.fill();
-  context.strokeStyle = '#111820';
-  context.lineWidth = Math.max(2, height * 0.004);
-  context.beginPath();
-  context.arc(right - height * 0.025, height * 0.89, height * 0.038, 0, Math.PI * 2);
-  context.stroke();
+  context.font = `500 ${Math.round(height * 0.05)}px "Space Mono", Consolas, monospace`;
+  context.fillText(study.subtitle.toUpperCase(), left, height * 0.9, width * 0.68);
 
   context.restore();
 
-  roundedRectPath(
-    context,
-    inset,
-    inset,
-    width - inset * 2,
-    height - inset * 2,
-    radius,
-  );
-  context.lineWidth = Math.max(3, height * 0.006);
-  context.strokeStyle = '#aeb4bb';
+  roundedRectPath(context, inset, inset, width - inset * 2, height - inset * 2, radius);
+  context.lineWidth = Math.max(2, height * 0.007);
+  context.strokeStyle = CARD_INK;
   context.stroke();
-
-  roundedRectPath(
-    context,
-    inset + 5,
-    inset + 5,
-    width - (inset + 5) * 2,
-    height - (inset + 5) * 2,
-    radius - 5,
-  );
-  context.lineWidth = Math.max(1, height * 0.003);
-  context.strokeStyle = '#ffffff';
-  context.globalAlpha = 0.72;
-  context.stroke();
-  context.globalAlpha = 1;
 
   return createCanvasTexture(canvas, anisotropy);
 }
 
-function disposeCarouselResources(resources) {
+function disposeLabResources(resources) {
   resources.backdropGeometry.dispose();
   resources.backdropMaterial.dispose();
   resources.backdropTexture.dispose();
@@ -349,7 +235,7 @@ function disposeCarouselResources(resources) {
   }
 }
 
-function createCarouselResources(gl, textureWidth, backdropWidth) {
+function createLabResources(gl, textureWidth, backdropWidth) {
   const anisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), 8);
   const backdropGeometry = new THREE.PlaneGeometry(30, 20, 1, 1);
   const frameGeometry = new RoundedBoxGeometry(
@@ -362,8 +248,6 @@ function createCarouselResources(gl, textureWidth, backdropWidth) {
   const faceGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT, 1, 1);
   const frameMaterial = new THREE.MeshPhysicalMaterial({
     color: FRAME,
-    transparent: true,
-    opacity: 1,
     metalness: 0.52,
     roughness: 0.26,
     clearcoat: 0.32,
@@ -373,21 +257,19 @@ function createCarouselResources(gl, textureWidth, backdropWidth) {
   });
   let backdropTexture = null;
   let backdropMaterial = null;
-  const textures = new Array(PROJECTS.length);
-  const faceMaterials = new Array(PROJECTS.length);
+  const textures = new Array(MOTION_STUDIES.length);
+  const faceMaterials = new Array(MOTION_STUDIES.length);
 
   try {
-    backdropTexture = createBackdropTexture(anisotropy, backdropWidth);
+    backdropTexture = createLabBackdropTexture(anisotropy, backdropWidth);
     backdropMaterial = new THREE.MeshBasicMaterial({
       map: backdropTexture,
-      transparent: true,
-      opacity: 1,
       toneMapped: false,
       fog: false,
     });
-    for (let index = 0; index < PROJECTS.length; index++) {
-      const texture = createStudyTexture(
-        PROJECTS[index],
+    for (let index = 0; index < MOTION_STUDIES.length; index++) {
+      const texture = createLabStudyTexture(
+        MOTION_STUDIES[index],
         index,
         anisotropy,
         textureWidth,
@@ -397,7 +279,6 @@ function createCarouselResources(gl, textureWidth, backdropWidth) {
         map: texture,
         alphaTest: 0.02,
         transparent: true,
-        opacity: 1,
         toneMapped: false,
       });
     }
@@ -428,7 +309,7 @@ function createCarouselResources(gl, textureWidth, backdropWidth) {
 }
 
 function createSampleBuffers() {
-  const buffers = new Array(PROJECTS.length);
+  const buffers = new Array(MOTION_STUDIES.length);
   for (let index = 0; index < buffers.length; index++) {
     buffers[index] = {
       position: [0, 0, 0],
@@ -439,9 +320,9 @@ function createSampleBuffers() {
   return buffers;
 }
 
-function StudyCard({ project, index, register, resources }) {
+function LabStudyCard({ study, index, register, resources }) {
   return (
-    <group ref={register} userData={{ project: project.slug }}>
+    <group ref={register} userData={{ study: study.id }}>
       <mesh
         geometry={resources.frameGeometry}
         material={resources.frameMaterial}
@@ -458,10 +339,7 @@ function StudyCard({ project, index, register, resources }) {
   );
 }
 
-// Six deterministic cards consume Motion.jsx's shared scroll state. Each card
-// is two draw calls (chrome body + textured face), replacing the former stack
-// of individual artwork meshes without adding another animation clock.
-export default function FlyingCarousel({
+export default function LabCarousel({
   position = [0, 0, 0],
   textureWidth = 640,
   backdropWidth = 800,
@@ -477,7 +355,7 @@ export default function FlyingCarousel({
   const viewportPixelHeight = useThree((state) => state.size.height);
   const renderFrameAtArm = useRef(gl.info.render.frame);
   const resources = useMemo(
-    () => createCarouselResources(gl, textureWidth, backdropWidth),
+    () => createLabResources(gl, textureWidth, backdropWidth),
     [gl, textureWidth, backdropWidth],
   );
   const sampleBuffers = useMemo(createSampleBuffers, []);
@@ -485,11 +363,12 @@ export default function FlyingCarousel({
     () => createFlyingCarouselLayout({
       viewportWidth: visibleWorldWidth(viewportPixelWidth, viewportPixelHeight),
       viewportPixelWidth,
+      seed: LAB_SEED,
     }),
     [viewportPixelHeight, viewportPixelWidth],
   );
 
-  useEffect(() => () => disposeCarouselResources(resources), [resources]);
+  useEffect(() => () => disposeLabResources(resources), [resources]);
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -497,11 +376,11 @@ export default function FlyingCarousel({
       reportedReady.current = false;
       readinessArmed.current = false;
       renderFrameAtArm.current = gl.info.render.frame;
-      setMotionReady(false);
+      setLabReady(false);
     };
     const onContextLost = (event) => {
       // Opt into the browser's restoration path; the SVG remains visible
-      // until a fresh, visible carousel frame proves the recovered context.
+      // until a fresh, visible stage frame proves the recovered context.
       event.preventDefault();
       resetReadiness();
     };
@@ -517,25 +396,25 @@ export default function FlyingCarousel({
       canvas.removeEventListener('webglcontextrestored', onContextRestored);
       reportedReady.current = false;
       readinessArmed.current = false;
-      setMotionReady(false);
+      setLabReady(false);
     };
   }, [gl, resources]);
 
   useFrame(() => {
-    const windowSpan = Math.max(MOTION_WINDOW.end - MOTION_WINDOW.start, 0.0001);
+    const windowSpan = Math.max(LAB_WINDOW.end - LAB_WINDOW.start, 0.0001);
     const progress = THREE.MathUtils.clamp(
-      (scrollState.progress - MOTION_WINDOW.start) / windowSpan,
+      (scrollState.progress - LAB_WINDOW.start) / windowSpan,
       0,
       1,
     );
     const renderProgress = Math.min(progress, FLIGHT_PHASES.grid);
     const layoutChanged = renderedLayout.current !== layout;
-    const carouselActive = motionFlight.enabled && motionFlight.active;
+    const stageActive = labFlight.enabled && labFlight.active;
 
     if (stageRef.current) {
-      stageRef.current.visible = carouselActive;
+      stageRef.current.visible = stageActive;
     }
-    if (!carouselActive && !reportedReady.current) {
+    if (!stageActive && !reportedReady.current) {
       readinessArmed.current = false;
     }
 
@@ -544,19 +423,12 @@ export default function FlyingCarousel({
     if (
       !layoutChanged &&
       renderedProgress.current === progress &&
-      (!carouselActive || reportedReady.current)
+      (!stageActive || reportedReady.current)
     ) {
       return;
     }
     renderedLayout.current = layout;
     renderedProgress.current = progress;
-
-    const handoff = smoothstep01((progress - 0.86) / 0.08);
-    const canvasOpacity = 1 - handoff;
-    resources.frameMaterial.opacity = canvasOpacity;
-    for (let index = 0; index < resources.faceMaterials.length; index++) {
-      resources.faceMaterials[index].opacity = canvasOpacity;
-    }
 
     let readyCount = 0;
     for (let index = 0; index < layout.length; index++) {
@@ -581,21 +453,21 @@ export default function FlyingCarousel({
       node.scale.setScalar(sample.scale);
     }
 
-    // `useFrame` runs before gl.render. Arm only while the local carousel stage
+    // `useFrame` runs before gl.render. Arm only while the local lab stage
     // is visible, then require a later renderer frame before hiding the SVG.
     if (!reportedReady.current) {
-      if (!carouselActive) {
+      if (!stageActive) {
         readinessArmed.current = false;
-      } else if (!readinessArmed.current && readyCount === PROJECTS.length) {
+      } else if (!readinessArmed.current && readyCount === MOTION_STUDIES.length) {
         readinessArmed.current = true;
         renderFrameAtArm.current = gl.info.render.frame;
       } else if (
         readinessArmed.current &&
-        readyCount === PROJECTS.length &&
+        readyCount === MOTION_STUDIES.length &&
         gl.info.render.frame > renderFrameAtArm.current
       ) {
         reportedReady.current = true;
-        setMotionReady(true);
+        setLabReady(true);
       }
     }
   });
@@ -613,22 +485,22 @@ export default function FlyingCarousel({
         <pointLight
           position={[3.4, 2.8, 3.6]}
           color={CWS_CYAN}
-          intensity={14}
+          intensity={12}
           distance={10}
           decay={2}
         />
         <pointLight
           position={[-3.2, -1.8, 2.4]}
           color={CWS_BLUE}
-          intensity={10}
+          intensity={9}
           distance={9}
           decay={2}
         />
         <group dispose={null}>
-          {PROJECTS.map((project, index) => (
-            <StudyCard
-              key={project.slug}
-              project={project}
+          {MOTION_STUDIES.map((study, index) => (
+            <LabStudyCard
+              key={study.id}
+              study={study}
               index={index}
               register={(node) => { cardRefs.current[index] = node; }}
               resources={resources}

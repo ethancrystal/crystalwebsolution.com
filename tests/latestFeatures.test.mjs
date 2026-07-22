@@ -11,13 +11,21 @@ const activityModule = await import('../lib/sceneActivity.mjs').catch(() => ({})
 const motionLayoutModule = await import('../lib/motionLayout.mjs').catch(() => ({}));
 const globalCss = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
 const motionSource = readFileSync(new URL('../components/sections/Motion.jsx', import.meta.url), 'utf8');
+const carouselSource = readFileSync(new URL('../components/three/FlyingCarousel.jsx', import.meta.url), 'utf8');
 const navSource = readFileSync(new URL('../components/Nav.jsx', import.meta.url), 'utf8');
 
-test('navigation uses the supplied full logo and menu icon artwork', () => {
+test('navigation uses the approved full logo and menu icon artwork', () => {
   assert.ok(existsSync(new URL('../public/crystal-web-solution-logo.svg', import.meta.url)));
   assert.ok(existsSync(new URL('../public/crystal-web-solution-icon.svg', import.meta.url)));
   assert.match(navSource, /crystal-web-solution-logo\.svg/);
   assert.match(navSource, /crystal-web-solution-icon\.svg/);
+});
+
+test('short desktop viewports keep the Stories heading below the fixed navigation', () => {
+  assert.match(
+    globalCss,
+    /@media \(min-width: 768px\) and \(max-height: 720px\)[\s\S]*?\.stories\s*\{[^}]*justify-content:\s*flex-start;[^}]*padding-top:\s*max\(7rem, 14vh\);/,
+  );
 });
 
 test('latest experience features default to the additive WebGL carousel', () => {
@@ -33,6 +41,11 @@ test('latest experience features default to the additive WebGL carousel', () => 
     }),
     { flyingCarousel: true },
   );
+});
+
+test('the light carousel stage remains behind the clickable DOM handoff', () => {
+  assert.match(carouselSource, /resources\.frameMaterial\.opacity = canvasOpacity/);
+  assert.doesNotMatch(carouselSource, /resources\.backdropMaterial\.opacity = canvasOpacity/);
 });
 
 test('legacy query mode restores the preserved carousel implementation', () => {
@@ -71,7 +84,7 @@ test('compact devices keep WebGL off while reduced motion retains the static fal
   assert.equal(reduced.flyingCarousel, false);
 });
 
-test('phones retain a flying SVG timeline unless motion is reduced', () => {
+test('compact and fallback experiences use the linked static project grid', () => {
   assert.equal(typeof motionLayoutModule.shouldUseStaticMotionLayout, 'function');
   assert.equal(motionLayoutModule.DEFAULT_MOTION_LAYOUT, 'animated');
   if (!motionLayoutModule.shouldUseStaticMotionLayout) return;
@@ -101,7 +114,7 @@ test('phones retain a flying SVG timeline unless motion is reduced', () => {
       reducedMotion: false,
       flyingCarousel: compact.flyingCarousel,
     }),
-    false,
+    true,
   );
   assert.equal(
     motionLayoutModule.shouldUseStaticMotionLayout({
@@ -123,8 +136,9 @@ test('reduced-motion CSS blocks the SMIL flight before hydration', () => {
   const legacyReducedSelector = ".motion:not([data-motion-renderer='webgl'])";
 
   assert.ok(globalCss.includes(`${legacyReducedSelector} .motion-smil-stage { display: none; }`));
-  assert.ok(globalCss.includes(`${legacyReducedSelector} .motion-static-grid {`));
-  assert.ok(motionSource.includes('className="motion-static-grid" data-motion-static-grid aria-hidden="false"'));
+  assert.ok(globalCss.includes(`${legacyReducedSelector} .motion-project-grid {`));
+  assert.ok(motionSource.includes('className="motion-project-grid" data-motion-project-grid'));
+  assert.ok(motionSource.includes('href={`/work/${project.slug}`}'));
 });
 
 test('explicit full-motion preview opts into the WebGL carousel', () => {
@@ -192,6 +206,22 @@ test('carousel layout is deterministic and lands six landscape cards in a 3 by 2
     assert.deepEqual(card.target.rotation, [0, 0, 0]);
   }
   assert.ok(first.some((card) => Math.abs(card.scatter.position[2]) >= 4));
+});
+
+test('settled carousel grid is enlarged and unobscured after the flight', () => {
+  const layout = layoutModule.createFlyingCarouselLayout({ viewportWidth: 10 });
+  const narrowLayout = layoutModule.createFlyingCarouselLayout({
+    viewportWidth: 10,
+    viewportPixelWidth: 820,
+  });
+
+  assert.equal(layoutModule.SETTLED_SCALE_BOOST, 1.18);
+  assert.ok(layout.every((card) => card.target.scale === 1.18));
+  assert.ok(narrowLayout.every((card) => card.target.scale === 1));
+  assert.match(
+    globalCss,
+    /motion\[data-motion-renderer='webgl'\]\[data-motion-stage='grid'\]\s+\.motion-sticky\s*\{[^}]*background:\s*transparent;/s,
+  );
 });
 
 test('carousel flyby is seeded and contracts with a narrower viewport', () => {

@@ -15,3 +15,5 @@ node_modules/
 # Local linked worktrees and recoverable cleanup staging
 /.worktrees/
 /_to_delete/
+.vercel
+.env*
