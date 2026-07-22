@@ -2,21 +2,16 @@
 
 import { useId, useRef, useState } from 'react';
 import SectionReveal from '../SectionReveal';
-import Marquee from '../Marquee';
-import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
-import { SITE } from '../../lib/site';
+import { FEATURED_REVIEWS } from '../../lib/reviews';
 
-const HOME_REVIEW_IDS = ['ahmed-jeffrey', 'porsha-patterson', 'style-loft'];
-const REVIEWS_BY_ID = new Map(REVIEWS.map((review) => [review.id, review]));
-
-const STORIES = HOME_REVIEW_IDS.map((id) => REVIEWS_BY_ID.get(id)).map((review) => ({
-  tab: review.company || review.reviewer,
+const STORIES = FEATURED_REVIEWS.map((review) => ({
+  tab: review.reviewer,
   quote: review.body[0],
-  author: review.reviewer,
-  company: review.company,
-  meta: `${review.rating}/5 • ${review.date}`,
+  author: `${review.company ? `${review.company} • ` : ''}${review.rating}/5 • ${review.date}`,
 }));
 
+// Client stories: testimonial tabs switch the big quote. Quiet section (see
+// FocusVeil) — it's a passage to read, like About/Facts.
 export default function Stories() {
   const [active, setActive] = useState(0);
   const tabRefs = useRef([]);
@@ -32,6 +27,7 @@ export default function Stories() {
 
   const onTabKeyDown = (event, index) => {
     let nextIndex = null;
+
     switch (event.key) {
       case 'ArrowRight':
         nextIndex = (index + 1) % STORIES.length;
@@ -48,6 +44,7 @@ export default function Stories() {
       default:
         return;
     }
+
     event.preventDefault();
     activateTab(nextIndex);
   };
@@ -55,12 +52,12 @@ export default function Stories() {
   return (
     <section className="section stories" id="stories" data-quiet>
       <div className="text-plate">
-        <p className="eyebrow"><SectionReveal as="span" direction="left">Client voices</SectionReveal></p>
+        <p className="eyebrow"><SectionReveal as="span" direction="left">Client reviews</SectionReveal></p>
         <SectionReveal as="h2" direction="left" className="section-title">
-          Work people remember. Partnerships they recommend.
+          The work matters. So does what happens after launch.
         </SectionReveal>
         <SectionReveal className="stories-intro" direction="up" delay={0.08}>
-          <p>Clients describe the care, service, and follow-through behind the work in their own words.</p>
+          <p>Feedback collected from Crystal Web Solution clients is presented as part of the studio&apos;s history.</p>
         </SectionReveal>
       </div>
       <SectionReveal delay={0.15} direction="up">
@@ -86,6 +83,8 @@ export default function Stories() {
       </SectionReveal>
       {STORIES.map((story, i) => {
         const selected = i === active;
+        // The selected panel remounts on each switch so the existing CSS
+        // quote fade replays, while every tab retains a real controlled panel.
         return (
           <blockquote
             key={`${story.tab}-${selected ? active : 'hidden'}`}
@@ -97,19 +96,13 @@ export default function Stories() {
             hidden={!selected}
           >
             <p>&ldquo;{story.quote}&rdquo;</p>
-            <footer className="stories-author">
-              — {story.author}{story.company ? ` · ${story.company}` : ''} · {story.meta}
-            </footer>
+            <footer className="stories-author">— {story.author}</footer>
           </blockquote>
         );
       })}
-      <SectionReveal as="dl" className="reviews-summary stories-summary" delay={0.1} direction="up" aria-label="Studio highlights">
-        <div><dt>Established</dt><dd>Est. {SITE.founded} · {SITE.experience}</dd></div>
-        <div><dt>Delivery</dt><dd>{SITE.projectsShipped}</dd></div>
-        <div><dt>Studios</dt><dd>{SITE.cityCompact}</dd></div>
-        <div><dt>Reviews</dt><dd><a href="/reviews" className="link-underline">{REVIEW_STATS.total} published reviews →</a></dd></div>
+      <SectionReveal className="stories-cta" delay={0.1} direction="up">
+        <a href="/reviews" className="link-underline" data-cursor="Read">Read all client reviews →</a>
       </SectionReveal>
-      <Marquee text={`${SITE.name} · ${SITE.tagline}`} className="stories-marquee" baseSpeed={38} />
     </section>
   );
 }
