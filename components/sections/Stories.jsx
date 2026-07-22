@@ -6,7 +6,7 @@ import Marquee from '../Marquee';
 import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
 import { SITE } from '../../lib/site';
 
-const HOME_REVIEW_IDS = ['ahmed-jeffrey', 'porsha-patterson', 'style-loft'];
+const HOME_REVIEW_IDS = ['vaughn-hebron', 'porsha-patterson', 'style-loft'];
 const REVIEWS_BY_ID = new Map(REVIEWS.map((review) => [review.id, review]));
 
 const STORIES = HOME_REVIEW_IDS.map((id) => REVIEWS_BY_ID.get(id)).map((review) => ({

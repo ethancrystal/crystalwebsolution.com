@@ -27,7 +27,7 @@ test('review summary matches the approved content plan', () => {
 });
 
 test('homepage uses three complete, attributable reviews', () => {
-  const ids = ['ahmed-jeffrey', 'porsha-patterson', 'style-loft'];
+  const ids = ['vaughn-hebron', 'porsha-patterson', 'style-loft'];
   const reviews = ids.map((id) => REVIEWS.find((review) => review.id === id));
 
   assert.equal(reviews.length, 3);

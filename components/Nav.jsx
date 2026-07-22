@@ -8,7 +8,18 @@ import Menu from './Menu';
 export default function Nav() {
   const [open, setOpen] = useState(false);
   const [onLightSurface, setOnLightSurface] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const closeMenu = useCallback(() => setOpen(false), []);
+
+  // Once page content scrolls under the fixed header, the bar becomes its
+  // own glass pane (see .nav::before) so it stays readable over any surface.
+  // Boolean state flips rarely; React bails out on same-value sets.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const lightSections = Array.from(document.querySelectorAll('[data-nav-tone="light"]'));
@@ -29,7 +40,7 @@ export default function Nav() {
 
   return (
     <>
-      <header className={`nav ${onLightSurface && !open ? 'nav-on-light' : ''}`}>
+      <header className={`nav ${scrolled && !open ? 'nav-glass' : ''} ${onLightSurface && !open ? 'nav-on-light' : ''}`}>
         <Link href="/" className="nav-logo" data-cursor="Home" aria-label="Crystal Web Solution home">
           <span className={`nav-logo-art ${open ? 'is-menu-open' : ''}`} aria-hidden="true">
             <img
