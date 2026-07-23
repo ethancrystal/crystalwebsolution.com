@@ -21,9 +21,9 @@ export default function BackdropMorph({ animate = true }) {
     mesh.current.rotation.x += dt * 0.006;
     tmpColor.copy(COLOR_A).lerp(COLOR_B, scrollState.progress);
     mesh.current.material.color.lerp(tmpColor, 1 - Math.exp(-dt * 3));
-    // The journey runs to CLUSTERS.contact = -130; keep the shell receding
-    // at the same proportion of total depth so the camera stays inside it.
-    mesh.current.position.z = -50 + scrollState.progress * -50;
+    // Journey now runs to CLUSTERS.contact = -128 (was -100); keep the shell
+    // receding at the same proportion of total depth.
+    mesh.current.position.z = -50 + scrollState.progress * -45;
   });
 
   return (

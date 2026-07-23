@@ -4,7 +4,7 @@ import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SectionReveal from '../SectionReveal';
-import { DURATION_FAST, DURATION_SLOW, EASE_SETTLE } from '../../lib/easing';
+import { DURATION_FAST, DURATION_SLOW, EASE_SETTLE, STAGGER_ROW } from '../../lib/easing';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -79,7 +79,7 @@ export default function Approach() {
       </div>
       <div className="approach-list">
         {STEPS.map((s, i) => (
-          <SectionReveal key={s.n} className="approach-row" direction="left" as="div">
+          <SectionReveal key={s.n} className="approach-row" delay={i * STAGGER_ROW} direction="left" as="div">
             <div ref={(el) => (rowRefs.current[i] = el)} className="approach-row-inner">
               <span className="approach-num">{s.n}</span>
               <h3 className="approach-title" data-hover data-cursor="✦">{s.title}</h3>

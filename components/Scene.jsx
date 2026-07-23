@@ -6,14 +6,15 @@ import CameraRig from './three/CameraRig';
 import FocusDimmer from './three/FocusDimmer';
 import Crystal from './three/Crystal';
 import ServiceRail from './three/ServiceRail';
+import ShowcaseBoxes from './three/ShowcaseBoxes';
 import ApproachCompass from './three/ApproachCompass';
+import RecognitionRing from './three/RecognitionRing';
 import Particles from './three/Particles';
 import Sparks from './three/Sparks';
 import BackdropMorph from './three/BackdropMorph';
 import Lights from './three/Lights';
 import Effects from './three/Effects';
 import FlyingCarousel from './three/FlyingCarousel';
-import LabCarousel from './three/LabCarousel';
 import CanvasFeatureBoundary from './three/CanvasFeatureBoundary';
 import { CLUSTERS } from '../lib/journey';
 import {
@@ -21,29 +22,20 @@ import {
   setMotionReady,
   subscribeMotionFlight,
 } from '../lib/motionFlight.mjs';
-import {
-  labFlight,
-  setLabReady,
-  subscribeLabFlight,
-} from '../lib/labFlight.mjs';
 import { useExperienceFeatures } from '../lib/useExperienceFeatures';
 import { useRenderQuality } from '../lib/useRenderQuality';
 
-// Both flying beats mount lazily off the same lifecycle: visible-soon
-// (prewarm) or on-beat (active). `flight`/`subscribe` are module singletons,
-// so the effect only re-arms when the feature gate flips.
-function useFlightMount(enabled, flight, subscribe) {
+function useCarouselMount(enabled) {
   const shouldMount = (state) => enabled && (state.prewarm || state.active);
-  const [mounted, setMounted] = useState(() => shouldMount(flight));
+  const [mounted, setMounted] = useState(() => shouldMount(motionFlight));
 
   useEffect(() => {
     const sync = (state) => setMounted((current) => {
       const next = shouldMount(state);
       return current === next ? current : next;
     });
-    sync(flight);
-    return subscribe(sync);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    sync(motionFlight);
+    return subscribeMotionFlight(sync);
   }, [enabled]);
 
   return mounted;
@@ -53,8 +45,7 @@ function useFlightMount(enabled, flight, subscribe) {
 // The DOM scrolls over it; the camera flies through one continuous space.
 export default function Scene() {
   const { flyingCarousel } = useExperienceFeatures();
-  const mountCarousel = useFlightMount(flyingCarousel, motionFlight, subscribeMotionFlight);
-  const mountLab = useFlightMount(flyingCarousel, labFlight, subscribeLabFlight);
+  const mountCarousel = useCarouselMount(flyingCarousel);
   const quality = useRenderQuality();
 
   return (
@@ -79,27 +70,18 @@ export default function Scene() {
         <Crystal position={[0, 0, CLUSTERS.crystal]} />
         <Sparks position={[0, 0, CLUSTERS.crystal]} />
 
-        {/* Services beat — six signal instruments, one per service row, hover-linked
+        {/* Services beat — eight signal instruments, one per service row, hover-linked
             to the DOM list (see ServiceRail) */}
         <ServiceRail position={[0, 0, CLUSTERS.services]} animate={quality.animate} />
 
         {/* Approach beat — step-markers orbiting a small core */}
         <ApproachCompass position={[0, 0, CLUSTERS.approach]} animate={quality.animate} />
 
-        {/* Lab beat — the design-lab concept flight. Lab.jsx keeps its SMIL
-            stage visible until this feature reports a successful frame. */}
-        {mountLab && (
-          <CanvasFeatureBoundary
-            resetKey={mountLab}
-            onError={() => setLabReady(false)}
-          >
-            <LabCarousel
-              position={[0, 0, CLUSTERS.lab]}
-              textureWidth={quality.carouselTextureWidth}
-              backdropWidth={quality.carouselBackdropWidth}
-            />
-          </CanvasFeatureBoundary>
-        )}
+        {/* Showcase beat */}
+        <ShowcaseBoxes position={[0, 0, CLUSTERS.showcase]} animate={quality.animate} />
+
+        {/* Recognition beat — medal ring, brightens on DOM row hover */}
+        <RecognitionRing position={[0, 0, CLUSTERS.recognition]} animate={quality.animate} />
 
         {/* Motion beat — additive only. Motion.jsx keeps its complete SVG
             path visible until this feature reports a successful frame. */}
