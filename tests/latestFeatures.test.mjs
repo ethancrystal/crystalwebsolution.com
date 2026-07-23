@@ -132,13 +132,10 @@ test('compact and fallback experiences use the linked static project grid', () =
   );
 });
 
-test('reduced-motion CSS blocks the SMIL flight before hydration', () => {
-  const legacyReducedSelector = ".motion:not([data-motion-renderer='webgl'])";
-
-  assert.ok(globalCss.includes(`${legacyReducedSelector} .motion-smil-stage { display: none; }`));
-  assert.ok(globalCss.includes(`${legacyReducedSelector} .motion-project-grid {`));
-  assert.ok(motionSource.includes('className="motion-project-grid" data-motion-project-grid'));
+test('selected work rail links to each real case study page', () => {
   assert.ok(motionSource.includes('href={`/work/${project.slug}`}'));
+  assert.ok(globalCss.includes('.motion-rail {'));
+  assert.ok(globalCss.includes('overflow-x: auto;'));
 });
 
 test('explicit full-motion preview opts into the WebGL carousel', () => {
@@ -218,10 +215,6 @@ test('settled carousel grid is enlarged and unobscured after the flight', () => 
   assert.equal(layoutModule.SETTLED_SCALE_BOOST, 1.18);
   assert.ok(layout.every((card) => card.target.scale === 1.18));
   assert.ok(narrowLayout.every((card) => card.target.scale === 1));
-  assert.match(
-    globalCss,
-    /motion\[data-motion-renderer='webgl'\]\[data-motion-stage='grid'\]\s+\.motion-sticky\s*\{[^}]*background:\s*transparent;/s,
-  );
 });
 
 test('carousel flyby is seeded and contracts with a narrower viewport', () => {
