@@ -610,7 +610,7 @@ html[data-cws-intro-seen='1'] .loader {
   }
   .services-intro {
     position: sticky;
-    top: 16vh;
+    top: max(7rem, 16vh);
     align-self: start;
   }
   .services-intro .section-title { max-width: 9ch; }
@@ -935,54 +935,141 @@ html[data-cws-intro-seen='1'] .loader {
   border: 0;
 }
 .motion {
-  min-height: 100svh;
-  padding: clamp(7rem, 12vw, 9rem) max(1rem, 5vw) clamp(4rem, 8vw, 6rem);
-  overflow: clip;
-  background: var(--motion-paper);
-}
-.motion[data-motion-layout='static'] .motion-heading {
   position: relative;
-  top: auto;
-  left: auto;
-  width: min(100%, 38rem);
+  isolation: isolate;
+  padding: clamp(6rem, 12vh, 9rem) 0 clamp(4rem, 10vh, 7rem);
+  background:
+    radial-gradient(120% 90% at 50% -10%, color-mix(in srgb, var(--blue) 14%, transparent), transparent 60%),
+    var(--bg);
+  color: var(--ink);
+  text-align: left;
 }
-.motion[data-motion-layout='static'] .motion-heading h2 { max-width: 11ch; }
-.motion[data-motion-layout='static'] .motion-smil-stage { display: none; }
-.motion[data-motion-layout='static'] .motion-project-grid {
+.motion-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2.5rem;
+  margin: 0 6vw clamp(2.5rem, 6vh, 4rem);
+}
+.motion-header .eyebrow {
+  margin-bottom: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+.motion-header h2 {
+  max-width: 20ch;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.4vw, 2.9rem);
+  line-height: 1.02;
+  font-weight: 600;
+  text-shadow: none;
+}
+.motion-link {
+  display: flex;
+  flex: none;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-width: 12rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 50%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  text-transform: uppercase;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+.motion-link:hover,
+.motion-link:focus-visible {
+  color: var(--cyan);
+  border-color: var(--cyan);
+}
+.motion-link:focus-visible { outline: 2px solid var(--cyan); outline-offset: 0.45rem; }
+.motion-rail {
+  display: flex;
+  gap: 1.6rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 0.4rem 6vw 1.8rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.motion-rail::-webkit-scrollbar { display: none; }
+.motion-card {
+  --rail-accent: var(--cyan);
   position: relative;
-  inset: auto;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(1rem, 2.2vw, 1.6rem);
-  margin-top: clamp(2.5rem, 6vw, 4.5rem);
+  display: flex;
+  flex: 0 0 max(19rem, 22vw);
+  flex-direction: column;
+  min-height: 25rem;
+  padding: 1.9rem 1.75rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+  border-radius: 0.9rem;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--rail-accent) 16%, transparent), transparent 65%);
+  scroll-snap-align: start;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.4s ease;
 }
-.motion[data-motion-layout='static'] .motion-project-card {
-  position: relative !important;
-  left: auto !important;
-  top: auto !important;
-  width: auto !important;
-  height: auto !important;
-  aspect-ratio: 1.44;
-  opacity: 1 !important;
-  pointer-events: auto !important;
+.motion-card:hover,
+.motion-card:focus-visible {
+  transform: translateY(-0.5rem);
+  border-color: color-mix(in srgb, var(--rail-accent) 60%, transparent);
 }
-.motion[data-motion-layout='static'] .motion-link {
+.motion-card:focus-visible { outline: 2px solid var(--rail-accent); outline-offset: 0.3rem; }
+.motion-card-index {
+  position: absolute;
+  right: -0.6rem;
+  top: -1.8rem;
+  font-family: var(--font-display);
+  font-size: clamp(5rem, 9vw, 9rem);
+  font-weight: 700;
+  line-height: 1;
+  color: color-mix(in srgb, var(--rail-accent) 10%, transparent);
+  pointer-events: none;
+}
+.motion-card-category {
   position: relative;
-  right: auto;
-  bottom: auto;
-  justify-self: end;
-  width: min(100%, 18rem);
-  margin-top: clamp(2.5rem, 6vw, 4rem);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rail-accent);
 }
-@media (max-width: 900px) {
-  .motion[data-motion-layout='static'] .motion-project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.motion-card-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  margin-top: auto;
 }
+.motion-card-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 2.6vw, 2.3rem);
+  line-height: 1;
+  font-weight: 600;
+}
+.motion-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink);
+}
+.motion-card-footer span { margin-left: auto; color: var(--rail-accent); }
 @media (max-width: 560px) {
-  .motion[data-motion-layout='static'] .motion-project-grid { grid-template-columns: 1fr; }
-  .motion[data-motion-layout='static'] .motion-project-card { min-height: 15rem; }
+  .motion-header { margin-inline: 5vw; }
+  .motion-rail { padding-inline: 5vw; }
+  .motion-card { flex-basis: max(17rem, 68vw); min-height: 22rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .motion-project-card { transition: none; }
+  .motion-card { transition: none; }
 }
 
 /* ---------- lab (CWS in motion — services flight) ----------
@@ -1271,7 +1358,7 @@ html[data-cws-intro-seen='1'] .loader {
 .about-smil-word {
   fill: #f3f4ef;
   font-family: var(--font-display);
-  font-size: 76px;
+  font-size: 84px;
   font-weight: 400;
   letter-spacing: 0;
 }
@@ -1285,7 +1372,7 @@ html[data-cws-intro-seen='1'] .loader {
      already-fitted element up pushed the word cloud past the screen
      edges on phones, since the copy spans almost the full viewBox
      width side to side. */
-  .about-smil-word { font-size: 68px; }
+  .about-smil-word { font-size: 72px; }
 }
 
 /* ---------- facts / precision ledger ---------- */
@@ -1652,55 +1739,9 @@ html[data-cws-intro-seen='1'] .loader {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* The server cannot read this preference. Keep the legacy SMIL scene static
-     before hydration (and if JavaScript fails); an explicit full-motion WebGL
-     preview can still take over after it reports a successful frame. */
-  .motion:not([data-motion-renderer='webgl']) {
-    display: flex;
-    flex-direction: column;
-    min-height: auto;
-    padding: clamp(7rem, 16vw, 8.5rem) max(1rem, 5vw) clamp(4rem, 10vw, 6rem);
-    overflow: clip;
-  }
-  .motion:not([data-motion-renderer='webgl']) .motion-copy {
-    position: relative;
-    inset: auto;
-    order: 1;
-    display: grid;
-    align-content: start;
-    padding: 0;
-    font-size: clamp(3rem, 13vw, 7rem);
-    line-height: 0.82;
-  }
-  .motion:not([data-motion-renderer='webgl']) .motion-caption {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    order: 2;
-    width: min(100%, 32rem);
-    margin-top: clamp(1.5rem, 4vw, 2.5rem);
-    font-size: clamp(0.9rem, 2.4vw, 1.1rem);
-    line-height: 1.45;
-  }
-  .motion:not([data-motion-renderer='webgl']) .motion-smil-stage { display: none; }
-  .motion:not([data-motion-renderer='webgl']) .motion-static-grid {
-    position: relative;
-    z-index: 2;
-    order: 3;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
-    gap: clamp(1rem, 3vw, 1.75rem);
-    margin-top: clamp(2.5rem, 7vw, 4.5rem);
-  }
-  .motion:not([data-motion-renderer='webgl']) .motion-link {
-    position: relative;
-    right: auto;
-    bottom: auto;
-    order: 4;
-    align-self: flex-end;
-    width: min(100%, 18rem);
-    min-width: 0;
-    margin-top: clamp(2.5rem, 7vw, 4.5rem);
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
   }
   .loader { display: none; }
   .hero-scroll-line { animation: none; }

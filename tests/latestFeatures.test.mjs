@@ -119,12 +119,10 @@ test('phones retain a flying SVG timeline unless motion is reduced', () => {
   );
 });
 
-test('reduced-motion CSS blocks the SMIL flight before hydration', () => {
-  const legacyReducedSelector = ".motion:not([data-motion-renderer='webgl'])";
-
-  assert.ok(globalCss.includes(`${legacyReducedSelector} .motion-smil-stage { display: none; }`));
-  assert.ok(globalCss.includes(`${legacyReducedSelector} .motion-static-grid {`));
-  assert.ok(motionSource.includes('className="motion-static-grid" data-motion-static-grid aria-hidden="false"'));
+test('selected work rail links to each real case study page', () => {
+  assert.ok(motionSource.includes('href={`/work/${project.slug}`}'));
+  assert.ok(globalCss.includes('.motion-rail {'));
+  assert.ok(globalCss.includes('overflow-x: auto;'));
 });
 
 test('explicit full-motion preview opts into the WebGL carousel', () => {
@@ -192,6 +190,18 @@ test('carousel layout is deterministic and lands six landscape cards in a 3 by 2
     assert.deepEqual(card.target.rotation, [0, 0, 0]);
   }
   assert.ok(first.some((card) => Math.abs(card.scatter.position[2]) >= 4));
+});
+
+test('settled carousel grid is enlarged and unobscured after the flight', () => {
+  const layout = layoutModule.createFlyingCarouselLayout({ viewportWidth: 10 });
+  const narrowLayout = layoutModule.createFlyingCarouselLayout({
+    viewportWidth: 10,
+    viewportPixelWidth: 820,
+  });
+
+  assert.equal(layoutModule.SETTLED_SCALE_BOOST, 1.18);
+  assert.ok(layout.every((card) => card.target.scale === 1.18));
+  assert.ok(narrowLayout.every((card) => card.target.scale === 1));
 });
 
 test('carousel flyby is seeded and contracts with a narrower viewport', () => {

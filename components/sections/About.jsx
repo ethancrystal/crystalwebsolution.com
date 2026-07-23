@@ -8,18 +8,18 @@ import { blastVector } from '../../lib/smilTimeline.mjs';
 gsap.registerPlugin(ScrollTrigger);
 
 const WORDS = [
-  { text: 'WE', x: 80, y: 250 },
-  { text: 'BUILD', x: 507, y: 250 },
-  { text: 'DIGITAL', x: 1062, y: 250 },
-  { text: 'EXPERIENCES', x: 80, y: 370 },
-  { text: 'THAT', x: 785, y: 370 },
-  { text: 'TURN', x: 1191, y: 370 },
-  { text: 'CLEAR', x: 80, y: 490 },
-  { text: 'STRATEGY', x: 571, y: 490 },
-  { text: 'INTO', x: 1190, y: 490 },
-  { text: 'BRANDS', x: 80, y: 610 },
-  { text: 'PEOPLE', x: 529, y: 610 },
-  { text: 'REMEMBER.', x: 978, y: 610 },
+  { text: 'WE', x: 58, y: 300 },
+  { text: 'BUILD', x: 486, y: 300 },
+  { text: 'DIGITAL', x: 1038, y: 300 },
+  { text: 'EXPERIENCES', x: 58, y: 430 },
+  { text: 'THAT', x: 770, y: 430 },
+  { text: 'TURN', x: 1172, y: 430 },
+  { text: 'CLEAR', x: 58, y: 560 },
+  { text: 'STRATEGY', x: 548, y: 560 },
+  { text: 'INTO', x: 1168, y: 560 },
+  { text: 'BRANDS', x: 58, y: 690 },
+  { text: 'PEOPLE', x: 510, y: 690 },
+  { text: 'REMEMBER.', x: 914, y: 690 },
 ];
 
 const ROWS = [...new Set(WORDS.map((word) => word.y))].map((y) => ({
@@ -67,22 +67,28 @@ export default function About() {
       { clipPath: 'inset(0 100% 0 0)' },
       {
         clipPath: 'inset(0 0% 0 0)',
-        duration: 1.05,
-        stagger: 0.12,
+        duration: 1,
+        stagger: 0.08,
         ease: 'power4.out',
-        scrollTrigger: { trigger: root, start: 'top 78%', once: true },
+        scrollTrigger: {
+          trigger: root,
+          start: 'top 100%',
+          end: 'top 30%',
+          scrub: 0.35,
+        },
       },
     );
 
     const trigger = ScrollTrigger.create({
       trigger: root,
-      start: 'top 78%',
-      end: 'bottom 30%',
-      scrub: 0.45,
+      start: 'top 100%',
+      end: 'top 30%',
+      scrub: 0.35,
       onUpdate: ({ progress }) => {
+        const revealProgress = 1 - (1 - progress) ** 2;
         words.forEach((word, index) => {
           const offset = index / Math.max(words.length - 1, 1);
-          gsap.set(word, { opacity: Math.max(0.14, Math.min(1, progress * 1.55 - offset * 0.62)) });
+          gsap.set(word, { opacity: Math.max(0.22, Math.min(1, revealProgress * 1.35 - offset * 0.35)) });
         });
       },
     });
@@ -137,6 +143,7 @@ export default function About() {
       id="about"
       ref={rootRef}
       tabIndex={0}
+      data-quiet
       onPointerMove={(event) => blastAt(event.clientX, event.clientY)}
       onPointerDown={(event) => blastAt(event.clientX, event.clientY)}
       onKeyDown={(event) => {
@@ -145,7 +152,7 @@ export default function About() {
         const rect = rootRef.current.getBoundingClientRect();
         blastAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
       }}
-      aria-label="About Crystal Web Solution. Move over the statement to refract it."
+      aria-label="About Crystal Web Solution"
     >
       <p className="about-kicker">Crystal Web Solution — an independent digital studio for brands built to stand out, not blend in.</p>
       <h2 className="sr-only">We build digital experiences that turn clear strategy into brands people remember.</h2>
@@ -167,7 +174,6 @@ export default function About() {
           </g>
         ))}
       </svg>
-      <p className="about-hint">Move across the statement — pointer or touch — and watch the words refract.</p>
     </section>
   );
 }
