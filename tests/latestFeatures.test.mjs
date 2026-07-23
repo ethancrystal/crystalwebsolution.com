@@ -13,11 +13,10 @@ const globalCss = readFileSync(new URL('../app/globals.css', import.meta.url), '
 const motionSource = readFileSync(new URL('../components/sections/Motion.jsx', import.meta.url), 'utf8');
 const navSource = readFileSync(new URL('../components/Nav.jsx', import.meta.url), 'utf8');
 
-test('navigation uses the supplied full logo and menu icon artwork', () => {
+test('navigation uses the same full logo whether or not the menu is open', () => {
   assert.ok(existsSync(new URL('../public/crystal-web-solution-logo.svg', import.meta.url)));
-  assert.ok(existsSync(new URL('../public/crystal-web-solution-icon.svg', import.meta.url)));
   assert.match(navSource, /crystal-web-solution-logo\.svg/);
-  assert.match(navSource, /crystal-web-solution-icon\.svg/);
+  assert.doesNotMatch(navSource, /crystal-web-solution-icon\.svg/);
 });
 
 test('latest experience features default to the additive WebGL carousel', () => {

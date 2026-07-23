@@ -343,19 +343,6 @@ html[data-cws-intro-seen='1'] .loader {
   opacity: 1;
   transform: translateY(-50%) scale(1);
 }
-.nav-logo-art-icon {
-  height: clamp(1.35rem, 2.1vw, 1.8rem);
-  opacity: 0;
-  transform: translateY(-50%) scale(0.92);
-}
-.nav-logo-art.is-menu-open .nav-logo-art-full {
-  opacity: 0;
-  transform: translateY(-50%) scale(0.96);
-}
-.nav-logo-art.is-menu-open .nav-logo-art-icon {
-  opacity: 1;
-  transform: translateY(-50%) scale(1);
-}
 .nav-right { display: flex; align-items: center; gap: 0.8rem; }
 .nav-on-light .nav-logo-art img { filter: invert(1); }
 .nav-on-light .btn-ghost {
@@ -404,22 +391,24 @@ html[data-cws-intro-seen='1'] .loader {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 8vw;
-  gap: 6vh;
+  gap: clamp(2rem, 5vh, 3.5rem);
+  padding: max(6rem, 12vh) 8vw clamp(2.5rem, 8vh, 4rem);
+  overflow-y: auto;
 }
+.menu-links { display: flex; flex-direction: column; gap: clamp(0.15rem, 0.6vh, 0.5rem); }
 .menu-link-mask { overflow: hidden; }
 .menu-link {
   display: inline-flex;
   align-items: baseline;
-  gap: 1.2rem;
+  gap: 1rem;
   font-family: var(--font-display);
-  font-size: clamp(2.4rem, 7vw, 5rem);
-  line-height: 1.15;
+  font-size: clamp(2rem, 5.5vw, 3.75rem);
+  line-height: 1.1;
   transition: color 0.3s, letter-spacing 0.4s;
 }
 .menu-link:hover { color: var(--cyan); letter-spacing: 0.03em; }
-.menu-link-index { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
-.menu-meta { display: flex; flex-wrap: wrap; gap: 4rem; }
+.menu-link-index { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.menu-meta { display: flex; flex-wrap: wrap; gap: 1.75rem 3rem; }
 .menu-meta a, .menu-meta p { display: block; color: var(--muted); font-size: 0.9rem; line-height: 1.8; }
 .menu-meta a:hover { color: var(--cyan); }
 .menu-meta-label {
@@ -429,6 +418,16 @@ html[data-cws-intro-seen='1'] .loader {
   text-transform: uppercase;
   color: var(--cyan) !important;
   margin-bottom: 0.4rem;
+}
+@media (max-width: 767.5px) {
+  .menu { padding: 5.5rem 7vw 2.5rem; gap: 2rem; }
+  .menu-link { font-size: clamp(1.9rem, 9vw, 2.9rem); gap: 0.8rem; }
+  .menu-link-index { font-size: 0.66rem; }
+  .menu-meta { gap: 1.5rem 2.5rem; }
+  .menu-meta a, .menu-meta p { font-size: 0.85rem; line-height: 1.7; }
+}
+@media (max-width: 380px) {
+  .menu-link { font-size: 1.7rem; }
 }
 
 /* ---------- scroll progress ---------- */
@@ -1003,7 +1002,9 @@ html[data-cws-intro-seen='1'] .loader {
   --rail-accent: var(--cyan);
   position: relative;
   display: flex;
-  flex: 0 0 max(19rem, 22vw);
+  /* Show exactly 3 cards within the rail (6vw padding + 1.6rem gaps); the
+     rest reveal by scrolling the rail horizontally. */
+  flex: 0 0 calc((88vw - 3.2rem) / 3);
   flex-direction: column;
   min-height: 25rem;
   padding: 1.9rem 1.75rem;
@@ -1063,10 +1064,14 @@ html[data-cws-intro-seen='1'] .loader {
   color: var(--ink);
 }
 .motion-card-footer span { margin-left: auto; color: var(--rail-accent); }
+@media (max-width: 900px) {
+  /* Two cards on tablets so titles stay legible. */
+  .motion-card { flex-basis: calc((88vw - 1.6rem) / 2); }
+}
 @media (max-width: 560px) {
   .motion-header { margin-inline: 5vw; }
   .motion-rail { padding-inline: 5vw; }
-  .motion-card { flex-basis: max(17rem, 68vw); min-height: 22rem; }
+  .motion-card { flex-basis: max(17rem, 82vw); min-height: 22rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .motion-card { transition: none; }
@@ -1096,7 +1101,7 @@ html[data-cws-intro-seen='1'] .loader {
   isolation: isolate;
   background: #d7d6d2;
 }
-.motion::after {
+.lab-sticky::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -1105,7 +1110,7 @@ html[data-cws-intro-seen='1'] .loader {
   background-image: linear-gradient(rgba(41, 42, 39, 0.06) 1px, transparent 1px);
   background-size: 100% 10vh;
 }
-.motion-copy {
+.lab-copy {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -1121,8 +1126,8 @@ html[data-cws-intro-seen='1'] .loader {
   color: #333531;
   pointer-events: none;
 }
-.motion-copy span:last-child { justify-self: start; }
-.motion-caption {
+.lab-copy span:last-child { justify-self: start; }
+.lab-caption {
   position: absolute;
   z-index: 3;
   left: 3vw;
@@ -1132,7 +1137,7 @@ html[data-cws-intro-seen='1'] .loader {
   line-height: 1.25;
   color: #454743;
 }
-.motion-link {
+.lab-link {
   position: absolute;
   z-index: 3;
   right: 4vw;

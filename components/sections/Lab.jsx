@@ -26,6 +26,8 @@ import { useExperienceFeatures } from '../../lib/useExperienceFeatures';
 const STATIC_QUERY = '(prefers-reduced-motion: reduce)';
 const ANCHOR_PROGRESS = 0.3;
 const GRID_COLUMNS = 4;
+const MOBILE_GRID_COLUMNS = 2;
+const MOBILE_GRID_BREAKPOINT = 700;
 const IN_MOTION_SEED = 0x7a11cee5;
 const CARD_DOM_WIDTH = 320;
 const CARD_DOM_HEIGHT = 222;
@@ -172,11 +174,16 @@ export default function Lab() {
       ppuRef.current = ppu;
       stage.style.perspective = `${Math.round(PERSPECTIVE_MULTIPLIER * ppu)}px`;
       baseScaleRef.current = (CARD_WIDTH * ppu) / CARD_DOM_WIDTH;
+      // The settled grid's minimum scale floor (see flyingCarouselLayout.mjs)
+      // can't shrink cards enough to fit GRID_COLUMNS across a phone-width
+      // stage — drop to two columns below that width so every card settles
+      // on screen instead of clipping past .lab-sticky's overflow: hidden.
+      const columns = width < MOBILE_GRID_BREAKPOINT ? MOBILE_GRID_COLUMNS : GRID_COLUMNS;
       layoutRef.current = createFlyingCarouselLayout({
         viewportWidth: width / ppu,
         viewportPixelWidth: width,
         cardCount: IN_MOTION_CARDS.length,
-        columns: GRID_COLUMNS,
+        columns,
         seed: IN_MOTION_SEED,
       });
     };
