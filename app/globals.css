@@ -591,14 +591,24 @@ html[data-cws-intro-seen='1'] .loader {
   border-color: rgba(89, 243, 255, 0.42);
   background: linear-gradient(90deg, rgba(89, 243, 255, 0.08), rgba(89, 243, 255, 0) 72%);
 }
-.service-num { font-family: var(--font-mono); font-size: 0.75rem; color: var(--cyan); }
+.service-num { font-family: var(--font-mono); font-size: 0.75rem; color: var(--cyan); transition: opacity 0.3s; }
 .service-title {
   font-family: var(--font-display);
   font-size: clamp(1.3rem, 2.6vw, 2rem);
   transition: color 0.3s;
 }
 .service-row:hover .service-title { color: var(--cyan); }
-.service-desc { color: var(--muted); line-height: 1.7; font-size: 0.95rem; }
+.service-title-inner { display: inline-block; transition: transform 0.3s; }
+.service-row:hover .service-title-inner { transform: translateX(0.4rem); }
+.service-desc { color: var(--muted); line-height: 1.7; font-size: 0.95rem; transition: opacity 0.3s; }
+/* Sibling rows dim their secondary text while another row is hovered — a
+   focus cue layered under the existing cyan border/background hover, not
+   replacing it. Row background/border and the light()/dim() 3D beacon are
+   untouched. */
+.services-list:has(.service-row:hover) .service-row:not(:hover) .service-num,
+.services-list:has(.service-row:hover) .service-row:not(:hover) .service-desc {
+  opacity: 0.6;
+}
 .services-marquee { margin-top: 5rem; }
 
 @media (min-width: 901px) {
@@ -617,7 +627,15 @@ html[data-cws-intro-seen='1'] .loader {
 }
 
 /* ---------- marquee ---------- */
-.marquee { overflow: hidden; white-space: nowrap; padding: 1.4rem 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.marquee { white-space: nowrap; padding: 1.4rem 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+/* Owns the clip + edge-fade so the crisp full-width border above/below
+   stays untouched by the mask — masking .marquee itself would fade the
+   border along with the text. */
+.marquee-mask {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+}
 .marquee-track { display: inline-block; will-change: transform; }
 .marquee-item {
   font-family: var(--font-display);
@@ -994,16 +1012,25 @@ html[data-cws-intro-seen='1'] .loader {
   gap: 1.6rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  padding: 0.4rem 6vw 1.8rem;
+  /* Top padding must clear BorderGlow's outward glow (glowRadius, 24px) plus
+     .motion-card's hover lift (0.5rem) — overflow-x: auto here also computes
+     overflow-y to auto, so anything short of that headroom gets clipped the
+     moment a card's glow/lift appears on hover. */
+  padding: 2rem 6vw 1.8rem;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  /* Trailing edge only — unlike Marquee's infinite loop, this rail has a
+     real start/end, so fading the left edge at scroll position 0 would
+     falsely imply hidden content behind it. */
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 96%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 96%, transparent 100%);
 }
 .motion-rail::-webkit-scrollbar { display: none; }
 .motion-card {
   --rail-accent: var(--cyan);
   position: relative;
   display: flex;
-  flex: 0 0 max(19rem, 22vw);
+  width: 100%;
   flex-direction: column;
   min-height: 25rem;
   padding: 1.9rem 1.75rem;
@@ -1020,6 +1047,29 @@ html[data-cws-intro-seen='1'] .loader {
   border-color: color-mix(in srgb, var(--rail-accent) 60%, transparent);
 }
 .motion-card:focus-visible { outline: 2px solid var(--rail-accent); outline-offset: 0.3rem; }
+/* Wraps each .motion-card in <BorderGlow>; carries only the flex/scroll-snap
+   properties that must live on the direct child of .motion-rail — every other
+   visual property (background, border, padding, hover-lift) stays on
+   .motion-card itself, unchanged. */
+.motion-card-glow {
+  flex: 0 0 max(19rem, 22vw);
+  scroll-snap-align: start;
+}
+/* .border-glow (defined later in this file) sets its own static border —
+   this needs to win regardless of source order, since .motion-card already
+   provides the visible border and the dynamic glow lives in .border-glow-mesh. */
+.border-glow.motion-card-glow {
+  border: none;
+}
+/* BorderGlow's content wrapper defaults to overflow: auto (generic
+   scroll-safety for arbitrary children). .motion-card lifts translateY(-0.5rem)
+   on hover — inside an auto-overflow ancestor that lift gets clipped at the
+   top edge instead of rendering, which is the "top of the card crops on
+   hover" bug. Motion's card is a fixed, non-scrolling block, so this override
+   is safe and scoped to just this usage. */
+.motion-card-glow .border-glow-content {
+  overflow: visible;
+}
 .motion-card-index {
   position: absolute;
   right: -0.6rem;
@@ -1066,10 +1116,46 @@ html[data-cws-intro-seen='1'] .loader {
 @media (max-width: 560px) {
   .motion-header { margin-inline: 5vw; }
   .motion-rail { padding-inline: 5vw; }
-  .motion-card { flex-basis: max(17rem, 68vw); min-height: 22rem; }
+  .motion-card-glow { flex-basis: max(17rem, 68vw); }
+  .motion-card { min-height: 22rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .motion-card { transition: none; }
+}
+
+/* BorderGlow — static structural styles (dynamic masks/shadows stay inline in the component) */
+.border-glow {
+  position: relative;
+  display: grid;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.border-glow-mesh {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.border-glow-content {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: auto;
+  z-index: 1;
+}
+
+.border-glow-glow {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.border-glow-glow-inner {
+  position: absolute;
+  border-radius: inherit;
 }
 
 /* ---------- lab (CWS in motion — services flight) ----------
@@ -1105,7 +1191,7 @@ html[data-cws-intro-seen='1'] .loader {
   background-image: linear-gradient(rgba(41, 42, 39, 0.06) 1px, transparent 1px);
   background-size: 100% 10vh;
 }
-.motion-copy {
+.lab-copy {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -1121,8 +1207,8 @@ html[data-cws-intro-seen='1'] .loader {
   color: #333531;
   pointer-events: none;
 }
-.motion-copy span:last-child { justify-self: start; }
-.motion-caption {
+.lab-copy span:last-child { justify-self: start; }
+.lab-caption {
   position: absolute;
   z-index: 3;
   left: 3vw;
@@ -1132,7 +1218,7 @@ html[data-cws-intro-seen='1'] .loader {
   line-height: 1.25;
   color: #454743;
 }
-.motion-link {
+.lab-link {
   position: absolute;
   z-index: 3;
   right: 4vw;
@@ -1463,14 +1549,22 @@ html[data-cws-intro-seen='1'] .loader {
   margin-top: 12vh;
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1.4fr 1fr 1fr;
   gap: 3rem;
   text-align: left;
   border-top: 1px solid var(--line);
   padding-top: 3.4rem;
 }
+.footer-col:not(:first-child) { border-left: 1px solid var(--line); }
 .footer-col a, .footer-col p { display: block; color: var(--muted); font-size: 0.9rem; line-height: 1.9; }
 .footer-col a:hover { color: var(--cyan); }
+.footer-email {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--ink) !important;
+  letter-spacing: 0.01em;
+}
+.footer-email:hover { color: var(--cyan) !important; }
 .footer-label {
   font-family: var(--font-mono);
   font-size: 0.66rem;
@@ -1647,9 +1741,25 @@ html[data-cws-intro-seen='1'] .loader {
 .review-archive-heading { max-width: 62ch; margin-bottom: 3.5rem; }
 .review-archive-heading h2 { margin-bottom: 1rem; }
 .review-archive-heading > p:last-child { color: var(--muted); line-height: 1.7; }
-.review-list { border-top: 1px solid var(--line); }
-.review-card { padding: clamp(2rem, 5vw, 3.6rem) 0; border-bottom: 1px solid var(--line); }
-.review-card-1 { border-left: 2px solid rgba(255, 107, 107, 0.6); padding-left: clamp(1rem, 3vw, 2rem); }
+.review-list { display: flex; flex-direction: column; gap: clamp(1.25rem, 2.5vw, 1.75rem); }
+.review-card {
+  padding: clamp(1.75rem, 4vw, 2.75rem);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(139, 152, 184, 0.06);
+  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+.review-card:hover {
+  border-color: rgba(89, 243, 255, 0.4);
+  background: rgba(139, 152, 184, 0.09);
+  box-shadow: 0 18px 44px rgba(2, 4, 10, 0.35);
+}
+.review-card-1 {
+  border-color: rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.05);
+  border-left-width: 3px;
+  border-left-color: rgba(255, 107, 107, 0.6);
+}
 .review-card-header { display: flex; justify-content: space-between; gap: 2rem; align-items: flex-start; }
 .review-card h3 { font-family: var(--font-display); font-size: clamp(1.4rem, 3vw, 2rem); }
 .review-client {
@@ -1671,10 +1781,10 @@ html[data-cws-intro-seen='1'] .loader {
   letter-spacing: 0.07em;
   color: var(--muted);
 }
-.review-body { max-width: 76ch; }
-.review-body p { line-height: 1.85; margin-bottom: 1rem; }
+.review-body { max-width: 58ch; margin-top: 0.25rem; }
+.review-body p { color: var(--muted); font-size: 0.96rem; line-height: 1.8; margin-bottom: 1rem; }
 .review-reply {
-  max-width: 76ch;
+  max-width: 58ch;
   margin-top: 1.5rem;
   padding: 1.2rem 1.4rem;
   border-left: 3px solid var(--violet);
@@ -1704,6 +1814,7 @@ html[data-cws-intro-seen='1'] .loader {
   .showcase-card.is-offset { transform: none; }
   .about-cols { grid-template-columns: 1fr; gap: 2rem; }
   .footer { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-col:not(:first-child) { border-left: none; padding-top: 2rem; border-top: 1px solid var(--line); }
   .work-row { grid-template-columns: 1fr; }
   .stories-tabs { gap: 0.75rem 1.35rem; }
   .stories-quote { max-width: 100%; }
@@ -1767,6 +1878,7 @@ html[data-cws-intro-seen='1'] .loader {
 .approach-list { border-top: 1px solid var(--line); }
 .approach-row { transform-origin: left center; }
 .approach-row-inner {
+  position: relative;
   display: grid;
   grid-template-columns: 5rem 1fr 1.2fr;
   gap: 2rem;
@@ -1780,14 +1892,51 @@ html[data-cws-intro-seen='1'] .loader {
   background: linear-gradient(90deg, rgba(89, 243, 255, 0.07), transparent 72%);
   border-color: rgba(89, 243, 255, 0.4);
 }
-.approach-num { font-family: var(--font-mono); font-size: 0.75rem; color: var(--cyan); }
+/* Static hairline connecting each step's ring to the next, split into two
+   segments (row-top to ring, ring to row-bottom) so it tracks whatever
+   height a row's wrapped copy ends up with — never spans behind the ring
+   itself, so the ring stays glass/transparent instead of needing an opaque
+   punch-through fill. */
+.approach-row-inner::before,
+.approach-row-inner::after {
+  content: '';
+  position: absolute;
+  /* .approach-num has an explicit width and no justify-self, so it sits
+     start-aligned in its grid column — its center is always 1.25rem from
+     the column's left edge, regardless of the column's total width. */
+  left: 1.25rem;
+  width: 1px;
+  background: rgba(139, 152, 184, 0.18);
+  transform: translateX(-50%);
+}
+.approach-row-inner::before { top: 0; height: calc(50% - 1.25rem); }
+.approach-row-inner::after { top: calc(50% + 1.25rem); bottom: 0; }
+.approach-row:first-child .approach-row-inner::before { display: none; }
+.approach-row:last-child .approach-row-inner::after { display: none; }
+.approach-num {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid rgba(139, 152, 184, 0.18);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--cyan);
+  transition: border-color 0.3s;
+}
 .approach-title {
   font-family: var(--font-display);
   font-size: clamp(1.3rem, 2.6vw, 2rem);
   transition: color 0.3s;
 }
 .approach-row-inner:hover .approach-title { color: var(--cyan); }
-.approach-desc { color: var(--muted); line-height: 1.7; font-size: 0.95rem; }
+.approach-desc { color: var(--muted); line-height: 1.7; font-size: 0.95rem; max-width: 58ch; }
 
 /* ---------- recognition ---------- */
 .recognition-list { border-top: 1px solid var(--line); margin-bottom: 4rem; }

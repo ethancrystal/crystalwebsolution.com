@@ -40,6 +40,7 @@ const STEPS = [
 export default function Approach() {
   const sectionRef = useRef(null);
   const rowRefs = useRef([]);
+  const numRefs = useRef([]);
   const lastActive = useRef(-1);
 
   useEffect(() => {
@@ -63,6 +64,18 @@ export default function Approach() {
           { borderBottomColor: 'rgba(89, 243, 255, 0.9)' },
           { borderBottomColor: 'rgba(139, 152, 184, 0.18)', duration: DURATION_SLOW, ease: EASE_SETTLE, overwrite: 'auto' }
         );
+        // The step-number ring carries the same flash, in lockstep with the
+        // row border tween above (identical timing/easing/overwrite) — the
+        // connecting line is the trail this hit leaves behind, not a second
+        // independently-timed effect.
+        const num = numRefs.current[step];
+        if (num) {
+          gsap.fromTo(
+            num,
+            { borderColor: 'rgba(89, 243, 255, 0.9)' },
+            { borderColor: 'rgba(139, 152, 184, 0.18)', duration: DURATION_SLOW, ease: EASE_SETTLE, overwrite: 'auto' }
+          );
+        }
       },
     });
 
@@ -81,7 +94,7 @@ export default function Approach() {
         {STEPS.map((s, i) => (
           <SectionReveal key={s.n} className="approach-row" delay={i * STAGGER_ROW} direction="left" as="div">
             <div ref={(el) => (rowRefs.current[i] = el)} className="approach-row-inner">
-              <span className="approach-num">{s.n}</span>
+              <span ref={(el) => (numRefs.current[i] = el)} className="approach-num">{s.n}</span>
               <h3 className="approach-title" data-hover data-cursor="✦">{s.title}</h3>
               <p className="approach-desc">{s.desc}</p>
             </div>
