@@ -8,6 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@hugeicons/core-free-icons": "^4.2.3",
+    "@hugeicons/react": "^1.1.9",
     "@react-three/drei": "^9.114.0",
     "@react-three/fiber": "^8.17.10",
     "@react-three/postprocessing": "^2.16.3",
@@ -15,6 +17,7 @@
     "@supabase/supabase-js": "^2.43.0",
     "gsap": "^3.12.5",
     "lenis": "^1.1.14",
+    "motion": "^12.42.2",
     "next": "^14.2.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
