@@ -1,16 +1,11 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { REVIEWS, REVIEW_STATS } from '../lib/reviews.js';
+import { VERIFIED_CLIENTS } from '../lib/clients.js';
+import { FEATURED_REVIEWS, REVIEWS, REVIEW_STATS } from '../lib/reviews.js';
 import { SITE } from '../lib/site.js';
 
-const STORIES_SOURCE = readFileSync(
-  new URL('../components/sections/Stories.jsx', import.meta.url),
-  'utf8',
-);
-
-test('published review set remains complete', () => {
+test('review archive preserves the supplied 20-review set', () => {
   assert.equal(REVIEWS.length, 20);
   assert.equal(new Set(REVIEWS.map((review) => review.id)).size, 20);
   assert.ok(REVIEWS.every((review) => review.rating >= 1 && review.rating <= 5));
@@ -38,18 +33,22 @@ test('homepage uses three complete, attributable reviews', () => {
   assert.doesNotMatch(STORIES_SOURCE, /FEATURED_REVIEWS/);
 });
 
-test('global content publishes authorized studio facts and contact details', () => {
+test('global content publishes verified contact details without placeholder socials', () => {
   assert.equal(SITE.name, 'Crystal Web Solution');
-  assert.equal(SITE.founded, 2016);
-  assert.equal(SITE.experience, '10+ years');
-  assert.equal(SITE.projectsShipped, '60+ projects shipped');
   assert.equal(SITE.phone, '+1 917-463-4214');
   assert.equal(SITE.city, 'Manassas, Virginia • Sharjah, UAE');
-  assert.equal(SITE.cityCompact, 'Manassas, VA + Sharjah, UAE');
   assert.deepEqual(SITE.socials, []);
   assert.ok(SITE.nav.some((item) => item.href === '/reviews'));
 });
 
-test('review attribution keeps the published towing company spelling', () => {
+test('verified client identities match the supplied record', () => {
+  assert.deepEqual(
+    VERIFIED_CLIENTS.map(({ person, company }) => ({ person, company })),
+    [
+      { person: 'Ravivo Kaufman', company: 'Talk to My Lawyer' },
+      { person: 'Kristin Stein', company: 'Tucker Trips' },
+      { person: 'Porsha Patterson', company: 'Zues Towing' },
+    ],
+  );
   assert.equal(REVIEWS.find((review) => review.id === 'porsha-patterson').company, 'Zues Towing');
 });

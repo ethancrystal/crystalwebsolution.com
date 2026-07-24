@@ -1,0 +1,71 @@
+Plan: Replace SELECTED WORK (Motion Section) with Claude Design
+Summary
+Replace the current components/sections/Motion.jsx — a light-paper sticky section with a flying WebGL carousel + SMIL SVG fallback — with the Claude Design's dark-themed horizontal card rail. No flying animation; pure CSS scroll-snap carousel with hover lift effects.
+
+What changes
+1. Rewrite components/sections/Motion.jsx (~350 → ~120 lines)
+Remove entirely:
+
+All WebGL/SVG flying carousel logic (FlightCard, ProjectCard, createFlyingCarouselLayout, createMotionStudyTiming, THREE camera projection, SMIL timeline seeking, motionFlight singleton integration, useCarouselMount, ticker/gsap subscriptions)
+The sticky +=400% pinned ScrollTrigger (the section becomes a normal non-sticky section)
+Build instead:
+
+A static <section id="motion" data-nav-tone="dark"> with dark background (#04060c + subtle blue radial gradient)
+A header row: left side = eyebrow ("Named client record") + h2 ("Real names. Real businesses. No invented case studies.") + right side = "View all work →" link to /work
+A horizontal flex card rail: overflow-x: auto; scroll-snap-type: x mandatory with 6 <a> cards
+Each card: numbered (01-06), with gradient background, accent color per card, title, category label, "View project →" link — all from the Claude Design's markup
+data-anchor-progress attribute retained for deep linking
+2. Replace Motion CSS in app/globals.css
+Remove the entire .motion CSS block (~lines 763–1024): .motion, .motion-sticky, .motion-heading, .motion-link, .motion-smil-stage, .motion-study, .motion-project-grid, .motion-project-card, .motion-project-art, .motion-project-meta, .motion-orb, all [data-motion-renderer], [data-motion-layout='static'], and mobile/reduced-motion overrides.
+
+Add new .motion CSS matching the Claude Design:
+
+Dark section background with radial gradient (rgba(60,108,255,.14))
+Typography using existing design tokens (--font-mono for eyebrow, --font-display for h2)
+Horizontal scroll rail: hidden scrollbar (.swrail), scroll-snap-type: x mandatory, padding: 6px 6vw
+Card styling: flex: 0 0 clamp(19rem,25vw,22rem), rounded 14px, gradient backgrounds per card, large ghost numbers (9rem), border glow on hover (translateY(-8px) + border-color change), scroll-snap-align: start
+Responsive: cards shrink on mobile, text scales via clamp()
+prefers-reduced-motion: reduce disables hover transitions
+3. Card data — hardcoded in Motion.jsx
+Define the 6 cards directly in the component (matching Claude Design exactly):
+
+#	Title	Category	Accent color	Link
+01	Tucker Trips	Web & App Development	#c084fc (purple)	/work#tucker-trips
+02	Talk to My Lawyer	Web & App Development	#59f3ff (cyan)	/work#talk-to-my-lawyer
+03	Style	E-Commerce	#ff8dd1 (pink)	/work
+04	Zeus Towing	Web Design	#ffc64a (gold)	/work#zues-towing
+05	Prestige One	Web & App Development	#63d9ff (light blue)	/work
+06	Crystal Web Solution	Immersive Web Experience	#9678ff (violet)	/work
+No external data file needed — 6 static cards, matching the design's names/categories exactly.
+
+4. Remove WebGL FlyingCarousel from components/Scene.jsx
+The FlyingCarousel component and its mounting logic (useCarouselMount, motionFlight subscription, CanvasFeatureBoundary) should be removed from Scene.jsx since Motion no longer has a WebGL layer. Also remove:
+
+import FlyingCarousel from './three/FlyingCarousel'
+import { motionFlight, setMotionReady, subscribeMotionFlight } from '../lib/motionFlight.mjs'
+import CanvasFeatureBoundary from './three/CanvasFeatureBoundary'
+The useCarouselMount hook function
+The {mountCarousel && (...)} block rendering FlyingCarousel
+Note: components/three/FlyingCarousel.jsx and lib/motionFlight.mjs files will become dead code. Leave them in place (don't delete) to avoid unintended side effects; they can be cleaned up later.
+
+5. Keep these unchanged
+lib/journey.js: STOPS and CLUSTERS for motion stay the same (camera still flies past this beat)
+lib/beatProgress.js: BEAT_IDS stays ['hero', 'about', 'services', 'approach', 'stories', 'mark', 'lab', 'motion', 'contact'] — but MOTION_WINDOW measurement becomes simpler since Motion is no longer sticky (the window measurement gracefully degrades to section boundaries)
+lib/projects.js: stays as-is (used by other parts of the site)
+components/three/CameraRig.jsx: no changes needed
+Tests: tests/content.test.mjs — no Motion assertions to break
+6. Verify
+npm run build — confirms no broken imports
+Visual check in browser at localhost:3000#motion
+Confirm 6 cards, dark background, horizontal scroll-snap, hover lift effect, all links work
+Files modified (5)
+components/sections/Motion.jsx — full rewrite
+app/globals.css — replace ~260 lines of .motion CSS with ~100 lines of new CSS
+components/Scene.jsx — remove FlyingCarousel mount block (~15 lines)
+lib/beatProgress.js — no change needed (MOTION_WINDOW measurement is harmless for non-sticky sections)
+No other files touched
+Risk: low
+The Motion section is self-contained; it doesn't export anything other sections use
+Removing the WebGL FlyingCarousel from Scene.jsx only affects the motion beat's canvas layer (which is being replaced by pure DOM)
+lib/projects.js stays intact (it's imported elsewhere)
+The camera journey still flies past the CLUSTERS.motion z-depth — that's fine, the dark DOM section just overlays it

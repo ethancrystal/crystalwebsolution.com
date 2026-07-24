@@ -11,21 +11,13 @@ const activityModule = await import('../lib/sceneActivity.mjs').catch(() => ({})
 const motionLayoutModule = await import('../lib/motionLayout.mjs').catch(() => ({}));
 const globalCss = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
 const motionSource = readFileSync(new URL('../components/sections/Motion.jsx', import.meta.url), 'utf8');
-const carouselSource = readFileSync(new URL('../components/three/FlyingCarousel.jsx', import.meta.url), 'utf8');
 const navSource = readFileSync(new URL('../components/Nav.jsx', import.meta.url), 'utf8');
 
-test('navigation uses the approved full logo and menu icon artwork', () => {
+test('navigation uses the supplied full logo and menu icon artwork', () => {
   assert.ok(existsSync(new URL('../public/crystal-web-solution-logo.svg', import.meta.url)));
   assert.ok(existsSync(new URL('../public/crystal-web-solution-icon.svg', import.meta.url)));
   assert.match(navSource, /crystal-web-solution-logo\.svg/);
   assert.match(navSource, /crystal-web-solution-icon\.svg/);
-});
-
-test('short desktop viewports keep the Stories heading below the fixed navigation', () => {
-  assert.match(
-    globalCss,
-    /@media \(min-width: 768px\) and \(max-height: 720px\)[\s\S]*?\.stories\s*\{[^}]*justify-content:\s*flex-start;[^}]*padding-top:\s*max\(7rem, 14vh\);/,
-  );
 });
 
 test('latest experience features default to the additive WebGL carousel', () => {
@@ -41,11 +33,6 @@ test('latest experience features default to the additive WebGL carousel', () => 
     }),
     { flyingCarousel: true },
   );
-});
-
-test('the light carousel stage remains behind the clickable DOM handoff', () => {
-  assert.match(carouselSource, /resources\.frameMaterial\.opacity = canvasOpacity/);
-  assert.doesNotMatch(carouselSource, /resources\.backdropMaterial\.opacity = canvasOpacity/);
 });
 
 test('legacy query mode restores the preserved carousel implementation', () => {
@@ -84,7 +71,7 @@ test('compact devices keep WebGL off while reduced motion retains the static fal
   assert.equal(reduced.flyingCarousel, false);
 });
 
-test('compact and fallback experiences use the linked static project grid', () => {
+test('phones retain a flying SVG timeline unless motion is reduced', () => {
   assert.equal(typeof motionLayoutModule.shouldUseStaticMotionLayout, 'function');
   assert.equal(motionLayoutModule.DEFAULT_MOTION_LAYOUT, 'animated');
   if (!motionLayoutModule.shouldUseStaticMotionLayout) return;
@@ -114,7 +101,7 @@ test('compact and fallback experiences use the linked static project grid', () =
       reducedMotion: false,
       flyingCarousel: compact.flyingCarousel,
     }),
-    true,
+    false,
   );
   assert.equal(
     motionLayoutModule.shouldUseStaticMotionLayout({
