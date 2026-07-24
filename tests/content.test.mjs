@@ -1,9 +1,15 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { VERIFIED_CLIENTS } from '../lib/clients.js';
-import { FEATURED_REVIEWS, REVIEWS, REVIEW_STATS } from '../lib/reviews.js';
+import { REVIEWS, REVIEW_STATS } from '../lib/reviews.js';
 import { SITE } from '../lib/site.js';
+
+const STORIES_SOURCE = readFileSync(
+  new URL('../components/sections/Stories.jsx', import.meta.url),
+  'utf8',
+);
 
 test('review archive preserves the supplied 20-review set', () => {
   assert.equal(REVIEWS.length, 20);

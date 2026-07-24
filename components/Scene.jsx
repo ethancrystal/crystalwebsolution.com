@@ -41,7 +41,7 @@ export default function Scene() {
         <Crystal position={[0, 0, CLUSTERS.crystal]} />
         <Sparks position={[0, 0, CLUSTERS.crystal]} />
 
-        {/* Services beat — eight signal instruments, one per service row, hover-linked
+        {/* Services beat — six signal instruments, one per service row, hover-linked
             to the DOM list (see ServiceRail) */}
         <ServiceRail position={[0, 0, CLUSTERS.services]} animate={quality.animate} />
 

@@ -610,7 +610,7 @@ html[data-cws-intro-seen='1'] .loader {
   }
   .services-intro {
     position: sticky;
-    top: 16vh;
+    top: max(7rem, 16vh);
     align-self: start;
   }
   .services-intro .section-title { max-width: 9ch; }
@@ -1358,7 +1358,7 @@ html[data-cws-intro-seen='1'] .loader {
 .about-smil-word {
   fill: #f3f4ef;
   font-family: var(--font-display);
-  font-size: 76px;
+  font-size: 84px;
   font-weight: 400;
   letter-spacing: 0;
 }
@@ -1372,7 +1372,7 @@ html[data-cws-intro-seen='1'] .loader {
      already-fitted element up pushed the word cloud past the screen
      edges on phones, since the copy spans almost the full viewBox
      width side to side. */
-  .about-smil-word { font-size: 68px; }
+  .about-smil-word { font-size: 72px; }
 }
 
 /* ---------- facts / precision ledger ---------- */

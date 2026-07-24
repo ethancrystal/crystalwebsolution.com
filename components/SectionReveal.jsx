@@ -23,7 +23,7 @@ export default function SectionReveal({
   direction = 'up',
   delay = 0,
   duration = DURATION_SLOW,
-  start = 'top 88%',
+  start = 'top 96%',
   children,
   style,
   ...rest
@@ -57,7 +57,7 @@ export default function SectionReveal({
     );
 
     let trigger;
-    if (el.getBoundingClientRect().top < window.innerHeight * 0.88) reveal();
+    if (el.getBoundingClientRect().top < window.innerHeight) reveal();
     else trigger = ScrollTrigger.create({ trigger: el, start, once: true, onEnter: reveal });
 
     return () => {

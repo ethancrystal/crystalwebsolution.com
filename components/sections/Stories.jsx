@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState } from 'react';
 import SectionReveal from '../SectionReveal';
-import { FEATURED_REVIEWS } from '../../lib/reviews';
+import { REVIEWS } from '../../lib/reviews';
 
 const HOME_REVIEW_IDS = ['vaughn-hebron', 'porsha-patterson', 'style-loft'];
 const REVIEWS_BY_ID = new Map(REVIEWS.map((review) => [review.id, review]));
