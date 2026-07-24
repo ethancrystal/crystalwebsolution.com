@@ -73,7 +73,9 @@ export default function Services() {
               onPointerLeave={dim}
             >
               <span className="service-num">{s.n}</span>
-              <h3 className="service-title" data-hover data-cursor="✦">{s.title}</h3>
+              <h3 className="service-title" data-hover data-cursor="✦">
+                <span className="service-title-inner">{s.title}</span>
+              </h3>
               <p className="service-desc">{s.desc}</p>
             </SectionReveal>
           ))}

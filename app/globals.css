@@ -591,14 +591,24 @@ html[data-cws-intro-seen='1'] .loader {
   border-color: rgba(89, 243, 255, 0.42);
   background: linear-gradient(90deg, rgba(89, 243, 255, 0.08), rgba(89, 243, 255, 0) 72%);
 }
-.service-num { font-family: var(--font-mono); font-size: 0.75rem; color: var(--cyan); }
+.service-num { font-family: var(--font-mono); font-size: 0.75rem; color: var(--cyan); transition: opacity 0.3s; }
 .service-title {
   font-family: var(--font-display);
   font-size: clamp(1.3rem, 2.6vw, 2rem);
   transition: color 0.3s;
 }
 .service-row:hover .service-title { color: var(--cyan); }
-.service-desc { color: var(--muted); line-height: 1.7; font-size: 0.95rem; }
+.service-title-inner { display: inline-block; transition: transform 0.3s; }
+.service-row:hover .service-title-inner { transform: translateX(0.4rem); }
+.service-desc { color: var(--muted); line-height: 1.7; font-size: 0.95rem; transition: opacity 0.3s; }
+/* Sibling rows dim their secondary text while another row is hovered — a
+   focus cue layered under the existing cyan border/background hover, not
+   replacing it. Row background/border and the light()/dim() 3D beacon are
+   untouched. */
+.services-list:has(.service-row:hover) .service-row:not(:hover) .service-num,
+.services-list:has(.service-row:hover) .service-row:not(:hover) .service-desc {
+  opacity: 0.6;
+}
 .services-marquee { margin-top: 5rem; }
 
 @media (min-width: 901px) {
@@ -1817,6 +1827,7 @@ html[data-cws-intro-seen='1'] .loader {
 .approach-list { border-top: 1px solid var(--line); }
 .approach-row { transform-origin: left center; }
 .approach-row-inner {
+  position: relative;
   display: grid;
   grid-template-columns: 5rem 1fr 1.2fr;
   gap: 2rem;
@@ -1830,7 +1841,44 @@ html[data-cws-intro-seen='1'] .loader {
   background: linear-gradient(90deg, rgba(89, 243, 255, 0.07), transparent 72%);
   border-color: rgba(89, 243, 255, 0.4);
 }
-.approach-num { font-family: var(--font-mono); font-size: 0.75rem; color: var(--cyan); }
+/* Static hairline connecting each step's ring to the next, split into two
+   segments (row-top to ring, ring to row-bottom) so it tracks whatever
+   height a row's wrapped copy ends up with — never spans behind the ring
+   itself, so the ring stays glass/transparent instead of needing an opaque
+   punch-through fill. */
+.approach-row-inner::before,
+.approach-row-inner::after {
+  content: '';
+  position: absolute;
+  /* .approach-num has an explicit width and no justify-self, so it sits
+     start-aligned in its grid column — its center is always 1.25rem from
+     the column's left edge, regardless of the column's total width. */
+  left: 1.25rem;
+  width: 1px;
+  background: rgba(139, 152, 184, 0.18);
+  transform: translateX(-50%);
+}
+.approach-row-inner::before { top: 0; height: calc(50% - 1.25rem); }
+.approach-row-inner::after { top: calc(50% + 1.25rem); bottom: 0; }
+.approach-row:first-child .approach-row-inner::before { display: none; }
+.approach-row:last-child .approach-row-inner::after { display: none; }
+.approach-num {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid rgba(139, 152, 184, 0.18);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--cyan);
+  transition: border-color 0.3s;
+}
 .approach-title {
   font-family: var(--font-display);
   font-size: clamp(1.3rem, 2.6vw, 2rem);
