@@ -1536,14 +1536,22 @@ html[data-cws-intro-seen='1'] .loader {
   margin-top: 12vh;
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1.4fr 1fr 1fr;
   gap: 3rem;
   text-align: left;
   border-top: 1px solid var(--line);
   padding-top: 3.4rem;
 }
+.footer-col:not(:first-child) { border-left: 1px solid var(--line); }
 .footer-col a, .footer-col p { display: block; color: var(--muted); font-size: 0.9rem; line-height: 1.9; }
 .footer-col a:hover { color: var(--cyan); }
+.footer-email {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--ink) !important;
+  letter-spacing: 0.01em;
+}
+.footer-email:hover { color: var(--cyan) !important; }
 .footer-label {
   font-family: var(--font-mono);
   font-size: 0.66rem;
@@ -1793,6 +1801,7 @@ html[data-cws-intro-seen='1'] .loader {
   .showcase-card.is-offset { transform: none; }
   .about-cols { grid-template-columns: 1fr; gap: 2rem; }
   .footer { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-col:not(:first-child) { border-left: none; padding-top: 2rem; border-top: 1px solid var(--line); }
   .work-row { grid-template-columns: 1fr; }
   .stories-tabs { gap: 0.75rem 1.35rem; }
   .stories-quote { max-width: 100%; }
