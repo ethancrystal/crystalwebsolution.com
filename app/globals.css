@@ -1003,7 +1003,7 @@ html[data-cws-intro-seen='1'] .loader {
   --rail-accent: var(--cyan);
   position: relative;
   display: flex;
-  flex: 0 0 max(19rem, 22vw);
+  width: 100%;
   flex-direction: column;
   min-height: 25rem;
   padding: 1.9rem 1.75rem;
@@ -1020,6 +1020,20 @@ html[data-cws-intro-seen='1'] .loader {
   border-color: color-mix(in srgb, var(--rail-accent) 60%, transparent);
 }
 .motion-card:focus-visible { outline: 2px solid var(--rail-accent); outline-offset: 0.3rem; }
+/* Wraps each .motion-card in <BorderGlow>; carries only the flex/scroll-snap
+   properties that must live on the direct child of .motion-rail — every other
+   visual property (background, border, padding, hover-lift) stays on
+   .motion-card itself, unchanged. */
+.motion-card-glow {
+  flex: 0 0 max(19rem, 22vw);
+  scroll-snap-align: start;
+}
+/* .border-glow (defined later in this file) sets its own static border —
+   this needs to win regardless of source order, since .motion-card already
+   provides the visible border and the dynamic glow lives in .border-glow-mesh. */
+.border-glow.motion-card-glow {
+  border: none;
+}
 .motion-card-index {
   position: absolute;
   right: -0.6rem;
@@ -1066,10 +1080,46 @@ html[data-cws-intro-seen='1'] .loader {
 @media (max-width: 560px) {
   .motion-header { margin-inline: 5vw; }
   .motion-rail { padding-inline: 5vw; }
-  .motion-card { flex-basis: max(17rem, 68vw); min-height: 22rem; }
+  .motion-card-glow { flex-basis: max(17rem, 68vw); }
+  .motion-card { min-height: 22rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .motion-card { transition: none; }
+}
+
+/* BorderGlow — static structural styles (dynamic masks/shadows stay inline in the component) */
+.border-glow {
+  position: relative;
+  display: grid;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.border-glow-mesh {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+}
+
+.border-glow-content {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: auto;
+  z-index: 1;
+}
+
+.border-glow-glow {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.border-glow-glow-inner {
+  position: absolute;
+  border-radius: inherit;
 }
 
 /* ---------- lab (CWS in motion — services flight) ----------
@@ -1105,7 +1155,7 @@ html[data-cws-intro-seen='1'] .loader {
   background-image: linear-gradient(rgba(41, 42, 39, 0.06) 1px, transparent 1px);
   background-size: 100% 10vh;
 }
-.motion-copy {
+.lab-copy {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -1121,8 +1171,8 @@ html[data-cws-intro-seen='1'] .loader {
   color: #333531;
   pointer-events: none;
 }
-.motion-copy span:last-child { justify-self: start; }
-.motion-caption {
+.lab-copy span:last-child { justify-self: start; }
+.lab-caption {
   position: absolute;
   z-index: 3;
   left: 3vw;
@@ -1132,7 +1182,7 @@ html[data-cws-intro-seen='1'] .loader {
   line-height: 1.25;
   color: #454743;
 }
-.motion-link {
+.lab-link {
   position: absolute;
   z-index: 3;
   right: 4vw;
