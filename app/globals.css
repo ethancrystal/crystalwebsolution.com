@@ -1012,7 +1012,11 @@ html[data-cws-intro-seen='1'] .loader {
   gap: 1.6rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  padding: 0.4rem 6vw 1.8rem;
+  /* Top padding must clear BorderGlow's outward glow (glowRadius, 24px) plus
+     .motion-card's hover lift (0.5rem) — overflow-x: auto here also computes
+     overflow-y to auto, so anything short of that headroom gets clipped the
+     moment a card's glow/lift appears on hover. */
+  padding: 2rem 6vw 1.8rem;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   /* Trailing edge only — unlike Marquee's infinite loop, this rail has a
@@ -1056,6 +1060,15 @@ html[data-cws-intro-seen='1'] .loader {
    provides the visible border and the dynamic glow lives in .border-glow-mesh. */
 .border-glow.motion-card-glow {
   border: none;
+}
+/* BorderGlow's content wrapper defaults to overflow: auto (generic
+   scroll-safety for arbitrary children). .motion-card lifts translateY(-0.5rem)
+   on hover — inside an auto-overflow ancestor that lift gets clipped at the
+   top edge instead of rendering, which is the "top of the card crops on
+   hover" bug. Motion's card is a fixed, non-scrolling block, so this override
+   is safe and scoped to just this usage. */
+.motion-card-glow .border-glow-content {
+  overflow: visible;
 }
 .motion-card-index {
   position: absolute;
