@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import BorderGlow, { hexToHslTriplet } from '../BorderGlow';
+import SectionReveal from '../SectionReveal';
 import { PROJECTS } from '../../lib/projects';
 
 const DEEP_LINK_PROGRESS = 0.32;
@@ -54,11 +55,13 @@ export default function Motion() {
           View all work <span aria-hidden="true">→</span>
         </Link>
       </header>
-      <div className="motion-rail">
-        {PROJECTS.map((project, index) => (
-          <RailCard key={project.slug} project={project} index={index} />
-        ))}
-      </div>
+      <SectionReveal as="div" direction="up">
+        <div className="motion-rail">
+          {PROJECTS.map((project, index) => (
+            <RailCard key={project.slug} project={project} index={index} />
+          ))}
+        </div>
+      </SectionReveal>
     </section>
   );
 }
