@@ -1,7 +1,10 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { friendlyAuthError } from '@/lib/auth-errors';
 import { redirect } from 'next/navigation';
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 
 export async function signUp(formData) {
   const email = formData.get('email');
@@ -21,14 +24,15 @@ export async function signUp(formData) {
       data: {
         full_name: fullName,
       },
+      emailRedirectTo: `${APP_URL}/auth/callback?next=/dashboard`,
     },
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: friendlyAuthError(error.message) };
   }
 
-  redirect('/auth/confirm');
+  redirect(`/auth/confirm?email=${encodeURIComponent(email)}`);
 }
 
 export async function signIn(formData) {
@@ -47,7 +51,7 @@ export async function signIn(formData) {
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: friendlyAuthError(error.message) };
   }
 
   redirect('/dashboard');
@@ -85,4 +89,65 @@ export async function getUserProfile() {
     .single();
 
   return { user, profile };
+}
+
+export async function resendConfirmationEmail(formData) {
+  const email = formData.get('email');
+
+  if (!email) {
+    return { error: 'Email is required' };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: {
+      emailRedirectTo: `${APP_URL}/auth/callback?next=/dashboard`,
+    },
+  });
+
+  if (error) {
+    return { error: friendlyAuthError(error.message) };
+  }
+
+  return { success: true };
+}
+
+export async function requestPasswordReset(formData) {
+  const email = formData.get('email');
+
+  if (!email) {
+    return { error: 'Email is required' };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${APP_URL}/auth/callback?next=/auth/reset-password`,
+  });
+
+  if (error) {
+    return { error: friendlyAuthError(error.message) };
+  }
+
+  return { success: true };
+}
+
+export async function updatePassword(formData) {
+  const password = formData.get('password');
+
+  if (!password) {
+    return { error: 'Password is required' };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    return { error: friendlyAuthError(error.message) };
+  }
+
+  redirect('/dashboard');
 }

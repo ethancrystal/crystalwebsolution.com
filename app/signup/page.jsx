@@ -7,61 +7,29 @@ import { signUp } from '@/app/auth/actions';
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(formData) {
+    const password = formData.get('password');
+    const confirmPassword = formData.get('confirmPassword');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
-    setSuccess(false);
 
     try {
       const result = await signUp(formData);
       if (result?.error) {
         setError(result.error);
-      } else {
-        setSuccess(true);
       }
     } catch (err) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  }
-
-  if (success) {
-    return (
-      <div className="crm-signup-container">
-        <div className="crm-signup-card">
-          <div className="crm-success-message">
-            <h1>Check Your Email</h1>
-            <p>
-              We've sent you a confirmation link. Please click it to verify your email
-              and complete your signup.
-            </p>
-            <Link href="/login" className="crm-button">
-              Back to Login
-            </Link>
-          </div>
-        </div>
-
-        <style jsx>{`
-          .crm-success-message {
-            text-align: center;
-          }
-
-          .crm-success-message h1 {
-            color: #64c8ff;
-            margin-bottom: 1rem;
-          }
-
-          .crm-success-message p {
-            color: #999;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-          }
-        `}</style>
-      </div>
-    );
   }
 
   return (
@@ -104,6 +72,21 @@ export default function SignupPage() {
               name="password"
               type="password"
               required
+              minLength={6}
+              placeholder="••••••••"
+              disabled={isLoading}
+            />
+            <span className="crm-hint">At least 6 characters</span>
+          </div>
+
+          <div className="crm-form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              required
+              minLength={6}
               placeholder="••••••••"
               disabled={isLoading}
             />
@@ -169,6 +152,11 @@ export default function SignupPage() {
           color: #ccc;
           font-size: 0.9rem;
           font-weight: 500;
+        }
+
+        .crm-hint {
+          color: #777;
+          font-size: 0.8rem;
         }
 
         .crm-form-group input {
