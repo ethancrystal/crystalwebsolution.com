@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import BorderGlow, { hexToHslTriplet } from '../BorderGlow';
+import GlyphMask from '../GlyphMask';
 import SectionReveal from '../SectionReveal';
 import { PROJECTS } from '../../lib/projects';
 
@@ -26,6 +27,7 @@ function RailCard({ project, index }) {
         aria-label={`${project.title} — view case study`}
         data-cursor="View case"
       >
+        <GlyphMask accent={accent} />
         <span className="motion-card-index" aria-hidden="true">0{index + 1}</span>
         <span className="motion-card-category">{project.category}</span>
         <span className="motion-card-body">

@@ -1158,6 +1158,37 @@ html[data-cws-intro-seen='1'] .loader {
   border-radius: inherit;
 }
 
+/* Motion rail card texture: a pointer-tracked "decrypt" reveal layered
+   under BorderGlow's edge glow (z-index 0 vs. .border-glow-content's 1,
+   painted first in DOM order so the card's own text sits above it without
+   needing an explicit z-index). Pointer-driven only, never autoplays. */
+.glyph-mask {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease-out;
+  -webkit-mask-image: radial-gradient(var(--glyph-radius) at var(--glyph-x, 50%) var(--glyph-y, 50%), #000, transparent 100%);
+  mask-image: radial-gradient(var(--glyph-radius) at var(--glyph-x, 50%) var(--glyph-y, 50%), #000, transparent 100%);
+  mix-blend-mode: plus-lighter;
+}
+.glyph-mask-text {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  padding: 1.9rem 1.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  line-height: 1.35;
+  letter-spacing: 0.05em;
+  word-break: break-all;
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: reduce) {
+  .glyph-mask { display: none; }
+}
+
 /* ---------- lab (CWS in motion — services flight) ----------
    Pure DOM/CSS-3D, no WebGL layer: like .about-smil, this beat is a
    self-contained scene sitting on top of the fixed Canvas rather than a
