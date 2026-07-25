@@ -28,7 +28,7 @@ export async function signUp(formData) {
     return { error: error.message };
   }
 
-  redirect('/auth/confirm');
+  return { success: true };
 }
 
 export async function signIn(formData) {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { signOut } from '@/app/auth/actions';
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
@@ -63,9 +64,11 @@ export default function AdminDashboard() {
           <h1>Admin Dashboard</h1>
           <p>Welcome back, {user?.email}</p>
         </div>
-        <Link href="/api/auth/logout" className="crm-logout-btn">
-          Sign Out
-        </Link>
+        <form action={signOut}>
+          <button type="submit" className="crm-logout-btn">
+            Sign Out
+          </button>
+        </form>
       </header>
 
       <div className="crm-admin-content">
@@ -151,6 +154,8 @@ export default function AdminDashboard() {
           border-radius: 6px;
           text-decoration: none;
           transition: all 0.2s ease;
+          font: inherit;
+          cursor: pointer;
         }
 
         .crm-logout-btn:hover {
