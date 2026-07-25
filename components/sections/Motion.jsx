@@ -1,23 +1,45 @@
-'use client';
-
 import Link from 'next/link';
-
-// "Selected work" beat — a dark, scroll-snap card rail. No WebGL, no SMIL,
-// no pinned ScrollTrigger: a self-contained DOM section that overlays the
-// fixed canvas as the camera flies past the motion cluster. Every card is a
-// real <a> (next/link) so deep links and keyboard focus work natively.
-// Card copy/accents ported 1:1 from the Claude Design prototype
-// (Selected Work.dc.html).
-const MOTION_CARDS = [
-  { num: '01', title: 'Tucker Trips', category: 'Web & App Development', accent: '#c084fc', href: '/work#tucker-trips' },
-  { num: '02', title: 'Talk to My Lawyer', category: 'Web & App Development', accent: '#59f3ff', href: '/work#talk-to-my-lawyer' },
-  { num: '03', title: 'Style', category: 'E-Commerce', accent: '#ff8dd1', href: '/work' },
-  { num: '04', title: 'Zeus Towing', category: 'Web Design', accent: '#ffc64a', href: '/work#zues-towing' },
-  { num: '05', title: 'Prestige One', category: 'Web & App Development', accent: '#63d9ff', href: '/work' },
-  { num: '06', title: 'Crystal Web Solution', category: 'Immersive Web Experience', accent: '#9678ff', href: '/work' },
-];
+import BorderGlow, { hexToHslTriplet } from '../BorderGlow';
+import GlyphMask from '../GlyphMask';
+import SectionReveal from '../SectionReveal';
+import { PROJECTS } from '../../lib/projects';
 
 const DEEP_LINK_PROGRESS = 0.32;
+
+// Matches the Claude Design's per-card accent, in PROJECTS order.
+const RAIL_ACCENTS = ['#c084fc', '#59f3ff', '#ff8dd1', '#ffc64a', '#63d9ff', '#9678ff'];
+
+function RailCard({ project, index }) {
+  const accent = RAIL_ACCENTS[index % RAIL_ACCENTS.length];
+  return (
+    <BorderGlow
+      className="motion-card-glow"
+      backgroundColor="transparent"
+      borderRadius={14}
+      glowRadius={24}
+      colors={[accent, accent, accent]}
+      glowColor={hexToHslTriplet(accent)}
+    >
+      <Link
+        href={`/work/${project.slug}`}
+        className="motion-card"
+        style={{ '--rail-accent': accent }}
+        aria-label={`${project.title} — view case study`}
+        data-cursor="View case"
+      >
+        <GlyphMask accent={accent} />
+        <span className="motion-card-index" aria-hidden="true">0{index + 1}</span>
+        <span className="motion-card-category">{project.category}</span>
+        <span className="motion-card-body">
+          <strong className="motion-card-title">{project.title}</strong>
+          <span className="motion-card-footer">
+            View project <span aria-hidden="true">→</span>
+          </span>
+        </span>
+      </Link>
+    </BorderGlow>
+  );
+}
 
 export default function Motion() {
   return (
@@ -25,40 +47,23 @@ export default function Motion() {
       className="section motion"
       id="motion"
       data-anchor-progress={DEEP_LINK_PROGRESS}
-      data-nav-tone="dark"
     >
-      <div className="motion-inner">
-        <div className="motion-head">
-          <div>
-            <p className="eyebrow motion-eyebrow">Named client record</p>
-            <h2>Real names. Real businesses. No invented case studies.</h2>
-          </div>
-          <Link href="/work" className="motion-link">
-            View all work <span aria-hidden="true">→</span>
-          </Link>
+      <header className="motion-header">
+        <div>
+          <p className="eyebrow">Named client record</p>
+          <h2>Real names. Real businesses. No invented case studies.</h2>
         </div>
-
-        <div className="swrail motion-rail">
-          {MOTION_CARDS.map((card) => (
-            <Link
-              key={card.num}
-              href={card.href}
-              className={`motion-card motion-card--${card.num}`}
-              style={{ '--accent': card.accent }}
-              aria-label={`${card.title} — view project`}
-            >
-              <span className="motion-card-ghost" aria-hidden="true">{card.num}</span>
-              <span className="motion-card-cat">{card.category}</span>
-              <div className="motion-card-body">
-                <div className="motion-card-title">{card.title}</div>
-                <div className="motion-card-cta">
-                  View project <span aria-hidden="true">→</span>
-                </div>
-              </div>
-            </Link>
+        <Link href="/work" className="motion-link" data-cursor="All projects">
+          View all work <span aria-hidden="true">→</span>
+        </Link>
+      </header>
+      <SectionReveal as="div" direction="up">
+        <div className="motion-rail">
+          {PROJECTS.map((project, index) => (
+            <RailCard key={project.slug} project={project} index={index} />
           ))}
         </div>
-      </div>
+      </SectionReveal>
     </section>
   );
 }

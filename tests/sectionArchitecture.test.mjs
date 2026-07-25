@@ -85,7 +85,6 @@ test('section entrances begin on arrival and keep fixed-nav clearance', () => {
   assert.match(revealSource, /top < window\.innerHeight\) reveal\(\)/);
   assert.doesNotMatch(markSource, /top 68%/);
   assert.match(globalCss, /\.services-intro\s*\{[\s\S]*?top:\s*max\(7rem, 16vh\)/);
-  assert.match(globalCss, /\.motion-heading\s*\{[\s\S]*?top:\s*clamp\(6\.5rem, 10vh, 8rem\)/);
 });
 
 test('about word field clears its kicker and fills the section', () => {

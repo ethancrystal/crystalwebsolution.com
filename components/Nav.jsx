@@ -42,20 +42,13 @@ export default function Nav() {
     <>
       <header className={`nav ${scrolled && !open ? 'nav-glass' : ''} ${onLightSurface && !open ? 'nav-on-light' : ''}`}>
         <Link href="/" className="nav-logo" data-cursor="Home" aria-label="Crystal Web Solution home">
-          <span className={`nav-logo-art ${open ? 'is-menu-open' : ''}`} aria-hidden="true">
+          <span className="nav-logo-art" aria-hidden="true">
             <img
               className="nav-logo-art-full"
               src="/crystal-web-solution-logo.svg"
               alt=""
               width="1616"
               height="243"
-            />
-            <img
-              className="nav-logo-art-icon"
-              src="/crystal-web-solution-icon.svg"
-              alt=""
-              width="647"
-              height="255"
             />
           </span>
         </Link>
