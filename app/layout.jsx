@@ -26,7 +26,7 @@ export const metadata = {
       'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: `Custom Web Design & AI Automation | ${SITE.name}`,
     description:
       'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',

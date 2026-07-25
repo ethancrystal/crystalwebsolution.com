@@ -1,19 +1,18 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useRef } from 'react';
+import { LazyMotion, domAnimation, m, useReducedMotion } from 'motion/react';
 import SectionReveal from '../SectionReveal';
-import { DURATION_FAST, DURATION_SLOW, EASE_SETTLE } from '../../lib/easing';
+import { onCardMouseGlow } from '../../lib/cardMouseGlow';
 
-gsap.registerPlugin(ScrollTrigger);
-
-// How we work, in four steps. Rows arrive with a physical overshoot
-// (RevealPop), then as the camera flies through this beat, the row matching
-// the 3D compass's currently-lit marker (components/three/ApproachCompass.jsx)
-// gets a one-shot "hit": a quick scale-punch + border flash, timed off the
-// same section-local progress the compass reads — DOM and mascot as one
-// synced instrument instead of two unrelated animations.
+// How we work, in four steps, as a pinned board of rotated cards linked by
+// one animated dashed path — replacing the old scrolling-row layout. The 3D
+// compass mascot (components/three/ApproachCompass.jsx) is unaffected: it
+// reads only scrollState/beatProgress, never this section's DOM, so it keeps
+// lighting its four markers across the same scroll span regardless of how
+// this section's own cards are laid out.
+// Card accent (cyan/violet) alternates by position via :nth-child in CSS,
+// matching this order — not stored per-step since nothing here reads it.
 const STEPS = [
   {
     n: '01',
@@ -37,37 +36,14 @@ const STEPS = [
   },
 ];
 
+const BOARD_HEIGHT = 930;
+
+const PATH_D =
+  'M 290 150 C 500 150, 550 270, 710 270 C 850 270, 500 350, 290 450 C 290 600, 550 720, 750 720';
+
 export default function Approach() {
   const sectionRef = useRef(null);
-  const rowRefs = useRef([]);
-  const lastActive = useRef(-1);
-
-  useEffect(() => {
-    const root = sectionRef.current;
-    if (!root) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    const trigger = ScrollTrigger.create({
-      trigger: root,
-      start: 'top center',
-      end: 'bottom center',
-      onUpdate: (self) => {
-        const step = Math.min(STEPS.length - 1, Math.floor(self.progress * STEPS.length));
-        if (step === lastActive.current) return;
-        lastActive.current = step;
-        const row = rowRefs.current[step];
-        if (!row) return;
-        gsap.fromTo(row, { scale: 1 }, { scale: 1.018, duration: DURATION_FAST, ease: EASE_SETTLE, yoyo: true, repeat: 1, overwrite: true });
-        gsap.fromTo(
-          row,
-          { borderBottomColor: 'rgba(89, 243, 255, 0.9)' },
-          { borderBottomColor: 'rgba(139, 152, 184, 0.18)', duration: DURATION_SLOW, ease: EASE_SETTLE, overwrite: 'auto' }
-        );
-      },
-    });
-
-    return () => trigger.kill();
-  }, []);
+  const reducedMotion = useReducedMotion();
 
   return (
     <section className="section approach" id="approach" data-quiet ref={sectionRef}>
@@ -77,16 +53,55 @@ export default function Approach() {
           Four steps. No shortcuts.
         </SectionReveal>
       </div>
-      <div className="approach-list">
-        {STEPS.map((s, i) => (
-          <SectionReveal key={s.n} className="approach-row" direction="left" as="div">
-            <div ref={(el) => (rowRefs.current[i] = el)} className="approach-row-inner">
-              <span className="approach-num">{s.n}</span>
-              <h3 className="approach-title" data-hover data-cursor="✦">{s.title}</h3>
-              <p className="approach-desc">{s.desc}</p>
-            </div>
-          </SectionReveal>
-        ))}
+
+      <div className="motion-story-board">
+        <LazyMotion features={domAnimation}>
+          <div className="motion-story-track" style={{ minHeight: `${BOARD_HEIGHT}px` }}>
+            <svg
+              className="motion-story-path-wrap"
+              viewBox={`0 0 1000 ${BOARD_HEIGHT}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <m.path
+                d={PATH_D}
+                className="motion-story-path"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeDasharray="8 6"
+                fill="none"
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+                initial={{ strokeDashoffset: 0 }}
+                animate={reducedMotion ? undefined : { strokeDashoffset: -140 }}
+                transition={reducedMotion ? undefined : { repeat: Infinity, duration: 3, ease: 'linear' }}
+              />
+            </svg>
+
+            {STEPS.map((step, index) => (
+              <div
+                key={step.n}
+                className="motion-story-card"
+                onMouseMove={onCardMouseGlow}
+              >
+                <div className="motion-story-shell">
+                  <span aria-hidden="true" className="motion-story-pin">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                      <path d="M16 3a1 1 0 0 1 .117 1.993l-.117 .007v4.764l1.894 3.789a1 1 0 0 1 .1 .331l.006 .116v2a1 1 0 0 1 -.883 .993l-.117 .007h-4v4a1 1 0 0 1 -1.993 .117l-.007 -.117v-4h-4a1 1 0 0 1 -.993 -.883l-.007 -.117v-2a1 1 0 0 1 .06 -.34l.046 -.107l1.894 -3.791v-4.762a1 1 0 0 1 -.117 -1.993l.117 -.007h8z" />
+                    </svg>
+                  </span>
+
+                  <div className="motion-story-inner">
+                    <span className="motion-story-num">0{index + 1}</span>
+                    <h3 className="motion-story-title" data-hover data-cursor="✦">{step.title}</h3>
+                    <p className="motion-story-desc">{step.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </LazyMotion>
       </div>
     </section>
   );
