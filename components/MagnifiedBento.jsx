@@ -19,7 +19,11 @@ import {
   DatabaseIcon,
   LockIcon,
 } from '@hugeicons/core-free-icons';
-import { motion, useMotionValue, useMotionTemplate, useReducedMotion } from 'motion/react';
+import { motion, useMotionValue, useMotionTemplate } from 'motion/react';
+
+function cn(...classes) {
+  return classes.filter(Boolean).join(' ');
+}
 
 const TAG_ROWS = [
   [
@@ -49,6 +53,7 @@ const CONFIG = {
   title: 'Intelligent Workflows',
   description:
     'Automatically categorize and search through your team’s diverse skillsets and project phases with contextual awareness.',
+  containerHeight: 'h-[200px] sm:h-[240px]',
   lensSize: 92,
 };
 
@@ -66,38 +71,29 @@ const MagnifyingLens = ({ size = 92 }) => (
   </svg>
 );
 
-// A draggable magnifying lens that reveals a crisp, labeled version of a
-// scrolling field of capability tags. The blurred/dim base layer and the
-// sharp "lens" layer are the same two marquee rows, masked against each
-// other by a circular clip-path that tracks the lens's drag position.
 export default function MagnifiedBento() {
   const containerRef = React.useRef(null);
   const lensX = useMotionValue(0);
   const lensY = useMotionValue(0);
-  const reducedMotion = useReducedMotion();
 
   const clipPath = useMotionTemplate`circle(30px at calc(50% + ${lensX}px - 10px) calc(50% + ${lensY}px - 10px))`;
   const inverseMask = useMotionTemplate`radial-gradient(circle 30px at calc(50% + ${lensX}px - 10px) calc(50% + ${lensY}px - 10px), transparent 100%, black 100%)`;
 
-  // Under prefers-reduced-motion, freeze the marquee rows in place rather
-  // than looping them forever — the lens itself stays draggable either way,
-  // since that motion is user-initiated, not autoplaying.
-  const rowAnimate = (rowIndex) =>
-    reducedMotion ? undefined : { x: rowIndex % 2 === 0 ? ['0%', '-33.333%'] : ['-33.333%', '0%'] };
-  const rowTransition = reducedMotion ? undefined : { duration: 25, ease: 'linear', repeat: Infinity };
-
   return (
     <div className="magnifier-wrap">
-      <div className="magnifier-shell">
-        <div ref={containerRef} className="magnifier-stage">
-          <div className="magnifier-relative">
-            <motion.div style={{ WebkitMaskImage: inverseMask, maskImage: inverseMask }} className="magnifier-base">
+      <div className="magnifier-shell group">
+        <div ref={containerRef} className={cn('magnifier-stage', CONFIG.containerHeight)}>
+          <div className="magnifier-relative h-full w-full flex flex-col items-center justify-center">
+            <motion.div
+              style={{ WebkitMaskImage: inverseMask, maskImage: inverseMask }}
+              className="magnifier-base"
+            >
               {TAG_ROWS.map((row, rowIndex) => (
                 <motion.div
                   key={`row-${rowIndex}`}
                   className="magnifier-row"
-                  animate={rowAnimate(rowIndex)}
-                  transition={rowTransition}
+                  animate={{ x: rowIndex % 2 === 0 ? ['0%', '-33.333%'] : ['-33.333%', '0%'] }}
+                  transition={{ duration: 25, ease: 'linear', repeat: Infinity }}
                 >
                   {[...row, ...row, ...row].map((item, idx) => (
                     <div key={`${item.id}-${idx}`} className="magnifier-tag">
@@ -114,8 +110,8 @@ export default function MagnifiedBento() {
                 <motion.div
                   key={`row-reveal-${rowIndex}`}
                   className="magnifier-row"
-                  animate={rowAnimate(rowIndex)}
-                  transition={rowTransition}
+                  animate={{ x: rowIndex % 2 === 0 ? ['0%', '-33.333%'] : ['-33.333%', '0%'] }}
+                  transition={{ duration: 25, ease: 'linear', repeat: Infinity }}
                 >
                   {[...row, ...row, ...row].map((item, idx) => (
                     <div key={`${item.id}-${idx}-reveal`} className="magnifier-tag magnifier-tag-active">
@@ -134,7 +130,7 @@ export default function MagnifiedBento() {
               dragConstraints={containerRef}
               style={{ x: lensX, y: lensY }}
             >
-              <div className="magnifier-lens-inner">
+              <div className="relative">
                 <MagnifyingLens size={CONFIG.lensSize} />
                 <div className="magnifier-lens-glass" />
               </div>
