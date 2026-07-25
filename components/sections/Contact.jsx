@@ -32,7 +32,7 @@ export default function Contact() {
       <SectionReveal as="footer" className="footer" direction="left" start="top 94%">
         <div className="footer-col">
           <p className="footer-label">Enquiry</p>
-          <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+          <a href={`mailto:${SITE.email}`} className="footer-email">{SITE.email}</a>
           {SITE.phone && <a href={`tel:${SITE.phone.replace(/[^+\d]/g, '')}`}>{SITE.phone}</a>}
         </div>
         {SITE.socials.length > 0 && (

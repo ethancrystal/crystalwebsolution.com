@@ -86,7 +86,7 @@ export default function Stories() {
         <div className="stories-tabs" role="tablist" aria-label="Client stories" aria-orientation="horizontal">
           {STORIES.map((s, i) => (
             <button
-              key={s.tab}
+              key={s.id}
               ref={(element) => { tabRefs.current[i] = element; }}
               type="button"
               role="tab"

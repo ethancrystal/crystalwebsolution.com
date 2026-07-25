@@ -3,6 +3,13 @@
     "supabase": {
       "type": "http",
       "url": "https://mcp.supabase.com/mcp?project_ref=wmnjosiikehsuaqucvja&features=branching%2Cfunctions%2Cdevelopment%2Cdebugging%2Cdatabase%2Cstorage%2Caccount%2Cdocs"
+    },
+    "shadcn": {
+      "command": "npx",
+      "args": [
+        "shadcn@latest",
+        "mcp"
+      ]
     }
   }
 }
