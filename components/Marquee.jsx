@@ -62,12 +62,14 @@ export default function Marquee({ text, className = '', baseSpeed = 60 }) {
 
   return (
     <div className={`marquee ${className}`} aria-hidden="true">
-      <div ref={track} className="marquee-track">
-        {chunk.concat(chunk).map((t, i) => (
-          <span className="marquee-item" key={i}>
-            {t} <span className="marquee-star">✦</span>{' '}
-          </span>
-        ))}
+      <div className="marquee-mask">
+        <div ref={track} className="marquee-track">
+          {chunk.concat(chunk).map((t, i) => (
+            <span className="marquee-item" key={i}>
+              {t} <span className="marquee-star">✦</span>{' '}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
