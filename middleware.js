@@ -2,29 +2,36 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 
 export async function middleware(request) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn(
+      '[middleware] NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY are not set — ' +
+        'skipping auth checks. Auth-protected routes are NOT protected until these are configured.',
+    );
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value);
-            response.cookies.set(name, value, options);
-          });
-        },
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          request.cookies.set(name, value);
+          response.cookies.set(name, value, options);
+        });
       },
     },
-  );
+  });
 
   const {
     data: { user },
@@ -53,7 +60,7 @@ export async function middleware(request) {
   }
 
   // Redirect authenticated users away from auth pages
-  if (['/login', '/signup'].includes(request.nextUrl.pathname)) {
+  if (['/login', '/signup', '/forgot-password'].includes(request.nextUrl.pathname)) {
     if (user) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
@@ -63,5 +70,11 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/dashboard/:path*', '/login', '/signup'],
+  matcher: [
+    '/admin/:path*',
+    '/dashboard/:path*',
+    '/login',
+    '/signup',
+    '/forgot-password',
+  ],
 };
