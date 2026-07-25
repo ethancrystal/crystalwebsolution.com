@@ -19,7 +19,7 @@ import {
   DatabaseIcon,
   LockIcon,
 } from '@hugeicons/core-free-icons';
-import { motion, useMotionValue, useMotionTemplate } from 'motion/react';
+import { motion, useMotionValue, useMotionTemplate, useReducedMotion } from 'motion/react';
 
 const TAG_ROWS = [
   [
@@ -74,9 +74,17 @@ export default function MagnifiedBento() {
   const containerRef = React.useRef(null);
   const lensX = useMotionValue(0);
   const lensY = useMotionValue(0);
+  const reducedMotion = useReducedMotion();
 
   const clipPath = useMotionTemplate`circle(30px at calc(50% + ${lensX}px - 10px) calc(50% + ${lensY}px - 10px))`;
   const inverseMask = useMotionTemplate`radial-gradient(circle 30px at calc(50% + ${lensX}px - 10px) calc(50% + ${lensY}px - 10px), transparent 100%, black 100%)`;
+
+  // Under prefers-reduced-motion, freeze the marquee rows in place rather
+  // than looping them forever — the lens itself stays draggable either way,
+  // since that motion is user-initiated, not autoplaying.
+  const rowAnimate = (rowIndex) =>
+    reducedMotion ? undefined : { x: rowIndex % 2 === 0 ? ['0%', '-33.333%'] : ['-33.333%', '0%'] };
+  const rowTransition = reducedMotion ? undefined : { duration: 25, ease: 'linear', repeat: Infinity };
 
   return (
     <div className="magnifier-wrap">
@@ -88,8 +96,8 @@ export default function MagnifiedBento() {
                 <motion.div
                   key={`row-${rowIndex}`}
                   className="magnifier-row"
-                  animate={{ x: rowIndex % 2 === 0 ? ['0%', '-33.333%'] : ['-33.333%', '0%'] }}
-                  transition={{ duration: 25, ease: 'linear', repeat: Infinity }}
+                  animate={rowAnimate(rowIndex)}
+                  transition={rowTransition}
                 >
                   {[...row, ...row, ...row].map((item, idx) => (
                     <div key={`${item.id}-${idx}`} className="magnifier-tag">
@@ -106,8 +114,8 @@ export default function MagnifiedBento() {
                 <motion.div
                   key={`row-reveal-${rowIndex}`}
                   className="magnifier-row"
-                  animate={{ x: rowIndex % 2 === 0 ? ['0%', '-33.333%'] : ['-33.333%', '0%'] }}
-                  transition={{ duration: 25, ease: 'linear', repeat: Infinity }}
+                  animate={rowAnimate(rowIndex)}
+                  transition={rowTransition}
                 >
                   {[...row, ...row, ...row].map((item, idx) => (
                     <div key={`${item.id}-${idx}-reveal`} className="magnifier-tag magnifier-tag-active">

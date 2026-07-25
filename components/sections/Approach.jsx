@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { LazyMotion, domAnimation, m } from 'motion/react';
+import { useRef } from 'react';
+import { LazyMotion, domAnimation, m, useReducedMotion } from 'motion/react';
 import SectionReveal from '../SectionReveal';
 import { onCardMouseGlow } from '../../lib/cardMouseGlow';
 
@@ -43,11 +43,7 @@ const PATH_D =
 
 export default function Approach() {
   const sectionRef = useRef(null);
-  const reducedRef = useRef(false);
-
-  useEffect(() => {
-    reducedRef.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  }, []);
+  const reducedMotion = useReducedMotion();
 
   return (
     <section className="section approach" id="approach" data-quiet ref={sectionRef}>
@@ -77,8 +73,8 @@ export default function Approach() {
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
                 initial={{ strokeDashoffset: 0 }}
-                animate={reducedRef.current ? {} : { strokeDashoffset: -140 }}
-                transition={{ repeat: Infinity, duration: 3, ease: 'linear' }}
+                animate={reducedMotion ? undefined : { strokeDashoffset: -140 }}
+                transition={reducedMotion ? undefined : { repeat: Infinity, duration: 3, ease: 'linear' }}
               />
             </svg>
 
