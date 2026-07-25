@@ -1,54 +1,62 @@
 'use client';
 
-import { useRef } from 'react';
-import { LazyMotion, domAnimation, m, useReducedMotion } from 'motion/react';
+import { useRef, useEffect } from 'react';
+import { LazyMotion, domAnimation, m } from 'motion/react';
 import SectionReveal from '../SectionReveal';
-import { onCardMouseGlow } from '../../lib/cardMouseGlow';
+import { useCardMouseReveal } from '../CardHoverReveal';
 
-// How we work, in four steps, as a pinned board of rotated cards linked by
-// one animated dashed path — replacing the old scrolling-row layout. The 3D
-// compass mascot (components/three/ApproachCompass.jsx) is unaffected: it
-// reads only scrollState/beatProgress, never this section's DOM, so it keeps
-// lighting its four markers across the same scroll span regardless of how
-// this section's own cards are laid out.
-// Card accent (cyan/violet) alternates by position via :nth-child in CSS,
-// matching this order — not stored per-step since nothing here reads it.
 const STEPS = [
   {
-    n: '01',
-    title: 'Discover',
-    desc: 'We audit your brand, market, audience, funnel, and operations before deciding what is worth building.',
+    title: 'Brief & Discovery',
+    description:
+      'We map your audience, goals, and constraints so the build starts from the right problem instead of the prettiest assumption.',
+    colorTheme: 'blue',
   },
   {
-    n: '02',
     title: 'Design',
-    desc: 'We shape strategy, visual system, motion, content, and user experience as one coherent instrument.',
+    description:
+      'We turn direction into visual system, motion, and interaction craft that earns attention without shouting.',
+    colorTheme: 'purple',
   },
   {
-    n: '03',
-    title: 'Build',
-    desc: 'The team that designs the system ships it as production code, reducing translation loss and rework.',
+    title: 'Development',
+    description:
+      'Design and engineering move together, so polish survives build time and launch readiness is verified before cutover.',
+    colorTheme: 'blue',
   },
   {
-    n: '04',
-    title: 'Launch',
-    desc: 'We test, instrument, launch, and improve with you. Go-live is the beginning of the feedback loop.',
+    title: 'Deployment',
+    description:
+      'We launch, instrument, and improve with you—go-live is the beginning of a measurable feedback loop.',
+    colorTheme: 'purple',
   },
 ];
 
-const BOARD_HEIGHT = 930;
-
-const PATH_D =
-  'M 290 150 C 500 150, 550 270, 710 270 C 850 270, 500 350, 290 450 C 290 600, 550 720, 750 720';
-
 export default function Approach() {
   const sectionRef = useRef(null);
-  const reducedMotion = useReducedMotion();
+
+  const height = 930;
+
+  const pathD = STEPS.reduce((path, _, index) => {
+    if (index >= STEPS.length - 1) return path;
+    if (index === 0) return `${path}M 290 150 C 500 150, 550 270, 710 270`;
+    if (index === 1) return `${path} C 850 270, 500 350, 290 450`;
+    if (index === 2) return `${path} C 290 600, 550 720, 750 720`;
+    return path;
+  }, '');
+
+  useEffect(() => {
+    const root = sectionRef.current;
+    if (!root) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  }, []);
 
   return (
-    <section className="section approach" id="approach" data-quiet ref={sectionRef}>
+    <section ref={sectionRef} className="section approach motion-story" id="approach" data-quiet>
       <div className="text-plate">
-        <p className="eyebrow"><SectionReveal as="span" direction="left">How we work</SectionReveal></p>
+        <p className="eyebrow">
+          <SectionReveal as="span" direction="left">How we work</SectionReveal>
+        </p>
         <SectionReveal as="h2" direction="left" className="section-title">
           Four steps. No shortcuts.
         </SectionReveal>
@@ -56,50 +64,91 @@ export default function Approach() {
 
       <div className="motion-story-board">
         <LazyMotion features={domAnimation}>
-          <div className="motion-story-track" style={{ minHeight: `${BOARD_HEIGHT}px` }}>
+          <div className="motion-story-track" style={{ minHeight: `${height}px` }}>
             <svg
-              className="motion-story-path-wrap"
-              viewBox={`0 0 1000 ${BOARD_HEIGHT}`}
+              className="absolute top-0 left-0 w-full h-full pointer-events-none hidden md:block"
+              viewBox={`0 0 1000 ${height}`}
               preserveAspectRatio="none"
               aria-hidden="true"
             >
               <m.path
-                d={PATH_D}
-                className="motion-story-path"
+                d={pathD}
                 stroke="currentColor"
+                className="text-neutral-700"
                 strokeWidth="2"
                 strokeDasharray="8 6"
                 fill="none"
                 strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
                 initial={{ strokeDashoffset: 0 }}
-                animate={reducedMotion ? undefined : { strokeDashoffset: -140 }}
-                transition={reducedMotion ? undefined : { repeat: Infinity, duration: 3, ease: 'linear' }}
+                animate={{ strokeDashoffset: -140 }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 3,
+                  ease: 'linear',
+                }}
               />
             </svg>
 
-            {STEPS.map((step, index) => (
-              <div
-                key={step.n}
-                className="motion-story-card"
-                onMouseMove={onCardMouseGlow}
-              >
-                <div className="motion-story-shell">
-                  <span aria-hidden="true" className="motion-story-pin">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <path d="M16 3a1 1 0 0 1 .117 1.993l-.117 .007v4.764l1.894 3.789a1 1 0 0 1 .1 .331l.006 .116v2a1 1 0 0 1 -.883 .993l-.117 .007h-4v4a1 1 0 0 1 -1.993 .117l-.007 -.117v-4h-4a1 1 0 0 1 -.993 -.883l-.007 -.117v-2a1 1 0 0 1 .06 -.34l.046 -.107l1.894 -3.791v-4.762a1 1 0 0 1 -.117 -1.993l.117 -.007h8z" />
-                    </svg>
-                  </span>
+            {STEPS.map((step, index) => {
+              const theme = step.colorTheme || 'blue';
+              const { cardRef: stepCardRef, onMouseMove: onStepMouseMove } = useCardMouseReveal();
+              const styles = {
+                pin: { color: theme === 'purple' ? 'rgba(192, 132, 252, 0.95)' : 'rgba(89, 243, 255, 0.9)' },
+                shell: {
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  boxShadow:
+                    theme === 'purple'
+                      ? '0 20px 50px rgba(192, 132, 252, 0.06)'
+                      : '0 20px 50px rgba(89, 243, 255, 0.08)',
+                },
+                inner: {
+                  background: theme === 'purple' ? 'rgba(192, 132, 252, 0.08)' : 'rgba(89, 243, 255, 0.08)',
+                  border: '1px solid ' + (theme === 'purple' ? 'rgba(192, 132, 252, 0.22)' : 'rgba(89, 243, 255, 0.22)'),
+                },
+                num: {
+                  color: theme === 'purple' ? 'rgba(192, 132, 252, 0.95)' : 'rgba(89, 243, 255, 0.9)',
+                },
+              };
 
-                  <div className="motion-story-inner">
-                    <span className="motion-story-num">0{index + 1}</span>
-                    <h3 className="motion-story-title" data-hover data-cursor="✦">{step.title}</h3>
-                    <p className="motion-story-desc">{step.desc}</p>
+              return (
+                <div
+                  key={step.title}
+                  ref={stepCardRef}
+                  className="motion-story-card"
+                  onMouseMove={onStepMouseMove}
+                >
+                  <div style={styles.shell} className="p-2 rounded-[28px]">
+                    <span
+                      aria-hidden="true"
+                      className="motion-story-pin block text-center"
+                      style={styles.pin}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="w-8 h-8 mx-auto mb-6"
+                      >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M16 3a1 1 0 0 1 .117 1.993l-.117 .007v4.764l1.894 3.789a1 1 0 0 1 .1 .331l.006 .116v2a1 1 0 0 1 -.883 .993l-.117 .007h-4v4a1 1 0 0 1 -1.993 .117l-.007 -.117v-4h-4a1 1 0 0 1 -.993 -.883l-.007 -.117v-2a1 1 0 0 1 .06 -.34l.046 -.107l1.894 -3.791v-4.762a1 1 0 0 1 -.117 -1.993l.117 -.007h8z" />
+                      </svg>
+                    </span>
+
+                    <div className="motion-story-inner">
+                      <span className="motion-story-num block" style={styles.num}>
+                        0{index + 1}
+                      </span>
+                      <h3 className="motion-story-title">{step.title}</h3>
+                      <p className="motion-story-desc">{step.description}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </LazyMotion>
       </div>
