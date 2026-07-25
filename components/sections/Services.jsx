@@ -2,6 +2,7 @@
 
 import SectionReveal from '../SectionReveal';
 import Marquee from '../Marquee';
+import MagnifiedBento from '../MagnifiedBento';
 import { light, dim } from '../../lib/beacon';
 import { STAGGER_ROW } from '../../lib/easing';
 
@@ -73,13 +74,18 @@ export default function Services() {
               onPointerLeave={dim}
             >
               <span className="service-num">{s.n}</span>
-              <h3 className="service-title" data-hover data-cursor="✦">{s.title}</h3>
+              <h3 className="service-title" data-hover data-cursor="✦">
+                <span className="service-title-inner">{s.title}</span>
+              </h3>
               <p className="service-desc">{s.desc}</p>
             </SectionReveal>
           ))}
         </div>
       </div>
       <Marquee text="Strategy · Brand · Immersive 3D · Development · Motion" className="services-marquee" />
+      <SectionReveal className="services-bento" direction="up" delay={0.1}>
+        <MagnifiedBento />
+      </SectionReveal>
     </section>
   );
 }

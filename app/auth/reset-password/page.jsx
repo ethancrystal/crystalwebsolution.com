@@ -1,24 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { signIn, resendConfirmationEmail } from '@/app/auth/actions';
+import { updatePassword } from '@/app/auth/actions';
 
-const UNCONFIRMED_ERROR = 'Please confirm your email before signing in — check your inbox for the confirmation link.';
-
-export default function LoginPage() {
-  const [email, setEmail] = useState('');
+export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [resendState, setResendState] = useState('idle');
 
   async function handleSubmit(formData) {
+    const password = formData.get('password');
+    const confirmPassword = formData.get('confirmPassword');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
-    setResendState('idle');
 
     try {
-      const result = await signIn(formData);
+      const result = await updatePassword(formData);
       if (result?.error) {
         setError(result.error);
       }
@@ -29,88 +31,45 @@ export default function LoginPage() {
     }
   }
 
-  async function handleResend() {
-    setResendState('sending');
-    try {
-      const formData = new FormData();
-      formData.set('email', email);
-      const result = await resendConfirmationEmail(formData);
-      setResendState(result?.error ? 'idle' : 'sent');
-    } catch {
-      setResendState('idle');
-    }
-  }
-
   return (
     <div className="crm-login-container">
       <div className="crm-login-card">
-        <h1>CRM Login</h1>
-        <p>Sign in to your account</p>
+        <h1>Set New Password</h1>
+        <p>Choose a new password for your account</p>
 
         <form action={handleSubmit} className="crm-form">
-          {error && (
-            <div className="crm-error">
-              {error}
-              {error === UNCONFIRMED_ERROR && (
-                <div className="crm-resend">
-                  {resendState === 'sent' ? (
-                    'Confirmation email sent — check your inbox.'
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleResend}
-                      disabled={!email || resendState === 'sending'}
-                      className="crm-resend-btn"
-                    >
-                      {resendState === 'sending'
-                        ? 'Sending...'
-                        : 'Resend confirmation email'}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+          {error && <div className="crm-error">{error}</div>}
 
           <div className="crm-form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              placeholder="you@example.com"
-              disabled={isLoading}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className="crm-form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">New Password</label>
             <input
               id="password"
               name="password"
               type="password"
               required
+              minLength={6}
+              placeholder="••••••••"
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="crm-form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              required
+              minLength={6}
               placeholder="••••••••"
               disabled={isLoading}
             />
           </div>
 
           <button type="submit" disabled={isLoading} className="crm-button">
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? 'Updating...' : 'Update Password'}
           </button>
         </form>
-
-        <p className="crm-signup-link">
-          <Link href="/forgot-password">Forgot password?</Link>
-        </p>
-
-        <p className="crm-signup-link">
-          Don't have an account?{' '}
-          <Link href="/signup">Create one</Link>
-        </p>
       </div>
 
       <style jsx>{`
@@ -195,25 +154,6 @@ export default function LoginPage() {
           font-size: 0.9rem;
         }
 
-        .crm-resend {
-          margin-top: 0.5rem;
-        }
-
-        .crm-resend-btn {
-          background: none;
-          border: none;
-          color: #64c8ff;
-          font-size: 0.9rem;
-          text-decoration: underline;
-          cursor: pointer;
-          padding: 0;
-        }
-
-        .crm-resend-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
         .crm-button {
           padding: 0.75rem;
           background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
@@ -234,25 +174,6 @@ export default function LoginPage() {
         .crm-button:disabled {
           opacity: 0.6;
           cursor: not-allowed;
-        }
-
-        .crm-signup-link {
-          text-align: center;
-          color: #999;
-          font-size: 0.9rem;
-          margin-top: 1rem;
-        }
-
-        .crm-signup-link a {
-          color: #64c8ff;
-          text-decoration: none;
-          font-weight: 500;
-          transition: color 0.2s ease;
-        }
-
-        .crm-signup-link a:hover {
-          color: #5bb8ff;
-          text-decoration: underline;
         }
       `}</style>
     </div>
