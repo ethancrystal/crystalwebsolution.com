@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import ProjectVisual from '../../components/ProjectVisual';
-import { VERIFIED_CLIENTS } from '../../lib/clients';
+import { PROJECTS } from '../../lib/projects';
 import { SITE } from '../../lib/site';
 
-const WORK_TITLE = 'Verified Client Record';
+const WORK_TITLE = 'Selected Work';
 const WORK_DESCRIPTION =
-  'Review the original Crystal Web Solution clients identified directly for this site, with supplied review evidence where available.';
+  'Explore selected Crystal Web Solution projects across product, commerce, local service, learning, and immersive web design.';
 
 export const metadata = {
   title: WORK_TITLE,
@@ -17,7 +17,7 @@ export const metadata = {
     description: WORK_DESCRIPTION,
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: `${WORK_TITLE} | ${SITE.name}`,
     description: WORK_DESCRIPTION,
   },
@@ -27,42 +27,32 @@ export default function WorkIndex() {
   return (
     <div className="subpage">
       <header className="nav">
-        <Link href="/" className="nav-logo" data-cursor="Home" aria-label="Crystal Web Solution home">
-          <span className="nav-logo-art" aria-hidden="true">
-            <img
-              className="nav-logo-art-full"
-              src="/crystal-web-solution-logo.svg"
-              alt=""
-              width="1616"
-              height="243"
-            />
-          </span>
+        <Link href="/" className="nav-logo" data-cursor="Home">
+          <span className="nav-logo-monogram" aria-hidden="true">CWS</span>
+          <span className="nav-logo-name">{SITE.name}</span>
         </Link>
         <Link href="/#contact" className="btn btn-ghost" data-cursor="Say hi">let&apos;s talk</Link>
       </header>
       <main className="work-index">
-        <p className="eyebrow">Original client record</p>
-        <h1 className="page-title">Client work we can name.</h1>
-        <p className="work-index-intro">This page contains only the three original client relationships supplied directly for Crystal Web Solution. It does not attach invented scopes, outcomes, awards, or performance numbers to their names.</p>
+        <p className="eyebrow">Selected work</p>
+        <h1 className="page-title">Built around the real problem.</h1>
+        <p className="work-index-intro">Six projects, each shaped around what the visitor needed to understand, feel, or do next.</p>
         <div className="work-library-heading">
-          <p className="eyebrow">Three supplied relationships</p>
-          <h2>People, businesses, and the evidence on record.</h2>
+          <p className="eyebrow">{PROJECTS.length} case studies</p>
+          <h2>Different briefs. One standard of care.</h2>
         </div>
         <div className="work-list">
-          {VERIFIED_CLIENTS.map((client) => (
-            <article key={client.id} id={client.id} className="work-row client-work-row">
-              <ProjectVisual palette={client.palette} title={client.company} ratio="16 / 9" />
+          {PROJECTS.map((project) => (
+            <article key={project.slug} id={project.slug} className="work-row client-work-row">
+              <Link href={`/work/${project.slug}`} data-cursor="View case" aria-label={`${project.title} — view case study`}>
+                <ProjectVisual palette={project.palette} title={project.title} ratio="16 / 9" />
+              </Link>
               <div className="work-row-meta">
-                <h2>{client.company}</h2>
-                <p>{client.recordLabel} • {client.person}{client.role ? ` • ${client.role}` : ''}</p>
-                <p className="work-row-summary">{client.summary}</p>
+                <h2>{project.title}</h2>
+                <p>{project.category} • {project.services.join(' • ')}</p>
+                <p className="work-row-summary">{project.summary}</p>
                 <p className="client-work-links">
-                  {client.website && (
-                    <a href={client.website} target="_blank" rel="noreferrer">Visit {client.websiteLabel} ↗</a>
-                  )}
-                  {client.reviewId && (
-                    <Link href={`/reviews#${client.reviewId}`}>Read the supplied review →</Link>
-                  )}
+                  <Link href={`/work/${project.slug}`} data-cursor="View case">View the case →</Link>
                 </p>
               </div>
             </article>

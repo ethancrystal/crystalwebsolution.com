@@ -97,6 +97,7 @@ export default function DecodeText({
     return () => {
       cancelAnimationFrame(raf);
       if (trigger) trigger.kill();
+      gsap.killTweensOf(chars);
       split.revert();
     };
   }, [text, speed, delay, start]);

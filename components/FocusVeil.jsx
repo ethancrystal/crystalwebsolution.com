@@ -5,7 +5,7 @@
 // A fixed, pointer-events:none gradient layer sitting between the WebGL
 // canvas (z-index 0) and the page content (z-index 2, see globals.css).
 // It stays invisible by default. Whenever a [data-quiet] section (Hero,
-// Services, About, Facts, Contact) occupies the middle band of the
+// Services, About, Stories, Contact) occupies the middle band of the
 // viewport, the veil eases in and scrollState.focus is raised so the
 // in-canvas FocusDimmer can step the scene's exposure back half a stop.
 //

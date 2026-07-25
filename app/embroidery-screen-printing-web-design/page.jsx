@@ -13,7 +13,7 @@ export const metadata = {
       'Custom websites for embroidery and screen-printing shops — built for wholesale reorders, multi-method catalogs, and B2B accounts.',
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: `Embroidery & Screen-Printing Web Design | ${SITE.name}`,
     description:
       'Custom websites for embroidery and screen-printing shops — built for wholesale reorders, multi-method catalogs, and B2B accounts.',
@@ -24,16 +24,9 @@ export default function EmbroideryScreenPrintingWebDesign() {
   return (
     <div className="subpage">
       <header className="nav">
-        <Link href="/" className="nav-logo" data-cursor="Home" aria-label="Crystal Web Solution home">
-          <span className="nav-logo-art" aria-hidden="true">
-            <img
-              className="nav-logo-art-full"
-              src="/crystal-web-solution-logo.svg"
-              alt=""
-              width="1616"
-              height="243"
-            />
-          </span>
+        <Link href="/" className="nav-logo" data-cursor="Home">
+          <span className="nav-logo-mark">◆</span>
+          <span className="nav-logo-text">{SITE.name}</span>
         </Link>
         <Link href="/#contact" className="btn btn-ghost" data-cursor="Say hi">
           get a quote
