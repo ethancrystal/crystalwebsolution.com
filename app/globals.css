@@ -1734,13 +1734,19 @@ html[data-cws-intro-seen='1'] .loader {
   text-shadow: none;
   filter: drop-shadow(0 1px 2px rgba(2, 4, 8, 0.5));
 }
-.contact-cta { margin-top: 3.4rem; }
+.contact-cta {
+  margin-top: 3.4rem;
+  padding: 1rem 0;
+  overflow: visible;
+}
 .contact-email {
   isolation: isolate;
   color: var(--ink);
   border-color: rgba(89, 243, 255, 0.68);
   background: rgba(4, 6, 12, 0.78);
   box-shadow: none;
+  display: inline-block;
+  padding: 1rem 2rem;
 }
 .contact-email::before {
   content: '';
@@ -1849,6 +1855,263 @@ html[data-cws-intro-seen='1'] .loader {
 .client-record a { color: var(--cyan); }
 .client-record a:hover { text-decoration: underline; text-underline-offset: 0.25em; }
 .work-library-heading { margin-bottom: 3.5rem; }
+
+/* ---------- magnifier (bento capabilities lens) ---------- */
+@keyframes rotate-lens {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.magnifier-wrap { margin-top: 5rem; }
+.magnifier-shell { position: relative; }
+.magnifier-stage {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  background: rgba(4, 6, 12, 0.4);
+  backdrop-filter: blur(8px);
+}
+.magnifier-relative { position: relative; }
+.magnifier-base {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.4;
+}
+.magnifier-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.magnifier-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(89, 243, 255, 0.3);
+  background: rgba(89, 243, 255, 0.05);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.magnifier-reveal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+}
+.magnifier-tag-active {
+  border-color: var(--cyan);
+  background: rgba(89, 243, 255, 0.12);
+  color: var(--cyan);
+}
+.magnifier-lens {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 92px;
+  height: 92px;
+  cursor: grab;
+  user-select: none;
+}
+.magnifier-lens:active { cursor: grabbing; }
+.magnifier-lens svg {
+  display: block;
+  animation: rotate-lens 8s linear infinite;
+}
+.magnifier-lens-glass {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 12px rgba(89, 243, 255, 0.3);
+  pointer-events: none;
+}
+.magnifier-fade {
+  position: absolute;
+  top: 0;
+  width: 60px;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--bg) 0%, transparent 100%);
+}
+.magnifier-fade-left { left: 0; }
+.magnifier-fade-right { right: 0; transform: scaleX(-1); }
+.magnifier-copy {
+  margin-top: 2rem;
+  text-align: center;
+}
+.magnifier-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  color: var(--ink);
+}
+.magnifier-desc {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 52ch;
+  margin: 0 auto;
+}
+
+/* ---------- stories (testimonials) ---------- */
+.stories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+.story-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+  max-height: 420px;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(4, 6, 12, 0.5);
+  backdrop-filter: blur(8px);
+}
+.story-card-header {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+.story-card-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--cyan), var(--blue));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--bg);
+}
+.story-card-meta {
+  flex: 1;
+  text-align: left;
+}
+.story-card-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+}
+.story-card-company {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.story-card-quote {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.story-card-quote p {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.6;
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+.story-card-footer {
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+.story-card-reviews {
+  color: var(--muted);
+}
+.story-card-link {
+  color: var(--cyan);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.story-card-link:hover {
+  color: var(--blue);
+}
+
+/* ---------- showcase (work cards) ---------- */
+.showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2.5rem;
+  padding: 3rem 0;
+}
+.showcase-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  aspect-ratio: 1 / 1.1;
+  background: linear-gradient(135deg, rgba(89, 243, 255, 0.08), rgba(60, 108, 255, 0.08));
+  border: 1px solid var(--line);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.4s;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.showcase-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(89, 243, 255, 0.4);
+}
+.showcase-visual {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  font-size: clamp(3rem, 5vw, 4rem);
+}
+.showcase-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 0.75rem;
+}
+.showcase-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+  line-height: 1.2;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+.showcase-desc {
+  font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+  line-height: 1.5;
+  color: var(--muted);
+}
 .work-library-heading .eyebrow { margin-bottom: 1rem; }
 .work-row {
   display: grid;
