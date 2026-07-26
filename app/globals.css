@@ -543,7 +543,7 @@ html[data-cws-intro-seen='1'] .loader {
   50% { transform: translate(4%, -6%) scale(1.1); }
 }
 
-.hero-sub { margin-top: 2.2rem; color: var(--muted); font-size: clamp(0.95rem, 1.6vw, 1.15rem); line-height: 1.7; }
+.hero-sub { margin-top: 2.2rem; color: var(--muted); font-size: clamp(0.95rem, 1.6vw, 1.15rem); line-height: 1.7; max-width: 46rem; }
 .contact-sub { margin-top: 1.4rem; max-width: 34rem; color: var(--muted); font-size: clamp(0.95rem, 1.6vw, 1.12rem); line-height: 1.7; }
 .hero-cta { margin-top: 3rem; display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
 .hero-hint { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.18em; color: var(--muted); }
@@ -1261,7 +1261,7 @@ html[data-cws-intro-seen='1'] .loader {
 .motion-card-category {
   position: relative;
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.85rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--rail-accent);
@@ -1286,7 +1286,7 @@ html[data-cws-intro-seen='1'] .loader {
   padding-top: 1.2rem;
   border-top: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.9rem;
   color: var(--ink);
 }
 .motion-card-footer span { margin-left: auto; color: var(--rail-accent); }
@@ -1479,12 +1479,12 @@ html[data-cws-intro-seen='1'] .loader {
 }
 .im-card:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
 .im-card-art { display: block; width: 100%; height: 100%; }
-.im-card-kicker { font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 0.08em; fill: #202832; }
-.im-card-num { font-family: var(--font-mono); font-size: 13px; font-weight: 700; fill: #3c6cff; }
-.im-card-title { font-family: var(--font-mono); font-size: 16px; letter-spacing: 0.02em; fill: #11130f; }
+.im-card-kicker { font-family: var(--font-mono); font-size: 14px; font-weight: 700; letter-spacing: 0.08em; fill: #202832; }
+.im-card-num { font-family: var(--font-mono); font-size: 20px; font-weight: 700; fill: #3c6cff; }
+.im-card-title { font-family: var(--font-mono); font-size: 26px; letter-spacing: 0.02em; fill: #11130f; }
 .im-card-sub {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1710,7 +1710,7 @@ html[data-cws-intro-seen='1'] .loader {
 .contact {
   align-items: center;
   text-align: center;
-  overflow: clip;
+  overflow: visible;
   isolation: isolate;
   background:
     radial-gradient(50rem 32rem at 50% 45%, rgba(60, 108, 255, 0.12), transparent 72%),
@@ -1857,9 +1857,9 @@ html[data-cws-intro-seen='1'] .loader {
 .work-library-heading { margin-bottom: 3.5rem; }
 
 /* ---------- magnifier (bento capabilities lens) ---------- */
-@keyframes rotate-lens {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes float-lens {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
 }
 
 .magnifier-wrap { margin-top: 5rem; }
@@ -1929,10 +1929,18 @@ html[data-cws-intro-seen='1'] .loader {
   cursor: grab;
   user-select: none;
 }
+.magnifier-lens {
+  animation: float-lens 3s ease-in-out infinite;
+}
 .magnifier-lens:active { cursor: grabbing; }
 .magnifier-lens svg {
   display: block;
-  animation: rotate-lens 8s linear infinite;
+}
+.magnifier-lens-circle {
+  transform-origin: 256px 256px;
+}
+.magnifier-lens-handle {
+  transform-origin: 256px 256px;
 }
 .magnifier-lens-glass {
   position: absolute;
@@ -2029,16 +2037,6 @@ html[data-cws-intro-seen='1'] .loader {
   flex-direction: column;
   overflow: hidden;
   margin-bottom: 1rem;
-}
-.story-card-quote p {
-  display: -webkit-box;
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.6;
-  color: var(--ink);
-  font-size: 0.95rem;
 }
 .story-card-footer {
   border-top: 1px solid var(--line);
@@ -2361,10 +2359,10 @@ html[data-cws-intro-seen='1'] .loader {
   position: absolute;
   width: clamp(280px, 34vw, 340px);
 }
-.motion-story-card:nth-child(1) { top: 0; left: 0; transform: rotate(-6deg); }
-.motion-story-card:nth-child(2) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
-.motion-story-card:nth-child(3) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
-.motion-story-card:nth-child(4) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
+.motion-story-card:nth-of-type(1) { top: 0; left: 0; transform: rotate(-6deg); }
+.motion-story-card:nth-of-type(2) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
+.motion-story-card:nth-of-type(3) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
+.motion-story-card:nth-of-type(4) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
 
 .motion-story-card > div {
   background: rgba(255, 255, 255, 0.04);
@@ -2682,7 +2680,7 @@ html[data-cws-intro-seen='1'] .loader {
   border: 1px solid rgba(89,243,255,0.35);
   color: var(--cyan);
   font-family: var(--font-display);
-  font-sized: 0.88rem;
+  font-size: 0.88rem;
   background: rgba(89,243,255,0.12);
 }
 .story-card-meta h3 {
@@ -2703,6 +2701,11 @@ html[data-cws-intro-seen='1'] .loader {
   font-size: 1.04rem;
   line-height: 1.6;
   color: #f8fbff;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .story-card-footer {
   display: flex;
@@ -2763,10 +2766,10 @@ html[data-cws-intro-seen='1'] .loader {
   overflow: hidden;
   width: clamp(280px, 34vw, 340px);
 }
-.motion-story-card:nth-child(1) { top: 0; left: 0; transform: rotate(-6deg); }
-.motion-story-card:nth-child(2) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
-.motion-story-card:nth-child(3) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
-.motion-story-card:nth-child(4) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
+.motion-story-card:nth-of-type(1) { top: 0; left: 0; transform: rotate(-6deg); }
+.motion-story-card:nth-of-type(2) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
+.motion-story-card:nth-of-type(3) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
+.motion-story-card:nth-of-type(4) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
 .motion-story-card::before {
   content: '';
   position: absolute;

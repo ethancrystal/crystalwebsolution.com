@@ -147,14 +147,14 @@ export default function About() {
       onPointerMove={(event) => blastAt(event.clientX, event.clientY)}
       onPointerDown={(event) => blastAt(event.clientX, event.clientY)}
       onKeyDown={(event) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.key !== 'Enter') return;
         event.preventDefault();
         const rect = rootRef.current.getBoundingClientRect();
         blastAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
       }}
       aria-label="About Crystal Web Solution"
     >
-      <p className="about-kicker">Crystal Web Solution — an independent digital studio for brands built to stand out, not blend in.</p>
+      <p className="about-kicker">If your brand reads like everyone else's, your best work gets lost in the scroll — Crystal Web Solution is the independent studio that builds you to stand out instead.</p>
       <h2 className="sr-only">We build digital experiences that turn clear strategy into brands people remember.</h2>
       <svg ref={svgRef} className="about-smil-copy" viewBox="0 0 1440 900" aria-hidden="true">
         {ROWS.map((row) => (
