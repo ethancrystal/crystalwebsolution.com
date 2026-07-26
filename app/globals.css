@@ -1932,7 +1932,13 @@ html[data-cws-intro-seen='1'] .loader {
 .magnifier-lens:active { cursor: grabbing; }
 .magnifier-lens svg {
   display: block;
+}
+.magnifier-lens-circle {
   animation: rotate-lens 8s linear infinite;
+  transform-origin: 256px 256px;
+}
+.magnifier-lens-handle {
+  transform-origin: 256px 256px;
 }
 .magnifier-lens-glass {
   position: absolute;
