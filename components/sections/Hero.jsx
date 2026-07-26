@@ -46,10 +46,10 @@ export default function Hero() {
         </h1>
         <Reveal className="hero-sub" delay={introDelay + 1}>
           <p>
-            Imagine a site people still remember months later — faster than
-            your old one, sharper than the field, and unmistakably yours.
-            That's what we build: brands and interactive 3D experiences
-            engineered for clarity, made to move.
+            When your site blends into the scroll, visitors forget it before
+            the next tab — so we build brands and interactive 3D experiences
+            that are faster than your old site, sharper than the field, and
+            unmistakably yours.
           </p>
         </Reveal>
         <Reveal className="hero-cta" delay={introDelay + 1.3}>
