@@ -11,29 +11,12 @@ past a refracting crystal, glass showcase slabs, an assembling brand mark,
 and drifting particles. Every visual is code-generated — there are no image
 or video assets anywhere in the repo.
 
-Stack: Next.js 14 (App Router, JSX, no TypeScript), React Three Fiber + drei,
-`@react-three/postprocessing`, GSAP + ScrollTrigger, Lenis (smooth scroll),
-SplitType. Plain global CSS with design tokens in `app/globals.css` — no
-Tailwind.
-
 ## Commands
-
-```bash
-npm install
-npm run dev      # http://localhost:3000
-npm run build    # production build (standalone output)
-npm run start    # serve the production build
-```
 
 There is no lint or test script configured in `package.json` — don't invent
 `npm run lint`/`npm test` invocations. Verify changes by running the app in a
 browser (`npm run dev`) and checking `npm run build` completes, since a
 Next.js build is the main signal that routes/imports are correct.
-
-Docker: `Dockerfile` builds against `next.config.js`'s `output: 'standalone'`
-(deps → build → slim alpine runner). `.github/workflows/docker-publish.yml`
-builds and pushes to `ghcr.io` on push to `main`, on `v*.*.*` tags, and on a
-daily schedule.
 
 ## Architecture
 
@@ -88,20 +71,6 @@ all have to move together.
 
 ### Component layout
 
-- `components/*.jsx` — page-level chrome and orchestration: `Experience.jsx`
-  (assembles the whole page and dynamic-imports `Scene` with `ssr: false`
-  since it touches `window`/WebGL), `SmoothScroll.jsx`, `Scene.jsx`,
-  `Cursor.jsx`, `Loader.jsx`, `Nav.jsx`, `Menu.jsx`, `FocusVeil.jsx`,
-  `ScrollProgress.jsx`, and small reusable primitives (`Magnetic.jsx`,
-  `Reveal.jsx`/`RevealPop.jsx`, `DecodeText.jsx`, `Marquee.jsx`).
-- `components/sections/*.jsx` — one file per scroll beat's DOM content
-  (Hero, Services, Approach, Showcase, Stories, Mark, About, Facts,
-  Recognition, Motion, Contact), rendered in order by `Experience.jsx`.
-- `components/three/*.jsx` — the R3F scene graph rendered inside
-  `Scene.jsx`'s single `<Canvas>`: `CameraRig`, `Lights`, `Effects`
-  (postprocessing), `Crystal`, `Particles`, `BackdropMorph`, and per-beat
-  mascots (`ShowcaseBoxes`, `ApproachCompass`,
-  `RecognitionRing`, `Sparks`, `FocusDimmer`).
 - Sections communicate with their 3D counterpart only through the
   singletons above (or GSAP ScrollTrigger), never via props/context across
   the DOM/canvas boundary.
@@ -111,25 +80,8 @@ all have to move together.
   `FocusDimmer` reads to step down scene exposure — keeping text legible
   without a flat full-viewport wash.
 
-### Routing (App Router)
+### `lib/` conventions
 
-- `app/layout.jsx` — root layout, loads fonts (Space Grotesk / Inter / Space
-  Mono via `next/font/google`), sets metadata from `lib/site.js`.
-- `app/page.jsx` — renders `<Experience />` (the whole one-page scroll site).
-- `app/work/page.jsx` — work index.
-- `app/work/[slug]/page.jsx` — case study page; `generateStaticParams` comes
-  from `lib/projects.js`'s `PROJECTS` array, visuals via
-  `components/ProjectVisual.jsx` (procedurally generated from each project's
-  `palette`, no imagery).
-
-### `lib/` data and singletons
-
-- `lib/site.js` — single source of truth for brand/contact info, read by
-  Nav/footer/contact.
-- `lib/projects.js` — case study content (`PROJECTS`, `getProject`).
-- `lib/journey.js`, `lib/beatProgress.js` — camera choreography (see above).
-- `lib/scrollState.js`, `lib/pulse.js`, `lib/chime.js` — per-frame
-  DOM→canvas singletons (see above).
 - `lib/easing.js` — named GSAP easing/duration tokens; prefer these over
   inline magic numbers in new choreography.
 
