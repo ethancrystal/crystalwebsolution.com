@@ -1857,9 +1857,9 @@ html[data-cws-intro-seen='1'] .loader {
 .work-library-heading { margin-bottom: 3.5rem; }
 
 /* ---------- magnifier (bento capabilities lens) ---------- */
-@keyframes rotate-lens {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes float-lens {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
 }
 
 .magnifier-wrap { margin-top: 5rem; }
@@ -1929,12 +1929,14 @@ html[data-cws-intro-seen='1'] .loader {
   cursor: grab;
   user-select: none;
 }
+.magnifier-lens {
+  animation: float-lens 3s ease-in-out infinite;
+}
 .magnifier-lens:active { cursor: grabbing; }
 .magnifier-lens svg {
   display: block;
 }
 .magnifier-lens-circle {
-  animation: rotate-lens 8s linear infinite;
   transform-origin: 256px 256px;
 }
 .magnifier-lens-handle {
