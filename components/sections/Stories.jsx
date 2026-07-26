@@ -78,7 +78,7 @@ export default function Stories() {
           The work matters. So does what happens after launch.
         </SectionReveal>
         <SectionReveal className="stories-intro" direction="up" delay={0.08}>
-          <p>Feedback collected from Crystal Web Solution clients is presented as part of the studio&apos;s history.</p>
+          <p>Every review here is from a real client, unedited, after the work shipped.</p>
         </SectionReveal>
       </div>
 
