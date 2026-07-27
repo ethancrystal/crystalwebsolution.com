@@ -2795,7 +2795,7 @@ html[data-cws-intro-seen='1'] .loader {
   .motion-story-card:nth-of-type(3) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
   .motion-story-card:nth-of-type(4) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
 }
-.motion-story-path { color: rgba(139, 152, 184, 0.4); }
+.motion-story-path { display: block; width: 100%; height: 100%; color: rgba(139, 152, 184, 0.4); }
 .motion-story-card::before {
   content: '';
   position: absolute;
