@@ -65,30 +65,31 @@ export default function Approach() {
       <div className="motion-story-board">
         <LazyMotion features={domAnimation}>
           <div className="motion-story-track" style={{ minHeight: `${height}px` }}>
-            <svg
-              className="absolute top-0 left-0 w-full h-full pointer-events-none hidden md:block"
-              viewBox={`0 0 1000 ${height}`}
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <m.path
-                d={pathD}
-                stroke="currentColor"
-                className="text-neutral-700"
-                strokeWidth="2"
-                strokeDasharray="8 6"
-                fill="none"
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-                initial={{ strokeDashoffset: 0 }}
-                animate={{ strokeDashoffset: -140 }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 3,
-                  ease: 'linear',
-                }}
-              />
-            </svg>
+            <div className="motion-story-path-wrap">
+              <svg
+                className="motion-story-path"
+                viewBox={`0 0 1000 ${height}`}
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <m.path
+                  d={pathD}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeDasharray="8 6"
+                  fill="none"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                  initial={{ strokeDashoffset: 0 }}
+                  animate={{ strokeDashoffset: -140 }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 3,
+                    ease: 'linear',
+                  }}
+                />
+              </svg>
+            </div>
 
             {STEPS.map((step, index) => {
               const theme = step.colorTheme || 'blue';
