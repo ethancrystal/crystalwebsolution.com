@@ -575,8 +575,10 @@ html[data-cws-intro-seen='1'] .loader {
 /* ---------- services / Blender-authored signal catalogue ---------- */
 .services { padding-block: 18vh; justify-content: flex-start; }
 .services-catalogue { width: 100%; }
-.services-list { border-top: 1px solid var(--line); }
+.services-list { position: relative; border-top: 1px solid var(--line); }
 .service-row {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 4rem minmax(10rem, 0.8fr) minmax(18rem, 1.2fr);
   gap: 2rem;
@@ -585,6 +587,32 @@ html[data-cws-intro-seen='1'] .loader {
   border-bottom: 1px solid var(--line);
   background: linear-gradient(90deg, rgba(89, 243, 255, 0), rgba(89, 243, 255, 0));
   transition: background 0.45s, border-color 0.45s;
+}
+/* Ghost numeral: a shared, absolutely-positioned marker that glides down the
+   intro/list gutter to track whichever row is hovered — an ambient
+   wayfinding cue, not a per-card effect. Lives in .services-catalogue's own
+   grid gap, so it never overruns .service-desc's live copy. Desktop-only;
+   see the matching bail in Services.jsx's mount effect. */
+.service-marker {
+  position: absolute;
+  top: 0;
+  left: calc(-1 * clamp(2rem, 5vw, 6rem));
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.service-marker-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: clamp(4rem, 8vw, 9rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(89, 243, 255, 0.5);
+}
+@media (max-width: 900px) {
+  .service-marker { display: none; }
 }
 .service-row:hover {
   border-color: rgba(89, 243, 255, 0.42);
@@ -990,6 +1018,7 @@ html[data-cws-intro-seen='1'] .loader {
   filter: drop-shadow(0 1px 2px rgba(2, 4, 8, 0.5));
 }
 .mark-sub { margin-top: 2rem; color: var(--muted); max-width: 44ch; line-height: 1.7; }
+.mark-headline .char { display: inline-block; will-change: transform, opacity; }
 
 /* ---------- stories ---------- */
 .stories { align-items: center; text-align: left; }
