@@ -1,7 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
-
 import DecodeText from '../DecodeText';
 import Reveal from '../Reveal';
 import Magnetic from '../Magnetic';
@@ -10,8 +8,6 @@ import { SITE } from '../../lib/site';
 
 // Clicking anywhere in the hero makes the crystal "roar" (blast pulse).
 export default function Hero() {
-  const hintRef = useRef(null);
-
   // The intro loader plays once per session. On a repeat visit it is skipped
   // entirely (cws:intro-seen, stamped pre-hydration in layout.jsx), so the
   // hero copy must not hold back for a curtain that never lifts. Delays are
@@ -22,7 +18,6 @@ export default function Hero() {
 
   const onBlast = (e) => {
     blast(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
-    hintRef.current?.classList.add('is-dismissed');
   };
 
   return (
@@ -63,7 +58,6 @@ export default function Hero() {
               Start a project <span className="btn-arrow">→</span>
             </a>
           </Magnetic>
-          <span className="hero-hint" ref={hintRef}>click anywhere — the crystal reacts</span>
         </Reveal>
       </div>
       <div className="hero-scroll" aria-hidden="true">
