@@ -1,10 +1,12 @@
 'use client';
 
+import { useRef, useEffect } from 'react';
+import gsap from 'gsap';
 import SectionReveal from '../SectionReveal';
 import Marquee from '../Marquee';
 import MagnifiedBento from '../MagnifiedBento';
 import { light, dim } from '../../lib/beacon';
-import { STAGGER_ROW } from '../../lib/easing';
+import { STAGGER_ROW, DURATION_FAST, DURATION_NORMAL, EASE_SETTLE } from '../../lib/easing';
 
 // Copy follows the website-app-copy skill: PAS (Problem–Agitation–Solution)
 // compressed into one line per card. Visitors arrive in pain; we name it,
@@ -53,6 +55,56 @@ const SERVICES = [
 ];
 
 export default function Services() {
+  const listRef = useRef(null);
+  const markerRef = useRef(null);
+  const markerNumRef = useRef(null);
+  const moveMarker = useRef(null);
+  const fadeMarker = useRef(null);
+  const markerPlaced = useRef(false);
+
+  // Ghost numeral: a shared, absolutely-positioned marker in the intro/list
+  // gutter that glides to track whichever row is hovered — a single tracked
+  // element migrating across the list, distinct from the per-card primitives
+  // (BorderGlow/GlyphMask/CardHoverReveal) used elsewhere. Desktop-only, same
+  // pointer/reduced-motion bail as GlyphMask.jsx.
+  useEffect(() => {
+    if (
+      window.matchMedia('(pointer: coarse)').matches
+      || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) return undefined;
+
+    const marker = markerRef.current;
+    if (!marker) return undefined;
+
+    gsap.set(marker, { yPercent: -50 });
+    moveMarker.current = gsap.quickTo(marker, 'y', { duration: DURATION_NORMAL, ease: EASE_SETTLE });
+    fadeMarker.current = gsap.quickTo(marker, 'opacity', { duration: DURATION_FAST, ease: 'none' });
+
+    return () => {
+      gsap.killTweensOf(marker);
+      moveMarker.current = null;
+      fadeMarker.current = null;
+      markerPlaced.current = false;
+    };
+  }, []);
+
+  function focusRow(i, e) {
+    light(i);
+    const list = listRef.current;
+    if (!list || !markerRef.current) return;
+    const rowRect = e.currentTarget.getBoundingClientRect();
+    const listRect = list.getBoundingClientRect();
+    const centerY = rowRect.top - listRect.top + rowRect.height / 2;
+    if (markerNumRef.current) markerNumRef.current.textContent = SERVICES[i].n;
+    if (!markerPlaced.current) {
+      gsap.set(markerRef.current, { y: centerY });
+      markerPlaced.current = true;
+    } else {
+      moveMarker.current?.(centerY);
+    }
+    fadeMarker.current?.(1);
+  }
+
   return (
     <section className="section services" id="services" data-quiet>
       <div className="services-catalogue">
@@ -62,7 +114,10 @@ export default function Services() {
             Focused vision. Measured execution.
           </SectionReveal>
         </div>
-        <div className="services-list">
+        <div className="services-list" ref={listRef} onPointerLeave={() => fadeMarker.current?.(0)}>
+          <div className="service-marker" ref={markerRef} aria-hidden="true">
+            <span className="service-marker-num" ref={markerNumRef} />
+          </div>
           {SERVICES.map((s, i) => (
             <SectionReveal
               key={s.n}
@@ -70,7 +125,7 @@ export default function Services() {
               delay={i * STAGGER_ROW}
               direction="left"
               as="div"
-              onPointerEnter={() => light(i)}
+              onPointerEnter={(e) => focusRow(i, e)}
               onPointerLeave={dim}
             >
               <span className="service-num">{s.n}</span>
