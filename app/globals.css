@@ -1770,6 +1770,7 @@ html[data-cws-intro-seen='1'] .loader {
 }
 .contact-email {
   isolation: isolate;
+  position: relative;
   color: var(--ink);
   border-color: rgba(89, 243, 255, 0.68);
   background: rgba(4, 6, 12, 0.78);
@@ -2788,17 +2789,17 @@ html[data-cws-intro-seen='1'] .loader {
 }
 @media (min-width: 768px) {
   .motion-story-path-wrap { display: block; }
+  .motion-story-card {
+    position: absolute;
+    overflow: hidden;
+    width: clamp(280px, 34vw, 340px);
+  }
+  .motion-story-card:nth-of-type(1) { top: 0; left: 0; transform: rotate(-6deg); }
+  .motion-story-card:nth-of-type(2) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
+  .motion-story-card:nth-of-type(3) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
+  .motion-story-card:nth-of-type(4) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
 }
 .motion-story-path { color: rgba(139, 152, 184, 0.4); }
-.motion-story-card {
-  position: absolute;
-  overflow: hidden;
-  width: clamp(280px, 34vw, 340px);
-}
-.motion-story-card:nth-of-type(1) { top: 0; left: 0; transform: rotate(-6deg); }
-.motion-story-card:nth-of-type(2) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
-.motion-story-card:nth-of-type(3) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
-.motion-story-card:nth-of-type(4) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
 .motion-story-card::before {
   content: '';
   position: absolute;
