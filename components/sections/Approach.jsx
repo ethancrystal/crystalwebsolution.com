@@ -66,7 +66,7 @@ export default function Approach() {
         <LazyMotion features={domAnimation}>
           <div className="motion-story-track" style={{ minHeight: `${height}px` }}>
             <svg
-              className="absolute top-0 left-0 w-full h-full pointer-events-none hidden md:block"
+              className="motion-story-path-wrap"
               viewBox={`0 0 1000 ${height}`}
               preserveAspectRatio="none"
               aria-hidden="true"
@@ -74,7 +74,7 @@ export default function Approach() {
               <m.path
                 d={pathD}
                 stroke="currentColor"
-                className="text-neutral-700"
+                className="motion-story-path"
                 strokeWidth="2"
                 strokeDasharray="8 6"
                 fill="none"

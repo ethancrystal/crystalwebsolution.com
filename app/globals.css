@@ -2571,13 +2571,17 @@ html[data-cws-intro-seen='1'] .loader {
   font-family: var(--font-body);
 }
 @media (max-width: 900px) {
+  /* !important beats the unconditional .motion-story-card:nth-of-type(n)
+     rules above, which otherwise out-specificity this plain-class reset and
+     keep their desktop top/left/rotation offsets on mobile — pushing each
+     stacked card down by its old absolute "top" and into the next section. */
   .motion-story-card {
-    position: relative;
-    left: auto;
-    right: auto;
-    top: auto;
-    transform: none;
-    width: auto;
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: auto !important;
   }
   .motion-story-board { height: auto !important; }
   .motion-story-track { display: flex; flex-direction: column; gap: 1rem; }
