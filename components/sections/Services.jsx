@@ -128,7 +128,6 @@ export default function Services() {
               onPointerEnter={(e) => focusRow(i, e)}
               onPointerLeave={dim}
             >
-              <span className="service-num">{s.n}</span>
               <h3 className="service-title" data-hover data-cursor="✦">
                 <span className="service-title-inner">{s.title}</span>
               </h3>

@@ -546,7 +546,6 @@ html[data-cws-intro-seen='1'] .loader {
 .hero-sub { margin-top: 2.2rem; color: var(--muted); font-size: clamp(0.95rem, 1.6vw, 1.15rem); line-height: 1.7; max-width: 46rem; }
 .contact-sub { margin-top: 1.4rem; max-width: 34rem; color: var(--muted); font-size: clamp(0.95rem, 1.6vw, 1.12rem); line-height: 1.7; }
 .hero-cta { margin-top: 3rem; display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
-.hero-hint { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.18em; color: var(--muted); }
 .hero-scroll {
   position: absolute;
   bottom: 4vh;
@@ -580,7 +579,7 @@ html[data-cws-intro-seen='1'] .loader {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 4rem minmax(10rem, 0.8fr) minmax(18rem, 1.2fr);
+  grid-template-columns: minmax(10rem, 0.8fr) minmax(18rem, 1.2fr);
   gap: 2rem;
   align-items: baseline;
   padding: 2.35rem 0;
@@ -618,7 +617,6 @@ html[data-cws-intro-seen='1'] .loader {
   border-color: rgba(89, 243, 255, 0.42);
   background: linear-gradient(90deg, rgba(89, 243, 255, 0.08), rgba(89, 243, 255, 0) 72%);
 }
-.service-num { font-family: var(--font-mono); font-size: 0.75rem; color: var(--cyan); transition: opacity 0.3s; }
 .service-title {
   font-family: var(--font-display);
   font-size: clamp(1.3rem, 2.6vw, 2rem);
@@ -632,7 +630,6 @@ html[data-cws-intro-seen='1'] .loader {
    focus cue layered under the existing cyan border/background hover, not
    replacing it. Row background/border and the light()/dim() 3D beacon are
    untouched. */
-.services-list:has(.service-row:hover) .service-row:not(:hover) .service-num,
 .services-list:has(.service-row:hover) .service-row:not(:hover) .service-desc {
   opacity: 0.6;
 }
@@ -1803,7 +1800,7 @@ html[data-cws-intro-seen='1'] .loader {
   border-top: 1px solid var(--line);
   padding-top: 3.4rem;
 }
-.footer-col:not(:first-child) { border-left: 1px solid var(--line); }
+.footer-col:not(:first-child) { padding-left: 2rem; border-left: 1px solid var(--line); }
 .footer-col a, .footer-col p { display: block; color: var(--muted); font-size: 0.9rem; line-height: 1.9; }
 .footer-col a:hover { color: var(--cyan); }
 .footer-email {
@@ -2305,8 +2302,7 @@ html[data-cws-intro-seen='1'] .loader {
      that decorative pseudo-element was widening the document by 25px. */
   .text-plate::before { inset: -1.25rem; }
   .services { padding-block: 14vh; }
-  .service-row { grid-template-columns: 3rem minmax(0, 1fr); }
-  .service-desc { grid-column: 2; }
+  .service-row { grid-template-columns: minmax(0, 1fr); }
   .facts-grid { margin-bottom: 3.5rem; }
   .fact-card { grid-template-columns: 2.5rem 1fr; gap: 1rem 1.25rem; }
   .fact-num,
@@ -2317,7 +2313,7 @@ html[data-cws-intro-seen='1'] .loader {
   .showcase-card.is-offset { transform: none; }
   .about-cols { grid-template-columns: 1fr; gap: 2rem; }
   .footer { grid-template-columns: 1fr; gap: 2rem; }
-  .footer-col:not(:first-child) { border-left: none; padding-top: 2rem; border-top: 1px solid var(--line); }
+  .footer-col:not(:first-child) { padding-left: 0; border-left: none; padding-top: 2rem; border-top: 1px solid var(--line); }
   .work-row { grid-template-columns: 1fr; }
   .stories-tabs { gap: 0.75rem 1.35rem; }
   .reviews-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2336,7 +2332,7 @@ html[data-cws-intro-seen='1'] .loader {
 
 @media (max-width: 480px) {
   .service-row {
-    grid-template-columns: 2.25rem minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.8rem 1rem;
     padding-block: 1.8rem;
   }

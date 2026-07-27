@@ -50,7 +50,6 @@ export default function Hero() {
               Start a project <span className="btn-arrow">→</span>
             </a>
           </Magnetic>
-          <span className="hero-hint">click the space — the crystal reacts</span>
         </Reveal>
       </div>
       <div className="hero-scroll" aria-hidden="true">
