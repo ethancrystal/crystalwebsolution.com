@@ -25,6 +25,12 @@ export default function ResetPasswordPage() {
         setError(result.error);
       }
     } catch (err) {
+      // updatePassword() redirects on success via next/navigation's redirect(),
+      // which works by throwing a special NEXT_REDIRECT error for the
+      // framework to catch. Swallowing it here as a real error breaks the
+      // redirect and shows the user a generic failure right when the password
+      // change actually succeeded.
+      if (err?.digest?.startsWith('NEXT_REDIRECT')) throw err;
       setError(err.message);
     } finally {
       setIsLoading(false);
