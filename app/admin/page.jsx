@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { useUserRole } from '@/lib/useUserRole';
 
 export default function AdminDashboard() {
+  const { isAdmin, isPm } = useUserRole();
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     companies: 0,
@@ -60,12 +62,19 @@ export default function AdminDashboard() {
     <div className="crm-admin-dashboard">
       <header className="crm-admin-header">
         <div>
-          <h1>Admin Dashboard</h1>
+          <h1>{isPm ? 'My Dashboard' : 'Admin Dashboard'}</h1>
           <p>Welcome back, {user?.email}</p>
         </div>
-        <Link href="/api/auth/logout" className="crm-logout-btn">
-          Sign Out
-        </Link>
+        <div className="crm-header-actions">
+          {isAdmin && (
+            <Link href="/admin/users" className="crm-link">
+              Manage Users
+            </Link>
+          )}
+          <Link href="/api/auth/logout" className="crm-logout-btn">
+            Sign Out
+          </Link>
+        </div>
       </header>
 
       <div className="crm-admin-content">
@@ -83,35 +92,40 @@ export default function AdminDashboard() {
           </div>
 
           <div className="crm-stat-card">
-            <h3>Deals</h3>
+            <h3>{isPm ? 'My Assigned Projects' : 'Deals'}</h3>
             <div className="crm-stat-number">{stats.deals}</div>
             <Link href="/admin/deals">Manage</Link>
           </div>
 
           <div className="crm-stat-card">
-            <h3>Tasks</h3>
+            <h3>{isPm ? 'My Tasks' : 'Tasks'}</h3>
             <div className="crm-stat-number">{stats.tasks}</div>
             <Link href="/admin/tasks">Manage</Link>
           </div>
         </div>
 
-        <section className="crm-quick-actions">
-          <h2>Quick Actions</h2>
-          <div className="crm-action-buttons">
-            <Link href="/admin/companies/new" className="crm-action-btn">
-              + New Company
-            </Link>
-            <Link href="/admin/contacts/new" className="crm-action-btn">
-              + New Contact
-            </Link>
-            <Link href="/admin/deals/new" className="crm-action-btn">
-              + New Deal
-            </Link>
-            <Link href="/admin/tasks/new" className="crm-action-btn">
-              + New Task
-            </Link>
-          </div>
-        </section>
+        {isAdmin && (
+          <section className="crm-quick-actions">
+            <h2>Quick Actions</h2>
+            <div className="crm-action-buttons">
+              <Link href="/admin/companies/new" className="crm-action-btn">
+                + New Company
+              </Link>
+              <Link href="/admin/contacts/new" className="crm-action-btn">
+                + New Contact
+              </Link>
+              <Link href="/admin/deals/new" className="crm-action-btn">
+                + New Deal
+              </Link>
+              <Link href="/admin/tasks/new" className="crm-action-btn">
+                + New Task
+              </Link>
+              <Link href="/admin/users/invite" className="crm-action-btn">
+                + New User
+              </Link>
+            </div>
+          </section>
+        )}
       </div>
 
       <style jsx>{`
@@ -141,6 +155,24 @@ export default function AdminDashboard() {
         .crm-admin-header p {
           color: #999;
           font-size: 0.9rem;
+        }
+
+        .crm-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 1.25rem;
+        }
+
+        .crm-link {
+          color: #64c8ff;
+          text-decoration: none;
+          font-size: 0.9rem;
+          transition: color 0.2s ease;
+        }
+
+        .crm-link:hover {
+          color: #5bb8ff;
+          text-decoration: underline;
         }
 
         .crm-logout-btn {

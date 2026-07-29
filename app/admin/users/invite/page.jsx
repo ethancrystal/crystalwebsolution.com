@@ -3,30 +3,19 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
+import { inviteUser } from '../actions';
 
-const INITIAL_FORM = {
-  name: '',
-  email: '',
-  phone: '',
-  website: '',
-  industry: '',
-  employee_count: '',
-};
-
-export default function NewCompanyPage() {
+export default function InviteUserPage() {
   const router = useRouter();
   const { isAdmin, isLoading: isRoleLoading } = useUserRole();
-  const [form, setForm] = useState(INITIAL_FORM);
+  const [form, setForm] = useState({ email: '', fullName: '', role: 'project_manager' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Company creation is admin-only (0006_admin_only_company_contact_creation.sql)
-    // - a PM landing here would just hit an RLS rejection on submit.
     if (!isRoleLoading && !isAdmin) {
-      router.replace('/admin/companies');
+      router.replace('/admin');
     }
   }, [isRoleLoading, isAdmin, router]);
 
@@ -40,29 +29,21 @@ export default function NewCompanyPage() {
     setIsSubmitting(true);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const formData = new FormData();
+      formData.set('email', form.email);
+      formData.set('fullName', form.fullName);
+      formData.set('role', form.role);
 
-      if (!user) throw new Error('You must be signed in to create a company.');
-
-      const payload = {
-        name: form.name,
-        email: form.email,
-        phone: form.phone || null,
-        website: form.website || null,
-        industry: form.industry || null,
-        employee_count: form.employee_count === '' ? null : Number(form.employee_count),
-        created_by: user.id,
-      };
-
-      const { data, error } = await supabase.from('companies').insert(payload).select().single();
-
-      if (error) throw error;
-
-      router.push(`/admin/companies/${data.id}`);
+      const result = await inviteUser(formData);
+      if (result?.error) {
+        setError(result.error);
+        setIsSubmitting(false);
+      }
+      // On success the server action redirects to /admin/users.
     } catch (err) {
+      // Server action redirect() throws internally by design - only
+      // treat this as a real failure if it isn't that.
+      if (err?.digest?.startsWith?.('NEXT_REDIRECT')) return;
       setError(err.message);
       setIsSubmitting(false);
     }
@@ -79,9 +60,9 @@ export default function NewCompanyPage() {
   return (
     <div className="crm-admin-page">
       <header className="crm-admin-header">
-        <h1>Add Company</h1>
-        <Link href="/admin/companies" className="crm-link">
-          Back to Companies
+        <h1>Invite User</h1>
+        <Link href="/admin/users" className="crm-link">
+          Back to Users
         </Link>
       </header>
 
@@ -90,14 +71,13 @@ export default function NewCompanyPage() {
       <div className="crm-form-card">
         <form onSubmit={handleSubmit}>
           <div className="crm-field">
-            <label htmlFor="name">Name *</label>
+            <label htmlFor="fullName">Full Name *</label>
             <input
-              id="name"
+              id="fullName"
               type="text"
               required
-              placeholder="Acme Inc."
-              value={form.name}
-              onChange={(e) => handleChange('name', e.target.value)}
+              value={form.fullName}
+              onChange={(e) => handleChange('fullName', e.target.value)}
             />
           </div>
 
@@ -107,66 +87,33 @@ export default function NewCompanyPage() {
               id="email"
               type="email"
               required
-              placeholder="contact@acme.com"
               value={form.email}
               onChange={(e) => handleChange('email', e.target.value)}
             />
           </div>
 
-          <div className="crm-field-row">
-            <div className="crm-field">
-              <label htmlFor="phone">Phone</label>
-              <input
-                id="phone"
-                type="text"
-                placeholder="(555) 123-4567"
-                value={form.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-              />
-            </div>
-
-            <div className="crm-field">
-              <label htmlFor="website">Website</label>
-              <input
-                id="website"
-                type="text"
-                placeholder="https://acme.com"
-                value={form.website}
-                onChange={(e) => handleChange('website', e.target.value)}
-              />
-            </div>
+          <div className="crm-field">
+            <label htmlFor="role">Role *</label>
+            <select
+              id="role"
+              value={form.role}
+              onChange={(e) => handleChange('role', e.target.value)}
+            >
+              <option value="project_manager">Project Manager</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
 
-          <div className="crm-field-row">
-            <div className="crm-field">
-              <label htmlFor="industry">Industry</label>
-              <input
-                id="industry"
-                type="text"
-                placeholder="Software"
-                value={form.industry}
-                onChange={(e) => handleChange('industry', e.target.value)}
-              />
-            </div>
-
-            <div className="crm-field">
-              <label htmlFor="employee_count">Employee Count</label>
-              <input
-                id="employee_count"
-                type="number"
-                min="0"
-                placeholder="50"
-                value={form.employee_count}
-                onChange={(e) => handleChange('employee_count', e.target.value)}
-              />
-            </div>
-          </div>
+          <p className="crm-hint">
+            An invite email will be sent with a link to set a password. The account is created
+            with the selected role immediately.
+          </p>
 
           <div className="crm-form-actions">
             <button type="submit" className="crm-button" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Create Company'}
+              {isSubmitting ? 'Sending...' : 'Send Invite'}
             </button>
-            <Link href="/admin/companies" className="crm-button-secondary">
+            <Link href="/admin/users" className="crm-button-secondary">
               Cancel
             </Link>
           </div>
@@ -225,12 +172,6 @@ export default function NewCompanyPage() {
           display: flex;
           flex-direction: column;
           gap: 0.5rem;
-          flex: 1;
-        }
-
-        .crm-field-row {
-          display: flex;
-          gap: 1.5rem;
         }
 
         .crm-field label {
@@ -242,8 +183,7 @@ export default function NewCompanyPage() {
         }
 
         .crm-field input,
-        .crm-field select,
-        .crm-field textarea {
+        .crm-field select {
           background: rgba(15, 20, 40, 0.6);
           border: 1px solid rgba(100, 200, 255, 0.2);
           border-radius: 6px;
@@ -254,16 +194,20 @@ export default function NewCompanyPage() {
         }
 
         .crm-field input:focus,
-        .crm-field select:focus,
-        .crm-field textarea:focus {
+        .crm-field select:focus {
           outline: none;
           border-color: #64c8ff;
+        }
+
+        .crm-hint {
+          color: #999;
+          font-size: 0.85rem;
+          margin-bottom: 1.5rem;
         }
 
         .crm-form-actions {
           display: flex;
           gap: 1rem;
-          margin-top: 2rem;
         }
 
         .crm-button {

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import ProjectThread from '@/components/crm/ProjectThread';
+import { projectTypeLabel } from '@/lib/projectTypes';
 
 const STATUS_STEPS = [
   { key: 'brief_submitted', label: 'Brief Submitted' },
@@ -155,6 +156,13 @@ export default function ClientProjectPage() {
             <span className="client-detail-label">Target Date</span>
             <span className="client-detail-value">{formatDate(deal.expected_close_date)}</span>
           </div>
+
+          {deal.project_type && (
+            <div className="client-detail-field">
+              <span className="client-detail-label">Project Type</span>
+              <span className="client-detail-value">{projectTypeLabel(deal.project_type)}</span>
+            </div>
+          )}
         </div>
 
         {deal.description && (

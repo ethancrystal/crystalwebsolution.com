@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { projectTypeLabel } from '@/lib/projectTypes';
+import { useUserRole } from '@/lib/useUserRole';
 
 const STAGE_LABELS = {
   prospecting: 'Prospecting',
@@ -59,6 +61,7 @@ function StageBadge({ stage }) {
 }
 
 export default function DealsPage() {
+  const { isAdmin, isPm } = useUserRole();
   const [deals, setDeals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -96,14 +99,16 @@ export default function DealsPage() {
   return (
     <div className="crm-admin-page">
       <header className="crm-admin-header">
-        <h1>Deals</h1>
+        <h1>{isPm ? 'My Deals' : 'Deals'}</h1>
         <div className="crm-header-actions">
           <Link href="/admin/deals/pipeline" className="crm-link">
             Pipeline View
           </Link>
-          <Link href="/admin/deals/new" className="crm-button">
-            Add Deal
-          </Link>
+          {isAdmin && (
+            <Link href="/admin/deals/new" className="crm-button">
+              Add Deal
+            </Link>
+          )}
         </div>
       </header>
 
@@ -116,6 +121,7 @@ export default function DealsPage() {
               <tr>
                 <th>Title</th>
                 <th>Company</th>
+                <th>Type</th>
                 <th>Value</th>
                 <th>Stage</th>
                 <th>Actions</th>
@@ -126,6 +132,7 @@ export default function DealsPage() {
                 <tr key={deal.id}>
                   <td>{deal.title}</td>
                   <td>{deal.companies?.name || '-'}</td>
+                  <td>{deal.project_type ? projectTypeLabel(deal.project_type) : '-'}</td>
                   <td>{formatCurrency(deal.value)}</td>
                   <td>
                     <StageBadge stage={deal.stage} />
@@ -147,9 +154,11 @@ export default function DealsPage() {
         ) : (
           <div className="crm-empty-state">
             <p>No deals yet.</p>
-            <Link href="/admin/deals/new" className="crm-button">
-              Create one
-            </Link>
+            {isAdmin && (
+              <Link href="/admin/deals/new" className="crm-button">
+                Create one
+              </Link>
+            )}
           </div>
         )}
       </div>

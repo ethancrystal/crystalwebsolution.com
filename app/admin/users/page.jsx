@@ -1,28 +1,47 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
+import { changeUserRole } from './actions';
 
-export default function ContactsPage() {
-  const { isAdmin } = useUserRole();
-  const [contacts, setContacts] = useState([]);
+const ROLE_LABELS = {
+  admin: 'Admin',
+  project_manager: 'Project Manager',
+  client: 'Client',
+};
+
+const ASSIGNABLE_ROLES = ['admin', 'project_manager'];
+
+export default function UsersPage() {
+  const router = useRouter();
+  const { isAdmin, isLoading: isRoleLoading } = useUserRole();
+  const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [updatingId, setUpdatingId] = useState(null);
 
   useEffect(() => {
-    async function loadContacts() {
+    // Middleware already gates /admin/users at the route level - this is a
+    // second, page-level check (defense in depth, not the primary guard).
+    if (!isRoleLoading && !isAdmin) {
+      router.replace('/admin');
+    }
+  }, [isRoleLoading, isAdmin, router]);
+
+  useEffect(() => {
+    async function loadUsers() {
       try {
         const supabase = createClient();
-
         const { data, error } = await supabase
-          .from('contacts')
-          .select('*, companies(name)')
+          .from('profiles')
+          .select('id, full_name, role, company_id, created_at')
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setContacts(data || []);
+        setUsers(data || []);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -30,10 +49,32 @@ export default function ContactsPage() {
       }
     }
 
-    loadContacts();
-  }, []);
+    if (isAdmin) loadUsers();
+  }, [isAdmin]);
 
-  if (isLoading) {
+  async function handleRoleChange(userId, role) {
+    setError(null);
+    setUpdatingId(userId);
+
+    const previousUsers = users;
+    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role } : u)));
+
+    try {
+      const formData = new FormData();
+      formData.set('userId', userId);
+      formData.set('role', role);
+
+      const result = await changeUserRole(formData);
+      if (result?.error) throw new Error(result.error);
+    } catch (err) {
+      setUsers(previousUsers);
+      setError(err.message);
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  if (isRoleLoading || !isAdmin || isLoading) {
     return (
       <div className="crm-admin-page">
         <div className="crm-loading">Loading...</div>
@@ -44,54 +85,52 @@ export default function ContactsPage() {
   return (
     <div className="crm-admin-page">
       <header className="crm-admin-header">
-        <h1>Contacts</h1>
-        {isAdmin && (
-          <Link href="/admin/contacts/new" className="crm-button">
-            Add Contact
-          </Link>
-        )}
+        <h1>Users</h1>
+        <Link href="/admin/users/invite" className="crm-button">
+          Invite User
+        </Link>
       </header>
 
       {error && <div className="crm-error">{error}</div>}
 
       <div className="crm-table-container">
-        {contacts.length > 0 ? (
+        {users.length > 0 ? (
           <table className="crm-table">
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Company</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Change Role</th>
               </tr>
             </thead>
             <tbody>
-              {contacts.map((contact) => (
-                <tr key={contact.id}>
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.full_name || '-'}</td>
                   <td>
-                    {contact.first_name} {contact.last_name}
-                  </td>
-                  <td>{contact.companies?.name || '-'}</td>
-                  <td>{contact.email}</td>
-                  <td>{contact.phone || '-'}</td>
-                  <td>{contact.title || '-'}</td>
-                  <td>
-                    <span className={`crm-status crm-status-${contact.status || 'lead'}`}>
-                      {contact.status || 'lead'}
+                    <span className={`crm-status crm-status-${user.role}`}>
+                      {ROLE_LABELS[user.role] || user.role}
                     </span>
                   </td>
+                  <td>{new Date(user.created_at).toLocaleDateString('en-US')}</td>
                   <td>
-                    <div className="crm-actions">
-                      <Link href={`/admin/contacts/${contact.id}`} className="crm-link">
-                        View
-                      </Link>
-                      <Link href={`/admin/contacts/${contact.id}/edit`} className="crm-link">
-                        Edit
-                      </Link>
-                    </div>
+                    {ASSIGNABLE_ROLES.includes(user.role) ? (
+                      <select
+                        className="crm-role-select"
+                        value={user.role}
+                        disabled={updatingId === user.id}
+                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                      >
+                        {ASSIGNABLE_ROLES.map((role) => (
+                          <option key={role} value={role}>
+                            {ROLE_LABELS[role]}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="crm-muted">Client accounts aren&apos;t reassigned here</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -99,12 +138,7 @@ export default function ContactsPage() {
           </table>
         ) : (
           <div className="crm-empty-state">
-            <p>No contacts yet.</p>
-            {isAdmin && (
-              <Link href="/admin/contacts/new" className="crm-button">
-                Create one
-              </Link>
-            )}
+            <p>No users yet.</p>
           </div>
         )}
       </div>
@@ -142,9 +176,6 @@ export default function ContactsPage() {
           font-weight: 600;
           transition: all 0.2s ease;
           display: inline-block;
-          border: none;
-          cursor: pointer;
-          font-size: 1rem;
         }
 
         .crm-button:hover {
@@ -195,39 +226,41 @@ export default function ContactsPage() {
           padding: 0.25rem 0.75rem;
           border-radius: 999px;
           font-size: 0.8rem;
-          text-transform: capitalize;
           background: rgba(100, 200, 255, 0.1);
           border: 1px solid rgba(100, 200, 255, 0.3);
           color: #64c8ff;
         }
 
-        .crm-status-customer {
-          background: rgba(120, 220, 150, 0.1);
-          border-color: rgba(120, 220, 150, 0.3);
-          color: #9ee6b0;
+        .crm-status-admin {
+          background: rgba(251, 191, 36, 0.1);
+          border-color: rgba(251, 191, 36, 0.4);
+          color: #fbbf24;
         }
 
-        .crm-status-inactive {
-          background: rgba(150, 150, 150, 0.1);
-          border-color: rgba(150, 150, 150, 0.3);
-          color: #999;
+        .crm-status-project_manager {
+          background: rgba(167, 139, 250, 0.1);
+          border-color: rgba(167, 139, 250, 0.4);
+          color: #c4b5fd;
         }
 
-        .crm-actions {
-          display: flex;
-          gap: 1rem;
-        }
-
-        .crm-link {
-          color: #64c8ff;
-          text-decoration: none;
+        .crm-role-select {
+          background: rgba(15, 20, 40, 0.6);
+          border: 1px solid rgba(100, 200, 255, 0.2);
+          border-radius: 6px;
+          color: #e0e0e0;
+          padding: 0.5rem;
           font-size: 0.9rem;
-          transition: color 0.2s ease;
+          font-family: inherit;
         }
 
-        .crm-link:hover {
-          color: #5bb8ff;
-          text-decoration: underline;
+        .crm-role-select:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .crm-muted {
+          color: #666;
+          font-size: 0.85rem;
         }
 
         .crm-empty-state {
@@ -237,7 +270,6 @@ export default function ContactsPage() {
 
         .crm-empty-state p {
           color: #999;
-          margin-bottom: 1rem;
         }
 
         .crm-error {

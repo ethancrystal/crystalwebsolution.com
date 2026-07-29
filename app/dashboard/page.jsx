@@ -18,7 +18,6 @@ export default function DashboardPage() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [companies, setCompanies] = useState([]);
   const [myProjects, setMyProjects] = useState([]);
 
   const loadClientProjects = useCallback(async (companyId) => {
@@ -54,28 +53,22 @@ export default function DashboardPage() {
 
         setProfile(profileData);
 
-        const staff = profileData?.role === 'admin' || profileData?.role === 'staff';
-
-        if (staff) {
-          const { data: companiesData } = await supabase
-            .from('companies')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(5);
-
-          setCompanies(companiesData || []);
-        } else {
-          await loadClientProjects(profileData?.company_id);
+        // A PM/admin landing here (e.g. a stale bookmark) belongs on
+        // /admin, not the client dashboard — that branch assumes
+        // company_id is set, which is null for staff-tier accounts.
+        if (profileData?.role === 'admin' || profileData?.role === 'project_manager') {
+          router.replace('/admin');
+          return;
         }
+
+        await loadClientProjects(profileData?.company_id);
       }
 
       setIsLoading(false);
     }
 
     loadData();
-  }, [loadClientProjects]);
-
-  const isStaff = profile?.role === 'admin' || profile?.role === 'staff';
+  }, [loadClientProjects, router]);
 
   function handleProjectCreated(deal) {
     loadClientProjects(profile?.company_id);
@@ -118,89 +111,32 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {isStaff && (
-          <>
-            <section className="crm-dashboard-section">
-              <div className="crm-section-header">
-                <h2>Recent Companies</h2>
-                <Link href="/admin/companies" className="crm-view-all">
-                  View All
+        <section className="crm-dashboard-section">
+          <h2>My Projects</h2>
+          {myProjects.length > 0 ? (
+            <div className="crm-companies-grid">
+              {myProjects.map((project) => (
+                <Link
+                  key={project.id}
+                  href={`/dashboard/projects/${project.id}`}
+                  className="crm-company-card crm-project-card"
+                >
+                  <h3>{project.title}</h3>
+                  <span className="crm-project-status">
+                    {PROJECT_STATUS_LABELS[project.project_status] || project.project_status}
+                  </span>
                 </Link>
-              </div>
-              {companies.length > 0 ? (
-                <div className="crm-companies-grid">
-                  {companies.map((company) => (
-                    <div key={company.id} className="crm-company-card">
-                      <h3>{company.name}</h3>
-                      <p>{company.email}</p>
-                      {company.phone && <p>{company.phone}</p>}
-                      <Link
-                        href={`/admin/companies/${company.id}`}
-                        className="crm-card-link"
-                      >
-                        View Details →
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="crm-empty-state">
-                  No companies yet.{' '}
-                  <Link href="/admin/companies/new">Create one</Link>
-                </p>
-              )}
-            </section>
+              ))}
+            </div>
+          ) : (
+            <p className="crm-empty-state">No projects yet — submit a brief below to start one.</p>
+          )}
+        </section>
 
-            <section className="crm-dashboard-section">
-              <h2>Admin Area</h2>
-              <div className="crm-admin-links">
-                <Link href="/admin/companies" className="crm-admin-link">
-                  Manage Companies
-                </Link>
-                <Link href="/admin/contacts" className="crm-admin-link">
-                  Manage Contacts
-                </Link>
-                <Link href="/admin/deals" className="crm-admin-link">
-                  Manage Deals
-                </Link>
-                <Link href="/admin/tasks" className="crm-admin-link">
-                  Manage Tasks
-                </Link>
-              </div>
-            </section>
-          </>
-        )}
-
-        {!isStaff && (
-          <>
-            <section className="crm-dashboard-section">
-              <h2>My Projects</h2>
-              {myProjects.length > 0 ? (
-                <div className="crm-companies-grid">
-                  {myProjects.map((project) => (
-                    <Link
-                      key={project.id}
-                      href={`/dashboard/projects/${project.id}`}
-                      className="crm-company-card crm-project-card"
-                    >
-                      <h3>{project.title}</h3>
-                      <span className="crm-project-status">
-                        {PROJECT_STATUS_LABELS[project.project_status] || project.project_status}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <p className="crm-empty-state">No projects yet — submit a brief below to start one.</p>
-              )}
-            </section>
-
-            <BriefSubmissionForm
-              hasCompany={!!profile?.company_id}
-              onCreated={handleProjectCreated}
-            />
-          </>
-        )}
+        <BriefSubmissionForm
+          hasCompany={!!profile?.company_id}
+          onCreated={handleProjectCreated}
+        />
       </div>
 
       <style jsx>{`

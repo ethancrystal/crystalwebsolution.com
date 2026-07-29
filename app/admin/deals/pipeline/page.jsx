@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { projectTypeLabel } from '@/lib/projectTypes';
+import { useUserRole } from '@/lib/useUserRole';
 
 const STAGES = [
   { key: 'prospecting', label: 'Prospecting' },
@@ -26,6 +28,7 @@ function normalizeStage(stage) {
 }
 
 export default function DealsPipelinePage() {
+  const { isAdmin, isPm } = useUserRole();
   const [deals, setDeals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -107,14 +110,16 @@ export default function DealsPipelinePage() {
   return (
     <div className="crm-admin-page">
       <header className="crm-admin-header">
-        <h1>Deals Pipeline</h1>
+        <h1>{isPm ? 'My Pipeline' : 'Deals Pipeline'}</h1>
         <div className="crm-header-actions">
           <Link href="/admin/deals" className="crm-link">
             List View
           </Link>
-          <Link href="/admin/deals/new" className="crm-button">
-            Add Deal
-          </Link>
+          {isAdmin && (
+            <Link href="/admin/deals/new" className="crm-button">
+              Add Deal
+            </Link>
+          )}
         </div>
       </header>
 
@@ -134,6 +139,9 @@ export default function DealsPipelinePage() {
                   <div className="crm-deal-card" key={deal.id}>
                     <div className="crm-deal-title">{deal.title}</div>
                     <div className="crm-deal-company">{deal.companies?.name || '-'}</div>
+                    {deal.project_type && (
+                      <div className="crm-deal-type">{projectTypeLabel(deal.project_type)}</div>
+                    )}
                     <div className="crm-deal-meta">
                       <span className="crm-deal-value">{formatValue(deal.value)}</span>
                       <span className="crm-deal-probability">{deal.probability ?? 0}%</span>
@@ -326,6 +334,18 @@ export default function DealsPipelinePage() {
         .crm-deal-company {
           color: #999;
           font-size: 0.85rem;
+        }
+
+        .crm-deal-type {
+          display: inline-block;
+          align-self: flex-start;
+          background: rgba(167, 139, 250, 0.12);
+          border: 1px solid rgba(167, 139, 250, 0.4);
+          color: #c4b5fd;
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: 0.15rem 0.6rem;
+          border-radius: 999px;
         }
 
         .crm-deal-meta {

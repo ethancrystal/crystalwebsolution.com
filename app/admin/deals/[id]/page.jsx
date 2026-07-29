@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import ProjectThread from '@/components/crm/ProjectThread';
 import NotesPanel from '@/components/crm/NotesPanel';
+import { useUserRole } from '@/lib/useUserRole';
+import { projectTypeLabel } from '@/lib/projectTypes';
 
 const STAGE_LABELS = {
   prospecting: 'Prospecting',
@@ -51,6 +53,7 @@ export default function DealDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { id } = params;
+  const { isAdmin } = useUserRole();
 
   const [deal, setDeal] = useState(null);
   const [ownerName, setOwnerName] = useState(null);
@@ -206,6 +209,13 @@ export default function DealDetailPage() {
           </div>
 
           <div className="crm-detail-field">
+            <span className="crm-detail-label">Project Type</span>
+            <span className="crm-detail-value">
+              {deal.project_type ? projectTypeLabel(deal.project_type) : '-'}
+            </span>
+          </div>
+
+          <div className="crm-detail-field">
             <span className="crm-detail-label">Expected Close Date</span>
             <span className="crm-detail-value">{formatDate(deal.expected_close_date)}</span>
           </div>
@@ -240,14 +250,16 @@ export default function DealDetailPage() {
           <Link href="/admin/deals" className="crm-button-secondary">
             Back
           </Link>
-          <button
-            type="button"
-            className="crm-button-danger"
-            onClick={handleDelete}
-            disabled={isDeleting}
-          >
-            {isDeleting ? 'Deleting...' : 'Delete Deal'}
-          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              className="crm-button-danger"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Deal'}
+            </button>
+          )}
         </div>
       </div>
 
