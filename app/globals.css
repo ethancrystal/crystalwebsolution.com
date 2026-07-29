@@ -1708,6 +1708,15 @@ html[data-cws-intro-seen='1'] .loader {
      edges on phones, since the copy spans almost the full viewBox
      width side to side. */
   .about-smil-word { font-size: 72px; }
+  /* .about-kicker (absolute, top:clamp(6.5rem,11vh,8.5rem)) wraps to more
+     lines on narrow phones than its desktop max-width:72vw budget assumes,
+     growing taller than the gap before .about-smil-copy's vertically-
+     centered word grid (first row sits ~1/3 down the 1440x900 viewBox).
+     The two layers don't know about each other's height, so on phones the
+     "WE BUILD DIGITAL" row can render on top of the kicker's last lines.
+     Push the whole word-grid layer down to guarantee clearance instead of
+     trying to predict the kicker's wrapped height exactly. */
+  .about-smil-copy { transform: translateY(9vh); }
 }
 
 /* ---------- facts / precision ledger ---------- */
@@ -2389,6 +2398,16 @@ html[data-cws-intro-seen='1'] .loader {
   /* The desktop text glow extends 3rem past its host. On narrow viewports
      that decorative pseudo-element was widening the document by 25px. */
   .text-plate::before { inset: -1.25rem; }
+  /* Below 900px .hero-off-axis's desktop-only rules stop applying, so the
+     hero reverts to the original centered layout (align-items:center inside
+     min-height:100vh). On short/narrow phones the stacked eyebrow+title+sub
+     +CTA block can grow tall enough that the centered content pushes the
+     "Start a project" button down into .hero-scroll's fixed bottom:4vh
+     zone. Reserve space so centered content never grows into it, and trim
+     a bit of the inter-element spacing so there's slack either way. */
+  .hero { padding-bottom: 15vh; }
+  .hero-sub { margin-top: 1.6rem; }
+  .hero-cta { margin-top: 2rem; }
   .services { padding-block: 14vh; }
   .service-row { grid-template-columns: minmax(0, 1fr); }
   .facts-grid { margin-bottom: 3.5rem; }
