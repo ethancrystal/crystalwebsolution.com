@@ -1,14 +1,39 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/browser';
+import BriefSubmissionForm from '@/components/crm/BriefSubmissionForm';
+
+const PROJECT_STATUS_LABELS = {
+  brief_submitted: 'Brief Submitted',
+  in_progress: 'In Progress',
+  in_review: 'In Review',
+  delivered: 'Delivered',
+};
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [companies, setCompanies] = useState([]);
+  const [myProjects, setMyProjects] = useState([]);
+
+  const loadClientProjects = useCallback(async (companyId) => {
+    if (!companyId) {
+      setMyProjects([]);
+      return;
+    }
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('deals')
+      .select('*')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false });
+    setMyProjects(data || []);
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -29,8 +54,9 @@ export default function DashboardPage() {
 
         setProfile(profileData);
 
-        // Load companies if user is staff
-        if (profileData?.role === 'admin' || profileData?.role === 'staff') {
+        const staff = profileData?.role === 'admin' || profileData?.role === 'staff';
+
+        if (staff) {
           const { data: companiesData } = await supabase
             .from('companies')
             .select('*')
@@ -38,6 +64,8 @@ export default function DashboardPage() {
             .limit(5);
 
           setCompanies(companiesData || []);
+        } else {
+          await loadClientProjects(profileData?.company_id);
         }
       }
 
@@ -45,9 +73,14 @@ export default function DashboardPage() {
     }
 
     loadData();
-  }, []);
+  }, [loadClientProjects]);
 
   const isStaff = profile?.role === 'admin' || profile?.role === 'staff';
+
+  function handleProjectCreated(deal) {
+    loadClientProjects(profile?.company_id);
+    router.push(`/dashboard/projects/${deal.id}`);
+  }
 
   if (isLoading) {
     return (
@@ -135,6 +168,37 @@ export default function DashboardPage() {
                 </Link>
               </div>
             </section>
+          </>
+        )}
+
+        {!isStaff && (
+          <>
+            <section className="crm-dashboard-section">
+              <h2>My Projects</h2>
+              {myProjects.length > 0 ? (
+                <div className="crm-companies-grid">
+                  {myProjects.map((project) => (
+                    <Link
+                      key={project.id}
+                      href={`/dashboard/projects/${project.id}`}
+                      className="crm-company-card crm-project-card"
+                    >
+                      <h3>{project.title}</h3>
+                      <span className="crm-project-status">
+                        {PROJECT_STATUS_LABELS[project.project_status] || project.project_status}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="crm-empty-state">No projects yet — submit a brief below to start one.</p>
+              )}
+            </section>
+
+            <BriefSubmissionForm
+              hasCompany={!!profile?.company_id}
+              onCreated={handleProjectCreated}
+            />
           </>
         )}
       </div>
@@ -251,6 +315,22 @@ export default function DashboardPage() {
         .crm-company-card:hover {
           border-color: rgba(100, 200, 255, 0.3);
           transform: translateY(-2px);
+        }
+
+        .crm-project-card {
+          display: block;
+          text-decoration: none;
+          color: inherit;
+        }
+
+        .crm-project-status {
+          display: inline-block;
+          background: rgba(100, 200, 255, 0.1);
+          border: 1px solid rgba(100, 200, 255, 0.3);
+          color: #64c8ff;
+          padding: 0.25rem 0.75rem;
+          border-radius: 999px;
+          font-size: 0.8rem;
         }
 
         .crm-company-card h3 {
