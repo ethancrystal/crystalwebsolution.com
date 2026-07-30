@@ -4,22 +4,14 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient, buildVerifyUrl } from '@/lib/supabase/admin';
 import { sendEmail } from '@/lib/email/resend';
 import { inviteUserEmail } from '@/lib/email/templates';
+import { requireRole } from '@/lib/auth/require-role';
 import { redirect } from 'next/navigation';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 const ASSIGNABLE_ROLES = ['admin', 'project_manager'];
 
 async function requireAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user || user.app_metadata?.role !== 'admin') {
-    throw new Error('Admin access required.');
-  }
-
-  return user;
+  return requireRole(['admin'], '/login/admin');
 }
 
 // Account creation is admin-only (0005_pm_scoping_and_project_type.sql -
@@ -32,6 +24,7 @@ async function requireAdmin() {
 // goes through here.
 export async function inviteUser(formData) {
   await requireAdmin();
+  const supabase = await createClient();
 
   const email = formData.get('email');
   const fullName = formData.get('fullName');
@@ -71,36 +64,21 @@ export async function inviteUser(formData) {
     return { error: `Invite created, but the email failed to send: ${sendError.message}` };
   }
 
-  // generateLink() has no app_metadata param - set the role in a
-  // follow-up call. handle_new_user's trigger already created a
-  // 'client'-role profiles row for this user by this point; sync both.
-  const { error: metaError } = await adminClient.auth.admin.updateUserById(data.user.id, {
-    app_metadata: { role },
+  // The auth trigger creates a client profile. Promote invited staff through
+  // the same validated command used by subsequent role changes.
+  const { error: roleError } = await supabase.rpc('admin_set_user_role', {
+    p_user_id: data.user.id,
+    p_role: role,
   });
 
-  if (metaError) {
-    return { error: `Invite sent, but role assignment failed: ${metaError.message}` };
-  }
-
-  const { error: profileError } = await adminClient
-    .from('profiles')
-    .update({ role })
-    .eq('id', data.user.id);
-
-  if (profileError) {
-    return { error: `Invite sent, but role assignment failed: ${profileError.message}` };
+  if (roleError) {
+    return { error: 'Invite sent, but role assignment failed.' };
   }
 
   redirect('/admin/users');
 }
 
-// Reassigns an existing account between admin and project_manager.
-// profiles.role goes through the normal authenticated client - the acting
-// admin session satisfies 0002's prevent_unauthorized_profile_changes
-// trigger directly, no service-role bypass needed. app_metadata.role is a
-// second, independent source of truth (middleware.js reads only the JWT
-// claim) and is kept in sync via the service-role admin client, same as
-// 0005's bulk staff->project_manager migration did.
+// Reassigns an existing account through the database's validated command.
 export async function changeUserRole(formData) {
   await requireAdmin();
 
@@ -108,27 +86,18 @@ export async function changeUserRole(formData) {
   const role = formData.get('role');
 
   if (!userId || !role) {
-    return { error: 'Missing required fields' };
+    return { ok: false, error: 'Missing required fields' };
   }
   if (!ASSIGNABLE_ROLES.includes(role)) {
-    return { error: 'Invalid role' };
+    return { ok: false, error: 'Invalid role' };
   }
 
   const supabase = await createClient();
-  const { error: profileError } = await supabase.from('profiles').update({ role }).eq('id', userId);
-
-  if (profileError) {
-    return { error: profileError.message };
-  }
-
-  const adminClient = createAdminClient();
-  const { error: metaError } = await adminClient.auth.admin.updateUserById(userId, {
-    app_metadata: { role },
+  const { data, error } = await supabase.rpc('admin_set_user_role', {
+    p_user_id: userId,
+    p_role: role,
   });
 
-  if (metaError) {
-    return { error: `profiles.role updated, but app_metadata sync failed: ${metaError.message}` };
-  }
-
-  return { success: true };
+  if (error) return { ok: false, error: 'Unable to update this role.' };
+  return { ok: true, profile: data };
 }
