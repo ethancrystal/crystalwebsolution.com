@@ -347,6 +347,23 @@ CREATE TRIGGER on_profile_role_change_guard
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.prevent_unauthorized_profile_changes();
 
+-- Preserve enum compatibility for already-applied databases while enforcing
+-- the platform's supported three-role model at the profiles table boundary.
+UPDATE public.profiles
+SET role = 'project_manager'
+WHERE role = 'staff';
+
+ALTER TABLE public.profiles
+  DROP CONSTRAINT IF EXISTS profiles_role_allowed_check;
+
+ALTER TABLE public.profiles
+  ADD CONSTRAINT profiles_role_allowed_check
+  CHECK (role::TEXT IN ('client', 'project_manager', 'admin'))
+  NOT VALID;
+
+ALTER TABLE public.profiles
+  VALIDATE CONSTRAINT profiles_role_allowed_check;
+
 -- ---------- 4. Deterministically replace legacy CRM policies ----------
 DROP POLICY IF EXISTS "Admin can view all profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Deal participants can view assigned owner profile" ON public.profiles;
@@ -421,6 +438,39 @@ DROP POLICY IF EXISTS "Deal owner and staff can update" ON public.deals;
 DROP POLICY IF EXISTS "Admin can update any deal" ON public.deals;
 CREATE POLICY "Admin can update any deal" ON public.deals
   FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS "Staff can view all tasks" ON public.tasks;
+DROP POLICY IF EXISTS "Assigned user can view task" ON public.tasks;
+DROP POLICY IF EXISTS "Admin can view all tasks" ON public.tasks;
+DROP POLICY IF EXISTS "PM can view tasks for assigned deals" ON public.tasks;
+DROP POLICY IF EXISTS "Clients can view company tasks" ON public.tasks;
+CREATE POLICY "Admin can view all tasks" ON public.tasks
+  FOR SELECT USING (public.is_admin());
+CREATE POLICY "PM can view tasks for assigned deals" ON public.tasks
+  FOR SELECT USING (
+    public.is_pm()
+    AND deal_id IS NOT NULL
+    AND EXISTS (
+      SELECT 1
+      FROM public.deals AS deal
+      WHERE deal.id = tasks.deal_id
+        AND deal.company_id = tasks.company_id
+        AND deal.owner_id = auth.uid()
+    )
+  );
+CREATE POLICY "Clients can view company tasks" ON public.tasks
+  FOR SELECT USING (
+    public.is_company_member(company_id)
+    AND (
+      deal_id IS NULL
+      OR EXISTS (
+        SELECT 1
+        FROM public.deals AS deal
+        WHERE deal.id = tasks.deal_id
+          AND deal.company_id = tasks.company_id
+      )
+    )
+  );
 
 DROP POLICY IF EXISTS "Assigned user and staff can update" ON public.tasks;
 DROP POLICY IF EXISTS "Assigned user can update own task" ON public.tasks;
@@ -565,7 +615,6 @@ REVOKE ALL ON FUNCTION public.handle_profile_updated() FROM authenticated;
 GRANT EXECUTE ON FUNCTION public.current_profile_role() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_pm() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.is_staff() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_company_member(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.can_access_deal(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_set_user_role(UUID, TEXT) TO authenticated;

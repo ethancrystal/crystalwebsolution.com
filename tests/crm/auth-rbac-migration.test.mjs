@@ -94,6 +94,55 @@ test('0008 isolates legacy CRM reads and removes broad non-admin updates', async
   assert.doesNotMatch(sql, /create policy "Client[^"]*"[\s\S]{0,120}\bfor update\b/i);
 });
 
+test('0008 drops assignment-only task visibility', async () => {
+  const sql = await readFile(migrationPath, 'utf8');
+
+  assert.match(sql, /drop policy if exists "Assigned user can view task" on public\.tasks/i);
+});
+
+test('0008 scopes PM and client task reads through tenant relationships', async () => {
+  const sql = await readFile(migrationPath, 'utf8');
+
+  assert.match(
+    sql,
+    /create policy "Admin can view all tasks" on public\.tasks\s+for select using\s*\(\s*public\.is_admin\(\)\s*\)/i,
+  );
+  assert.match(
+    sql,
+    /create policy "PM can view tasks for assigned deals" on public\.tasks[\s\S]*for select using\s*\([\s\S]*public\.is_pm\(\)[\s\S]*deal_id is not null[\s\S]*from public\.deals[\s\S]*deal\.id\s*=\s*tasks\.deal_id[\s\S]*deal\.company_id\s*=\s*tasks\.company_id[\s\S]*deal\.owner_id\s*=\s*auth\.uid\(\)/i,
+  );
+  assert.match(
+    sql,
+    /create policy "Clients can view company tasks" on public\.tasks[\s\S]*for select using\s*\([\s\S]*public\.is_company_member\(company_id\)[\s\S]*deal_id is null[\s\S]*deal\.id\s*=\s*tasks\.deal_id[\s\S]*deal\.company_id\s*=\s*tasks\.company_id/i,
+  );
+});
+
+test('0008 migrates legacy staff and validates the supported profile roles', async () => {
+  const sql = await readFile(migrationPath, 'utf8');
+
+  assert.match(sql, /update public\.profiles\s+set role = 'project_manager'\s+where role = 'staff'/i);
+  assert.match(
+    sql,
+    /add constraint profiles_role_allowed_check[\s\S]*check\s*\(\s*role::text in\s*\(\s*'client'\s*,\s*'project_manager'\s*,\s*'admin'\s*\)\s*\)\s*not valid/i,
+  );
+  assert.match(
+    sql,
+    /alter table public\.profiles\s+validate constraint profiles_role_allowed_check/i,
+  );
+});
+
+test('0008 keeps the obsolete is_staff helper unavailable to authenticated', async () => {
+  const sql = await readFile(migrationPath, 'utf8');
+  const createdPolicies = sql.match(/create policy[\s\S]*?;/gi) ?? [];
+
+  assert.match(sql, /revoke all on function public\.is_staff\(\) from authenticated/i);
+  assert.doesNotMatch(
+    sql,
+    /grant execute on function public\.is_staff\(\) to authenticated/i,
+  );
+  assert.doesNotMatch(createdPolicies.join('\n'), /public\.is_staff\(\)/i);
+});
+
 test('admin role changes use the profile-authoritative RPC only', async () => {
   const action = await readFile('app/admin/users/actions.js', 'utf8');
   const changeRoleBody = action.slice(action.indexOf('export async function changeUserRole'));
