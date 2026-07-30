@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/browser';
+import { PROJECT_TYPE_OPTIONS } from '@/lib/projectTypes';
 
 // Client-facing "start a project" form. Two paths depending on whether the
 // signed-in client already has a company (profiles.company_id):
@@ -16,7 +17,13 @@ import { createClient } from '@/lib/supabase/browser';
 //   via the existing admin deal edit page.
 export default function BriefSubmissionForm({ hasCompany, onCreated }) {
   const [companyForm, setCompanyForm] = useState({ name: '', email: '' });
-  const [briefForm, setBriefForm] = useState({ title: '', description: '', value: '', target_date: '' });
+  const [briefForm, setBriefForm] = useState({
+    title: '',
+    description: '',
+    value: '',
+    target_date: '',
+    project_type: '',
+  });
   const [companyReady, setCompanyReady] = useState(hasCompany);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -72,13 +79,14 @@ export default function BriefSubmissionForm({ hasCompany, onCreated }) {
         description: briefForm.description || null,
         value: briefForm.value ? Number(briefForm.value) : null,
         expected_close_date: briefForm.target_date || null,
+        project_type: briefForm.project_type || null,
       };
 
       const { data, error } = await supabase.from('deals').insert(payload).select().single();
 
       if (error) throw error;
 
-      setBriefForm({ title: '', description: '', value: '', target_date: '' });
+      setBriefForm({ title: '', description: '', value: '', target_date: '', project_type: '' });
       onCreated?.(data);
     } catch (err) {
       setError(err.message);
@@ -152,6 +160,22 @@ export default function BriefSubmissionForm({ hasCompany, onCreated }) {
                 onChange={(e) => setBriefForm((prev) => ({ ...prev, description: e.target.value }))}
                 rows={4}
               />
+            </div>
+
+            <div className="brief-row">
+              <label htmlFor="brief-project-type">Project type</label>
+              <select
+                id="brief-project-type"
+                value={briefForm.project_type}
+                onChange={(e) => setBriefForm((prev) => ({ ...prev, project_type: e.target.value }))}
+              >
+                <option value="">Select a type...</option>
+                {PROJECT_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="brief-grid">
@@ -241,6 +265,7 @@ export default function BriefSubmissionForm({ hasCompany, onCreated }) {
         }
 
         .brief-row input,
+        .brief-row select,
         .brief-row textarea {
           background: rgba(15, 20, 40, 0.6);
           border: 1px solid rgba(100, 200, 255, 0.2);
@@ -252,6 +277,7 @@ export default function BriefSubmissionForm({ hasCompany, onCreated }) {
         }
 
         .brief-row input:focus,
+        .brief-row select:focus,
         .brief-row textarea:focus {
           outline: none;
           border-color: rgba(100, 200, 255, 0.6);

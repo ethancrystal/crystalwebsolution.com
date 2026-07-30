@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { useUserRole } from '@/lib/useUserRole';
 
 const STATUS_OPTIONS = ['lead', 'prospect', 'customer', 'inactive'];
 
 export default function NewContactPage() {
   const router = useRouter();
+  const { isAdmin, isLoading: isRoleLoading } = useUserRole();
   const [companies, setCompanies] = useState([]);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +47,14 @@ export default function NewContactPage() {
 
     loadCompanies();
   }, []);
+
+  useEffect(() => {
+    // Contact creation is admin-only (0006_admin_only_company_contact_creation.sql)
+    // - a PM landing here would just hit an RLS rejection on submit.
+    if (!isRoleLoading && !isAdmin) {
+      router.replace('/admin/contacts');
+    }
+  }, [isRoleLoading, isAdmin, router]);
 
   function handleChange(field) {
     return (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -89,7 +99,7 @@ export default function NewContactPage() {
     }
   }
 
-  if (isLoadingCompanies) {
+  if (isLoadingCompanies || isRoleLoading || !isAdmin) {
     return (
       <div className="crm-admin-page">
         <div className="crm-loading">Loading...</div>

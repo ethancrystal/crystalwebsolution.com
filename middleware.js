@@ -47,8 +47,17 @@ export async function middleware(request) {
     const userMetadata = user.app_metadata;
     const userRole = userMetadata?.role;
 
-    if (userRole !== 'admin' && userRole !== 'staff') {
+    if (userRole !== 'admin' && userRole !== 'project_manager') {
       return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
+    // /admin/users is account management (create/invite PMs and admins,
+    // change roles) — admin-only, project managers are excluded even
+    // though they otherwise pass the /admin gate above. Primary guard;
+    // app/admin/users/* pages also do a page-level check as defense in
+    // depth.
+    if (request.nextUrl.pathname.startsWith('/admin/users') && userRole !== 'admin') {
+      return NextResponse.redirect(new URL('/admin', request.url));
     }
   }
 

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { useUserRole } from '@/lib/useUserRole';
+import { PROJECT_TYPE_OPTIONS } from '@/lib/projectTypes';
 
 const STAGE_OPTIONS = [
   { value: 'prospecting', label: 'Prospecting' },
@@ -23,10 +25,12 @@ const INITIAL_FORM = {
   stage: 'prospecting',
   probability: '0',
   expected_close_date: '',
+  project_type: '',
 };
 
 export default function NewDealPage() {
   const router = useRouter();
+  const { isAdmin, isLoading: isRoleLoading } = useUserRole();
   const [form, setForm] = useState(INITIAL_FORM);
   const [companies, setCompanies] = useState([]);
   const [contacts, setContacts] = useState([]);
@@ -54,6 +58,15 @@ export default function NewDealPage() {
 
     loadCompanies();
   }, []);
+
+  useEffect(() => {
+    // Deal creation is admin-only (0005_pm_scoping_and_project_type.sql -
+    // "Admin can create deals") - a PM landing here would just hit an RLS
+    // rejection on submit, so redirect before they fill out the form.
+    if (!isRoleLoading && !isAdmin) {
+      router.replace('/admin/deals');
+    }
+  }, [isRoleLoading, isAdmin, router]);
 
   useEffect(() => {
     async function loadContacts() {
@@ -111,6 +124,7 @@ export default function NewDealPage() {
         stage: form.stage,
         probability: form.probability === '' ? 0 : Number(form.probability),
         expected_close_date: form.expected_close_date || null,
+        project_type: form.project_type || null,
         owner_id: user.id,
       };
 
@@ -125,7 +139,7 @@ export default function NewDealPage() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || isRoleLoading || !isAdmin) {
     return (
       <div className="crm-admin-page">
         <div className="crm-loading">Loading...</div>
@@ -254,6 +268,22 @@ export default function NewDealPage() {
                 onChange={(e) => handleChange('expected_close_date', e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="crm-field">
+            <label htmlFor="project_type">Project Type</label>
+            <select
+              id="project_type"
+              value={form.project_type}
+              onChange={(e) => handleChange('project_type', e.target.value)}
+            >
+              <option value="">No type set</option>
+              {PROJECT_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="crm-form-actions">

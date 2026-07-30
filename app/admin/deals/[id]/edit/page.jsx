@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { useUserRole } from '@/lib/useUserRole';
+import { PROJECT_TYPE_OPTIONS } from '@/lib/projectTypes';
 
 const STAGE_OPTIONS = [
   { value: 'prospecting', label: 'Prospecting' },
@@ -18,10 +20,12 @@ export default function EditDealPage() {
   const router = useRouter();
   const params = useParams();
   const { id } = params;
+  const { isAdmin } = useUserRole();
 
   const [form, setForm] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [projectManagers, setProjectManagers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -31,15 +35,27 @@ export default function EditDealPage() {
       try {
         const supabase = createClient();
 
-        const [{ data: dealData, error: dealError }, { data: companiesData, error: companiesError }] =
-          await Promise.all([
-            supabase.from('deals').select('*').eq('id', id).single(),
-            supabase.from('companies').select('id, name').order('name', { ascending: true }),
-          ]);
+        const [
+          { data: dealData, error: dealError },
+          { data: companiesData, error: companiesError },
+          { data: pmData, error: pmError },
+        ] = await Promise.all([
+          supabase.from('deals').select('*').eq('id', id).single(),
+          supabase.from('companies').select('id, name').order('name', { ascending: true }),
+          supabase
+            .from('profiles')
+            .select('id, full_name')
+            .eq('role', 'project_manager')
+            .order('full_name', { ascending: true }),
+        ]);
 
         if (dealError) throw dealError;
         if (companiesError) throw companiesError;
-
+        // Only an admin session can read every PM's profile row (RLS scopes
+        // this to deal participants for anyone else) - a PM editing their
+        // own assigned deal just won't see this list, which is fine since
+        // the assignment control below is admin-only anyway.
+        setProjectManagers(pmError ? [] : pmData || []);
         setCompanies(companiesData || []);
         setForm({
           company_id: dealData.company_id || '',
@@ -50,6 +66,8 @@ export default function EditDealPage() {
           stage: dealData.stage || 'prospecting',
           probability: dealData.probability ?? 0,
           expected_close_date: dealData.expected_close_date || '',
+          owner_id: dealData.owner_id || '',
+          project_type: dealData.project_type || '',
         });
       } catch (err) {
         setError(err.message);
@@ -113,6 +131,8 @@ export default function EditDealPage() {
         stage: form.stage,
         probability: form.probability === '' ? 0 : Number(form.probability),
         expected_close_date: form.expected_close_date || null,
+        owner_id: form.owner_id,
+        project_type: form.project_type || null,
       };
 
       const { error } = await supabase.from('deals').update(payload).eq('id', id);
@@ -255,6 +275,44 @@ export default function EditDealPage() {
                 onChange={(e) => handleChange('expected_close_date', e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="crm-field-row">
+            <div className="crm-field">
+              <label htmlFor="project_type">Project Type</label>
+              <select
+                id="project_type"
+                value={form.project_type}
+                onChange={(e) => handleChange('project_type', e.target.value)}
+              >
+                <option value="">No type set</option>
+                {PROJECT_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {isAdmin && (
+              <div className="crm-field">
+                <label htmlFor="owner_id">Assigned Project Manager</label>
+                <select
+                  id="owner_id"
+                  value={form.owner_id}
+                  onChange={(e) => handleChange('owner_id', e.target.value)}
+                >
+                  {!projectManagers.some((pm) => pm.id === form.owner_id) && (
+                    <option value={form.owner_id}>Current owner (not a PM)</option>
+                  )}
+                  {projectManagers.map((pm) => (
+                    <option key={pm.id} value={pm.id}>
+                      {pm.full_name || pm.id}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="crm-form-actions">

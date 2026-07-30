@@ -1,7 +1,10 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient, buildVerifyUrl } from '@/lib/supabase/admin';
 import { friendlyAuthError } from '@/lib/auth-errors';
+import { sendEmail } from '@/lib/email/resend';
+import { confirmSignupEmail, resetPasswordEmail } from '@/lib/email/templates';
 import { redirect } from 'next/navigation';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
@@ -15,21 +18,37 @@ export async function signUp(formData) {
     return { error: 'Missing required fields' };
   }
 
-  const supabase = await createClient();
+  // Uses generateLink() + Resend instead of the anon client's signUp(),
+  // which would send Supabase's own confirmation email - see
+  // lib/email/resend.js for why every auth-flow email goes through here.
+  const adminClient = createAdminClient();
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await adminClient.auth.admin.generateLink({
+    type: 'signup',
     email,
     password,
     options: {
-      data: {
-        full_name: fullName,
-      },
-      emailRedirectTo: `${APP_URL}/auth/callback?next=/dashboard`,
+      data: { full_name: fullName },
+      redirectTo: `${APP_URL}/auth/callback?next=/dashboard`,
     },
   });
 
   if (error) {
     return { error: friendlyAuthError(error.message) };
+  }
+
+  const { subject, html } = confirmSignupEmail({
+    confirmUrl: buildVerifyUrl({ properties: data.properties, next: '/dashboard' }),
+    fullName,
+  });
+
+  try {
+    await sendEmail({ to: email, subject, html });
+  } catch (sendError) {
+    console.error('Failed to send signup confirmation email:', sendError);
+    return {
+      error: 'Account created, but the confirmation email failed to send. Use "Resend confirmation" to try again.',
+    };
   }
 
   redirect(`/auth/confirm?email=${encodeURIComponent(email)}`);
@@ -91,6 +110,9 @@ export async function getUserProfile() {
   return { user, profile };
 }
 
+// Still on Supabase's built-in resend (not yet migrated to
+// generateLink()/Resend like signUp() above) - it uses Supabase's default
+// confirmation template rather than lib/email/templates.js's branded one.
 export async function resendConfirmationEmail(formData) {
   const email = formData.get('email');
 
@@ -122,14 +144,31 @@ export async function requestPasswordReset(formData) {
     return { error: 'Email is required' };
   }
 
-  const supabase = await createClient();
+  // Uses generateLink() + Resend instead of resetPasswordForEmail(), same
+  // reasoning as signUp() above. resetPasswordForEmail() never revealed
+  // whether an account exists for a given email (anti-enumeration); we
+  // preserve that by always returning success regardless of what
+  // generateLink() reports, and only sending mail when it found a user.
+  const adminClient = createAdminClient();
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${APP_URL}/auth/callback?next=/auth/reset-password`,
+  const { data, error } = await adminClient.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: {
+      redirectTo: `${APP_URL}/auth/callback?next=/auth/reset-password`,
+    },
   });
 
-  if (error) {
-    return { error: friendlyAuthError(error.message) };
+  if (!error) {
+    const { subject, html } = resetPasswordEmail({
+      resetUrl: buildVerifyUrl({ properties: data.properties, next: '/auth/reset-password' }),
+    });
+
+    try {
+      await sendEmail({ to: email, subject, html });
+    } catch (sendError) {
+      console.error('Failed to send password reset email:', sendError);
+    }
   }
 
   return { success: true };

@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { useUserRole } from '@/lib/useUserRole';
 
 export default function CompaniesPage() {
+  const { isAdmin } = useUserRole();
   const [companies, setCompanies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,9 +45,11 @@ export default function CompaniesPage() {
     <div className="crm-admin-page">
       <header className="crm-admin-header">
         <h1>Companies</h1>
-        <Link href="/admin/companies/new" className="crm-button">
-          Add Company
-        </Link>
+        {isAdmin && (
+          <Link href="/admin/companies/new" className="crm-button">
+            Add Company
+          </Link>
+        )}
       </header>
 
       {error && <div className="crm-error">{error}</div>}
@@ -86,9 +90,11 @@ export default function CompaniesPage() {
         ) : (
           <div className="crm-empty-state">
             <p>No companies yet.</p>
-            <Link href="/admin/companies/new" className="crm-button">
-              Create one
-            </Link>
+            {isAdmin && (
+              <Link href="/admin/companies/new" className="crm-button">
+                Create one
+              </Link>
+            )}
           </div>
         )}
       </div>

@@ -50,9 +50,9 @@ const TAG_ROWS = [
 ];
 
 const CONFIG = {
-  title: 'Intelligent Workflows',
+  title: 'One Studio, Every Discipline',
   description:
-    'Automatically categorize and search through your team’s diverse skillsets and project phases with contextual awareness.',
+    'Web design and development, branding and logo, digital marketing, and AI automation — built by one team, so nothing gets lost in a hand-off.',
   containerHeight: 'h-[200px] sm:h-[240px]',
   lensSize: 92,
 };
