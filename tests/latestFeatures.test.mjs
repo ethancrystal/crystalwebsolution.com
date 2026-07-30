@@ -70,7 +70,7 @@ test('compact devices keep WebGL off while reduced motion retains the static fal
   assert.equal(reduced.flyingCarousel, false);
 });
 
-test('phones retain a flying SVG timeline unless motion is reduced', () => {
+test('phones use the static lab layout when the flying carousel is unavailable', () => {
   assert.equal(typeof motionLayoutModule.shouldUseStaticMotionLayout, 'function');
   assert.equal(motionLayoutModule.DEFAULT_MOTION_LAYOUT, 'animated');
   if (!motionLayoutModule.shouldUseStaticMotionLayout) return;
@@ -100,7 +100,7 @@ test('phones retain a flying SVG timeline unless motion is reduced', () => {
       reducedMotion: false,
       flyingCarousel: compact.flyingCarousel,
     }),
-    false,
+    true,
   );
   assert.equal(
     motionLayoutModule.shouldUseStaticMotionLayout({
