@@ -1,5 +1,4 @@
--- Step 3 task 4 decision (plans/crm-roles-project-types.md): under the
--- confirmed "admin assigns" model, a PM has no legitimate reason to
+-- Under the confirmed "admin assigns" model, a PM has no legitimate reason to
 -- originate a new client company or contact any more than they do a deal
 -- or task (0005 already made deal/task creation admin-only). 0005 didn't
 -- touch these two INSERT policies, so PMs could still create companies/

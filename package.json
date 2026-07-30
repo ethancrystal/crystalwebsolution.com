@@ -6,27 +6,34 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "node --test tests/*.test.mjs tests/crm/*.test.mjs",
+    "test:crm": "node --test tests/crm/*.test.mjs",
+    "test:db": "supabase test db",
+    "test:e2e": "playwright test tests/e2e",
+    "crm:verify": "pnpm test:crm && pnpm test:db"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.2.3",
     "@hugeicons/react": "^1.1.9",
-    "@react-three/drei": "^9.114.0",
-    "@react-three/fiber": "^8.17.10",
-    "@react-three/postprocessing": "^2.16.3",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@react-three/postprocessing": "^3.0.4",
     "@supabase/ssr": "^0.4.0",
     "@supabase/supabase-js": "^2.43.0",
     "gsap": "^3.12.5",
     "lenis": "^1.1.14",
     "motion": "^12.42.2",
-    "next": "^14.2.15",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "next": "^15.5.22",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "resend": "^6.18.1",
     "split-type": "^0.3.4",
     "three": "^0.169.0"
   },
   "devDependencies": {
-    "shadcn": "^4.14.1"
+    "@playwright/test": "^1.62.1",
+    "shadcn": "^4.14.1",
+    "supabase": "^2.110.0"
   }
 }

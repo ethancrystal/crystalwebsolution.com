@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import { useUserRole } from '@/lib/useUserRole';
+import { signOut } from '@/app/auth/actions';
 
 export default function AdminDashboard() {
-  const { isAdmin, isPm } = useUserRole();
   const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
   const [stats, setStats] = useState({
     companies: 0,
     contacts: 0,
@@ -25,6 +25,19 @@ export default function AdminDashboard() {
       } = await supabase.auth.getUser();
 
       setUser(user);
+
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      setRole(profile?.role ?? null);
 
       try {
         const [companiesRes, contactsRes, dealsRes, tasksRes] = await Promise.all([
@@ -50,6 +63,9 @@ export default function AdminDashboard() {
     loadData();
   }, []);
 
+  const isAdmin = role === 'admin';
+  const isPm = role === 'project_manager';
+
   if (isLoading) {
     return (
       <div className="crm-admin-dashboard">
@@ -71,9 +87,9 @@ export default function AdminDashboard() {
               Manage Users
             </Link>
           )}
-          <Link href="/api/auth/logout" className="crm-logout-btn">
-            Sign Out
-          </Link>
+          <form action={signOut}>
+            <button type="submit" className="crm-logout-btn">Sign Out</button>
+          </form>
         </div>
       </header>
 
@@ -181,8 +197,8 @@ export default function AdminDashboard() {
           color: #ff9999;
           padding: 0.5rem 1rem;
           border-radius: 6px;
-          text-decoration: none;
           transition: all 0.2s ease;
+          cursor: pointer;
         }
 
         .crm-logout-btn:hover {

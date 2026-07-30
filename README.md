@@ -13,13 +13,17 @@ a mascot that reacts on click) — all copy, visuals and code here are original.
 
 Next.js 14 (App Router, JSX), React Three Fiber + drei, @react-three/postprocessing,
 GSAP + ScrollTrigger, Lenis, SplitType. Plain global CSS with design tokens —
-no Tailwind, no TypeScript, no binary assets (all visuals are code-generated).
+no Tailwind and no TypeScript. Scene and project visuals are code-generated;
+the repository keeps only its served brand-logo and favicon assets.
 
 ## Run
 
 ```bash
-npm install
-npm run dev   # http://localhost:3000
+pnpm install --frozen-lockfile
+pnpm dev        # http://localhost:3000
+pnpm test       # full Node test suite
+pnpm test:crm   # CRM-focused contracts
+pnpm build      # production build
 ```
 
 ## What to look for at each scroll beat

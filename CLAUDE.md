@@ -8,15 +8,24 @@ Crystal Web Solution is a dark, cinematic, scroll-driven agency homepage. The
 whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM
 scrolls over it while a virtual camera flies through one continuous 3D space
 past a refracting crystal, glass showcase slabs, an assembling brand mark,
-and drifting particles. Every visual is code-generated — there are no image
-or video assets anywhere in the repo.
+and drifting particles. Scene and project visuals are code-generated; the
+only static visual assets are the brand logo and application icon.
 
 ## Commands
 
-There is no lint or test script configured in `package.json` — don't invent
-`npm run lint`/`npm test` invocations. Verify changes by running the app in a
-browser (`npm run dev`) and checking `npm run build` completes, since a
-Next.js build is the main signal that routes/imports are correct.
+```bash
+pnpm install --frozen-lockfile
+pnpm dev         # http://localhost:3000
+pnpm test        # full Node test suite
+pnpm test:crm    # CRM-focused contracts
+pnpm build       # production build
+pnpm start       # serve the production build
+```
+
+There is no lint script configured in `package.json`; do not invent one.
+Run the relevant Node tests, verify application changes in a real browser,
+and require `pnpm build` for routes/imports. This repository is pinned to
+pnpm in `package.json`; do not switch package managers.
 
 ## Architecture
 

@@ -1,23 +1,37 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
+import { getPortal, homeForRole, isRoleAllowed, portalForPath } from './lib/auth/roles.mjs';
+
+function redirectWithCookies(url, response) {
+  const redirectResponse = NextResponse.redirect(url);
+  response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+  return redirectResponse;
+}
+
+function portalLoginResponse(request, portalName, response, error) {
+  const portal = getPortal(portalName);
+  const url = new URL(portal?.login ?? '/login', request.url);
+  if (error) url.searchParams.set('error', error);
+  return redirectWithCookies(url, response);
+}
 
 export async function middleware(request) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn(
-      '[middleware] NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY are not set — ' +
-        'skipping auth checks. Auth-protected routes are NOT protected until these are configured.',
-    );
-    return NextResponse.next();
-  }
+  const pathname = request.nextUrl.pathname;
+  const protectedPortal = portalForPath(pathname);
 
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    if (protectedPortal) return portalLoginResponse(request, protectedPortal, response, 'configuration');
+    return response;
+  }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -35,44 +49,41 @@ export async function middleware(request) {
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser();
 
-  // Protect admin routes
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+  if (protectedPortal && (userError || !user)) {
+    return portalLoginResponse(request, protectedPortal, response);
+  }
 
-    // Get user role from auth metadata
-    const userMetadata = user.app_metadata;
-    const userRole = userMetadata?.role;
+  let profile = null;
+  if (user) {
+    const { data, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, role, company_id, full_name')
+      .eq('id', user.id)
+      .single();
 
-    if (userRole !== 'admin' && userRole !== 'project_manager') {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
+    if (!profileError) profile = data;
+  }
 
-    // /admin/users is account management (create/invite PMs and admins,
-    // change roles) — admin-only, project managers are excluded even
-    // though they otherwise pass the /admin gate above. Primary guard;
-    // app/admin/users/* pages also do a page-level check as defense in
-    // depth.
-    if (request.nextUrl.pathname.startsWith('/admin/users') && userRole !== 'admin') {
-      return NextResponse.redirect(new URL('/admin', request.url));
+  const roleHome = profile ? homeForRole(profile.role) : null;
+
+  if (protectedPortal) {
+    if (!profile) return portalLoginResponse(request, protectedPortal, response);
+    if (!isRoleAllowed(protectedPortal, profile.role)) {
+      if (roleHome) return redirectWithCookies(new URL(roleHome, request.url), response);
+      return portalLoginResponse(request, protectedPortal, response);
     }
   }
 
-  // Protect dashboard routes
-  if (request.nextUrl.pathname.startsWith('/dashboard')) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+  const portalName = pathname.startsWith('/login/') ? pathname.split('/')[2] : null;
+  if (roleHome && (pathname === '/login' || ['signup', 'forgot-password'].some((page) => pathname === `/${page}`))) {
+    return redirectWithCookies(new URL(roleHome, request.url), response);
   }
 
-  // Redirect authenticated users away from auth pages
-  if (['/login', '/signup', '/forgot-password'].includes(request.nextUrl.pathname)) {
-    if (user) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
+  if (roleHome && portalName && !isRoleAllowed(portalName, profile.role)) {
+    return redirectWithCookies(new URL(roleHome, request.url), response);
   }
 
   return response;
@@ -82,7 +93,11 @@ export const config = {
   matcher: [
     '/admin/:path*',
     '/dashboard/:path*',
+    '/team/:path*',
     '/login',
+    '/login/client',
+    '/login/employee',
+    '/login/admin',
     '/signup',
     '/forgot-password',
   ],

@@ -1,5 +1,5 @@
--- Fixes the gap flagged in plans/crm-roles-project-types.md (lines 326-333):
--- "Any authenticated user can create notes" (0001) has no company_id/deal_id
+-- Fixes the legacy gap where "Any authenticated user can create notes"
+-- (0001) has no company_id/deal_id
 -- scoping. Any authenticated session, including role='client', could insert
 -- a note against an arbitrary deal_id/company_id it has no relationship to.
 -- No app-code change required: NotesPanel.jsx is only rendered from
