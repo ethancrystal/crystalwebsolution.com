@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git clone *)",
+      "Bash(mv crystalwebsolution.com/* crystalwebsolution.com/.git crystalwebsolution.com/.[!.]* . 2>/dev/null; rmdir crystalwebsolution.com && ls -A)",
+      "Bash(npm install *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Keep nav logo wordmark visible on narrow viewports *)",
+      "Bash(git config *)",
+      "Bash(git push *)",
+      "Bash(find \"C:/Users/Sales/AppData/Local/Temp/claude\" \"C:/Users/Sales/Downloads\" -maxdepth 6 \\\\\\( -iname \"*.png\" -o -iname \"*.jpg\" -o -iname \"*.jpeg\" -o -iname \"*.webp\" \\\\\\) -mmin -120 2>/dev/null | head -20)",
+      "Bash(node -e ' *)",
+      "Bash(ffmpeg -y -i /home/sales/crystalwebsolution-main/crystalwebsolution-main/assets/cws-logo.mp4 -vf 'select=eq\\(n\\\\,0\\)' -frames:v 1 /home/sales/crystalwebsolution-main/crystalwebsolution-main/public/logo-main.png)",
+      "Bash(npm run *)",
+      "Bash(npm ci *)",
+      "Bash(find /tmp/claude-1000 /home/sales -maxdepth 4 -iname \"*.png\" -newermt \"today\" -not -path \"*/node_modules/*\" 2>/dev/null | head; ls -lat /tmp/claude-1000/-home-sales-crystalwebsolution-main-crystalwebsolution-main/c3fec591-1534-424b-b742-29dd13a4ff21/scratchpad/ 2>/dev/null | head)",
+      "Bash(find /home/sales/.claude /tmp -maxdepth 6 \\\\\\( -iname \"*paste*\" -o -iname \"*.png\" -o -iname \"*.jpg\" -o -iname \"*.jpeg\" -o -iname \"*.webp\" \\\\\\) -newermt \"2026-07-14 13:00\" 2>/dev/null | grep -v node_modules | head -20)",
+      "Bash(file /home/sales/crystalwebsolution-main/crystalwebsolution-main/public/*)",
+      "Bash(identify /home/sales/crystalwebsolution-main/crystalwebsolution-main/public/*)",
+      "Bash(break)",
+      "mcp__393e676c-3684-4fe1-86ed-6e3a3313095b__get_me",
+      "mcp__393e676c-3684-4fe1-86ed-6e3a3313095b__search_repositories",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git fetch *)"
+    ]
+  }
+}

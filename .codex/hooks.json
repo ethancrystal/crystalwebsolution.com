@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'C:\\Users\\Sales\\Documents\\crystal-web-solution\\crystalwebsolution\\.codex\\hooks\\session-start.sh'"
+          }
+        ]
+      }
+    ]
+  }
+}

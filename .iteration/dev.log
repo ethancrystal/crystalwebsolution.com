@@ -1,0 +1,18 @@
+
+> crystal-web-solution@1.0.0 dev
+> next dev
+
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 3.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 16.1s (1903 modules)
+ GET / 200 in 17265ms
+ ✓ Compiled in 1870ms (1862 modules)
+ ✓ Compiled in 921ms (1862 modules)
+ ✓ Compiled in 1186ms (1876 modules)
+ GET / 200 in 298ms
+ ✓ Compiled in 2.6s (1862 modules)
+ GET / 200 in 3538ms
