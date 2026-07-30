@@ -8,8 +8,9 @@ export function generateStaticParams() {
   return PROJECTS.map((project) => ({ slug: project.slug }));
 }
 
-export function generateMetadata({ params }) {
-  const project = getProject(params.slug);
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const project = getProject(slug);
   if (!project) return { title: SITE.name };
 
   const description = project.summary.length > 157
@@ -33,8 +34,9 @@ export function generateMetadata({ params }) {
   };
 }
 
-export default function CaseStudy({ params }) {
-  const project = getProject(params.slug);
+export default async function CaseStudy({ params }) {
+  const { slug } = await params;
+  const project = getProject(slug);
   if (!project) notFound();
 
   const index = PROJECTS.findIndex((item) => item.slug === project.slug);
