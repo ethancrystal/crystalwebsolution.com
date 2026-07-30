@@ -1,7 +1,9 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient, buildVerifyUrl } from '@/lib/supabase/admin';
+import { sendEmail } from '@/lib/email/resend';
+import { inviteUserEmail } from '@/lib/email/templates';
 import { redirect } from 'next/navigation';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
@@ -22,9 +24,12 @@ async function requireAdmin() {
 
 // Account creation is admin-only (0005_pm_scoping_and_project_type.sql -
 // "Admin assign" model, confirmed mid-plan-review). Uses
-// auth.admin.inviteUserByEmail() rather than createUser() so the invited
-// PM/admin sets their own password via the emailed link, matching the
-// self-service password flow app/signup already uses for clients.
+// auth.admin.generateLink({type: 'invite'}) + Resend rather than
+// inviteUserByEmail() (which sends Supabase's own invite email) or
+// createUser() - the invited PM/admin still sets their own password via the
+// emailed link, matching the self-service password flow app/signup already
+// uses for clients. See lib/email/resend.js for why every auth-flow email
+// goes through here.
 export async function inviteUser(formData) {
   await requireAdmin();
 
@@ -41,16 +46,32 @@ export async function inviteUser(formData) {
 
   const adminClient = createAdminClient();
 
-  const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-    data: { full_name: fullName },
-    redirectTo: `${APP_URL}/auth/callback?next=/admin`,
+  const { data, error } = await adminClient.auth.admin.generateLink({
+    type: 'invite',
+    email,
+    options: {
+      data: { full_name: fullName },
+      redirectTo: `${APP_URL}/auth/callback?next=/admin`,
+    },
   });
 
   if (error) {
     return { error: error.message };
   }
 
-  // inviteUserByEmail() has no app_metadata param - set the role in a
+  const { subject, html } = inviteUserEmail({
+    inviteUrl: buildVerifyUrl({ properties: data.properties, next: '/admin' }),
+    fullName,
+    role,
+  });
+
+  try {
+    await sendEmail({ to: email, subject, html });
+  } catch (sendError) {
+    return { error: `Invite created, but the email failed to send: ${sendError.message}` };
+  }
+
+  // generateLink() has no app_metadata param - set the role in a
   // follow-up call. handle_new_user's trigger already created a
   // 'client'-role profiles row for this user by this point; sync both.
   const { error: metaError } = await adminClient.auth.admin.updateUserById(data.user.id, {
