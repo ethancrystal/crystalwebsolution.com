@@ -5,6 +5,7 @@ import { createAdminClient, buildVerifyUrl } from '@/lib/supabase/admin';
 import { friendlyAuthError } from '@/lib/auth-errors';
 import { sendEmail } from '@/lib/email/resend';
 import { confirmSignupEmail, resetPasswordEmail } from '@/lib/email/templates';
+import { getPortal, isRoleAllowed, portalForPath, homeForRole } from '@/lib/auth/roles.mjs';
 import { redirect } from 'next/navigation';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
@@ -55,31 +56,53 @@ export async function signUp(formData) {
 }
 
 export async function signIn(formData) {
+  const portalName = formData.get('portal');
   const email = formData.get('email');
   const password = formData.get('password');
+  const next = formData.get('next');
+  const portal = getPortal(portalName);
 
-  if (!email || !password) {
+  if (!portal || !email || !password) {
     return { error: 'Missing email or password' };
   }
 
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
-  if (error) {
-    return { error: friendlyAuthError(error.message) };
+  if (error || !user) {
+    return { error: friendlyAuthError(error?.message ?? 'Unable to sign in') };
   }
 
-  redirect('/dashboard');
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id, role, company_id, full_name')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile || !isRoleAllowed(portalName, profile.role)) {
+    await supabase.auth.signOut();
+    redirect(`${portal.login}?error=portal`);
+  }
+
+  const isAllowedNext = typeof next === 'string'
+    && next.startsWith('/')
+    && !next.startsWith('//')
+    && isRoleAllowed(portalForPath(next), profile.role);
+
+  redirect(isAllowedNext ? next : homeForRole(profile.role));
 }
 
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect('/');
+  redirect('/login');
 }
 
 export async function getUser() {

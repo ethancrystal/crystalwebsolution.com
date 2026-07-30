@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/browser';
 import BriefSubmissionForm from '@/components/crm/BriefSubmissionForm';
+import { signOut } from '@/app/auth/actions';
+import { homeForRole } from '@/lib/auth/roles.mjs';
 
 const PROJECT_STATUS_LABELS = {
   brief_submitted: 'Brief Submitted',
@@ -53,11 +55,10 @@ export default function DashboardPage() {
 
         setProfile(profileData);
 
-        // A PM/admin landing here (e.g. a stale bookmark) belongs on
-        // /admin, not the client dashboard — that branch assumes
-        // company_id is set, which is null for staff-tier accounts.
+        // A staff account arriving through a stale client bookmark belongs
+        // at its own role home, not on a company-scoped client dashboard.
         if (profileData?.role === 'admin' || profileData?.role === 'project_manager') {
-          router.replace('/admin');
+          router.replace(homeForRole(profileData.role));
           return;
         }
 
@@ -90,9 +91,9 @@ export default function DashboardPage() {
           <h1>CRM Dashboard</h1>
           <p>Welcome, {profile?.full_name || user?.email}</p>
         </div>
-        <Link href="/api/auth/logout" className="crm-logout-btn">
-          Sign Out
-        </Link>
+        <form action={signOut}>
+          <button type="submit" className="crm-logout-btn">Sign Out</button>
+        </form>
       </header>
 
       <div className="crm-dashboard-content">
@@ -173,8 +174,8 @@ export default function DashboardPage() {
           color: #ff9999;
           padding: 0.5rem 1rem;
           border-radius: 6px;
-          text-decoration: none;
           transition: all 0.2s ease;
+          cursor: pointer;
         }
 
         .crm-logout-btn:hover {
