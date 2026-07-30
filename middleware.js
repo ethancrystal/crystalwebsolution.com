@@ -2,11 +2,17 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import { getPortal, homeForRole, isRoleAllowed, portalForPath } from './lib/auth/roles.mjs';
 
-function portalLoginResponse(request, portalName, error) {
+function redirectWithCookies(url, response) {
+  const redirectResponse = NextResponse.redirect(url);
+  response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+  return redirectResponse;
+}
+
+function portalLoginResponse(request, portalName, response, error) {
   const portal = getPortal(portalName);
   const url = new URL(portal?.login ?? '/login', request.url);
   if (error) url.searchParams.set('error', error);
-  return NextResponse.redirect(url);
+  return redirectWithCookies(url, response);
 }
 
 export async function middleware(request) {
@@ -16,16 +22,16 @@ export async function middleware(request) {
   const pathname = request.nextUrl.pathname;
   const protectedPortal = portalForPath(pathname);
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    if (protectedPortal) return portalLoginResponse(request, protectedPortal, 'configuration');
-    return NextResponse.next();
-  }
-
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    if (protectedPortal) return portalLoginResponse(request, protectedPortal, response, 'configuration');
+    return response;
+  }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -47,7 +53,7 @@ export async function middleware(request) {
   } = await supabase.auth.getUser();
 
   if (protectedPortal && (userError || !user)) {
-    return portalLoginResponse(request, protectedPortal);
+    return portalLoginResponse(request, protectedPortal, response);
   }
 
   let profile = null;
@@ -61,21 +67,23 @@ export async function middleware(request) {
     if (!profileError) profile = data;
   }
 
+  const roleHome = profile ? homeForRole(profile.role) : null;
+
   if (protectedPortal) {
-    if (!profile) return portalLoginResponse(request, protectedPortal);
+    if (!profile) return portalLoginResponse(request, protectedPortal, response);
     if (!isRoleAllowed(protectedPortal, profile.role)) {
-      const home = homeForRole(profile.role);
-      return NextResponse.redirect(new URL(home ?? '/login', request.url));
+      if (roleHome) return redirectWithCookies(new URL(roleHome, request.url), response);
+      return portalLoginResponse(request, protectedPortal, response);
     }
   }
 
   const portalName = pathname.startsWith('/login/') ? pathname.split('/')[2] : null;
-  if (profile && (pathname === '/login' || ['signup', 'forgot-password'].some((page) => pathname === `/${page}`))) {
-    return NextResponse.redirect(new URL(homeForRole(profile.role) ?? '/login', request.url));
+  if (roleHome && (pathname === '/login' || ['signup', 'forgot-password'].some((page) => pathname === `/${page}`))) {
+    return redirectWithCookies(new URL(roleHome, request.url), response);
   }
 
-  if (profile && portalName && !isRoleAllowed(portalName, profile.role)) {
-    return NextResponse.redirect(new URL(homeForRole(profile.role) ?? '/login', request.url));
+  if (roleHome && portalName && !isRoleAllowed(portalName, profile.role)) {
+    return redirectWithCookies(new URL(roleHome, request.url), response);
   }
 
   return response;

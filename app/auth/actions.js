@@ -5,7 +5,7 @@ import { createAdminClient, buildVerifyUrl } from '@/lib/supabase/admin';
 import { friendlyAuthError } from '@/lib/auth-errors';
 import { sendEmail } from '@/lib/email/resend';
 import { confirmSignupEmail, resetPasswordEmail } from '@/lib/email/templates';
-import { getPortal, isRoleAllowed, portalForPath, homeForRole } from '@/lib/auth/roles.mjs';
+import { getPortal, isRoleAllowed, safeNextForPortal, homeForRole } from '@/lib/auth/roles.mjs';
 import { redirect } from 'next/navigation';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
@@ -91,12 +91,9 @@ export async function signIn(formData) {
     redirect(`${portal.login}?error=portal`);
   }
 
-  const isAllowedNext = typeof next === 'string'
-    && next.startsWith('/')
-    && !next.startsWith('//')
-    && isRoleAllowed(portalForPath(next), profile.role);
+  const allowedNext = safeNextForPortal(portalName, next);
 
-  redirect(isAllowedNext ? next : homeForRole(profile.role));
+  redirect(allowedNext ?? homeForRole(profile.role));
 }
 
 export async function signOut() {

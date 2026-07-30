@@ -3,13 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { signIn } from '@/app/auth/actions';
+import { safeNextForPortal } from '@/lib/auth/roles.mjs';
 
 const PORTAL_ERROR = 'This account cannot sign in to this portal.';
-
-function allowedNext(next, portal) {
-  if (!next || !next.startsWith('/') || next.startsWith('//')) return null;
-  return next === portal.home || next.startsWith(`${portal.home}/`) ? next : null;
-}
+const CONFIGURATION_ERROR = 'Sign-in is temporarily unavailable because authentication is not configured. Please contact support.';
 
 export default function PortalLoginForm({ portal }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,8 +15,10 @@ export default function PortalLoginForm({ portal }) {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    setNext(allowedNext(searchParams.get('next'), portal));
-    setError(searchParams.get('error') ? PORTAL_ERROR : null);
+    const errorCode = searchParams.get('error');
+    const portalName = portal.login.split('/').pop();
+    setNext(safeNextForPortal(portalName, searchParams.get('next')));
+    setError(errorCode === 'configuration' ? CONFIGURATION_ERROR : errorCode ? PORTAL_ERROR : null);
   }, [portal]);
 
   async function handleSubmit(formData) {
