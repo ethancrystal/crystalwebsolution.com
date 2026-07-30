@@ -2,7 +2,7 @@
 -- Additive to 0001-0003 and 0004_project_manager_role.sql - never edit
 -- those files in place once applied.
 --
--- See plans/crm-roles-project-types.md for full rationale (adversarially
+-- The original rationale was adversarially
 -- reviewed against this live schema before finalizing - 9 confirmed issues
 -- fixed, several critical: a naive is_staff() redefinition would have let
 -- a PM self-insert into company_members and gain full access to an
@@ -10,6 +10,8 @@
 -- PM-accessible; migrating profiles.role without also syncing
 -- auth.users.raw_app_meta_data would have locked out every existing staff
 -- account since middleware reads only the JWT claim).
+-- The superseding role/project architecture is recorded in
+-- docs/superpowers/plans/2026-07-30-crm-three-role-project-platform.md.
 
 -- ---------- 1. Migrate role data ----------
 UPDATE public.profiles SET role = 'project_manager' WHERE role = 'staff';

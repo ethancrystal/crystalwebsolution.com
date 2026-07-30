@@ -1,8 +1,16 @@
 # ADR-001: Login and Signup Flow Architecture
 
-**Status:** Accepted — implemented 2026-07-23
+**Status:** Accepted for the Server Action/password-flow decision; role and
+middleware details superseded on 2026-07-30 by
+`docs/superpowers/plans/2026-07-30-crm-three-role-project-platform.md`
 **Date:** 2026-07-23
 **Deciders:** Moiz Jamil
+
+> Historical boundary: retain this ADR for the decision to use Next.js
+> Server Actions and the password/reset/confirmation flow. Do not use its
+> `app_metadata` role-authority or fail-open middleware observations as the
+> current contract. The current implementation authorizes from
+> `profiles.role`, uses three dedicated portals, and fails closed.
 
 ## Context
 

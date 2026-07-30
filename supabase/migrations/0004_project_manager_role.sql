@@ -8,6 +8,7 @@
 -- Postgres 17.6: ALTER TYPE ... ADD VALUE followed by any use of the new
 -- value in the same multi-statement call fails with
 -- 55P04: unsafe use of new value ... must be committed before they can be
--- used. See plans/crm-roles-project-types.md for full rationale.
+-- used. The superseding role/project architecture is recorded in
+-- docs/superpowers/plans/2026-07-30-crm-three-role-project-platform.md.
 
 ALTER TYPE public.user_role ADD VALUE 'project_manager';
