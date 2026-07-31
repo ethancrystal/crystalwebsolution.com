@@ -22,6 +22,19 @@
   - `components/crm/BriefSubmissionForm.jsx` updated to use `createProject` server action
   - `tests/crm/client-workspace.test.mjs` added/updated
 
+- **Task 6: Staff Operations & Safe Test-User Provisioning** — Completed and verified
+  - `app/team/projects/[id]/page.jsx` — employee project workspace with bounded operations
+  - `app/admin/projects/page.jsx` — admin project list with filters
+  - `app/admin/projects/[id]/page.jsx` — admin project detail with lifecycle controls
+  - `tests/crm/staff-workspaces.test.mjs` — staff workspace contract tests
+  - `scripts/provision-crm-test-users.mjs` — idempotent dry-run/execute provisioning
+  - `tests/crm/test-user-provisioning.test.mjs` — provisioning script tests
+  - `package.json` — added `crm:provision-test-users` script
+  - `app/admin/users/actions.js` — hardened invite flow with cleanup on email/role failure
+  - `lib/crm/project-contract.mjs` — added `canViewInternal`
+  - `lib/email/resend.js` — centralized Resend client helper
+  - Verified dry-run: `node scripts/provision-crm-test-users.mjs --dry-run`
+
 ### ✅ Task 3: Project Delivery Aggregate and Command Boundary
 - `lib/crm/project-contract.mjs` — STATUSES, ALLOWED_TRANSITIONS, canTransition
 - `lib/crm/projects.js` — full project module
@@ -36,14 +49,13 @@
 
 ### ✅ Core CRM Modules
 - Companies, Contacts, Deals, Tasks modules and admin pages
-- All CRM tests passing: 42/42 in `pnpm test:crm`
+- All CRM tests passing: 45/45 in `pnpm test:crm`
 
 ### 🚧 In Progress
-- Task 6: Operations, defaults, notifications, and test-user workflow
-- Task 7: Final verification, migration reconciliation, and cleanup
+- Task 7: Responsive integration, notification worker, and release evidence
 
 ### 📋 How to Continue
 1. Check STATUS.md first
-2. Implement Task 6: operations defaults, notifications, and test-user provisioning
+2. Implement Task 7: notifications, responsive contracts, operations docs
 3. Update STATUS.md before ending work session
 4. Run `pnpm test:crm` and `pnpm build` before committing
