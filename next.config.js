@@ -6,6 +6,7 @@ const nextConfig = {
   // Standalone output traces only the node_modules the server actually
   // needs into .next/standalone — required for the slim Docker runner stage.
   output: 'standalone',
+  outputFileTracingRoot: __dirname,
 };
 
 module.exports = nextConfig;

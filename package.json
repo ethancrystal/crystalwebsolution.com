@@ -21,6 +21,7 @@
     "@react-three/postprocessing": "^3.0.4",
     "@supabase/ssr": "^0.4.0",
     "@supabase/supabase-js": "^2.43.0",
+    "caniuse-lite": "^1.0.30001806",
     "gsap": "^3.12.5",
     "lenis": "^1.1.14",
     "motion": "^12.42.2",
