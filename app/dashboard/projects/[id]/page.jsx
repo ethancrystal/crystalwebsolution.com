@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { getProjectWorkspace, listProjectMessages } from '@/lib/crm/projects';
-import { canViewInternal } from '@/lib/crm/project-contract.mjs';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
 import ProjectOverview from '@/components/crm/ProjectOverview';
 import ProjectTimeline from '@/components/crm/ProjectTimeline';
@@ -95,12 +94,6 @@ export default function ClientProjectPage() {
       <ProjectApprovals approvals={workspace.approvals ?? []} />
       <ProjectThread projectId={projectId} role={profile?.role || 'client'} />
       <NotesPanel projectId={projectId} />
-
-      {canViewNotesInternally && (
-        <div className="crm-internal-note">
-          Internal project updates are visible because your role allows internal workspace content.
-        </div>
-      )}
 
       <style jsx>{`
         .crm-project-page {

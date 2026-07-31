@@ -61,6 +61,7 @@ export async function inviteUser(formData) {
   try {
     await sendEmail({ to: email, subject, html });
   } catch (sendError) {
+    await supabase.auth.admin.deleteUser(data.user.id).catch(() => null);
     return { error: `Invite created, but the email failed to send: ${sendError.message}` };
   }
 
@@ -72,6 +73,7 @@ export async function inviteUser(formData) {
   });
 
   if (roleError) {
+    await supabase.auth.admin.deleteUser(data.user.id).catch(() => null);
     return { error: 'Invite sent, but role assignment failed.' };
   }
 
