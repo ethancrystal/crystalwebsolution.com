@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/browser';
+import { listProjectMessages } from '@/lib/crm/projects';
 
 function formatBytes(bytes) {
   if (!bytes && bytes !== 0) return '';
@@ -22,16 +23,9 @@ function formatWhen(value) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// Shared per-project conversation + file-delivery panel: a company's
-// client(s) and the deal's assigned project manager (deals.owner_id) share
-// one thread, scoped by RLS via can_access_deal(deal_id) (see
-// supabase/migrations/0003_project_delivery.sql). Used on both the client's
-// project detail page and the staff-facing admin deal detail page, so
-// replies from either side land in the same place.
-export default function ProjectThread({ dealId }) {
+export default function ProjectThread({ projectId, role }) {
   const [userId, setUserId] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [files, setFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [body, setBody] = useState('');
@@ -41,6 +35,8 @@ export default function ProjectThread({ dealId }) {
   const listEndRef = useRef(null);
 
   const load = useCallback(async () => {
+    if (!projectId) return;
+
     try {
       const supabase = createClient();
 
@@ -49,30 +45,14 @@ export default function ProjectThread({ dealId }) {
       } = await supabase.auth.getUser();
       setUserId(user?.id || null);
 
-      const [messagesRes, filesRes] = await Promise.all([
-        supabase
-          .from('project_messages')
-          .select('*, profiles(full_name)')
-          .eq('deal_id', dealId)
-          .order('created_at', { ascending: true }),
-        supabase
-          .from('project_files')
-          .select('*, profiles(full_name)')
-          .eq('deal_id', dealId)
-          .order('created_at', { ascending: false }),
-      ]);
-
-      if (messagesRes.error) throw messagesRes.error;
-      if (filesRes.error) throw filesRes.error;
-
-      setMessages(messagesRes.data || []);
-      setFiles(filesRes.data || []);
+      const { messages } = await listProjectMessages(supabase, { profile: { role: role || 'client' } }, projectId);
+      setMessages(messages || []);
     } catch (err) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  }, [dealId]);
+  }, [projectId, role]);
 
   useEffect(() => {
     load();
@@ -97,9 +77,15 @@ export default function ProjectThread({ dealId }) {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('You must be signed in to send a message.');
 
-      const { error } = await supabase
-        .from('project_messages')
-        .insert({ deal_id: dealId, sender_id: user.id, body: trimmed });
+      const clientGeneratedId = crypto.randomUUID();
+
+      const { error } = await supabase.from('project_messages').insert({
+        project_id: projectId,
+        sender_id: user.id,
+        body: trimmed,
+        visibility: role === 'client' ? 'shared' : 'shared',
+        client_generated_id: clientGeneratedId,
+      });
 
       if (error) throw error;
 
@@ -126,7 +112,7 @@ export default function ProjectThread({ dealId }) {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('You must be signed in to upload a file.');
 
-      const storagePath = `${dealId}/${crypto.randomUUID()}-${file.name}`;
+      const storagePath = `${projectId}/${crypto.randomUUID()}-${file.name}`;
 
       const { error: uploadError } = await supabase.storage
         .from('project-files')
@@ -134,13 +120,15 @@ export default function ProjectThread({ dealId }) {
 
       if (uploadError) throw uploadError;
 
-      const { error: insertError } = await supabase.from('project_files').insert({
-        deal_id: dealId,
+      const { error: insertError } = await supabase.from('project_attachments').insert({
+        project_id: projectId,
         uploaded_by: user.id,
         file_name: file.name,
         storage_path: storagePath,
-        file_size: file.size,
-        content_type: file.type || null,
+        mime_type: file.type || null,
+        size_bytes: file.size,
+        status: 'ready',
+        visibility: role === 'client' ? 'shared' : 'shared',
       });
 
       if (insertError) throw insertError;
@@ -193,7 +181,7 @@ export default function ProjectThread({ dealId }) {
 
   return (
     <div className="thread-card">
-      <h2 className="thread-title">Conversation &amp; Files</h2>
+      <h2 className="thread-title">Conversation & Files</h2>
 
       {error && <div className="thread-error">{error}</div>}
 
@@ -212,26 +200,27 @@ export default function ProjectThread({ dealId }) {
           </label>
         </div>
 
-        {files.length > 0 ? (
+        {messages.length > 0 && !messages.some((message) => message.attachments?.length) ? null : null}
+        {messages.some((message) => message.attachments?.length) && (
           <ul className="thread-file-list">
-            {files.map((file) => (
-              <li key={file.id} className="thread-file-item">
-                <button
-                  type="button"
-                  className="thread-file-link"
-                  onClick={() => handleDownload(file)}
-                >
-                  {file.file_name}
-                </button>
-                <span className="thread-file-meta">
-                  {formatBytes(file.file_size)} &middot; {file.profiles?.full_name || 'Unknown'} &middot;{' '}
-                  {formatWhen(file.created_at)}
-                </span>
-              </li>
-            ))}
+            {messages
+              .flatMap((message) => message.attachments || [])
+              .map((file) => (
+                <li key={file.id} className="thread-file-item">
+                  <button
+                    type="button"
+                    className="thread-file-link"
+                    onClick={() => handleDownload(file)}
+                  >
+                    {file.file_name}
+                  </button>
+                  <span className="thread-file-meta">
+                    {formatBytes(file.size_bytes)} &middot; {file.uploadedBy?.full_name || 'Unknown'} &middot;{' '}
+                    {formatWhen(file.created_at)}
+                  </span>
+                </li>
+              ))}
           </ul>
-        ) : (
-          <p className="thread-empty">No files shared yet.</p>
         )}
       </div>
 
@@ -243,7 +232,7 @@ export default function ProjectThread({ dealId }) {
               className={`thread-message ${message.sender_id === userId ? 'is-own' : ''}`}
             >
               <div className="thread-message-meta">
-                <strong>{message.profiles?.full_name || 'Unknown'}</strong>
+                <strong>{message.sender?.full_name || 'Unknown'}</strong>
                 <span>{formatWhen(message.created_at)}</span>
               </div>
               <p className="thread-message-body">{message.body}</p>

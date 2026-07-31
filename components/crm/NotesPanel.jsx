@@ -17,12 +17,7 @@ function formatWhen(value) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-// Shared notes panel used on the Companies/Contacts/Deals detail pages.
-// Pass whichever of companyId/contactId/dealId apply to the parent entity;
-// unused ones stay null. Notes RLS (0001_crm_schema.sql) scopes visibility
-// by company_id, so companyId should always be supplied even when the
-// panel is shown on a Contact or Deal detail page.
-export default function NotesPanel({ companyId, contactId = null, dealId = null }) {
+export default function NotesPanel({ projectId }) {
   const [notes, setNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,18 +25,16 @@ export default function NotesPanel({ companyId, contactId = null, dealId = null 
   const [isSaving, setIsSaving] = useState(false);
 
   const load = useCallback(async () => {
+    if (!projectId) return;
+
     try {
       const supabase = createClient();
-      let query = supabase
-        .from('notes')
+      const { data, error } = await supabase
+        .from('project_status_history')
         .select('*, profiles(full_name)')
-        .eq('company_id', companyId)
+        .eq('project_id', projectId)
         .order('created_at', { ascending: false });
 
-      if (contactId) query = query.eq('contact_id', contactId);
-      if (dealId) query = query.eq('deal_id', dealId);
-
-      const { data, error } = await query;
       if (error) throw error;
       setNotes(data || []);
     } catch (err) {
@@ -49,16 +42,16 @@ export default function NotesPanel({ companyId, contactId = null, dealId = null 
     } finally {
       setIsLoading(false);
     }
-  }, [companyId, contactId, dealId]);
+  }, [projectId]);
 
   useEffect(() => {
-    if (companyId) load();
-  }, [companyId, load]);
+    if (projectId) load();
+  }, [projectId, load]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     const trimmed = content.trim();
-    if (!trimmed) return;
+    if (!trimmed || !projectId) return;
 
     setIsSaving(true);
     setError(null);
@@ -70,12 +63,11 @@ export default function NotesPanel({ companyId, contactId = null, dealId = null 
       } = await supabase.auth.getUser();
       if (!user) throw new Error('You must be signed in to add a note.');
 
-      const { error } = await supabase.from('notes').insert({
-        company_id: companyId,
-        contact_id: contactId,
-        deal_id: dealId,
-        content: trimmed,
-        created_by: user.id,
+      const { error } = await supabase.from('project_status_history').insert({
+        project_id: projectId,
+        note: trimmed,
+        visibility: 'shared',
+        changed_by: user.id,
       });
 
       if (error) throw error;
@@ -91,24 +83,23 @@ export default function NotesPanel({ companyId, contactId = null, dealId = null 
 
   return (
     <div className="notes-card">
-      <h2 className="notes-title">Notes</h2>
+      <h2 className="notes-title">Project Updates</h2>
 
       {error && <div className="notes-error">{error}</div>}
-
       <form onSubmit={handleSubmit} className="notes-form">
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Add a note..."
+          placeholder="Add an update..."
           rows={3}
         />
         <button type="submit" className="notes-button" disabled={isSaving || !content.trim()}>
-          {isSaving ? 'Saving...' : 'Add note'}
+          {isSaving ? 'Saving...' : 'Add update'}
         </button>
       </form>
 
       {isLoading ? (
-        <p className="notes-empty">Loading notes...</p>
+        <p className="notes-empty">Loading updates...</p>
       ) : notes.length > 0 ? (
         <ul className="notes-list">
           {notes.map((note) => (
@@ -117,12 +108,12 @@ export default function NotesPanel({ companyId, contactId = null, dealId = null 
                 <strong>{note.profiles?.full_name || 'Unknown'}</strong>
                 <span>{formatWhen(note.created_at)}</span>
               </div>
-              <p className="notes-item-content">{note.content}</p>
+              <p className="notes-item-content">{note.note}</p>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="notes-empty">No notes yet.</p>
+        <p className="notes-empty">No updates yet.</p>
       )}
 
       <style jsx>{`

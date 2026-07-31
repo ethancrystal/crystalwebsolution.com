@@ -1,54 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/browser';
 import { PROJECT_TYPE_OPTIONS } from '@/lib/projectTypes';
+import { createProject } from '@/app/actions/project-actions';
 
-// Client-facing "start a project" form. Two paths depending on whether the
-// signed-in client already has a company (profiles.company_id):
-// - No company yet (brand-new signup): collect a company name/email first
-//   and create it via the onboard_client_company() RPC (see
-//   supabase/migrations/0003_project_delivery.sql) - this runs server-side
-//   as a single transaction so the client never has to touch
-//   profiles.company_id directly, which RLS deliberately blocks.
-// - Company already set: go straight to the brief form. The new deal's
-//   owner_id is set to the submitting client themselves (deals.owner_id is
-//   NOT NULL) until a staff project manager picks it up and reassigns it
-//   via the existing admin deal edit page.
 export default function BriefSubmissionForm({ hasCompany, onCreated }) {
-  const [companyForm, setCompanyForm] = useState({ name: '', email: '' });
   const [briefForm, setBriefForm] = useState({
     title: '',
     description: '',
-    value: '',
     target_date: '',
     project_type: '',
   });
-  const [companyReady, setCompanyReady] = useState(hasCompany);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
-
-  async function handleCompanySubmit(e) {
-    e.preventDefault();
-    setError(null);
-    setIsSubmitting(true);
-
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.rpc('onboard_client_company', {
-        p_name: companyForm.name,
-        p_email: companyForm.email || null,
-      });
-
-      if (error) throw error;
-
-      setCompanyReady(true);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
 
   async function handleBriefSubmit(e) {
     e.preventDefault();
@@ -56,40 +20,23 @@ export default function BriefSubmissionForm({ hasCompany, onCreated }) {
     setIsSubmitting(true);
 
     try {
-      const supabase = createClient();
+      const formData = new FormData();
+      formData.set('title', briefForm.title);
+      formData.set('brief', briefForm.description || '');
+      formData.set('targetDate', briefForm.target_date || '');
+      formData.set('category', briefForm.project_type || '');
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('You must be signed in to submit a brief.');
+      const result = await createProject(formData);
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('company_id')
-        .eq('id', user.id)
-        .single();
+      if (!result.ok) {
+        setError(result.error || 'Unable to submit the brief.');
+        return;
+      }
 
-      if (profileError) throw profileError;
-      if (!profile?.company_id) throw new Error('No company on file yet - refresh and try again.');
-
-      const payload = {
-        company_id: profile.company_id,
-        owner_id: user.id,
-        title: briefForm.title,
-        description: briefForm.description || null,
-        value: briefForm.value ? Number(briefForm.value) : null,
-        expected_close_date: briefForm.target_date || null,
-        project_type: briefForm.project_type || null,
-      };
-
-      const { data, error } = await supabase.from('deals').insert(payload).select().single();
-
-      if (error) throw error;
-
-      setBriefForm({ title: '', description: '', value: '', target_date: '', project_type: '' });
-      onCreated?.(data);
+      setBriefForm({ title: '', description: '', target_date: '', project_type: '' });
+      onCreated?.(result.data);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Unable to submit the brief.');
     } finally {
       setIsSubmitting(false);
     }
@@ -97,116 +44,65 @@ export default function BriefSubmissionForm({ hasCompany, onCreated }) {
 
   return (
     <div className="brief-card">
-      {!companyReady ? (
-        <>
-          <h2 className="brief-title">Set up your company</h2>
-          <p className="brief-sub">
-            Before submitting your first project brief, tell us who you are.
-          </p>
+      <h2 className="brief-title">Start a new project</h2>
+      <p className="brief-sub">Send us your brief and we'll pick it up from here.</p>
 
-          {error && <div className="brief-error">{error}</div>}
+      {error && <div className="brief-error">{error}</div>}
 
-          <form onSubmit={handleCompanySubmit} className="brief-form">
-            <div className="brief-row">
-              <label htmlFor="company-name">Company name *</label>
-              <input
-                id="company-name"
-                type="text"
-                value={companyForm.name}
-                onChange={(e) => setCompanyForm((prev) => ({ ...prev, name: e.target.value }))}
-                required
-              />
-            </div>
+      <form onSubmit={handleBriefSubmit} className="brief-form">
+        <div className="brief-row">
+          <label htmlFor="brief-title">Project title *</label>
+          <input
+            id="brief-title"
+            type="text"
+            value={briefForm.title}
+            onChange={(e) => setBriefForm((prev) => ({ ...prev, title: e.target.value }))}
+            required
+          />
+        </div>
 
-            <div className="brief-row">
-              <label htmlFor="company-email">Company email</label>
-              <input
-                id="company-email"
-                type="email"
-                value={companyForm.email}
-                onChange={(e) => setCompanyForm((prev) => ({ ...prev, email: e.target.value }))}
-              />
-            </div>
+        <div className="brief-row">
+          <label htmlFor="brief-description">Brief</label>
+          <textarea
+            id="brief-description"
+            value={briefForm.description}
+            onChange={(e) => setBriefForm((prev) => ({ ...prev, description: e.target.value }))}
+            rows={4}
+          />
+        </div>
 
-            <button type="submit" className="brief-button" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Continue'}
-            </button>
-          </form>
-        </>
-      ) : (
-        <>
-          <h2 className="brief-title">Start a new project</h2>
-          <p className="brief-sub">Send us your brief and we&apos;ll pick it up from here.</p>
+        <div className="brief-row">
+          <label htmlFor="brief-project-type">Project type</label>
+          <select
+            id="brief-project-type"
+            value={briefForm.project_type}
+            onChange={(e) => setBriefForm((prev) => ({ ...prev, project_type: e.target.value }))}
+          >
+            <option value="">Select a type...</option>
+            {PROJECT_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-          {error && <div className="brief-error">{error}</div>}
+        <div className="brief-grid">
+          <div className="brief-row">
+            <label htmlFor="brief-target-date">Target date</label>
+            <input
+              id="brief-target-date"
+              type="date"
+              value={briefForm.target_date}
+              onChange={(e) => setBriefForm((prev) => ({ ...prev, target_date: e.target.value }))}
+            />
+          </div>
+        </div>
 
-          <form onSubmit={handleBriefSubmit} className="brief-form">
-            <div className="brief-row">
-              <label htmlFor="brief-title">Project title *</label>
-              <input
-                id="brief-title"
-                type="text"
-                value={briefForm.title}
-                onChange={(e) => setBriefForm((prev) => ({ ...prev, title: e.target.value }))}
-                required
-              />
-            </div>
-
-            <div className="brief-row">
-              <label htmlFor="brief-description">Description</label>
-              <textarea
-                id="brief-description"
-                value={briefForm.description}
-                onChange={(e) => setBriefForm((prev) => ({ ...prev, description: e.target.value }))}
-                rows={4}
-              />
-            </div>
-
-            <div className="brief-row">
-              <label htmlFor="brief-project-type">Project type</label>
-              <select
-                id="brief-project-type"
-                value={briefForm.project_type}
-                onChange={(e) => setBriefForm((prev) => ({ ...prev, project_type: e.target.value }))}
-              >
-                <option value="">Select a type...</option>
-                {PROJECT_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="brief-grid">
-              <div className="brief-row">
-                <label htmlFor="brief-value">Budget (USD)</label>
-                <input
-                  id="brief-value"
-                  type="number"
-                  min="0"
-                  value={briefForm.value}
-                  onChange={(e) => setBriefForm((prev) => ({ ...prev, value: e.target.value }))}
-                />
-              </div>
-
-              <div className="brief-row">
-                <label htmlFor="brief-target-date">Target date</label>
-                <input
-                  id="brief-target-date"
-                  type="date"
-                  value={briefForm.target_date}
-                  onChange={(e) => setBriefForm((prev) => ({ ...prev, target_date: e.target.value }))}
-                />
-              </div>
-            </div>
-
-            <button type="submit" className="brief-button" disabled={isSubmitting}>
-              {isSubmitting ? 'Submitting...' : 'Submit brief'}
-            </button>
-          </form>
-        </>
-      )}
+        <button type="submit" className="brief-button" disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'Submit brief'}
+        </button>
+      </form>
 
       <style jsx>{`
         .brief-card {

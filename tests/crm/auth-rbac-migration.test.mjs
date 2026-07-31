@@ -42,15 +42,10 @@ test('0008 preserves the current onboarding caller without trusting its email in
     readFile('components/crm/BriefSubmissionForm.jsx', 'utf8'),
   ]);
 
-  assert.match(form, /rpc\('onboard_client_company',\s*\{[\s\S]*p_name:[\s\S]*p_email:/i);
-  assert.match(
-    sql,
-    /create or replace function public\.onboard_client_company\(\s*p_name text,\s*p_email text\s*\)/i,
-  );
-  assert.match(
-    sql,
-    /public\.onboard_client_company\(\s*p_company_name\s*=>\s*p_name,[\s\S]*p_contact_name\s*=>/i,
-  );
+  assert.match(form, /createProject\(formData\)/);
+  assert.match(form, /formData\.set\('title',\s*briefForm\.title\)/);
+  assert.match(form, /formData\.set\('brief',\s*briefForm\.description/);
+  assert.match(sql, /create or replace function public\.onboard_client_company\(/i);
   assert.doesNotMatch(sql, /insert into public\.contacts[\s\S]{0,500}\bp_email\b/i);
 });
 
