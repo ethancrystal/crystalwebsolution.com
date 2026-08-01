@@ -38,10 +38,14 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="crm-signup-container">
-      <div className="crm-signup-card">
-        <h1>Create Account</h1>
-        <p>Join the CRM and start managing leads</p>
+    <div className="crm-auth-container">
+      <div className="crm-auth-card">
+        <Link href="/" className="crm-auth-mark" aria-label="Crystal Web Solution home">
+          <img src="/crystal-web-solution-icon.svg" alt="" width="647" height="255" />
+        </Link>
+
+        <h1>Create your account</h1>
+        <p>Join Crystal Web Solution and start managing your projects.</p>
 
         <form action={handleSubmit} className="crm-form">
           {error && <div className="crm-error">{error}</div>}
@@ -97,54 +101,77 @@ export default function SignupPage() {
             />
           </div>
 
-          <button type="submit" disabled={isLoading} className="crm-button">
-            {isLoading ? 'Creating account...' : 'Sign Up'}
+          <button type="submit" disabled={isLoading} className="btn btn-solid crm-submit">
+            {isLoading ? 'Creating account…' : 'Sign Up'}
           </button>
         </form>
 
-        <p className="crm-login-link">
+        <p className="crm-auth-footer">
           Already have an account?{' '}
-          <Link href="/login">Sign in</Link>
+          <Link href="/login" className="link-underline">Sign in</Link>
         </p>
       </div>
 
       <style jsx>{`
-        .crm-signup-container {
+        .crm-auth-container {
           display: flex;
           align-items: center;
           justify-content: center;
           min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          font-family: inherit;
+          padding: 2rem 1.5rem;
+          background: var(--bg);
+          background-image: radial-gradient(
+            80% 60% at 50% 0%,
+            rgba(60, 108, 255, 0.14) 0%,
+            rgba(4, 6, 12, 0) 60%
+          );
         }
 
-        .crm-signup-card {
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          border-radius: 12px;
-          padding: 2.5rem;
+        .crm-auth-card {
+          background: rgba(234, 242, 255, 0.03);
+          border: 1px solid var(--line);
+          border-radius: 20px;
+          padding: 2.75rem 2.5rem 2.5rem;
           width: 100%;
-          max-width: 400px;
-          backdrop-filter: blur(10px);
+          max-width: 420px;
+          backdrop-filter: blur(16px);
+          box-shadow: 0 30px 80px rgba(2, 4, 8, 0.55);
         }
 
-        .crm-signup-card h1 {
-          font-size: 1.75rem;
+        .crm-auth-mark {
+          display: block;
+          width: fit-content;
+          margin: 0 auto 1.75rem;
+        }
+
+        .crm-auth-mark img {
+          display: block;
+          height: 40px;
+          width: auto;
+          filter: drop-shadow(0 0 18px rgba(89, 243, 255, 0.35));
+        }
+
+        .crm-auth-card h1 {
+          font-family: var(--font-display);
+          font-size: 1.6rem;
           font-weight: 600;
+          letter-spacing: -0.01em;
           margin-bottom: 0.5rem;
-          color: #e0e0e0;
+          color: var(--ink);
+          text-align: center;
         }
 
-        .crm-signup-card > p {
-          color: #999;
+        .crm-auth-card > p {
+          color: var(--muted);
           margin-bottom: 2rem;
           font-size: 0.95rem;
+          text-align: center;
         }
 
         .crm-form {
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 1.35rem;
         }
 
         .crm-form-group {
@@ -154,31 +181,31 @@ export default function SignupPage() {
         }
 
         .crm-form-group label {
-          color: #ccc;
-          font-size: 0.9rem;
+          color: var(--ink);
+          font-size: 0.85rem;
           font-weight: 500;
         }
 
         .crm-hint {
-          color: #777;
+          color: var(--muted);
           font-size: 0.8rem;
         }
 
         .crm-form-group input {
-          padding: 0.75rem;
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          border-radius: 6px;
-          background: rgba(15, 20, 40, 0.6);
-          color: #e0e0e0;
+          padding: 0.8rem 0.9rem;
+          border: 1px solid var(--line);
+          border-radius: 10px;
+          background: rgba(4, 6, 12, 0.6);
+          color: var(--ink);
+          font-family: var(--font-body);
           font-size: 0.95rem;
-          transition: all 0.2s ease;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .crm-form-group input:focus {
           outline: none;
-          border-color: rgba(100, 200, 255, 0.6);
-          background: rgba(20, 25, 45, 0.8);
-          box-shadow: 0 0 8px rgba(100, 200, 255, 0.1);
+          border-color: var(--cyan);
+          box-shadow: 0 0 0 3px rgba(89, 243, 255, 0.12);
         }
 
         .crm-form-group input:disabled {
@@ -187,56 +214,31 @@ export default function SignupPage() {
         }
 
         .crm-error {
-          background: rgba(255, 100, 100, 0.1);
+          background: rgba(255, 100, 100, 0.08);
           border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff9999;
-          padding: 0.75rem;
-          border-radius: 6px;
+          color: #ffb3b3;
+          padding: 0.75rem 0.9rem;
+          border-radius: 10px;
           font-size: 0.9rem;
         }
 
-        .crm-button {
-          padding: 0.75rem;
-          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
-          color: #0a0e27;
-          border: none;
-          border-radius: 6px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          font-size: 0.95rem;
-          text-decoration: none;
-          display: inline-block;
-          text-align: center;
+        .crm-submit {
+          width: 100%;
+          justify-content: center;
+          margin-top: 0.25rem;
         }
 
-        .crm-button:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
-        }
-
-        .crm-button:disabled {
+        .crm-submit:disabled {
           opacity: 0.6;
           cursor: not-allowed;
+          box-shadow: none;
         }
 
-        .crm-login-link {
+        .crm-auth-footer {
           text-align: center;
-          color: #999;
+          color: var(--muted);
           font-size: 0.9rem;
-          margin-top: 1rem;
-        }
-
-        .crm-login-link a {
-          color: #64c8ff;
-          text-decoration: none;
-          font-weight: 500;
-          transition: color 0.2s ease;
-        }
-
-        .crm-login-link a:hover {
-          color: #5bb8ff;
-          text-decoration: underline;
+          margin-top: 1.75rem;
         }
       `}</style>
     </div>

@@ -2495,10 +2495,13 @@ html[data-cws-intro-seen='1'] .loader {
   position: absolute;
   width: clamp(280px, 34vw, 340px);
 }
-.motion-story-card:nth-of-type(1) { top: 0; left: 0; transform: rotate(-6deg); }
-.motion-story-card:nth-of-type(2) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
-.motion-story-card:nth-of-type(3) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
-.motion-story-card:nth-of-type(4) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
+/* .motion-story-track's first child is .motion-story-path-wrap (also a
+   div), so the four .motion-story-card divs are the 2nd-5th div-of-type/
+   nth-child, not the 1st-4th -- these selectors are offset by one to match. */
+.motion-story-card:nth-of-type(2) { top: 0; left: 0; transform: rotate(-6deg); }
+.motion-story-card:nth-of-type(3) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
+.motion-story-card:nth-of-type(4) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
+.motion-story-card:nth-of-type(5) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
 
 .motion-story-card > div {
   background: rgba(255, 255, 255, 0.04);
@@ -2506,18 +2509,18 @@ html[data-cws-intro-seen='1'] .loader {
   border-radius: 24px;
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
 }
-.motion-story-card:first-child > div {
+.motion-story-card:nth-child(2) > div {
   border-color: rgba(89, 243, 255, 0.24);
   box-shadow: 0 20px 50px rgba(89, 243, 255, 0.08);
 }
-.motion-story-card:nth-child(2) > div {
+.motion-story-card:nth-child(3) > div {
   border-color: rgba(192, 132, 252, 0.24);
   box-shadow: 0 20px 50px rgba(192, 132, 252, 0.06);
 }
-.motion-story-card:nth-child(3) > div {
+.motion-story-card:nth-child(4) > div {
   border-color: rgba(89, 243, 255, 0.24);
 }
-.motion-story-card:last-child > div {
+.motion-story-card:nth-child(5) > div {
   border-color: rgba(192, 132, 252, 0.24);
 }
 .motion-story-pin {
@@ -2525,8 +2528,8 @@ html[data-cws-intro-seen='1'] .loader {
   margin: 2rem auto 1.5rem;
   color: rgba(89, 243, 255, 0.9);
 }
-.motion-story-card:nth-child(2) .motion-story-pin,
-.motion-story-card:nth-child(4) .motion-story-pin {
+.motion-story-card:nth-child(3) .motion-story-pin,
+.motion-story-card:nth-child(5) .motion-story-pin {
   color: rgba(192, 132, 252, 0.95);
 }
 .motion-story-inner {
@@ -2534,13 +2537,13 @@ html[data-cws-intro-seen='1'] .loader {
   border-radius: 22px;
   padding: 1.35rem 1.45rem 1.4rem;
 }
-.motion-story-card:nth-child(1) .motion-story-inner,
-.motion-story-card:nth-child(3) .motion-story-inner {
+.motion-story-card:nth-child(2) .motion-story-inner,
+.motion-story-card:nth-child(4) .motion-story-inner {
   background: rgba(89, 243, 255, 0.08);
   border: 1px solid rgba(89, 243, 255, 0.22);
 }
-.motion-story-card:nth-child(2) .motion-story-inner,
-.motion-story-card:nth-child(4) .motion-story-inner {
+.motion-story-card:nth-child(3) .motion-story-inner,
+.motion-story-card:nth-child(5) .motion-story-inner {
   background: rgba(192, 132, 252, 0.08);
   border: 1px solid rgba(192, 132, 252, 0.22);
 }
@@ -2554,8 +2557,8 @@ html[data-cws-intro-seen='1'] .loader {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
-.motion-story-card:nth-child(2) .motion-story-num,
-.motion-story-card:nth-child(4) .motion-story-num {
+.motion-story-card:nth-child(3) .motion-story-num,
+.motion-story-card:nth-child(5) .motion-story-num {
   color: rgba(192, 132, 252, 0.95);
 }
 .motion-story-card {
@@ -2764,10 +2767,13 @@ html[data-cws-intro-seen='1'] .loader {
     overflow: hidden;
     width: clamp(280px, 34vw, 340px);
   }
-  .motion-story-card:nth-of-type(1) { top: 0; left: 0; transform: rotate(-6deg); }
-  .motion-story-card:nth-of-type(2) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
-  .motion-story-card:nth-of-type(3) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
-  .motion-story-card:nth-of-type(4) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
+  /* .motion-story-track's first child is .motion-story-path-wrap (also a
+     div), so the four .motion-story-card divs are the 2nd-5th div-of-type,
+     not the 1st-4th -- these selectors are offset by one to match. */
+  .motion-story-card:nth-of-type(2) { top: 0; left: 0; transform: rotate(-6deg); }
+  .motion-story-card:nth-of-type(3) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
+  .motion-story-card:nth-of-type(4) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
+  .motion-story-card:nth-of-type(5) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
 }
 .motion-story-path { display: block; width: 100%; height: 100%; color: rgba(139, 152, 184, 0.4); }
 .motion-story-card::before {
@@ -2790,13 +2796,13 @@ html[data-cws-intro-seen='1'] .loader {
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
 }
-.motion-story-card:nth-child(1) .motion-story-shell,
-.motion-story-card:nth-child(3) .motion-story-shell {
+.motion-story-card:nth-child(2) .motion-story-shell,
+.motion-story-card:nth-child(4) .motion-story-shell {
   border-color: rgba(89, 243, 255, 0.24);
   box-shadow: 0 20px 50px rgba(89, 243, 255, 0.08);
 }
-.motion-story-card:nth-child(2) .motion-story-shell,
-.motion-story-card:nth-child(4) .motion-story-shell {
+.motion-story-card:nth-child(3) .motion-story-shell,
+.motion-story-card:nth-child(5) .motion-story-shell {
   border-color: rgba(192, 132, 252, 0.24);
   box-shadow: 0 20px 50px rgba(192, 132, 252, 0.06);
 }
@@ -2806,8 +2812,8 @@ html[data-cws-intro-seen='1'] .loader {
   text-align: center;
   color: rgba(89, 243, 255, 0.9);
 }
-.motion-story-card:nth-child(2) .motion-story-pin,
-.motion-story-card:nth-child(4) .motion-story-pin {
+.motion-story-card:nth-child(3) .motion-story-pin,
+.motion-story-card:nth-child(5) .motion-story-pin {
   color: rgba(192, 132, 252, 0.95);
 }
 .motion-story-inner {
@@ -2815,13 +2821,13 @@ html[data-cws-intro-seen='1'] .loader {
   border-radius: 22px;
   padding: 1.35rem 1.45rem 1.4rem;
 }
-.motion-story-card:nth-child(1) .motion-story-inner,
-.motion-story-card:nth-child(3) .motion-story-inner {
+.motion-story-card:nth-child(2) .motion-story-inner,
+.motion-story-card:nth-child(4) .motion-story-inner {
   background: rgba(89, 243, 255, 0.08);
   border: 1px solid rgba(89, 243, 255, 0.22);
 }
-.motion-story-card:nth-child(2) .motion-story-inner,
-.motion-story-card:nth-child(4) .motion-story-inner {
+.motion-story-card:nth-child(3) .motion-story-inner,
+.motion-story-card:nth-child(5) .motion-story-inner {
   background: rgba(192, 132, 252, 0.08);
   border: 1px solid rgba(192, 132, 252, 0.22);
 }
@@ -2835,8 +2841,8 @@ html[data-cws-intro-seen='1'] .loader {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
-.motion-story-card:nth-child(2) .motion-story-num,
-.motion-story-card:nth-child(4) .motion-story-num {
+.motion-story-card:nth-child(3) .motion-story-num,
+.motion-story-card:nth-child(5) .motion-story-num {
   color: rgba(192, 132, 252, 0.95);
 }
 .motion-story-title {
