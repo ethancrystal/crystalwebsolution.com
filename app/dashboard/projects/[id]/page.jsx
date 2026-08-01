@@ -83,7 +83,7 @@ export default function ClientProjectPage() {
     );
   }
 
-  const canViewNotesInternally = canViewInternal(profile?.role);
+  const canViewNotesInternally = profile?.role === 'project_manager' || profile?.role === 'admin';
 
   return (
     <WorkspaceShell role="client" title={workspace.project.title}>

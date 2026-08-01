@@ -54,9 +54,9 @@ export default function ProjectFiles({ files = [], deliverables = [], canUpload 
             {deliverables.map((item) => (
               <li key={item.id} className="crm-file-item">
                 <div className="crm-file-main">
-                  <span className="crm-file-name">{item.title} v{item.version || '1'}</span>
+                  <span className="crm-file-name">{item.title}</span>
                   <span className="crm-file-meta">
-                    {item.publishedBy?.full_name || 'Unknown'} &middot; {item.published_at ? formatWhen(item.published_at) : '-'}
+                    {item.createdBy?.full_name || 'Unknown'} &middot; {item.created_at ? formatWhen(item.created_at) : '-'}
                   </span>
                 </div>
                 {item.storage_path && (

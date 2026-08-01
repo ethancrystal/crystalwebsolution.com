@@ -12,14 +12,15 @@ export default function ProjectTasks({ tasks = [], readOnly = false }) {
             <li key={task.id} className="crm-task-item">
               <div className="crm-task-main">
                 <span className="crm-task-title">{task.title}</span>
-                <span className="crm-task-status">{task.status}</span>
+                <span className={`crm-task-status ${task.status}`}>{task.status}</span>
               </div>
-              {task.description && (
+              {task.description ? (
                 <p className="crm-task-description">{task.description}</p>
-              )}
+              ) : null}
               <div className="crm-task-meta">
-                <span>Priority: {task.priority || '-'}</span>
-                <span>Due: {task.due_at ? new Date(task.due_at).toLocaleDateString() : '-'}</span>
+                <span>Assignee: {task.assignee?.full_name || 'Unassigned'}</span>
+                <span>Created by: {task.created_by || '-'}</span>
+                <span>Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : '-'}</span>
               </div>
             </li>
           ))}
@@ -73,12 +74,37 @@ export default function ProjectTasks({ tasks = [], readOnly = false }) {
 
         .crm-task-status {
           display: inline-block;
-          background: rgba(100, 200, 255, 0.1);
-          border: 1px solid rgba(100, 200, 255, 0.25);
-          color: #64c8ff;
           padding: 0.2rem 0.65rem;
           border-radius: 999px;
           font-size: 0.8rem;
+          border: 1px solid rgba(100, 200, 255, 0.25);
+          background: rgba(100, 200, 255, 0.1);
+          color: #64c8ff;
+        }
+
+        .crm-task-status.todo {
+          border-color: rgba(160, 180, 220, 0.35);
+          color: #d0d8f0;
+        }
+
+        .crm-task-status.in_progress {
+          border-color: rgba(100, 200, 255, 0.45);
+          color: #64c8ff;
+        }
+
+        .crm-task-status.review {
+          border-color: rgba(255, 200, 100, 0.45);
+          color: #ffd08a;
+        }
+
+        .crm-task-status.done {
+          border-color: rgba(100, 255, 150, 0.45);
+          color: #86ffb2;
+        }
+
+        .crm-task-status.blocked {
+          border-color: rgba(255, 100, 100, 0.45);
+          color: #ff9999;
         }
 
         .crm-task-description {

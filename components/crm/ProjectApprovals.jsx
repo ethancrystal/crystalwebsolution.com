@@ -11,18 +11,18 @@ export default function ProjectApprovals({ approvals = [], canDecide = false }) 
           {approvals.map((approval) => (
             <li key={approval.id} className="crm-approval-item">
               <div className="crm-approval-main">
-                <span className="crm-approval-title">{approval.deliverable?.title || 'Deliverable'}</span>
-                <span className={`crm-approval-decision ${approval.decision || 'pending'}`}>
-                  {approval.decision || 'Pending'}
+                <span className="crm-approval-title">{approval.deliverable_id ? 'Deliverable review' : 'Project approval'}</span>
+                <span className={`crm-approval-decision ${approval.status}`}>
+                  {approval.status}
                 </span>
               </div>
-              {approval.comment && (
-                <p className="crm-approval-comment">{approval.comment}</p>
+              {approval.note && (
+                <p className="crm-approval-comment">{approval.note}</p>
               )}
               <div className="crm-approval-meta">
                 <span>Requested by: {approval.requestedBy?.full_name || 'Unknown'}</span>
-                <span>Decided by: {approval.decidedBy?.full_name || 'Pending'}</span>
-                <span>{approval.decided_at ? new Date(approval.decided_at).toLocaleString() : 'Awaiting decision'}</span>
+                <span>Decided by: {approval.reviewedBy?.full_name || 'Pending'}</span>
+                <span>{approval.updated_at ? new Date(approval.updated_at).toLocaleString() : 'Awaiting decision'}</span>
               </div>
             </li>
           ))}

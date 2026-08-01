@@ -446,3 +446,257 @@ export async function finalizeAttachment(formData) {
   revalidateAllProjectPaths(projectId);
   return success(requestId, { attachmentId: data });
 }
+
+export async function createProjectTask(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to create tasks.');
+
+  const projectId = formString(formData, 'projectId');
+  const title = formString(formData, 'title').trim();
+  const description = optionalFormString(formData, 'description') ?? '';
+  const status = formString(formData, 'status') || 'todo';
+  const assigneeId = optionalFormString(formData, 'assigneeId');
+  const dueDate = optionalFormString(formData, 'dueDate');
+
+  if (!isCanonicalUuid(projectId)) {
+    return invalid(requestId, 'Choose a valid project.');
+  }
+  if (!validBoundedText(title, 1, 255)) {
+    return invalid(requestId, 'Task title must be 1 to 255 characters.');
+  }
+  if (!validBoundedText(description, 0, 10000)) {
+    return invalid(requestId, 'Task description must be at most 10000 characters.');
+  }
+  if (!['todo', 'in_progress', 'review', 'done', 'blocked'].includes(status)) {
+    return invalid(requestId, 'Choose a valid task status.');
+  }
+  if (dueDate !== null && !validDateOnly(dueDate)) {
+    return invalid(requestId, 'Choose a valid due date.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to create this task.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('create_project_task', {
+      p_project_id: projectId,
+      p_title: title,
+      p_description: description,
+      p_status: status,
+      p_assignee_id: assigneeId,
+      p_due_date: dueDate,
+    }),
+  );
+
+  if (error || !isCanonicalUuid(data)) {
+    return databaseFailure(error, requestId, 'Unable to create this task.');
+  }
+
+  revalidateAllProjectPaths(projectId);
+  return success(requestId, { taskId: data });
+}
+
+export async function updateProjectTask(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to update tasks.');
+
+  const taskId = formString(formData, 'taskId');
+  const title = optionalFormString(formData, 'title');
+  const description = optionalFormString(formData, 'description');
+  const status = optionalFormString(formData, 'status');
+  const assigneeId = optionalFormString(formData, 'assigneeId');
+  const dueDate = optionalFormString(formData, 'dueDate');
+
+  if (!isCanonicalUuid(taskId)) {
+    return invalid(requestId, 'Choose a valid task.');
+  }
+  if (title !== null && !validBoundedText(title, 1, 255)) {
+    return invalid(requestId, 'Task title must be 1 to 255 characters.');
+  }
+  if (description !== null && !validBoundedText(description, 0, 10000)) {
+    return invalid(requestId, 'Task description must be at most 10000 characters.');
+  }
+  if (status !== null && !['todo', 'in_progress', 'review', 'done', 'blocked'].includes(status)) {
+    return invalid(requestId, 'Choose a valid task status.');
+  }
+  if (dueDate !== null && !validDateOnly(dueDate)) {
+    return invalid(requestId, 'Choose a valid due date.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to update this task.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('update_project_task', {
+      p_task_id: taskId,
+      p_title: title,
+      p_description: description,
+      p_status: status,
+      p_assignee_id: assigneeId,
+      p_due_date: dueDate,
+    }),
+  );
+
+  if (error || !isCanonicalUuid(data)) {
+    return databaseFailure(error, requestId, 'Unable to update this task.');
+  }
+
+  revalidateAllProjectPaths(data);
+  return success(requestId, { taskId: data });
+}
+
+export async function createProjectApproval(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to request approvals.');
+
+  const projectId = formString(formData, 'projectId');
+  const deliverableId = optionalFormString(formData, 'deliverableId');
+  const note = optionalFormString(formData, 'note');
+
+  if (!isCanonicalUuid(projectId)) {
+    return invalid(requestId, 'Choose a valid project.');
+  }
+  if (deliverableId !== null && !isCanonicalUuid(deliverableId)) {
+    return invalid(requestId, 'Choose a valid deliverable.');
+  }
+  if (note !== null && note.length > 2000) {
+    return invalid(requestId, 'Approval note must be at most 2000 characters.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to request this approval.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('create_project_approval', {
+      p_project_id: projectId,
+      p_deliverable_id: deliverableId,
+      p_note: note,
+    }),
+  );
+
+  if (error || !isCanonicalUuid(data)) {
+    return databaseFailure(error, requestId, 'Unable to request this approval.');
+  }
+
+  revalidateAllProjectPaths(projectId);
+  return success(requestId, { approvalId: data });
+}
+
+export async function updateProjectApproval(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to review approvals.');
+
+  const approvalId = formString(formData, 'approvalId');
+  const status = formString(formData, 'status');
+  const note = optionalFormString(formData, 'note');
+
+  if (!isCanonicalUuid(approvalId)) {
+    return invalid(requestId, 'Choose a valid approval.');
+  }
+  if (!['approved', 'rejected'].includes(status)) {
+    return invalid(requestId, 'Approval status must be approved or rejected.');
+  }
+  if (note !== null && note.length > 2000) {
+    return invalid(requestId, 'Approval note must be at most 2000 characters.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to review this approval.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('update_project_approval', {
+      p_approval_id: approvalId,
+      p_status: status,
+      p_note: note,
+    }),
+  );
+
+  if (error || !isCanonicalUuid(data)) {
+    return databaseFailure(error, requestId, 'Unable to review this approval.');
+  }
+
+  revalidateAllProjectPaths(data);
+  return success(requestId, { approvalId: data });
+}
+
+export async function publishDeliverable(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to publish deliverables.');
+
+  const deliverableId = formString(formData, 'deliverableId');
+  const status = formString(formData, 'status') || 'submitted';
+
+  if (!isCanonicalUuid(deliverableId)) {
+    return invalid(requestId, 'Choose a valid deliverable.');
+  }
+  if (!['submitted', 'approved', 'rejected'].includes(status)) {
+    return invalid(requestId, 'Choose a valid deliverable status.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to publish this deliverable.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('publish_project_deliverable', {
+      p_deliverable_id: deliverableId,
+      p_status: status,
+    }),
+  );
+
+  if (error || !isCanonicalUuid(data)) {
+    return databaseFailure(error, requestId, 'Unable to publish this deliverable.');
+  }
+
+  revalidateAllProjectPaths(data);
+  return success(requestId, { deliverableId: data });
+}
+
+export async function enqueueNotification(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to send notifications.');
+
+  const projectId = formString(formData, 'projectId');
+  const channel = formString(formData, 'channel');
+  const eventType = formString(formData, 'eventType').trim();
+  const payload = optionalFormString(formData, 'payload') ?? '{}';
+  const userId = optionalFormString(formData, 'userId');
+
+  if (!isCanonicalUuid(projectId)) {
+    return invalid(requestId, 'Choose a valid project.');
+  }
+  if (!['email', 'in_app', 'realtime'].includes(channel)) {
+    return invalid(requestId, 'Choose a valid notification channel.');
+  }
+  if (!validBoundedText(eventType, 1, 120)) {
+    return invalid(requestId, 'Event type must be 1 to 120 characters.');
+  }
+
+  let parsedPayload = {};
+  if (payload) {
+    try {
+      parsedPayload = JSON.parse(payload);
+    } catch {
+      return invalid(requestId, 'Notification payload must be valid JSON.');
+    }
+  }
+
+  const client = await actionClient(requestId, 'Unable to enqueue this notification.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('enqueue_project_notification', {
+      p_project_id: projectId,
+      p_channel: channel,
+      p_event_type: eventType,
+      p_payload: parsedPayload,
+      p_user_id: userId,
+    }),
+  );
+
+  if (error || !isCanonicalUuid(data)) {
+    return databaseFailure(error, requestId, 'Unable to enqueue this notification.');
+  }
+
+  revalidateAllProjectPaths(projectId);
+  return success(requestId, { notificationId: data });
+}
