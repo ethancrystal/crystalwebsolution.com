@@ -6,29 +6,39 @@ revoke all on schema private from public;
 grant usage on schema private to authenticated;
 
 -- Never silently discard collaboration rows created through the legacy channel.
+-- Guarded on table existence throughout: a database where the legacy tables
+-- were already retired (e.g. dropped outright by an earlier cleanup) must not
+-- error on tables that are gone, while a fresh install still gets the full
+-- guard-then-rename treatment.
 do $guard$
 begin
-  if exists (select 1 from public.project_messages limit 1)
-     or exists (select 1 from public.project_files limit 1) then
-    raise exception '0009 requires an explicit legacy project message/file data migration';
+  if to_regclass('public.project_messages') is not null then
+    if exists (select 1 from public.project_messages limit 1) then
+      raise exception '0009 requires an explicit legacy project message data migration';
+    end if;
+
+    execute 'drop policy if exists "Deal participants can view messages" on public.project_messages';
+    execute 'drop policy if exists "Deal participants can send messages" on public.project_messages';
+    execute 'drop policy if exists "Staff can delete messages" on public.project_messages';
+    execute 'drop policy if exists "Admin can delete messages" on public.project_messages';
+    execute 'revoke all on table public.project_messages from public, anon, authenticated';
+    execute 'alter table public.project_messages rename to legacy_project_messages';
+  end if;
+
+  if to_regclass('public.project_files') is not null then
+    if exists (select 1 from public.project_files limit 1) then
+      raise exception '0009 requires an explicit legacy project file data migration';
+    end if;
+
+    execute 'drop policy if exists "Deal participants can view files" on public.project_files';
+    execute 'drop policy if exists "Deal participants can upload files" on public.project_files';
+    execute 'drop policy if exists "Staff can delete files" on public.project_files';
+    execute 'drop policy if exists "Admin can delete files" on public.project_files';
+    execute 'revoke all on table public.project_files from public, anon, authenticated';
+    execute 'alter table public.project_files rename to legacy_project_files';
   end if;
 end
 $guard$;
-
-drop policy if exists "Deal participants can view messages" on public.project_messages;
-drop policy if exists "Deal participants can send messages" on public.project_messages;
-drop policy if exists "Staff can delete messages" on public.project_messages;
-drop policy if exists "Admin can delete messages" on public.project_messages;
-drop policy if exists "Deal participants can view files" on public.project_files;
-drop policy if exists "Deal participants can upload files" on public.project_files;
-drop policy if exists "Staff can delete files" on public.project_files;
-drop policy if exists "Admin can delete files" on public.project_files;
-
-revoke all on table public.project_messages from public, anon, authenticated;
-revoke all on table public.project_files from public, anon, authenticated;
-
-alter table public.project_messages rename to legacy_project_messages;
-alter table public.project_files rename to legacy_project_files;
 
 create table public.projects (
   id uuid primary key default gen_random_uuid(),

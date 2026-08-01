@@ -19,22 +19,6 @@ create table public.project_tasks (
   constraint project_tasks_description_check check (char_length(description) <= 10000)
 );
 
-create table public.project_approvals (
-  id uuid primary key default gen_random_uuid(),
-  project_id uuid not null references public.projects(id) on delete cascade,
-  deliverable_id uuid references public.project_deliverables(id) on delete set null,
-  status text not null default 'pending',
-  requested_by uuid not null references public.profiles(id),
-  reviewed_by uuid references public.profiles(id) on delete set null,
-  note text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint project_approvals_status_check check (
-    status in ('pending', 'approved', 'rejected')
-  ),
-  constraint project_approvals_note_check check (note is null or char_length(note) <= 2000)
-);
-
 create table public.project_deliverables (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.projects(id) on delete cascade,
@@ -61,6 +45,22 @@ create table public.project_deliverables (
   constraint project_deliverables_size_check check (size_bytes > 0 and size_bytes <= 52428800)
 );
 
+create table public.project_approvals (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.projects(id) on delete cascade,
+  deliverable_id uuid references public.project_deliverables(id) on delete set null,
+  status text not null default 'pending',
+  requested_by uuid not null references public.profiles(id),
+  reviewed_by uuid references public.profiles(id) on delete set null,
+  note text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint project_approvals_status_check check (
+    status in ('pending', 'approved', 'rejected')
+  ),
+  constraint project_approvals_note_check check (note is null or char_length(note) <= 2000)
+);
+
 create table public.notifications_outbox (
   id uuid primary key default gen_random_uuid(),
   project_id uuid references public.projects(id) on delete cascade,
@@ -76,6 +76,30 @@ create table public.notifications_outbox (
   constraint notifications_outbox_event_type_check check (char_length(btrim(event_type)) between 1 and 120),
   constraint notifications_outbox_payload_check check (jsonb_typeof(payload) = 'object')
 );
+
+-- 0009's audit_events_event_type_check only allowed the aggregate-lifecycle
+-- event types it shipped with; extend it with the Phase 1 workspace events
+-- these new commands log, or every insert below violates the constraint.
+alter table public.audit_events
+  drop constraint audit_events_event_type_check;
+alter table public.audit_events
+  add constraint audit_events_event_type_check check (
+    event_type in (
+      'project.created',
+      'project.user_assigned',
+      'project.assignment_removed',
+      'project.status_transitioned',
+      'project.attachment_reserved',
+      'project.message_posted',
+      'project.attachment_finalized',
+      'project.task_created',
+      'project.task_updated',
+      'project.approval_requested',
+      'project.approval_updated',
+      'project.deliverable_published',
+      'project.notification_enqueued'
+    )
+  );
 
 create index project_tasks_project_idx on public.project_tasks(project_id);
 create index project_tasks_assignee_idx on public.project_tasks(assignee_id);

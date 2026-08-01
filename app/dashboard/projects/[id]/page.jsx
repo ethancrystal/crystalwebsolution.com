@@ -4,7 +4,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import { getProjectWorkspace, listProjectMessages } from '@/lib/crm/projects';
+import {
+  getProjectWorkspace,
+  listNotifications,
+  listProjectApprovals,
+  listProjectDeliverables,
+  listProjectMessages,
+  listProjectTasks,
+} from '@/lib/crm/projects';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
 import ProjectOverview from '@/components/crm/ProjectOverview';
 import ProjectTimeline from '@/components/crm/ProjectTimeline';
@@ -13,12 +20,17 @@ import ProjectFiles from '@/components/crm/ProjectFiles';
 import ProjectApprovals from '@/components/crm/ProjectApprovals';
 import ProjectThread from '@/components/crm/ProjectThread';
 import NotesPanel from '@/components/crm/NotesPanel';
+import NotificationsPanel from '@/components/crm/NotificationsPanel';
 
 export default function ClientProjectPage() {
   const params = useParams();
   const projectId = params?.id;
   const [profile, setProfile] = useState(null);
   const [workspace, setWorkspace] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [approvals, setApprovals] = useState([]);
+  const [deliverables, setDeliverables] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -53,8 +65,19 @@ export default function ClientProjectPage() {
       const viewerProfile = { profile: profileData };
       setProfile(profileData);
 
-      const data = await getProjectWorkspace(supabase, viewerProfile, projectId);
+      const [data, taskList, approvalList, deliverableList, notificationList] = await Promise.all([
+        getProjectWorkspace(supabase, viewerProfile, projectId),
+        listProjectTasks(supabase, viewerProfile, projectId),
+        listProjectApprovals(supabase, viewerProfile, projectId),
+        listProjectDeliverables(supabase, viewerProfile, projectId),
+        listNotifications(supabase, viewerProfile),
+      ]);
+
       setWorkspace(data);
+      setTasks(taskList ?? []);
+      setApprovals(approvalList ?? []);
+      setDeliverables(deliverableList ?? []);
+      setNotifications((notificationList ?? []).filter((notification) => notification.project_id === projectId));
     } catch (err) {
       setError(err.message || 'Unable to load this project.');
     } finally {
@@ -88,10 +111,11 @@ export default function ClientProjectPage() {
   return (
     <WorkspaceShell role="client" title={workspace.project.title}>
       <ProjectOverview project={workspace.project} />
+      <NotificationsPanel notifications={notifications} />
       <ProjectTimeline history={workspace.statusHistory} />
-      <ProjectTasks tasks={workspace.tasks ?? []} readOnly />
-      <ProjectFiles files={workspace.attachments ?? []} deliverables={workspace.deliverables ?? []} canUpload={false} />
-      <ProjectApprovals approvals={workspace.approvals ?? []} />
+      <ProjectTasks tasks={tasks} readOnly />
+      <ProjectFiles files={workspace.attachments ?? []} deliverables={deliverables} canUpload={false} />
+      <ProjectApprovals approvals={approvals} />
       <ProjectThread projectId={projectId} role={profile?.role || 'client'} />
       <NotesPanel projectId={projectId} />
 

@@ -49,7 +49,11 @@ test('0009 creates the complete UUID project aggregate and preserves guarded leg
   assert.match(sql, /source_deal_id uuid unique references public\.deals\(id\)/i);
   assert.match(
     sql,
-    /if exists\s*\(\s*select 1 from public\.project_messages limit 1\s*\)[\s\S]*or exists\s*\(\s*select 1 from public\.project_files limit 1\s*\)[\s\S]*raise exception '0009 requires an explicit legacy project message\/file data migration'/i,
+    /if to_regclass\('public\.project_messages'\) is not null then[\s\S]*?if exists\s*\(\s*select 1 from public\.project_messages limit 1\s*\)[\s\S]*?raise exception '0009 requires an explicit legacy project message data migration'/i,
+  );
+  assert.match(
+    sql,
+    /if to_regclass\('public\.project_files'\) is not null then[\s\S]*?if exists\s*\(\s*select 1 from public\.project_files limit 1\s*\)[\s\S]*?raise exception '0009 requires an explicit legacy project file data migration'/i,
   );
   assert.match(sql, /alter table public\.project_messages rename to legacy_project_messages/i);
   assert.match(sql, /alter table public\.project_files rename to legacy_project_files/i);
