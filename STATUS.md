@@ -1,42 +1,28 @@
 # Crystal Web Solution CRM - Implementation Status
 
-## 📅 Last Updated: 2026-07-31
+## 📅 Last Updated: 2026-08-01
 ## 👤 Last Agent: Hermes (Codex Agent)
 ## 🔗 Current Branch: `main`
+## 🔑 Source of Truth
+- Checked-in migration: `supabase/migrations/0009_project_realtime_crm.sql`
+- Project read boundary: `lib/crm/projects.js`
+- Server actions: `app/actions/project-actions.js`
+- Contract/read-model tests: `tests/crm/*.test.mjs`
 
-### ✅ Recently Completed
-- **Task Management System** — `lib/crm/tasks.js` + `app/admin/tasks/actions.js` added and committed
-- **Project Contract Tests** — `tests/crm/project-contract.test.mjs` added and committed
-- **Task 5: Client Workspace** — Completed and verified
-- **Task 6: Staff Operations & Safe Test-User Provisioning** — Completed and verified
-- **Task 7: Notification Worker, Responsive Contracts, and Operations Docs** — Completed and verified
+### ✅ Completed
+- **Task 5:** Client workspace pages/components wired to bounded project read model
+- **Task 6:** Staff project pages, provisioning script, staff workspace tests, invite hardening
+- **Task 7:** Notification route, notification/responsive contract tests, CRM operations docs
+- **Phase 0 Reconciliation:** Added `tests/crm/project-reconciliation.test.mjs` to validate migration/read-model/action alignment
 
-### ✅ Task 7 Summary
-- `app/api/cron/crm-notifications/route.js` — CRON-secret-guarded notification route
-- `lib/email/resend.js` — centralized Resend email helper
-- `tests/crm/notifications.test.mjs` — notification route contract tests
-- `tests/crm/responsive-contract.test.mjs` — responsive layout contract tests
-- `docs/CRM-OPERATIONS.md` — operations, release, and verification guide
-- Verified `pnpm test:crm` passes: 49/49
-- Verified `pnpm build` passes with new routes
+### ✅ Verification
+- `pnpm test:crm` — 52/52 passing
+- `pnpm build` — production build passes
 
-### ✅ Task 3: Project Delivery Aggregate and Command Boundary
-- `lib/crm/project-contract.mjs` — STATUSES, ALLOWED_TRANSITIONS, canTransition
-- `lib/crm/projects.js` — full project module
-- `app/actions/project-actions.js` — bounded server actions
-- `tests/crm/project-contract.test.mjs` — contract tests passing
-- `tests/crm/project-data.test.mjs` — data boundary tests passing
-- `tests/crm/project-actions.test.mjs` — action boundary tests passing
-
-### ✅ Task 4: Staff Operations & Admin Surfaces
-- `components/crm/ProjectOperations.jsx` — staff-facing operations component
-- Admin project pages/actions use bounded server actions only
-
-### ✅ Core CRM Modules
-- Companies, Contacts, Deals, Tasks modules and admin pages
-- All CRM tests passing: 49/49 in `pnpm test:crm`
+### 🚧 In Progress
+- None pending on the frontend/workspace path
+- Remaining roadmap work, if any, should be validated against the actual checked-in migration above rather than an assumed newer schema
 
 ### 📋 How to Continue
-1. Check STATUS.md first
-2. Run `pnpm test:crm` and `pnpm build` before committing
-3. Update STATUS.md before ending work session
+1. Re-run `pnpm test:crm` and `pnpm build`
+2. Update this file with any new findings/commits before ending the session
