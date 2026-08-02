@@ -24,8 +24,11 @@ pnpm test        # full Node test suite
 pnpm test:crm    # CRM-focused contracts
 pnpm test:db     # Supabase database tests; requires the local stack
 pnpm test:e2e    # planned gate; tests/e2e is not yet checked in
+pnpm crm:verify  # test:crm + test:db together
 pnpm build       # production build
 pnpm start       # serve the production build
+
+pnpm crm:provision-test-users   # scripts/provision-crm-test-users.mjs
 ```
 
 There is no lint script configured in `package.json`; do not invent one.
@@ -46,7 +49,10 @@ anything that touches scroll or animation:
   rather than starting an independent loop.
 - **Per-frame data lives in module-level singleton objects, never React
   state.** `lib/scrollState.js` (`{ progress, velocity, focus }`),
-  `lib/pulse.js` (hero click "blast"), `lib/motionScale.js`, and
+  `lib/pulse.js` (hero click "blast"), `lib/beacon.js` (`{ index }` — the
+  hovered/auto-advanced Services row, read by `ServiceRail`),
+  `lib/pointerState.js` (written only by `CameraRig`, since the fixed Canvas
+  has pointer-events disabled), `lib/motionScale.js`, and
   `lib/motionFlight.mjs` are plain mutable objects: DOM code writes to them, R3F
   components read them inside `useFrame`. This avoids re-render storms for
   values that change dozens of times a second. When adding a new
@@ -106,6 +112,25 @@ move together.
 
 - `lib/easing.js` — named GSAP easing/duration tokens; prefer these over
   inline magic numbers in new choreography.
+- `lib/renderQuality.mjs` is the single render-budget policy: pure
+  `resolveRenderQuality()` maps reduced-motion / save-data / device memory /
+  cores / DPR onto a `high | balanced | eco` tier carrying `animate`,
+  `maxDpr`, `particleCount`, `postprocessing`, and carousel texture widths.
+  `Scene.jsx` reads it through `lib/useRenderQuality.js` and threads
+  `quality.animate` into `ServiceRail` and `ApproachCompass`. A new scene
+  actor with a per-frame cost should accept the same `animate` prop (and any
+  other tier field it needs) rather than inventing its own media queries.
+- `lib/sceneActivity.mjs` owns the "is this beat near enough to be live"
+  window shared by canvas and DOM: `isBeatActive({...})` for cold paths,
+  `isBeatProgressActive(progress, beatId, BEAT_IDS, beatProgress)` as the
+  allocation-free variant for `useFrame`/ticker callbacks. Scroll-driven DOM
+  effects use it so they idle on the same boundaries as their 3D counterpart
+  — see `Services.jsx`'s auto-advance mirroring `ServiceRail`'s `activeStep`.
+- `lib/experienceFeatures.mjs` + `lib/useExperienceFeatures.js` gate the
+  heavier Lab flight layout (`flyingCarousel`) on compact viewports, reduced
+  motion, missing WebGL, or the `?features=legacy` / `?motion=` escape
+  hatches. `components/three/FlyingCarousel.jsx` exists but is not currently
+  mounted; `Lab.jsx` consumes only `lib/flyingCarouselLayout.mjs`.
 
 ## Conventions
 
@@ -118,8 +143,24 @@ move together.
   tokens defined at the top of `app/globals.css` (`--bg`, `--ink`, `--cyan`,
   `--blue`, `--violet`, etc.).
 - Supabase is the live CRM boundary. Application clients live under
-  `lib/supabase/`, CRM reads/writes under `lib/crm/` and `app/actions/`, and
-  canonical SQL lives in `supabase/migrations/0001` through `0011`. Never infer
+  `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL
+  lives in `supabase/migrations/0001` through `0011`. Two data-access shapes
+  coexist deliberately:
+  - **Project delivery** — the newer, contract-tested path. Reads go through
+    `lib/crm/projects.js` against the `lib/crm/project-contract.mjs` shape;
+    writes go through the `'use server'` actions in
+    `app/actions/project-actions.js` (server client + `lib/auth/require-role.js`).
+    Used by `/dashboard`, `/team/projects/[id]`, `/admin/projects`. Extend
+    this path for new delivery work, and keep `tests/crm/` in step.
+  - **Companies / contacts / deals / tasks / users** — client components that
+    call `createClient()` from `lib/supabase/browser.js` and query tables
+    directly, relying on RLS for scoping (the old `lib/crm/companies.js`,
+    `contacts.js`, `deals.js`, `tasks.js` modules were removed in `aa50610`).
+    Don't re-add per-table `lib/crm/` modules for these unless you're actually
+    migrating them onto the contract/server-action path.
+
+  Auth/role mutations live in `app/auth/actions.js`,
+  `app/admin/users/actions.js`, and `app/auth/*/route.js`. Never infer
   database correctness from source tests alone; verify RLS and migration state
   against an isolated database or the approved read-only live boundary.
 
