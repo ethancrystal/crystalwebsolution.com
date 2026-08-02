@@ -38,6 +38,23 @@
   18 public CRM tables with RLS enabled. No database write or deployment was
   performed. Local `test:db` remains unavailable until Docker Desktop runs.
 
+### 📌 Git checkpoint and remote boundary (2026-08-02)
+
+- The reviewed cleanup/auth/documentation checkpoint is commit `aa50610`
+  (`chore: preserve and consolidate repository state`). It contains no merge,
+  rebase, cherry-pick, database write, or deployment.
+- A pre-push fetch found that `origin/main` had independently advanced from
+  `c5a922f` to `540887d` while this checkpoint was being finished. That remote
+  commit changes only `CLAUDE.md` and was not merged or copied into the local
+  checkpoint.
+- Local `main` and `origin/main` therefore each have one unique commit. A
+  force-push is prohibited; the preserved publication target for this exact
+  checkpoint is `origin/codex/repository-cleanup-2026-08-02` until a future,
+  explicitly authorized reconciliation decision is made.
+- The newly requested Services-scene synchronization and responsive navigation
+  overlap repairs were deliberately not mixed into this checkpoint. They remain
+  the next public-UI work after this clean recovery point.
+
 ### 🔀 Branch reconciliation with `origin/main` (2026-08-01)
 
 `origin/main` had diverged with a second, independent implementation of the same feature (commit `5b90c3c`, authored `ethancrystal`, file `supabase/migrations/0009_project_workspace.sql`, "Task 3: Project Delivery Aggregate"). It defined a different schema for the same aggregate: `project_members` instead of `project_assignments`, `create_delivery_project()`/`record_project_approval()` instead of `create_project()`/`update_project_approval()`, auth helpers in `public` instead of `private`.
