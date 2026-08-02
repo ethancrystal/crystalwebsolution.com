@@ -1,5 +1,10 @@
 # Crystal Web Solution — Scroll-Driven Motion Choreography
 
+> **Historical plan — superseded.** This proposal targets an earlier section
+> layout and retains obsolete component names for traceability. It is not the
+> current implementation contract. Use `../AGENTS.md`, `../README.md`, and
+> `../STATUS.md` for current architecture and behavior.
+
 A complete choreography system for the page: hero intro, section transitions, cinematic beats, and a unified motion language grounded in the existing stack (CSS, GSAP ScrollTrigger, Lenis, R3F).
 
 ---
@@ -51,8 +56,9 @@ Keep the existing four tokens; they already cover the site's DNA.
    - Default: `left` for reading sections, `up` for facts.
 
 2. **RisePop** — physical row entry with overshoot.
-   - Component: `RevealPop` (already exists).
-   - Use for Approach rows, Recognition rows.
+   - Historical component: `RevealPop` existed when this choreography was drafted;
+     it was later removed/decommissioned and is not part of the live component surface.
+   - Intended use in this plan: Approach rows, Recognition rows.
 
 3. **StaggerRise** — repeated card/grid rising with stagger.
    - Component: wrap each item in `SectionReveal` with `delay={i * STAGGER_ROW}`.
@@ -182,7 +188,8 @@ Below is a compact spec for each section beyond the patterns already in place.
 
 ### 4.7 Recognition
 
-- Rows use `RevealPop` already.
+- This choreography originally recorded the rows as using `RevealPop`. That component
+  was later removed/decommissioned and is not live.
 - Add `ScrollProgressStroke` to the year badge (`.recognition-year` ring). Hover/click/ring uses the existing `chime` singleton.
 - Interaction: on hover, row lifts `y: -4px` + box-shadow pulse over `DURATION_FAST`. Off-release: `PullBack` style ease.
 

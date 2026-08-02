@@ -71,8 +71,8 @@ export default function Services() {
   // Ghost numeral: a shared, absolutely-positioned marker in the intro/list
   // gutter that glides to track whichever row is hovered — a single tracked
   // element migrating across the list, distinct from the per-card primitives
-  // (BorderGlow/GlyphMask/CardHoverReveal) used elsewhere. Desktop-only, same
-  // pointer/reduced-motion bail as GlyphMask.jsx.
+  // used elsewhere. It remains desktop-only and uses the same pointer and
+  // reduced-motion guard as the rest of the Services interaction.
   useEffect(() => {
     if (
       window.matchMedia('(pointer: coarse)').matches

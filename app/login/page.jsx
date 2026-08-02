@@ -7,7 +7,7 @@ export default function LoginPage() {
     <div className="crm-auth-container">
       <div className="crm-auth-card">
         <Link href="/" className="crm-auth-mark" aria-label="Crystal Web Solution home">
-          <img src="/crystal-web-solution-icon.svg" alt="" width="647" height="255" />
+          <img className="crm-auth-logo" src="/crystal-web-solution-icon.svg" alt="" width="160" height="63" />
         </Link>
 
         <h1>Choose your portal</h1>
@@ -53,16 +53,21 @@ export default function LoginPage() {
           box-shadow: 0 30px 80px rgba(2, 4, 8, 0.55);
         }
 
-        .crm-auth-mark {
-          display: block;
-          width: fit-content;
+        :global(.crm-auth-mark) {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: min(100%, 11rem);
+          padding-inline: 0.5rem;
           margin: 0 auto 1.75rem;
         }
 
-        .crm-auth-mark img {
+        .crm-auth-logo {
           display: block;
-          height: 40px;
-          width: auto;
+          width: 100%;
+          max-width: 100%;
+          height: auto;
+          object-fit: contain;
           filter: drop-shadow(0 0 18px rgba(89, 243, 255, 0.35));
         }
 
@@ -84,7 +89,7 @@ export default function LoginPage() {
         }
 
         .crm-portal-list { display: grid; gap: 0.75rem; margin: 2rem 0 0.5rem; }
-        .crm-portal-link {
+        :global(.crm-portal-link) {
           border: 1px solid var(--line);
           border-radius: 12px;
           color: var(--ink);
@@ -95,10 +100,17 @@ export default function LoginPage() {
           letter-spacing: 0.01em;
           transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease;
         }
-        .crm-portal-link:hover {
+        :global(.crm-portal-link:hover),
+        :global(.crm-portal-link:focus-visible) {
           background: rgba(89, 243, 255, 0.08);
           border-color: var(--cyan);
           color: var(--cyan);
+        }
+
+        :global(.crm-auth-mark:focus-visible),
+        :global(.crm-portal-link:focus-visible) {
+          outline: 2px solid var(--cyan);
+          outline-offset: 4px;
         }
 
         .crm-auth-footer {

@@ -1,5 +1,11 @@
 # Creative-Hive Audit — Full Record & Implementation Tracker
 
+> **Historical snapshot — superseded.** This record describes an earlier
+> eleven-section implementation and its then-proposed work. Names and checklist
+> states below are preserved as design history, not as the current application
+> architecture. Use `../AGENTS.md`, `../README.md`, and `../STATUS.md` for the
+> current nine-beat app and CRM state.
+
 A three-agent creative hive (shared responsibility, not adversarial) audited all 11
 sections of the site, section by section, proposing the best possible animation /
 SVG / graphics upgrades. A single Judge agent then verified every load-bearing claim
@@ -70,7 +76,7 @@ fixed`, which is unreliable under Lenis's transformed scroll wrapper).
 |---|---|
 | Gradient accent lines (Bug A + Bug B, all four lines) | ✅ Done |
 | `SplitType types: 'words,chars'` — kills mid-word wraps ("unforgettab / le.", "No sh / ortcuts.") | ✅ Done |
-| `prefers-reduced-motion` in DecodeText + Reveal (RevealPop already compliant) | ✅ Done |
+| `prefers-reduced-motion` in DecodeText + Reveal (`RevealPop` was compliant in the audited snapshot; later removed/decommissioned) | ✅ Done |
 | Beat-proximity render culling (PRISM's refined version only: materials stay mounted, re-enable ~2.5 beats out while still fogged, cull at ~3, never cull Particles/BackdropMorph) | ⬜ To do — **last**, highest risk |
 
 ---

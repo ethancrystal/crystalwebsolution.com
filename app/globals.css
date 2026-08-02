@@ -1231,10 +1231,6 @@ html[data-cws-intro-seen='1'] .loader {
   gap: 1.6rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  /* Top padding must clear BorderGlow's outward glow (glowRadius, 24px) plus
-     .motion-card's hover lift (0.5rem) — overflow-x: auto here also computes
-     overflow-y to auto, so anything short of that headroom gets clipped the
-     moment a card's glow/lift appears on hover. */
   padding: 2rem 6vw 1.8rem;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -1267,28 +1263,6 @@ html[data-cws-intro-seen='1'] .loader {
   border-color: color-mix(in srgb, var(--rail-accent) 60%, transparent);
 }
 .motion-card:focus-visible { outline: 2px solid var(--rail-accent); outline-offset: 0.3rem; }
-/* Kept for compatibility with experiments that wrap cards in BorderGlow.
-   The live rail renders .motion-card directly, so the card owns the same
-   non-shrinking flex geometry above. */
-.motion-card-glow {
-  flex: 0 0 max(19rem, 22vw);
-  scroll-snap-align: start;
-}
-/* .border-glow (defined later in this file) sets its own static border —
-   this needs to win regardless of source order, since .motion-card already
-   provides the visible border and the dynamic glow lives in .border-glow-mesh. */
-.border-glow.motion-card-glow {
-  border: none;
-}
-/* BorderGlow's content wrapper defaults to overflow: auto (generic
-   scroll-safety for arbitrary children). .motion-card lifts translateY(-0.5rem)
-   on hover — inside an auto-overflow ancestor that lift gets clipped at the
-   top edge instead of rendering, which is the "top of the card crops on
-   hover" bug. Motion's card is a fixed, non-scrolling block, so this override
-   is safe and scoped to just this usage. */
-.motion-card-glow .border-glow-content {
-  overflow: visible;
-}
 .motion-card-index {
   position: absolute;
   right: -0.6rem;
@@ -1339,7 +1313,6 @@ html[data-cws-intro-seen='1'] .loader {
 @media (max-width: 560px) {
   .motion-header { margin-inline: 5vw; }
   .motion-rail { padding-inline: 5vw; }
-  .motion-card-glow { flex-basis: max(17rem, 68vw); }
   .motion-card {
     flex-basis: min(82vw, 20rem);
     min-height: 22rem;
@@ -1347,72 +1320,6 @@ html[data-cws-intro-seen='1'] .loader {
 }
 @media (prefers-reduced-motion: reduce) {
   .motion-card { transition: none; }
-}
-
-/* BorderGlow — static structural styles (dynamic masks/shadows stay inline in the component) */
-.border-glow {
-  position: relative;
-  display: grid;
-  isolation: isolate;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.border-glow-mesh {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  z-index: -1;
-}
-
-.border-glow-content {
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: auto;
-  z-index: 1;
-}
-
-.border-glow-glow {
-  position: absolute;
-  pointer-events: none;
-  z-index: 1;
-  border-radius: inherit;
-}
-
-.border-glow-glow-inner {
-  position: absolute;
-  border-radius: inherit;
-}
-
-/* Motion rail card texture: a pointer-tracked "decrypt" reveal layered
-   under BorderGlow's edge glow (z-index 0 vs. .border-glow-content's 1,
-   painted first in DOM order so the card's own text sits above it without
-   needing an explicit z-index). Pointer-driven only, never autoplays. */
-.glyph-mask {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s ease-out;
-  -webkit-mask-image: radial-gradient(var(--glyph-radius) at var(--glyph-x, 50%) var(--glyph-y, 50%), #000, transparent 100%);
-  mask-image: radial-gradient(var(--glyph-radius) at var(--glyph-x, 50%) var(--glyph-y, 50%), #000, transparent 100%);
-  mix-blend-mode: plus-lighter;
-}
-.glyph-mask-text {
-  position: absolute;
-  inset: 0;
-  display: block;
-  overflow: hidden;
-  padding: 1.9rem 1.75rem;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  line-height: 1.35;
-  letter-spacing: 0.05em;
-  word-break: break-all;
-  opacity: 0.85;
-}
-@media (prefers-reduced-motion: reduce) {
-  .glyph-mask { display: none; }
 }
 
 /* ---------- lab (CWS in motion — services flight) ----------
