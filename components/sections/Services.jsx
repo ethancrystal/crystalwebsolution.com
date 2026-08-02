@@ -6,6 +6,9 @@ import SectionReveal from '../SectionReveal';
 import Marquee from '../Marquee';
 import MagnifiedBento from '../MagnifiedBento';
 import { light, dim } from '../../lib/beacon';
+import { scrollState } from '../../lib/scrollState';
+import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
+import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
 import { STAGGER_ROW, DURATION_FAST, DURATION_NORMAL, EASE_SETTLE } from '../../lib/easing';
 
 // Copy follows the website-app-copy skill: PAS (Problem–Agitation–Solution)
@@ -61,6 +64,9 @@ export default function Services() {
   const moveMarker = useRef(null);
   const fadeMarker = useRef(null);
   const markerPlaced = useRef(false);
+  const rowElsRef = useRef([]);
+  const isHoveringRef = useRef(false);
+  const autoIndexRef = useRef(-1);
 
   // Ghost numeral: a shared, absolutely-positioned marker in the intro/list
   // gutter that glides to track whichever row is hovered — a single tracked
@@ -88,11 +94,20 @@ export default function Services() {
     };
   }, []);
 
-  function focusRow(i, e) {
+  // Shared "activate row i" primitive: moves/fades the ghost marker, lifts
+  // this row's ServiceRail emblem via the beacon singleton, and toggles the
+  // CSS is-active class that mirrors :hover (background shine + title color)
+  // on the row itself. Used by both real pointer hover and the scroll-driven
+  // auto-advance below, so a user who never touches this section with a
+  // mouse still sees every row 01→08 light up in turn as they scroll past.
+  function activateRow(i) {
     light(i);
+    const rows = rowElsRef.current;
+    rows.forEach((el, idx) => el?.classList.toggle('is-active', idx === i));
+
     const list = listRef.current;
-    if (!list || !markerRef.current) return;
-    const rowRect = e.currentTarget.getBoundingClientRect();
+    if (!list || !markerRef.current || !rows[i]) return;
+    const rowRect = rows[i].getBoundingClientRect();
     const listRect = list.getBoundingClientRect();
     const centerY = rowRect.top - listRect.top + rowRect.height / 2;
     if (markerNumRef.current) markerNumRef.current.textContent = SERVICES[i].n;
@@ -105,6 +120,49 @@ export default function Services() {
     fadeMarker.current?.(1);
   }
 
+  function focusRow(i) {
+    isHoveringRef.current = true;
+    activateRow(i);
+  }
+
+  // Scroll-driven auto-advance: a visitor scrolling straight through this
+  // section at speed never hovers a row, so the reveal (marker + beacon
+  // shine) would otherwise only ever fire for whoever stops to point at it.
+  // Mirrors ServiceRail.jsx's own activeStep math exactly (same scrollState/
+  // beatProgress inputs) so the DOM marker and the 3D emblem it lights
+  // advance in lockstep. Bows out entirely while a row is genuinely
+  // hovered — hover always wins, this only fills the gap when it's absent.
+  useEffect(() => {
+    if (
+      window.matchMedia('(pointer: coarse)').matches
+      || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) return undefined;
+
+    rowElsRef.current = listRef.current
+      ? Array.from(listRef.current.querySelectorAll('.service-row'))
+      : [];
+
+    const count = SERVICES.length;
+    const tick = () => {
+      if (isHoveringRef.current) return;
+      if (!isBeatProgressActive(scrollState.progress, 'services', BEAT_IDS, beatProgress)) return;
+
+      const start = beatProgress.services;
+      const end = beatProgress.approach;
+      const span = Math.max(end - start, 0.0001);
+      const ease = Math.min(1, Math.max(0, (scrollState.progress - start) / span));
+      const step = Math.min(count - 1, Math.floor(ease * count));
+
+      if (step !== autoIndexRef.current) {
+        autoIndexRef.current = step;
+        activateRow(step);
+      }
+    };
+
+    gsap.ticker.add(tick);
+    return () => gsap.ticker.remove(tick);
+  }, []);
+
   return (
     <section className="section services" id="services" data-quiet>
       <div className="services-catalogue">
@@ -114,7 +172,18 @@ export default function Services() {
             Focused vision. Measured execution.
           </SectionReveal>
         </div>
-        <div className="services-list" ref={listRef} onPointerLeave={() => fadeMarker.current?.(0)}>
+        <div
+          className="services-list"
+          ref={listRef}
+          onPointerLeave={() => {
+            isHoveringRef.current = false;
+            fadeMarker.current?.(0);
+            // Auto-advance will immediately re-mark the current scroll row on
+            // its next tick; this only matters (and stays cleared) when the
+            // auto effect bailed out for reduced motion / a coarse pointer.
+            rowElsRef.current.forEach((el) => el?.classList.remove('is-active'));
+          }}
+        >
           <div className="service-marker" ref={markerRef} aria-hidden="true">
             <span className="service-marker-num" ref={markerNumRef} />
           </div>
@@ -125,7 +194,7 @@ export default function Services() {
               delay={i * STAGGER_ROW}
               direction="left"
               as="div"
-              onPointerEnter={(e) => focusRow(i, e)}
+              onPointerEnter={() => focusRow(i)}
               onPointerLeave={dim}
             >
               <h3 className="service-title" data-hover data-cursor="✦">

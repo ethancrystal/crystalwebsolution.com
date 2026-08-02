@@ -624,7 +624,8 @@ html[data-cws-intro-seen='1'] .loader {
 @media (max-width: 900px) {
   .service-marker { display: none; }
 }
-.service-row:hover {
+.service-row:hover,
+.service-row.is-active {
   border-color: rgba(89, 243, 255, 0.42);
   background: linear-gradient(90deg, rgba(89, 243, 255, 0.08), rgba(89, 243, 255, 0) 72%);
 }
@@ -633,15 +634,19 @@ html[data-cws-intro-seen='1'] .loader {
   font-size: clamp(1.3rem, 2.6vw, 2rem);
   transition: color 0.3s;
 }
-.service-row:hover .service-title { color: var(--cyan); }
+.service-row:hover .service-title,
+.service-row.is-active .service-title { color: var(--cyan); }
 .service-title-inner { display: inline-block; transition: transform 0.3s; }
-.service-row:hover .service-title-inner { transform: translateX(0.4rem); }
+.service-row:hover .service-title-inner,
+.service-row.is-active .service-title-inner { transform: translateX(0.4rem); }
 .service-desc { color: var(--muted); line-height: 1.7; font-size: 0.95rem; transition: opacity 0.3s; }
-/* Sibling rows dim their secondary text while another row is hovered — a
-   focus cue layered under the existing cyan border/background hover, not
-   replacing it. Row background/border and the light()/dim() 3D beacon are
-   untouched. */
-.services-list:has(.service-row:hover) .service-row:not(:hover) .service-desc {
+/* Sibling rows dim their secondary text while another row is hovered or
+   scroll-auto-advanced (Services.jsx's activateRow — same visual language,
+   just also driven without a pointer) — a focus cue layered under the
+   existing cyan border/background state, not replacing it. Row background/
+   border and the light()/dim() 3D beacon are untouched. */
+.services-list:has(.service-row:hover) .service-row:not(:hover) .service-desc,
+.services-list:has(.service-row.is-active) .service-row:not(.is-active) .service-desc {
   opacity: 0.6;
 }
 .services-marquee { margin-top: 5rem; }
