@@ -94,7 +94,31 @@ export async function changeUserRole(formData) {
     return { ok: false, error: 'Invalid role' };
   }
 
-  const supabase = await createClient();
+  const supabase = createClient();
+
+  // Never let an admin change their own role (avoids self-lockout).
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user && user.id === userId) {
+    return { ok: false, error: 'You cannot change your own role.' };
+  }
+
+  // Refuse if this would leave the organization with zero admins.
+  if (role !== 'admin') {
+    const { data: adminCount, error: countError } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'admin');
+
+    if (countError) {
+      return { ok: false, error: 'Unable to verify admin count.' };
+    }
+    if ((adminCount?.count ?? 0) <= 1) {
+      return { ok: false, error: 'At least one admin must remain.' };
+    }
+  }
+
   const { data, error } = await supabase.rpc('admin_set_user_role', {
     p_user_id: userId,
     p_role: role,

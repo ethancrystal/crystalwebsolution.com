@@ -114,10 +114,10 @@ export default function ClientProjectPage() {
       <NotificationsPanel notifications={notifications} />
       <ProjectTimeline history={workspace.statusHistory} />
       <ProjectTasks tasks={tasks} readOnly />
-      <ProjectFiles files={workspace.attachments ?? []} deliverables={deliverables} canUpload={false} />
+      <ProjectFiles projectId={projectId} files={workspace.attachments ?? []} deliverables={deliverables} canUpload={false} />
       <ProjectApprovals approvals={approvals} />
       <ProjectThread projectId={projectId} role={profile?.role || 'client'} />
-      <NotesPanel projectId={projectId} />
+      <NotesPanel projectId={projectId} status={workspace.project.status} />
 
       <style jsx>{`
         .crm-project-page {

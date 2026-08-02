@@ -19,9 +19,13 @@ test('client workspace: project components are project-scoped, not deal-scoped',
   const thread = await readFile('components/crm/ProjectThread.jsx', 'utf8');
   const notes = await readFile('components/crm/NotesPanel.jsx', 'utf8');
 
-  assert.match(thread, /project_id/);
+  // ProjectThread must route writes through the authorized server action
+  // (postProjectMessage) rather than inserting into project_messages directly.
+  assert.match(thread, /postProjectMessage/);
+  assert.doesNotMatch(thread, /from\('project_messages'\)/);
   assert.doesNotMatch(thread, /deal_id/);
-  assert.match(notes, /project_id/);
+  assert.match(notes, /project_status_history/);
+  assert.match(notes, /visibility/);
   assert.doesNotMatch(notes, /deal_id/);
 });
 

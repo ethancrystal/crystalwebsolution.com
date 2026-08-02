@@ -7,6 +7,14 @@ const SECTION_CLASSES = 'crm-workspace-section';
 export default function WorkspaceShell({ role = 'client', title, children }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
+  const base = role === 'project_manager' ? '/team' : '/dashboard';
+  const navItems = [
+    { label: 'Projects', href: base },
+    { label: 'Overview', href: '#overview' },
+    { label: 'Messages', href: '#messages' },
+    { label: 'Files', href: '#files' },
+  ];
+
   return (
     <div className="crm-workspace">
       <header className="crm-workspace-header">
@@ -27,18 +35,11 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
       <div className="crm-workspace-body">
         <aside className={`crm-workspace-sidebar ${isSidebarOpen ? 'is-open' : ''}`}>
           <nav className="crm-workspace-nav">
-            <a className="crm-workspace-nav-link" href="/dashboard">
-              Projects
-            </a>
-            <a className="crm-workspace-nav-link" href="/dashboard">
-              Overview
-            </a>
-            <a className="crm-workspace-nav-link" href="/dashboard">
-              Messages
-            </a>
-            <a className="crm-workspace-nav-link" href="/dashboard">
-              Files
-            </a>
+            {navItems.map((item) => (
+              <a key={item.label} className="crm-workspace-nav-link" href={item.href}>
+                {item.label}
+              </a>
+            ))}
           </nav>
         </aside>
 

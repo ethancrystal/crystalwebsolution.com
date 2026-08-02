@@ -1,5 +1,9 @@
 'use client';
 
+import { useState } from 'react';
+import { createClient } from '@/lib/supabase/browser';
+import { reserveAttachment, finalizeAttachment } from '@/app/actions/project-actions';
+
 function formatBytes(bytes) {
   if (!bytes && bytes !== 0) return '';
   if (bytes < 1024) return `${bytes} B`;
@@ -19,10 +23,68 @@ function formatWhen(value) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function ProjectFiles({ files = [], deliverables = [], canUpload = false }) {
+export default function ProjectFiles({ projectId, files = [], deliverables = [], canUpload = false }) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const fileInputRef = useState(() => ({ current: null }))[0];
+
+  async function handleDownload(projectFile) {
+    if (!projectFile?.storage_path) return;
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.storage
+        .from('project-files')
+        .createSignedUrl(projectFile.storage_path, 60);
+      if (error) throw error;
+      window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      setUploadError(err.message);
+    }
+  }
+
+  async function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      const reserveForm = new FormData();
+      reserveForm.append('projectId', projectId || '');
+      reserveForm.append('visibility', 'shared');
+      reserveForm.append('fileName', file.name);
+      reserveForm.append('mimeType', file.type || 'application/octet-stream');
+      reserveForm.append('sizeBytes', String(file.size));
+
+      const reservation = await reserveAttachment(reserveForm);
+      if (!reservation?.ok) throw new Error(reservation?.error || 'Unable to reserve this upload.');
+
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage
+        .from('project-files')
+        .upload(reservation.storagePath, file);
+      if (uploadError) throw uploadError;
+
+      const finalizeForm = new FormData();
+      finalizeForm.append('projectId', reservation.projectId);
+      finalizeForm.append('attachmentId', reservation.attachmentId);
+
+      const finalized = await finalizeAttachment(finalizeForm);
+      if (!finalized?.ok) throw new Error(finalized?.error || 'Unable to finalize this upload.');
+    } catch (err) {
+      setUploadError(err.message);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+
   return (
     <div className="crm-project-files">
       <h2>Files</h2>
+      {uploadError && <div className="crm-empty-state crm-file-error">{uploadError}</div>}
+
       {(files.length === 0 && deliverables.length === 0) && (
         <p className="crm-empty-state">No files shared yet.</p>
       )}
@@ -38,9 +100,13 @@ export default function ProjectFiles({ files = [], deliverables = [], canUpload 
                 </span>
               </div>
               {file.storage_path && (
-                <a className="crm-file-link" href={`/api/project-files?path=${encodeURIComponent(file.storage_path)}`}>
+                <button
+                  type="button"
+                  className="crm-file-link"
+                  onClick={() => handleDownload(file)}
+                >
                   Download
-                </a>
+                </button>
               )}
             </li>
           ))}
@@ -60,13 +126,32 @@ export default function ProjectFiles({ files = [], deliverables = [], canUpload 
                   </span>
                 </div>
                 {item.storage_path && (
-                  <a className="crm-file-link" href={`/api/project-files?path=${encodeURIComponent(item.storage_path)}`}>
+                  <button
+                    type="button"
+                    className="crm-file-link"
+                    onClick={() => handleDownload(item)}
+                  >
                     Download
-                  </a>
+                  </button>
                 )}
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {canUpload && (
+        <div className="crm-file-upload">
+          <label className="crm-file-upload-button">
+            {isUploading ? 'Uploading...' : 'Upload file'}
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileChange}
+              disabled={isUploading}
+              hidden
+            />
+          </label>
         </div>
       )}
 
@@ -124,20 +209,48 @@ export default function ProjectFiles({ files = [], deliverables = [], canUpload 
         }
 
         .crm-file-link {
+          background: none;
+          border: 1px solid rgba(100, 200, 255, 0.3);
           color: #64c8ff;
-          text-decoration: none;
+          padding: 0.4rem 0.9rem;
+          border-radius: 6px;
           font-size: 0.9rem;
-          flex-shrink: 0;
+          cursor: pointer;
+          font-family: inherit;
         }
 
         .crm-file-link:hover {
-          text-decoration: underline;
+          background: rgba(100, 200, 255, 0.14);
         }
 
         .crm-deliverables {
           display: flex;
           flex-direction: column;
           gap: 0.6rem;
+        }
+
+        .crm-file-upload {
+          margin-top: 0.5rem;
+        }
+
+        .crm-file-upload-button {
+          display: inline-block;
+          background: rgba(100, 200, 255, 0.1);
+          border: 1px solid rgba(100, 200, 255, 0.3);
+          color: #64c8ff;
+          padding: 0.4rem 0.9rem;
+          border-radius: 6px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .crm-file-upload-button:hover {
+          background: rgba(100, 200, 255, 0.2);
+        }
+
+        .crm-file-error {
+          color: #ff9999;
         }
 
         .crm-empty-state {

@@ -86,9 +86,16 @@ export default function EditContactPage() {
         status: form.status,
       };
 
-      const { error } = await supabase.from('contacts').update(payload).eq('id', id);
+      const { data, error } = await supabase
+        .from('contacts')
+        .update(payload)
+        .eq('id', id)
+        .select();
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('Update failed - no rows changed (check permissions).');
+      }
 
       router.push(`/admin/contacts/${id}`);
     } catch (err) {

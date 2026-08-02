@@ -17,7 +17,7 @@ function formatWhen(value) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export default function NotesPanel({ projectId }) {
+export default function NotesPanel({ projectId, status }) {
   const [notes, setNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,6 +33,7 @@ export default function NotesPanel({ projectId }) {
         .from('project_status_history')
         .select('*, profiles(full_name)')
         .eq('project_id', projectId)
+        .eq('visibility', 'shared')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -65,6 +66,7 @@ export default function NotesPanel({ projectId }) {
 
       const { error } = await supabase.from('project_status_history').insert({
         project_id: projectId,
+        to_status: status || 'brief_submitted',
         note: trimmed,
         visibility: 'shared',
         changed_by: user.id,
@@ -91,6 +93,7 @@ export default function NotesPanel({ projectId }) {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Add an update..."
+          aria-label="Add an update"
           rows={3}
         />
         <button type="submit" className="notes-button" disabled={isSaving || !content.trim()}>

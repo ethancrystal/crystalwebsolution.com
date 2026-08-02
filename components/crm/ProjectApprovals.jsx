@@ -1,9 +1,35 @@
 'use client';
 
+import { useState } from 'react';
+import { updateProjectApproval } from '@/app/actions/project-actions';
+
 export default function ProjectApprovals({ approvals = [], canDecide = false }) {
+  const [busyId, setBusyId] = useState(null);
+  const [error, setError] = useState(null);
+
+  async function decide(approvalId, status) {
+    if (!approvalId) return;
+    setBusyId(approvalId);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('approvalId', approvalId);
+      formData.append('status', status);
+
+      const result = await updateProjectApproval(formData);
+      if (!result?.ok) throw new Error(result?.error || 'Unable to update this approval.');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return (
     <div className="crm-project-approvals">
       <h2>Approvals</h2>
+      {error && <div className="crm-empty-state crm-approval-error">{error}</div>}
       {approvals.length === 0 ? (
         <p className="crm-empty-state">No approval requests yet.</p>
       ) : (
@@ -24,6 +50,26 @@ export default function ProjectApprovals({ approvals = [], canDecide = false }) 
                 <span>Decided by: {approval.reviewedBy?.full_name || 'Pending'}</span>
                 <span>{approval.updated_at ? new Date(approval.updated_at).toLocaleString() : 'Awaiting decision'}</span>
               </div>
+              {canDecide && approval.status === 'pending' && (
+                <div className="crm-approval-actions">
+                  <button
+                    type="button"
+                    className="crm-approval-btn crm-approval-approve"
+                    disabled={busyId === approval.id}
+                    onClick={() => decide(approval.id, 'approved')}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    className="crm-approval-btn crm-approval-reject"
+                    disabled={busyId === approval.id}
+                    onClick={() => decide(approval.id, 'rejected')}
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -116,6 +162,43 @@ export default function ProjectApprovals({ approvals = [], canDecide = false }) 
           color: #999;
           font-size: 0.85rem;
           flex-wrap: wrap;
+        }
+
+        .crm-approval-actions {
+          display: flex;
+          gap: 0.75rem;
+          margin-top: 0.25rem;
+        }
+
+        .crm-approval-btn {
+          border: 1px solid;
+          border-radius: 6px;
+          padding: 0.4rem 1rem;
+          font-weight: 600;
+          font-size: 0.85rem;
+          cursor: pointer;
+          font-family: inherit;
+        }
+
+        .crm-approval-approve {
+          background: rgba(100, 255, 150, 0.1);
+          border-color: rgba(100, 255, 150, 0.35);
+          color: #86ffb2;
+        }
+
+        .crm-approval-reject {
+          background: rgba(255, 100, 100, 0.1);
+          border-color: rgba(255, 100, 100, 0.35);
+          color: #ff9999;
+        }
+
+        .crm-approval-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .crm-approval-error {
+          color: #ff9999;
         }
 
         .crm-empty-state {

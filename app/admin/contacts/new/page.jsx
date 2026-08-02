@@ -119,7 +119,7 @@ export default function NewContactPage() {
       {error && <div className="crm-error">{error}</div>}
 
       <div className="crm-form-container">
-        {companies.length === 0 ? (
+        {!error && companies.length === 0 ? (
           <div className="crm-empty-state">
             <p>You need a company before you can add a contact.</p>
             <Link href="/admin/companies/new" className="crm-button">

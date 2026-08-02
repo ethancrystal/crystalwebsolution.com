@@ -36,7 +36,7 @@ export default function DashboardPage() {
     }
 
     const supabase = createClient();
-    const viewerProfile = { profile: { id: null, role: 'client', company_id: companyId } };
+    const viewerProfile = { profile: { id: user?.id ?? null, role: 'client', company_id: companyId } };
 
     try {
       const projects = await listProjectsForViewer(supabase, viewerProfile);

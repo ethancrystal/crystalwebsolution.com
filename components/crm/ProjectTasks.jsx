@@ -19,7 +19,7 @@ export default function ProjectTasks({ tasks = [], readOnly = false }) {
               ) : null}
               <div className="crm-task-meta">
                 <span>Assignee: {task.assignee?.full_name || 'Unassigned'}</span>
-                <span>Created by: {task.created_by || '-'}</span>
+                <span>Created by: {task.createdBy?.full_name || 'Unknown'}</span>
                 <span>Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : '-'}</span>
               </div>
             </li>

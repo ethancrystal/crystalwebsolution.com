@@ -128,9 +128,16 @@ export default function EditTaskPage() {
         due_date: form.due_date || null,
       };
 
-      const { error } = await supabase.from('tasks').update(payload).eq('id', id);
+      const { data, error } = await supabase
+        .from('tasks')
+        .update(payload)
+        .eq('id', id)
+        .select();
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('Update failed - no rows changed (check permissions).');
+      }
 
       router.push(`/admin/tasks/${id}`);
     } catch (err) {

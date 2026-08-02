@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/browser';
 import { listProjectMessages } from '@/lib/crm/projects';
+import { postProjectMessage, reserveAttachment, finalizeAttachment } from '@/app/actions/project-actions';
 
 function formatBytes(bytes) {
   if (!bytes && bytes !== 0) return '';
@@ -45,7 +46,11 @@ export default function ProjectThread({ projectId, role }) {
       } = await supabase.auth.getUser();
       setUserId(user?.id || null);
 
-      const { messages } = await listProjectMessages(supabase, { profile: { role: role || 'client' } }, projectId);
+      const { messages } = await listProjectMessages(
+        supabase,
+        { profile: { id: user?.id ?? null, role: role || 'client', company_id: profileData?.company_id ?? null } },
+        projectId,
+      );
       setMessages(messages || []);
     } catch (err) {
       setError(err.message);
@@ -71,23 +76,13 @@ export default function ProjectThread({ projectId, role }) {
     setError(null);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('You must be signed in to send a message.');
+      const formData = new FormData();
+      formData.append('projectId', projectId);
+      formData.append('body', trimmed);
+      formData.append('visibility', 'shared');
 
-      const clientGeneratedId = crypto.randomUUID();
-
-      const { error } = await supabase.from('project_messages').insert({
-        project_id: projectId,
-        sender_id: user.id,
-        body: trimmed,
-        visibility: role === 'client' ? 'shared' : 'shared',
-        client_generated_id: clientGeneratedId,
-      });
-
-      if (error) throw error;
+      const result = await postProjectMessage(formData);
+      if (!result?.ok) throw new Error(result?.error || 'Unable to send this message.');
 
       setBody('');
       await load();
@@ -106,32 +101,29 @@ export default function ProjectThread({ projectId, role }) {
     setError(null);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('You must be signed in to upload a file.');
+      const reserveForm = new FormData();
+      reserveForm.append('projectId', projectId);
+      reserveForm.append('visibility', 'shared');
+      reserveForm.append('fileName', file.name);
+      reserveForm.append('mimeType', file.type || 'application/octet-stream');
+      reserveForm.append('sizeBytes', String(file.size));
 
-      const storagePath = `${projectId}/${crypto.randomUUID()}-${file.name}`;
+      const reservation = await reserveAttachment(reserveForm);
+      if (!reservation?.ok) throw new Error(reservation?.error || 'Unable to reserve this upload.');
 
+      const storagePath = reservation.storagePath;
       const { error: uploadError } = await supabase.storage
         .from('project-files')
         .upload(storagePath, file);
 
       if (uploadError) throw uploadError;
 
-      const { error: insertError } = await supabase.from('project_attachments').insert({
-        project_id: projectId,
-        uploaded_by: user.id,
-        file_name: file.name,
-        storage_path: storagePath,
-        mime_type: file.type || null,
-        size_bytes: file.size,
-        status: 'ready',
-        visibility: role === 'client' ? 'shared' : 'shared',
-      });
+      const finalizeForm = new FormData();
+      finalizeForm.append('projectId', projectId);
+      finalizeForm.append('attachmentId', reservation.attachmentId);
 
-      if (insertError) throw insertError;
+      const finalized = await finalizeAttachment(finalizeForm);
+      if (!finalized?.ok) throw new Error(finalized?.error || 'Unable to finalize this upload.');
 
       await load();
     } catch (err) {
@@ -249,6 +241,7 @@ export default function ProjectThread({ projectId, role }) {
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Write a message..."
+          aria-label="Write a message"
           rows={2}
         />
         <button type="submit" className="thread-send-button" disabled={isSending || !body.trim()}>

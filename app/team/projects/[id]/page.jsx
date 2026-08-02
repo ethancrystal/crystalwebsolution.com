@@ -76,17 +76,18 @@ export default function TeamProjectPage() {
     }
 
     setError(null);
-    const supabase = createClient();
 
-    const result = await updateProjectStatus(supabase, {
-      viewerProfile: { profile },
-      projectId: workspace.project.id,
-      nextStatus,
-      note: `Status moved to ${nextStatus}.`,
-    });
+    const formData = new FormData();
+    formData.append('projectId', workspace.project.id);
+    formData.append('fromStatus', workspace.project.status);
+    formData.append('toStatus', nextStatus);
+    formData.append('visibility', 'shared');
+    formData.append('note', `Status moved to ${nextStatus}.`);
 
-    if (!result.ok) {
-      setError(result.error || 'Unable to update status.');
+    const result = await transitionProject(formData);
+
+    if (!result?.ok) {
+      setError(result?.error || 'Unable to update status.');
       return;
     }
 
@@ -105,18 +106,20 @@ export default function TeamProjectPage() {
     if (!title) return;
 
     setError(null);
-    const supabase = createClient();
 
-    const result = await addProjectTask(supabase, {
-      viewerProfile: { profile },
-      projectId: workspace.project.id,
-      title,
-      dueDate: due || null,
-      priority,
-    });
+    const formData = new FormData();
+    formData.append('projectId', workspace.project.id);
+    formData.append('title', title);
+    formData.append('description', '');
+    formData.append('status', 'todo');
+    formData.append('dueDate', due || '');
+    formData.append('assigneeId', '');
+    formData.append('priority', priority);
 
-    if (!result.ok) {
-      setError(result.error || 'Unable to create the task.');
+    const result = await createProjectTask(formData);
+
+    if (!result?.ok) {
+      setError(result?.error || 'Unable to create the task.');
       return;
     }
 
@@ -189,10 +192,10 @@ export default function TeamProjectPage() {
         </div>
       </section>
 
-      <ProjectFiles files={workspace.attachments ?? []} deliverables={workspace.deliverables ?? []} canUpload />
+      <ProjectFiles projectId={projectId} files={workspace.attachments ?? []} deliverables={workspace.deliverables ?? []} canUpload />
       <ProjectApprovals approvals={workspace.approvals ?? []} canDecide />
       <ProjectThread projectId={projectId} role={profile?.role || 'project_manager'} />
-      <NotesPanel projectId={projectId} />
+      <NotesPanel projectId={projectId} status={workspace.project.status} />
 
       <style jsx>{`
         .crm-project-page {
