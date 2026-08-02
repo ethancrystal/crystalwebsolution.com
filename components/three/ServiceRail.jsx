@@ -10,18 +10,20 @@ import { beacon } from '../../lib/beacon';
 import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
 import { SERVICES } from '../../lib/services.mjs';
 
-// The services beat: six abstract emblems on a vertical rail, one per
+// The services beat: eight abstract emblems on a vertical rail, one per
 // service row in components/sections/Services.jsx. They deliberately describe
 // the craft without becoming a second CWS logo: screen, facet, motion knot,
 // radar, connected AI nodes, and a pipeline.
 // Top-to-bottom order exactly follows the DOM list:
-//   01 Web Design & Development — framed responsive screen
-//   02 Branding & Identity      — faceted identity plane
-//   03 Immersive 3D & Motion    — torus knot motion path
-//   04 Digital Marketing        — radar and directional needle
-//   05 AI Automation            — connected decision nodes
-//   06 Workflow Automation      — linked process pipeline
-// Sync is two house idioms at once: emblems ignite 01→06 as Services' own
+//   01 Web Design          — framed responsive screen
+//   02 Development         — layered application architecture
+//   03 Branding            — faceted identity plane
+//   04 Logo Design         — constructed mark and registration ring
+//   05 Digital Marketing   — radar and directional needle
+//   06 Animation           — torus-knot motion path
+//   07 AI Automation       — connected decision nodes
+//   08 Workflow Automation — linked process pipeline
+// Sync is two house idioms at once: emblems ignite 01→08 as Services' own
 // measured scroll span opens (ApproachCompass's windowing), and hovering a
 // DOM row lifts its emblem via the lib/beacon.js singleton. Both feed one
 // mass-spring-damper per emblem (ApproachCompass's constants) driving
@@ -29,11 +31,11 @@ import { SERVICES } from '../../lib/services.mjs';
 const COUNT = SERVICES.length;
 const RAIL_X = -1.15;
 const TOP_Y = 1.05;
-const STEP_Y = 1.4;
+const STEP_Y = 1;
 // This shallow stagger gives pointer parallax depth without losing the
 // top-to-bottom service mapping in CameraRig's framed services beat.
-const Z_OFF = [0.35, -0.56, 0.1, -0.42, 0.54, -0.16];
-const ROT_SPEED = [0.19, 0.24, 0.9, 0.3, 0.36, 0.22];
+const Z_OFF = [0.35, -0.44, 0.1, -0.28, 0.54, -0.12, 0.4, -0.36];
+const ROT_SPEED = [0.19, 0.26, 0.24, 0.32, 0.3, 0.9, 0.36, 0.22];
 const BASE_SCALE = 0.19;
 
 // Spring levels: dark until the scroll window ignites a row, bright while
@@ -137,7 +139,24 @@ function createSignalGeometries() {
     }),
   ]);
 
-  // 02 / Brand — a cut identity stone held inside a drafting orbit.
+  // 02 / Development — a layered application stack with connected runtime
+  // nodes. The shallow depth offsets keep it architectural rather than logo-like.
+  const development = mergeSignalParts([
+    box([0, 0.46, -0.03], [1.18, 0.11, 0.18]),
+    box([0, 0, 0.03], [0.92, 0.11, 0.18]),
+    box([0, -0.46, -0.03], [1.18, 0.11, 0.18]),
+    cylinderBetween([-0.5, 0.46, 0], [-0.37, 0, 0.04], 0.028),
+    cylinderBetween([0.5, 0.46, 0], [0.37, 0, 0.04], 0.028),
+    cylinderBetween([-0.37, 0, 0.04], [-0.5, -0.46, 0], 0.028),
+    cylinderBetween([0.37, 0, 0.04], [0.5, -0.46, 0], 0.028),
+    sphere(0.09, [-0.5, 0.46, 0.04], 7, 5),
+    sphere(0.09, [0.5, 0.46, 0.04], 7, 5),
+    sphere(0.1, [0, 0, 0.08], 7, 5),
+    sphere(0.09, [-0.5, -0.46, 0.04], 7, 5),
+    sphere(0.09, [0.5, -0.46, 0.04], 7, 5),
+  ]);
+
+  // 03 / Brand — a cut identity stone held inside a drafting orbit.
   const facet = mergeSignalParts([
     transformed(new THREE.OctahedronGeometry(0.72, 0), {
       rotation: [0.18, 0.28, Math.PI / 4],
@@ -146,7 +165,17 @@ function createSignalGeometries() {
     torus(0.88, 0.035, [0, 0, -0.04], [Math.PI / 2, 0, Math.PI / 4], 5, 28),
   ]);
 
-  // 04 / Marketing — calibrated rings, sweep arm and acquired points.
+  // 04 / Logo — a constructed diamond mark inside a registration ring.
+  const logo = mergeSignalParts([
+    torus(0.78, 0.035, [0, 0, -0.04], [0, 0, 0], 5, 28),
+    box([-0.31, 0.31, 0.03], [0.62, 0.08, 0.13], [0, 0, -Math.PI / 4]),
+    box([0.31, 0.31, 0.03], [0.62, 0.08, 0.13], [0, 0, Math.PI / 4]),
+    box([0.31, -0.31, 0.03], [0.62, 0.08, 0.13], [0, 0, -Math.PI / 4]),
+    box([-0.31, -0.31, 0.03], [0.62, 0.08, 0.13], [0, 0, Math.PI / 4]),
+    torus(0.19, 0.055, [0, 0, 0.08], [0, 0, 0], 6, 20),
+  ]);
+
+  // 05 / Marketing — calibrated rings, sweep arm and acquired points.
   const radar = mergeSignalParts([
     torus(0.76, 0.035, [0, 0, 0], [0, 0, 0], 5, 28),
     torus(0.5, 0.025, [0, 0, 0], [0, 0, 0], 5, 24),
@@ -161,14 +190,14 @@ function createSignalGeometries() {
     sphere(0.045, [-0.14, -0.58, 0.04], 7, 5),
   ]);
 
-  // 03 / 3D motion — a continuous path with enough facets to catch light.
+  // 06 / Animation — a continuous path with enough facets to catch light.
   const motion = transformed(new THREE.TorusKnotGeometry(0.5, 0.11, 52, 7), {
     rotation: [0.22, -0.18, 0.12],
     scale: [1.2, 1.2, 1.2],
   });
   motion.computeBoundingSphere();
 
-  // 05 / AI — one source branching into three resolved outcomes.
+  // 07 / AI — one source branching into three resolved outcomes.
   const decisionPoints = [
     [-0.56, 0.12, 0],
     [-0.04, 0.48, 0.04],
@@ -185,7 +214,7 @@ function createSignalGeometries() {
     cylinderBetween(decisionPoints[4], decisionPoints[3]),
   ]);
 
-  // 06 / Workflow — alternating stations with directional hand-offs.
+  // 08 / Workflow — alternating stations with directional hand-offs.
   const relayPoints = [
     [-0.65, 0.28, 0],
     [-0.22, -0.2, 0.04],
@@ -210,7 +239,22 @@ function createSignalGeometries() {
     }),
   ]);
 
-  return [frame, facet, motion, radar, decisions, relay];
+  const geometryBySignal = {
+    web: frame,
+    development,
+    brand: facet,
+    logo,
+    marketing: radar,
+    motion,
+    ai: decisions,
+    workflow: relay,
+  };
+
+  return SERVICES.map(({ signal }) => {
+    const geometry = geometryBySignal[signal];
+    if (!geometry) throw new Error(`Missing service signal geometry: ${signal}`);
+    return geometry;
+  });
 }
 
 export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
@@ -223,7 +267,7 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
   const geometries = useMemo(() => createSignalGeometries(), []);
 
   // One material per emblem, shared by all of that emblem's meshes, so the
-  // frame loop mutates six materials instead of traversing children.
+  // frame loop mutates eight materials instead of traversing children.
   const materials = useMemo(
     () =>
       Array.from(
@@ -274,7 +318,7 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
     // The DOM list is much taller than the viewport. Advance the authored
     // instrument rail by the same local progress so the current forms occupy
     // the quiet gutter beside the row being read instead of stacking over all
-    // six pieces of copy at once.
+    // eight pieces of copy at once.
     if (rail.current) {
       rail.current.position.y = position[1] + ease * STEP_Y * (COUNT - 1);
     }

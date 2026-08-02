@@ -19,6 +19,16 @@ test('navigation uses the same full logo whether or not the menu is open', () =>
   assert.doesNotMatch(navSource, /crystal-web-solution-icon\.svg/);
 });
 
+test('open navigation keeps its first link below the fixed header on short viewports', () => {
+  assert.match(globalCss, /\.menu\s*\{[\s\S]*?justify-content:\s*flex-start;/);
+  assert.match(globalCss, /padding:\s*max\(6\.75rem, calc\(env\(safe-area-inset-top\) \+ 12vh\)\)/);
+  assert.match(globalCss, /overscroll-behavior-y:\s*contain;/);
+  assert.match(globalCss, /\.menu-links\s*\{[\s\S]*?flex:\s*none;[\s\S]*?margin-top:\s*auto;/);
+  assert.match(globalCss, /\.menu-meta\s*\{[\s\S]*?flex:\s*none;[\s\S]*?margin-bottom:\s*auto;/);
+  assert.match(globalCss, /font-size:\s*clamp\(2rem, min\(5\.5vw, 8vh\), 3\.75rem\)/);
+  assert.match(globalCss, /width:\s*clamp\(9\.5rem, 48vw, 12rem\)/);
+});
+
 test('latest experience features default to the additive WebGL carousel', () => {
   assert.equal(typeof featureModule.resolveExperienceFeatures, 'function');
   if (!featureModule.resolveExperienceFeatures) return;

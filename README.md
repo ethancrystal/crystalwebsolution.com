@@ -56,7 +56,7 @@ The August 2026 lean-repository audit and exact keep/remove decisions are in
 2. **About** — the procedural word field reveals row by row and responds to the
    same contained pointer-blast language as the hero.
 3. **Services** — eight DOM service rows, the migrating numeral, capability
-   bento, and six canvas `ServiceRail` signal instruments move as one beat.
+   bento, and eight canvas `ServiceRail` signal instruments move as one beat.
 4. **Approach** — a four-step discovery-to-deployment path is paired with the
    canvas compass.
 5. **Client Stories** — accessible testimonial tabs swap the featured review.
