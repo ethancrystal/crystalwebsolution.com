@@ -1,5 +1,19 @@
 # CLAUDE.md
 
+## Goal
+
+Continuously polish this site's animations, CRM workflows, and design for full
+visual coherence without ever breaking the live build or changing its current
+look, feel, or functionality. Keep the codebase lean by auditing for unused or
+orphaned files, always confirming with the owner before deleting anything.
+Every change stays accessible (respects reduced motion), production-ready, and
+gets committed to GitHub as the final step.
+
+See `docs/PIXEL-POLISH-PLAN.md` for the phased execution plan tracking the
+remaining animation and layout-coherence work, and `docs/CRM-OPERATIONS.md`
+for CRM portal, role, and migration guidance.
+
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project overview
@@ -118,8 +132,25 @@ move together.
   tokens defined at the top of `app/globals.css` (`--bg`, `--ink`, `--cyan`,
   `--blue`, `--violet`, etc.).
 - Supabase is the live CRM boundary. Application clients live under
-  `lib/supabase/`, CRM reads/writes under `lib/crm/` and `app/actions/`, and
-  canonical SQL lives in `supabase/migrations/0001` through `0011`. Never infer
+  `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL
+  lives in `supabase/migrations/0001` through `0011`. `.mcp.json` configures a
+  Supabase MCP server for development-time queries. Two data-access shapes
+  coexist deliberately:
+  - **Project delivery** — the newer, contract-tested path. Reads go through
+    `lib/crm/projects.js` against the `lib/crm/project-contract.mjs` shape;
+    writes go through the `'use server'` actions in
+    `app/actions/project-actions.js` (server client + `lib/auth/require-role.js`).
+    Used by `/dashboard`, `/team/projects/[id]`, `/admin/projects`. Extend
+    this path for new delivery work, and keep `tests/crm/` in step.
+  - **Companies / contacts / deals / tasks / users** — client components that
+    call `createClient()` from `lib/supabase/browser.js` and query tables
+    directly, relying on RLS for scoping (the old `lib/crm/companies.js`,
+    `contacts.js`, `deals.js`, `tasks.js` modules were removed in `aa50610`).
+    Don't re-add per-table `lib/crm/` modules for these unless you're actually
+    migrating them onto the contract/server-action path.
+
+  Auth/role mutations live in `app/auth/actions.js`,
+  `app/admin/users/actions.js`, and `app/auth/*/route.js`. Never infer
   database correctness from source tests alone; verify RLS and migration state
   against an isolated database or the approved read-only live boundary.
 
