@@ -3,6 +3,7 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 
 import { SERVICES } from '../lib/services.mjs';
+import { SERVICE_SIGNAL_META } from '../lib/serviceSignals.mjs';
 
 const servicesSource = readFileSync(new URL('../components/sections/Services.jsx', import.meta.url), 'utf8');
 const railSource = readFileSync(new URL('../components/three/ServiceRail.jsx', import.meta.url), 'utf8');
@@ -43,10 +44,27 @@ test('DOM rows and canvas signals share one service taxonomy and eight-step cloc
   assert.match(servicesSource, /import \{ SERVICES \} from '\.\.\/\.\.\/lib\/services\.mjs'/);
   assert.doesNotMatch(servicesSource, /const SERVICES\s*=/);
   assert.match(railSource, /import \{ SERVICES \} from '\.\.\/\.\.\/lib\/services\.mjs'/);
+  assert.match(railSource, /import \{ SERVICE_SIGNAL_META \} from '\.\.\/\.\.\/lib\/serviceSignals\.mjs'/);
   assert.match(railSource, /const COUNT = SERVICES\.length/);
   assert.match(railSource, /return SERVICES\.map\(\(\{ signal \}\)/);
-  assert.match(railSource, /const Z_OFF = \[[^\]]+(?:,[^\]]+){7}\]/);
-  assert.match(railSource, /const ROT_SPEED = \[[^\]]+(?:,[^\]]+){7}\]/);
+});
+
+test('every service signal has rail metadata, and exactly the motion emblem is wireframe', () => {
+  SERVICES.forEach((service) => {
+    assert.ok(
+      SERVICE_SIGNAL_META[service.signal],
+      `${service.signal} is missing rail metadata (rotSpeed/zOffset)`
+    );
+  });
+
+  const wireframeSignals = SERVICES.map((service) => service.signal).filter(
+    (signal) => SERVICE_SIGNAL_META[signal].wireframe === true
+  );
+  assert.deepEqual(
+    wireframeSignals,
+    ['motion'],
+    'only the Animation (motion) emblem should render as wireframe'
+  );
 });
 
 test('each service uses one visitor-focused PAS sentence', () => {

@@ -403,6 +403,11 @@ html[data-cws-intro-seen='1'] .loader {
   flex-direction: column;
   justify-content: flex-start;
   gap: clamp(2rem, 5vh, 3.5rem);
+  /* padding-top must clear .nav's rendered height (1.4rem padding top/bottom
+     + up to 2.65rem .nav-logo-art) with headroom to spare, or the open menu
+     overlaps the fixed header on short viewports. If .nav's own padding or
+     .nav-logo-art's height ever change, re-check this value (and the
+     767.5px breakpoint below) against the new nav height. */
   padding: max(6.75rem, calc(env(safe-area-inset-top) + 12vh)) 8vw clamp(2.5rem, 8vh, 4rem);
   overflow-y: auto;
   overscroll-behavior-y: contain;
@@ -450,6 +455,8 @@ html[data-cws-intro-seen='1'] .loader {
     height: clamp(1.45rem, 7.2vw, 1.8rem);
   }
   .menu {
+    /* Same nav-clearance intent as the desktop rule above, tuned for this
+       breakpoint's smaller .nav-logo-art height. */
     padding: max(6.5rem, calc(5.75rem + env(safe-area-inset-top))) 7vw 2.5rem;
     gap: clamp(1.5rem, 4vh, 2rem);
   }
