@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { validateContactForm } from '../../../lib/contactForm.mjs';
+import { sendTemplate, isEmailConfigured, getOperationsAddress } from '@/lib/email/resend';
+import { contactSubmissionEmail, contactAckEmail } from '@/lib/email/templates';
+
+export const runtime = 'nodejs';
 
 const json = (body, status) => NextResponse.json(body, { status });
 
@@ -32,30 +36,67 @@ export async function POST(request) {
   }
 
   const webhookUrl = process.env.CONTACT_WEBHOOK_URL;
-  if (!webhookUrl) {
+  const emailEnabled = isEmailConfigured();
+
+  // Two independent delivery channels. The submission counts as delivered if
+  // either one succeeds, so a webhook outage no longer loses the brief while
+  // email is configured (and vice versa).
+  if (!webhookUrl && !emailEnabled) {
     return json({
       ok: false,
       message: 'Online form delivery is not configured. Use the direct email option on this page.',
     }, 503);
   }
 
-  // Integration boundary: the configured endpoint is the approved form processor;
-  // this route validates and forwards normalized JSON without persisting or logging it.
-  try {
-    const upstream = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(validation.data),
-      cache: 'no-store',
-    });
+  let webhookDelivered = false;
 
-    if (!upstream.ok) {
-      return json({
-        ok: false,
-        message: 'The form service did not accept your message. Try again later or use the direct email option.',
-      }, 502);
+  if (webhookUrl) {
+    // Integration boundary: the configured endpoint is the approved form processor;
+    // this route validates and forwards normalized JSON without persisting or logging it.
+    try {
+      const upstream = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(validation.data),
+        cache: 'no-store',
+      });
+      webhookDelivered = upstream.ok;
+    } catch {
+      webhookDelivered = false;
     }
-  } catch {
+  }
+
+  let emailDelivered = false;
+
+  if (emailEnabled) {
+    try {
+      // Reply-To is the visitor, so replying from the inbox threads straight
+      // back to them rather than to the no-reply sender.
+      await sendTemplate(contactSubmissionEmail(validation.data), {
+        to: getOperationsAddress(),
+        replyTo: validation.data.email,
+        tags: ['contact-form'],
+      });
+      emailDelivered = true;
+    } catch (error) {
+      console.error('Contact notification email failed:', error.message);
+    }
+
+    // Acknowledgement to the sender is a courtesy: never let its failure
+    // change the outcome the visitor sees.
+    if (emailDelivered) {
+      try {
+        await sendTemplate(contactAckEmail({ name: validation.data.name }), {
+          to: validation.data.email,
+          tags: ['contact-ack'],
+        });
+      } catch (error) {
+        console.error('Contact acknowledgement email failed:', error.message);
+      }
+    }
+  }
+
+  if (!webhookDelivered && !emailDelivered) {
     return json({
       ok: false,
       message: 'The form service could not be reached. Try again later or use the direct email option.',
