@@ -1,5 +1,19 @@
 # CLAUDE.md
 
+## Goal
+
+Continuously polish this site's animations, CRM workflows, and design for full
+visual coherence without ever breaking the live build or changing its current
+look, feel, or functionality. Keep the codebase lean by auditing for unused or
+orphaned files, always confirming with the owner before deleting anything.
+Every change stays accessible (respects reduced motion), production-ready, and
+gets committed to GitHub as the final step.
+
+See `docs/PIXEL-POLISH-PLAN.md` for the phased execution plan tracking the
+remaining animation and layout-coherence work, and `docs/CRM-OPERATIONS.md`
+for CRM portal, role, and migration guidance.
+
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project overview
@@ -102,8 +116,9 @@ all have to move together.
 - No TypeScript, no Tailwind — plain JSX and global CSS with the design
   tokens defined at the top of `app/globals.css` (`--bg`, `--ink`, `--cyan`,
   `--blue`, `--violet`, etc.).
-- `.mcp.json` configures a Supabase MCP server, but no application code uses
-  Supabase currently — there's no database/backend in this project today.
+- The CRM uses Supabase for auth, RLS, and data — see `supabase/migrations/`
+  and `docs/CRM-OPERATIONS.md`. `.mcp.json` configures a Supabase MCP server for
+  development-time queries.
 
 ## Planning docs (not yet implemented)
 
