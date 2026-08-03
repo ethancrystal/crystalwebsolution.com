@@ -1,16 +1,59 @@
 # Crystal Web Solution CRM - Implementation Status
 
-## 📅 Last Updated: 2026-08-02
-## 👤 Last Agent: Codex
+## 📅 Last Updated: 2026-08-03
+## 👤 Last Agent: Claude
 ## 🔗 Current Branch: `main`
 ## 🔑 Source of Truth
-- Checked-in migrations: canonical `supabase/migrations/0001` … `0011`;
+- Checked-in migrations: canonical `supabase/migrations/0001` … `0013`;
   live history intentionally omits `0007` and records the ad-hoc `0009b`
   operation before canonical `0009`–`0011` (see below)
 - Project read boundary: `lib/crm/projects.js`
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
 - Supabase project ref: `wmnjosiikehsuaqucvja`
+
+## ⚠️ Check open branches/PRs before starting CRM fix work
+
+**Incident (2026-08-03):** two separate agent sessions independently ran a
+CRM bug audit and both fixed largely the same findings, in the same ~12
+files, without either being aware of the other (PR #49 `fix-crm-core-flows`
+and PR #50 `workflow-crm-ultracode-sweep`, plus a third session that landed
+its own migration `0012` directly on `main` while a fourth landed the
+email/cron-drain rewrite in commits `880c4d6`/`3f76c84`). Reconciling this
+took a full review pass to find PR #50's overlapping reimplementations were
+independently broken in ways PR #49's tested versions weren't (a missing
+`await` on an async `createClient()`, a wrong Supabase count-query
+destructure, an undefined-variable `ReferenceError`, a response-shape
+mismatch, incomplete role-routing) — see PR #49's merge commit for the
+full comparison and PR #50's closing comment for the itemized verdict.
+
+**Before starting any broad CRM bug-fix/audit pass:**
+1. Run `git branch -a` and `gh pr list` and read anything CRM-related that's
+   open before touching `app/actions/project-actions.js`, `components/crm/*`,
+   `app/{dashboard,team,admin}/**`, or `supabase/migrations/*` — these are
+   the files most likely to collide.
+2. Check the migration number actually live on Supabase
+   (`list_migrations` via MCP, or `supabase migration list`) before naming a
+   new migration file — local `supabase/migrations/` and what's actually
+   applied can drift when multiple sessions work in parallel worktrees.
+3. If you find an open PR touching the same files you're about to fix, stop
+   and reconcile rather than opening a third parallel implementation.
+
+## 🗄️ Migrations 0012–0013 (2026-08-03)
+
+- `0012_project_task_update_fixes.sql` — fixes `update_project_task`'s
+  NULL-permissive assignee check and its silent overwrite of
+  assignee_id/due_date on partial updates. Applied live directly (by a
+  separate session, reconciled after the fact); now checked into `main`'s
+  migration history in sequence.
+- `0013_project_notes_and_deliverables.sql` — adds `post_project_note()`
+  (lets `NotesPanel.jsx` post a standalone update despite
+  `project_status_history.to_status` being NOT NULL) and
+  `create_project_deliverable()` + matching `storage.objects` policies
+  (the only INSERT path `project_deliverables` has ever had). Applied live
+  via Supabase MCP `apply_migration`, verified by direct query
+  (`pg_proc`/`pg_policies`) after applying. App-code wiring (server actions
+  + UI) is in PR #49, gated on this migration already being live — it is.
 
 ### 🧹 Repository preservation cleanup (2026-08-02)
 
