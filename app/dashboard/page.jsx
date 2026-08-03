@@ -29,14 +29,14 @@ export default function DashboardPage() {
   const [myProjects, setMyProjects] = useState([]);
   const [error, setError] = useState(null);
 
-  const loadClientProjects = useCallback(async (companyId) => {
+  const loadClientProjects = useCallback(async (userId, companyId) => {
     if (!companyId) {
       setMyProjects([]);
       return;
     }
 
     const supabase = createClient();
-    const viewerProfile = { profile: { id: null, role: 'client', company_id: companyId } };
+    const viewerProfile = { profile: { id: userId, role: 'client', company_id: companyId } };
 
     try {
       const projects = await listProjectsForViewer(supabase, viewerProfile);
@@ -80,7 +80,7 @@ export default function DashboardPage() {
           return;
         }
 
-        await loadClientProjects(profileData.company_id);
+        await loadClientProjects(user.id, profileData.company_id);
       } catch (err) {
         setError(err.message);
       } finally {

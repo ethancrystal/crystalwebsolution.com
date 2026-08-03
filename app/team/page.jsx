@@ -1,9 +1,15 @@
+import Link from 'next/link';
 import { signOut } from '@/app/auth/actions';
 import { requireRole } from '@/lib/auth/require-role';
+import { createClient } from '@/lib/supabase/server';
+import { listProjectsForViewer } from '@/lib/crm/projects';
 
 export default async function TeamPage() {
   const { user, profile } = await requireRole(['project_manager'], '/login/employee');
   const name = profile.full_name || user.email;
+
+  const supabase = await createClient();
+  const projects = await listProjectsForViewer(supabase, { profile });
 
   return (
     <main className="crm-team-page">
@@ -17,9 +23,21 @@ export default async function TeamPage() {
         </form>
       </header>
 
-      <section className="crm-team-empty" aria-labelledby="assigned-projects-heading">
+      <section aria-labelledby="assigned-projects-heading">
         <h2 id="assigned-projects-heading">Assigned projects</h2>
-        <p>You do not have any assigned projects yet.</p>
+        {projects.length === 0 ? (
+          <p>You do not have any assigned projects yet.</p>
+        ) : (
+          <ul className="crm-team-project-list">
+            {projects.map((project) => (
+              <li key={project.id}>
+                <Link href={`/team/projects/${project.id}`}>
+                  {project.title} — {project.status.replaceAll('_', ' ')}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );
