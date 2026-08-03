@@ -64,12 +64,59 @@ function templateContextFor(row, { recipient, project }) {
   };
 }
 
-export async function POST(request) {
-  const secret = request.headers.get('x-cron-secret');
-  const expected = process.env.CRM_CRON_SECRET;
+// Authorises a scheduler invocation.
+//
+// Two accepted forms:
+//   Authorization: Bearer <secret>   - Vercel Cron sends this automatically,
+//                                      using the env var named CRON_SECRET.
+//                                      Vercel cannot send custom headers.
+//   x-cron-secret: <secret>          - for curl, GitHub Actions, or any other
+//                                      external scheduler.
+//
+// Either CRM_CRON_SECRET or CRON_SECRET may hold the value, so a Vercel
+// deployment can use Vercel's expected name while other environments keep
+// the project-specific one. Comparison is constant-time.
+function timingSafeEquals(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) return false;
 
-  // Fail closed: an unset secret must not turn the endpoint into an open relay.
-  if (!expected || !secret || secret !== expected) {
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
+
+function isAuthorised(request) {
+  const accepted = [process.env.CRM_CRON_SECRET, process.env.CRON_SECRET].filter(Boolean);
+
+  // Fail closed: with no secret configured the endpoint must never run.
+  if (accepted.length === 0) return false;
+
+  const bearer = request.headers.get('authorization');
+  const presented = bearer?.startsWith('Bearer ')
+    ? bearer.slice(7)
+    : request.headers.get('x-cron-secret');
+
+  if (!presented) return false;
+
+  // Reduce rather than short-circuit so the number of comparisons does not
+  // depend on which secret matched.
+  return accepted.reduce((ok, secret) => timingSafeEquals(presented, secret) || ok, false);
+}
+
+// Vercel Cron invokes scheduled paths with GET, so that is the scheduled
+// entry point. POST is kept for manual runs and non-Vercel schedulers.
+export async function GET(request) {
+  return drain(request);
+}
+
+export async function POST(request) {
+  return drain(request);
+}
+
+async function drain(request) {
+  if (!isAuthorised(request)) {
     return new Response('Unauthorized', { status: 401 });
   }
 

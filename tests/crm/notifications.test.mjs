@@ -20,9 +20,35 @@ test('notification route never echoes request secrets or email payloads', async 
 
 test('an unset cron secret does not turn the route into an open relay', async () => {
   const route = await readFile(ROUTE_PATH, 'utf8');
-  // The comparison must reject when the expected secret is absent, not fall
-  // through on `undefined === undefined`.
-  assert.match(route, /!expected\s*\|\|/);
+  // With no secret configured the handler must reject, not fall through on
+  // `undefined === undefined`.
+  assert.match(route, /accepted\.length === 0\) return false/);
+});
+
+test('the scheduled entry point is reachable by Vercel Cron', async () => {
+  const route = await readFile(ROUTE_PATH, 'utf8');
+  // Vercel Cron issues GET and cannot send custom headers, so the route must
+  // export GET and accept an Authorization: Bearer credential.
+  assert.match(route, /export async function GET/);
+  assert.match(route, /export async function POST/);
+  assert.match(route, /Bearer /);
+  assert.match(route, /x-cron-secret/i);
+});
+
+test('the secret comparison is constant-time and length-checked', async () => {
+  const route = await readFile(ROUTE_PATH, 'utf8');
+  assert.match(route, /timingSafeEquals/);
+  assert.match(route, /a\.length !== b\.length/);
+  assert.doesNotMatch(route, /presented\s*===\s*expected/);
+});
+
+test('vercel.json schedules the drain against the real route path', async () => {
+  const config = JSON.parse(await readFile('vercel.json', 'utf8'));
+  const cron = config.crons?.find((c) => c.path === '/api/cron/crm-notifications');
+
+  assert.ok(cron, 'no cron entry for the notification drain');
+  // Five space-separated cron fields.
+  assert.equal(cron.schedule.trim().split(/\s+/).length, 5);
 });
 
 test('the route drains notifications_outbox instead of stubbing a zero count', async () => {
