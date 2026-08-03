@@ -4,9 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import { canTransition } from '@/lib/crm/project-contract.mjs';
+import { ALLOWED_TRANSITIONS, canTransition } from '@/lib/crm/project-contract.mjs';
 import { getProjectWorkspace } from '@/lib/crm/projects';
-import { transitionProject } from '@/app/actions/project-actions';
+import { transitionProject, createProjectTask } from '@/app/actions/project-actions';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
 import ProjectOverview from '@/components/crm/ProjectOverview';
 import ProjectTimeline from '@/components/crm/ProjectTimeline';
@@ -76,14 +76,14 @@ export default function TeamProjectPage() {
     }
 
     setError(null);
-    const supabase = createClient();
 
-    const result = await updateProjectStatus(supabase, {
-      viewerProfile: { profile },
-      projectId: workspace.project.id,
-      nextStatus,
-      note: `Status moved to ${nextStatus}.`,
-    });
+    const formData = new FormData();
+    formData.set('projectId', workspace.project.id);
+    formData.set('fromStatus', workspace.project.status);
+    formData.set('toStatus', nextStatus);
+    formData.set('note', `Status moved to ${nextStatus}.`);
+
+    const result = await transitionProject(formData);
 
     if (!result.ok) {
       setError(result.error || 'Unable to update status.');
@@ -100,20 +100,17 @@ export default function TeamProjectPage() {
     const form = e.target;
     const title = form.taskTitle?.value?.trim();
     const due = form.taskDue?.value?.trim();
-    const priority = form.taskPriority?.value || 'medium';
 
     if (!title) return;
 
     setError(null);
-    const supabase = createClient();
 
-    const result = await addProjectTask(supabase, {
-      viewerProfile: { profile },
-      projectId: workspace.project.id,
-      title,
-      dueDate: due || null,
-      priority,
-    });
+    const formData = new FormData();
+    formData.set('projectId', workspace.project.id);
+    formData.set('title', title);
+    if (due) formData.set('dueDate', due);
+
+    const result = await createProjectTask(formData);
 
     if (!result.ok) {
       setError(result.error || 'Unable to create the task.');
@@ -142,13 +139,7 @@ export default function TeamProjectPage() {
   }
 
   const project = workspace.project;
-  const NEXT_OPTIONS = {
-    planned: ['in_progress'],
-    in_progress: ['client_review', 'on_hold'],
-    client_review: ['approved', 'changes_requested'],
-    changes_requested: ['in_progress', 'client_review'],
-    approved: ['delivered'],
-  }[project.status] || [];
+  const NEXT_OPTIONS = ALLOWED_TRANSITIONS[project.status] || [];
 
   return (
     <WorkspaceShell role="project_manager" title={project.title}>
@@ -189,8 +180,19 @@ export default function TeamProjectPage() {
         </div>
       </section>
 
-      <ProjectFiles files={workspace.attachments ?? []} deliverables={workspace.deliverables ?? []} canUpload />
-      <ProjectApprovals approvals={workspace.approvals ?? []} canDecide />
+      <ProjectFiles
+        files={workspace.attachments ?? []}
+        deliverables={workspace.deliverables ?? []}
+        canUpload
+        projectId={projectId}
+        onChanged={loadWorkspace}
+      />
+      <ProjectApprovals
+        approvals={workspace.approvals ?? []}
+        canDecide
+        projectId={projectId}
+        onChanged={loadWorkspace}
+      />
       <ProjectThread projectId={projectId} role={profile?.role || 'project_manager'} />
       <NotesPanel projectId={projectId} />
 

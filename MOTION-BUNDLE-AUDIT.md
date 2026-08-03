@@ -4,9 +4,15 @@
 **Date:** 2026-07-21
 **Scope:** immersive homepage + scene graph, from a systems/bundle/motion perspective.
 
+> **Historical snapshot — superseded.** This audit records the July 21, 2026
+> Next.js 14 / React 18 and eleven-beat implementation. Architecture names,
+> dependency versions, risk items, and commands below describe that checkpoint,
+> not the current repository. Use `AGENTS.md`, `README.md`, and `STATUS.md` for
+> current state.
+
 ---
 
-## 1. Current Architecture Summary
+## 1. Architecture Summary at Audit Time
 
 - **Next.js 14 / React 18**, JSX, no TS, no Tailwind — global CSS in `app/globals.css`.
 - **R3F** renders one fixed `<Canvas>` behind the page (`Scene.jsx`). The DOM scrolls
@@ -79,7 +85,9 @@ Opportunities:
 ## 4. Reduced Motion
 
 Strengths:
-- DOM half already uses matchMedia guards in Reveal/RevealPop/DecodeText/Marquee/Loader.
+- At audit time, the DOM half used matchMedia guards in
+  Reveal/RevealPop/DecodeText/Marquee/Loader; `RevealPop` was later
+  removed/decommissioned and is not part of the live component surface.
 - `SmoothScroll.jsx` cleanly replaces Lenis with native scroll + updates ScrollTrigger.
 - `lib/motionScale.js` gives the canvas a live-updating 0/1 gate without forcing
   re-queries in hot `useFrame` paths.
@@ -113,10 +121,10 @@ Concerns:
   native scroll, `ScrollTrigger.refresh()` fires while the ticker/Lenis raf may be
   mid-frame. Consider wrapping config/reconfigure in a `requestAnimationFrame` to
   ensure calcs use a consistent scroll baseline.
-- **Pinned ranges shared by reference.** `lib/pinnedRanges` is mutated by `Motion.jsx`
-  by `splice`. This is a hidden global side-effect surface and a source of potential
-  memory leaks if `stopAnimatedLayout` is skipped by an error. Wrap in an `AbortSignal`
-  style ownership boundary or a `PinnedRangeRegistry` class with dispose semantics.
+- **Historical pinned-range mechanism.** At audit time, `lib/pinnedRanges` was
+  mutated by `Motion.jsx` through `splice`, creating the hidden side-effect surface
+  described here. The later motion redesign removed that integration, and the
+  now-unreferenced singleton was deleted in the 2026-08-02 repository cleanup.
 
 ---
 
@@ -176,7 +184,7 @@ Gaps:
 | Duplicate `registerPlugin` + matchMedia listeners | Low | GSAP/DOM | Centralize singleton init and motion preference hooks. |
 | Over-broad `will-change` | Medium | CSS | Audit and blanket-disable in `prefers-reduced-motion`. |
 | Motion section doubled animation surface area | Medium | SVG+WebGL | Keep fallback but ensure R3F mount/unmount is clean; measure frame drops. |
-| Pinned range global array mutated across components | Medium | ScrollTrigger | Own pinned ranges inside Motion with a dispose registry. |
+| Historical pinned-range global mutation | Resolved | ScrollTrigger | The later motion redesign removed the integration; the unreferenced singleton was deleted after the 2026-08-02 reference audit. |
 | Large chunks on first load | Medium | Bundle | Split per-section via `next/dynamic`; reduce gsap import duplication. |
 
 ---

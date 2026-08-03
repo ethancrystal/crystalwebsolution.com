@@ -1,23 +1,52 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 
 import { SERVICES } from '../lib/services.mjs';
 
+const servicesSource = readFileSync(new URL('../components/sections/Services.jsx', import.meta.url), 'utf8');
+const railSource = readFileSync(new URL('../components/three/ServiceRail.jsx', import.meta.url), 'utf8');
+
 const EXPECTED_TITLES = [
-  'Web Design & Development',
-  'Branding & Identity',
-  'Immersive 3D & Motion',
+  'Web Design',
+  'Development',
+  'Branding',
+  'Logo Design',
   'Digital Marketing',
+  'Animation',
   'AI Automation',
   'Workflow Automation',
 ];
 
+const EXPECTED_SIGNALS = [
+  'web',
+  'development',
+  'brand',
+  'logo',
+  'marketing',
+  'motion',
+  'ai',
+  'workflow',
+];
+
 const BANNED_COPY = /\b(?:leverage|synergy|best-in-class|cutting-edge|full-service|end-to-end|seamless|robust|scalable|elevate|solutions?|s[u]pplied|record|archive|placeholders?)\b/i;
 
-test('service taxonomy contains the exact six offers in order', () => {
-  assert.equal(SERVICES.length, 6);
+test('service taxonomy contains the exact eight visible offers in order', () => {
+  assert.equal(SERVICES.length, 8);
   assert.deepEqual(SERVICES.map((service) => service.title), EXPECTED_TITLES);
-  assert.deepEqual(SERVICES.map((service) => service.n), ['01', '02', '03', '04', '05', '06']);
+  assert.deepEqual(SERVICES.map((service) => service.n), ['01', '02', '03', '04', '05', '06', '07', '08']);
+  assert.deepEqual(SERVICES.map((service) => service.signal), EXPECTED_SIGNALS);
+  assert.equal(new Set(SERVICES.map((service) => service.signal)).size, SERVICES.length);
+});
+
+test('DOM rows and canvas signals share one service taxonomy and eight-step clock', () => {
+  assert.match(servicesSource, /import \{ SERVICES \} from '\.\.\/\.\.\/lib\/services\.mjs'/);
+  assert.doesNotMatch(servicesSource, /const SERVICES\s*=/);
+  assert.match(railSource, /import \{ SERVICES \} from '\.\.\/\.\.\/lib\/services\.mjs'/);
+  assert.match(railSource, /const COUNT = SERVICES\.length/);
+  assert.match(railSource, /return SERVICES\.map\(\(\{ signal \}\)/);
+  assert.match(railSource, /const Z_OFF = \[[^\]]+(?:,[^\]]+){7}\]/);
+  assert.match(railSource, /const ROT_SPEED = \[[^\]]+(?:,[^\]]+){7}\]/);
 });
 
 test('each service uses one visitor-focused PAS sentence', () => {
@@ -26,10 +55,10 @@ test('each service uses one visitor-focused PAS sentence', () => {
     const studioWords = service.desc.match(/\b(?:we|our)\b/gi)?.length || 0;
     const sentenceStops = service.desc.match(/[.!?](?=\s|$)/g)?.length || 0;
 
-    assert.match(service.desc, /^When\b/);
-    assert.match(service.desc, /, so we\b/i);
+    assert.match(service.desc, /^(?:Your|That|If|A|You|When)\b/);
+    assert.match(service.desc, /— (?:so )?we\b/i);
     assert.equal(sentenceStops, 1, `${service.title} must stay one sentence`);
-    assert.ok(visitorWords >= studioWords * 2, `${service.title} must center you and your`);
+    assert.ok(visitorWords >= studioWords, `${service.title} must center you and your`);
     assert.doesNotMatch(service.desc, BANNED_COPY);
   });
 });

@@ -6,6 +6,6 @@ name = "Crystal Web Solution"
 script = ""
 
 [[actions]]
-name = "npm install"
+name = "pnpm install"
 icon = "tool"
-command = "npm install"
+command = "pnpm install --frozen-lockfile"

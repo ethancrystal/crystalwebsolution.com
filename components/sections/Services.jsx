@@ -9,53 +9,8 @@ import { light, dim } from '../../lib/beacon';
 import { scrollState } from '../../lib/scrollState';
 import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
 import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
+import { SERVICES } from '../../lib/services.mjs';
 import { STAGGER_ROW, DURATION_FAST, DURATION_NORMAL, EASE_SETTLE } from '../../lib/easing';
-
-// Copy follows the website-app-copy skill: PAS (Problem–Agitation–Solution)
-// compressed into one line per card. Visitors arrive in pain; we name it,
-// twist it, then present Crystal as the inevitable answer.
-const SERVICES = [
-  {
-    n: '01',
-    title: 'Web Design',
-    desc: 'Your site looks like everyone else and quietly loses the deal before a word is read — so we design with intent, clarity and craft that earns the click and the close.',
-  },
-  {
-    n: '02',
-    title: 'Development',
-    desc: 'That internal tool or product idea keeps stalling in hand-off limbo while technical debt piles up — we architect and ship web apps your team can own and extend.',
-  },
-  {
-    n: '03',
-    title: 'Branding',
-    desc: 'If prospects cannot tell you apart from the next vendor, every ad dollar works twice as hard for half the return — we build brand systems grounded in strategy and craft, not trends.',
-  },
-  {
-    n: '04',
-    title: 'Logo Design',
-    desc: 'A templated mark signals "not serious" in every deck and profile you send — we design logos with restraint and meaning that hold up at any size and age well.',
-  },
-  {
-    n: '05',
-    title: 'Digital Marketing',
-    desc: 'You pour budget into channels with no clear line to revenue while sharper competitors take the pipeline — we run campaigns tied to outcomes, measured and sharpened, not vanity metrics.',
-  },
-  {
-    n: '06',
-    title: 'Animation',
-    desc: 'When your product needs a paragraph to explain, the room has already tuned out — we craft motion, explainers and 3D that make the complex obvious and stick.',
-  },
-  {
-    n: '07',
-    title: 'AI Automation',
-    desc: 'Your team burns hours on work software should own, handing velocity to whoever automates first — we build AI automations that take the repetitive load off your plate.',
-  },
-  {
-    n: '08',
-    title: 'Workflow Automation',
-    desc: 'When your tools do not talk, every hand-off drops a deadline and a customer nobody owns — we wire your stack together and automate the workflows that leak.',
-  },
-];
 
 export default function Services() {
   const listRef = useRef(null);
@@ -71,8 +26,8 @@ export default function Services() {
   // Ghost numeral: a shared, absolutely-positioned marker in the intro/list
   // gutter that glides to track whichever row is hovered — a single tracked
   // element migrating across the list, distinct from the per-card primitives
-  // (BorderGlow/GlyphMask/CardHoverReveal) used elsewhere. Desktop-only, same
-  // pointer/reduced-motion bail as GlyphMask.jsx.
+  // used elsewhere. It remains desktop-only and uses the same pointer and
+  // reduced-motion guard as the rest of the Services interaction.
   useEffect(() => {
     if (
       window.matchMedia('(pointer: coarse)').matches

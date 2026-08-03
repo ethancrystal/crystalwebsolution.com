@@ -19,7 +19,7 @@ const STAGE_KEYS = STAGES.map((s) => s.key);
 
 function formatValue(value) {
   const num = Number(value);
-  if (!value || Number.isNaN(num)) return '-';
+  if (value == null || value === '' || Number.isNaN(num)) return '-';
   return num.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 }
 

@@ -57,3 +57,26 @@ test('configuration failures have distinct safe portal copy', async () => {
   assert.match(form, /=== ['"]configuration['"]/);
   assert.match(form, /authentication is not configured/i);
 });
+
+test('portal chooser keeps the brand mark bounded and styles Link-rendered controls', async () => {
+  const page = await import('node:fs/promises').then((fs) => fs.readFile('app/login/page.jsx', 'utf8'));
+
+  assert.match(page, /width="160" height="63"/);
+  assert.doesNotMatch(page, /width="647" height="255"/);
+  assert.match(page, /className="crm-auth-logo"/);
+  assert.match(page, /:global\(\.crm-auth-mark\)\s*\{[\s\S]*?width:\s*min\(100%,\s*11rem\)/);
+  assert.match(page, /\.crm-auth-logo\s*\{[\s\S]*?max-width:\s*100%[\s\S]*?height:\s*auto/);
+  assert.match(page, /:global\(\.crm-portal-link\)\s*\{[\s\S]*?border:\s*1px solid var\(--line\)/);
+  assert.doesNotMatch(page, /<style jsx global>/);
+});
+
+test('signup keeps the shared brand mark bounded without changing its form flow', async () => {
+  const page = await import('node:fs/promises').then((fs) => fs.readFile('app/signup/page.jsx', 'utf8'));
+
+  assert.match(page, /className="crm-auth-logo"/);
+  assert.match(page, /width="160" height="63"/);
+  assert.doesNotMatch(page, /width="647" height="255"/);
+  assert.match(page, /:global\(\.crm-auth-mark\)\s*\{[\s\S]*?width:\s*min\(100%,\s*11rem\)/);
+  assert.match(page, /\.crm-auth-logo\s*\{[\s\S]*?max-width:\s*100%[\s\S]*?height:\s*auto/);
+  assert.match(page, /action=\{handleSubmit\}/);
+});

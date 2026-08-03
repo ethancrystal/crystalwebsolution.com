@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/browser';
+import { postProjectNote } from '@/app/actions/project-actions';
 
 function formatWhen(value) {
   if (!value) return '';
@@ -57,20 +58,12 @@ export default function NotesPanel({ projectId }) {
     setError(null);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('You must be signed in to add a note.');
+      const formData = new FormData();
+      formData.set('projectId', projectId);
+      formData.set('note', trimmed);
 
-      const { error } = await supabase.from('project_status_history').insert({
-        project_id: projectId,
-        note: trimmed,
-        visibility: 'shared',
-        changed_by: user.id,
-      });
-
-      if (error) throw error;
+      const result = await postProjectNote(formData);
+      if (!result.ok) throw new Error(result.error || 'Unable to post this note.');
 
       setContent('');
       await load();
@@ -91,6 +84,7 @@ export default function NotesPanel({ projectId }) {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Add an update..."
+          aria-label="Add an update"
           rows={3}
         />
         <button type="submit" className="notes-button" disabled={isSaving || !content.trim()}>

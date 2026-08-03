@@ -57,6 +57,7 @@ export default function DealDetailPage() {
 
   const [deal, setDeal] = useState(null);
   const [ownerName, setOwnerName] = useState(null);
+  const [linkedProjectId, setLinkedProjectId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -83,6 +84,16 @@ export default function DealDetailPage() {
             .single();
           setOwnerName(profile?.full_name || null);
         }
+
+        // A deal converts into at most one project (projects.source_deal_id
+        // is unique). Conversation/notes only make sense once that project
+        // exists, so look it up rather than passing the deal's own id.
+        const { data: linkedProject } = await supabase
+          .from('projects')
+          .select('id')
+          .eq('source_deal_id', id)
+          .maybeSingle();
+        setLinkedProjectId(linkedProject?.id || null);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -263,13 +274,21 @@ export default function DealDetailPage() {
         </div>
       </div>
 
-      <div className="crm-thread-wrap">
-        <NotesPanel companyId={deal.company_id} contactId={deal.contact_id} dealId={id} />
-      </div>
+      {linkedProjectId ? (
+        <>
+          <div className="crm-thread-wrap">
+            <NotesPanel projectId={linkedProjectId} />
+          </div>
 
-      <div className="crm-thread-wrap">
-        <ProjectThread dealId={id} />
-      </div>
+          <div className="crm-thread-wrap">
+            <ProjectThread projectId={linkedProjectId} role="admin" />
+          </div>
+        </>
+      ) : (
+        <div className="crm-thread-wrap crm-no-project">
+          <p>This deal hasn&apos;t become a project yet — its conversation and notes open here once it does.</p>
+        </div>
+      )}
 
       <style jsx>{`
         .crm-admin-page {
@@ -283,6 +302,16 @@ export default function DealDetailPage() {
         .crm-thread-wrap {
           max-width: 800px;
           margin: 1.5rem auto 0;
+        }
+
+        .crm-no-project {
+          background: rgba(30, 35, 60, 0.8);
+          border: 1px solid rgba(100, 200, 255, 0.15);
+          border-radius: 12px;
+          padding: 1.5rem;
+          color: #999;
+          font-size: 0.9rem;
+          backdrop-filter: blur(10px);
         }
 
         .crm-admin-header {

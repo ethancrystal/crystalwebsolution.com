@@ -41,7 +41,7 @@ export default function SignupPage() {
     <div className="crm-auth-container">
       <div className="crm-auth-card">
         <Link href="/" className="crm-auth-mark" aria-label="Crystal Web Solution home">
-          <img src="/crystal-web-solution-icon.svg" alt="" width="647" height="255" />
+          <img className="crm-auth-logo" src="/crystal-web-solution-icon.svg" alt="" width="160" height="63" />
         </Link>
 
         <h1>Create your account</h1>
@@ -138,17 +138,27 @@ export default function SignupPage() {
           box-shadow: 0 30px 80px rgba(2, 4, 8, 0.55);
         }
 
-        .crm-auth-mark {
-          display: block;
-          width: fit-content;
+        :global(.crm-auth-mark) {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: min(100%, 11rem);
+          padding-inline: 0.5rem;
           margin: 0 auto 1.75rem;
         }
 
-        .crm-auth-mark img {
+        .crm-auth-logo {
           display: block;
-          height: 40px;
-          width: auto;
+          width: 100%;
+          max-width: 100%;
+          height: auto;
+          object-fit: contain;
           filter: drop-shadow(0 0 18px rgba(89, 243, 255, 0.35));
+        }
+
+        :global(.crm-auth-mark:focus-visible) {
+          outline: 2px solid var(--cyan);
+          outline-offset: 4px;
         }
 
         .crm-auth-card h1 {

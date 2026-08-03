@@ -19,10 +19,10 @@ test('client workspace: project components are project-scoped, not deal-scoped',
   const thread = await readFile('components/crm/ProjectThread.jsx', 'utf8');
   const notes = await readFile('components/crm/NotesPanel.jsx', 'utf8');
 
-  assert.match(thread, /project_id/);
-  assert.doesNotMatch(thread, /deal_id/);
-  assert.match(notes, /project_id/);
-  assert.doesNotMatch(notes, /deal_id/);
+  assert.match(thread, /project_id|projectId/);
+  assert.doesNotMatch(thread, /deal_id|dealId/);
+  assert.match(notes, /project_id|projectId/);
+  assert.doesNotMatch(notes, /deal_id|dealId/);
 });
 
 test('client workspace: workspace components exist', async () => {

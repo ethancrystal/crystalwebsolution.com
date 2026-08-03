@@ -1,5 +1,9 @@
 'use client';
 
+import { useRef, useState } from 'react';
+import { createClient } from '@/lib/supabase/browser';
+import { createProjectDeliverable, publishDeliverable } from '@/app/actions/project-actions';
+
 function formatBytes(bytes) {
   if (!bytes && bytes !== 0) return '';
   if (bytes < 1024) return `${bytes} B`;
@@ -19,10 +23,88 @@ function formatWhen(value) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function ProjectFiles({ files = [], deliverables = [], canUpload = false }) {
+export default function ProjectFiles({ files = [], deliverables = [], canUpload = false, projectId, onChanged }) {
+  const [error, setError] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  async function handleDownload(item) {
+    setError(null);
+    try {
+      const supabase = createClient();
+      const { data, error: signError } = await supabase.storage
+        .from('project-files')
+        .createSignedUrl(item.storage_path, 60);
+
+      if (signError) throw signError;
+      window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file || !projectId) return;
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      const reserveForm = new FormData();
+      reserveForm.set('projectId', projectId);
+      reserveForm.set('title', file.name);
+      reserveForm.set('fileName', file.name);
+      reserveForm.set('mimeType', file.type || 'application/octet-stream');
+      reserveForm.set('sizeBytes', String(file.size));
+
+      const reserved = await createProjectDeliverable(reserveForm);
+      if (!reserved.ok) throw new Error(reserved.error || 'Unable to create this deliverable.');
+
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage
+        .from('project-files')
+        .upload(reserved.data.storagePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const publishForm = new FormData();
+      publishForm.set('projectId', projectId);
+      publishForm.set('deliverableId', reserved.data.deliverableId);
+      publishForm.set('status', 'submitted');
+
+      const published = await publishDeliverable(publishForm);
+      if (!published.ok) throw new Error(published.error || 'Unable to publish this deliverable.');
+
+      onChanged?.();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+
   return (
     <div className="crm-project-files">
-      <h2>Files</h2>
+      <div className="crm-project-files-header">
+        <h2>Files</h2>
+        {canUpload && (
+          <label className="crm-upload-button">
+            {isUploading ? 'Uploading...' : 'Upload deliverable'}
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleUpload}
+              disabled={isUploading}
+              hidden
+            />
+          </label>
+        )}
+      </div>
+
+      {error && <div className="crm-error">{error}</div>}
+
       {(files.length === 0 && deliverables.length === 0) && (
         <p className="crm-empty-state">No files shared yet.</p>
       )}
@@ -38,9 +120,9 @@ export default function ProjectFiles({ files = [], deliverables = [], canUpload 
                 </span>
               </div>
               {file.storage_path && (
-                <a className="crm-file-link" href={`/api/project-files?path=${encodeURIComponent(file.storage_path)}`}>
+                <button type="button" className="crm-file-link" onClick={() => handleDownload(file)}>
                   Download
-                </a>
+                </button>
               )}
             </li>
           ))}
@@ -60,9 +142,9 @@ export default function ProjectFiles({ files = [], deliverables = [], canUpload 
                   </span>
                 </div>
                 {item.storage_path && (
-                  <a className="crm-file-link" href={`/api/project-files?path=${encodeURIComponent(item.storage_path)}`}>
+                  <button type="button" className="crm-file-link" onClick={() => handleDownload(item)}>
                     Download
-                  </a>
+                  </button>
                 )}
               </li>
             ))}
@@ -77,11 +159,43 @@ export default function ProjectFiles({ files = [], deliverables = [], canUpload 
           gap: 1rem;
         }
 
+        .crm-project-files-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 1rem;
+        }
+
         .crm-project-files h2,
         .crm-project-files h3 {
           margin: 0;
           font-size: 1.15rem;
           color: #64c8ff;
+        }
+
+        .crm-upload-button {
+          background: rgba(100, 200, 255, 0.1);
+          border: 1px solid rgba(100, 200, 255, 0.3);
+          color: #64c8ff;
+          padding: 0.4rem 0.9rem;
+          border-radius: 6px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .crm-upload-button:hover {
+          background: rgba(100, 200, 255, 0.2);
+        }
+
+        .crm-error {
+          background: rgba(255, 100, 100, 0.1);
+          border: 1px solid rgba(255, 100, 100, 0.3);
+          color: #ff9999;
+          padding: 0.75rem 1rem;
+          border-radius: 6px;
+          font-size: 0.9rem;
         }
 
         .crm-file-list {
@@ -124,10 +238,15 @@ export default function ProjectFiles({ files = [], deliverables = [], canUpload 
         }
 
         .crm-file-link {
+          background: none;
+          border: none;
           color: #64c8ff;
           text-decoration: none;
           font-size: 0.9rem;
           flex-shrink: 0;
+          cursor: pointer;
+          padding: 0;
+          font-family: inherit;
         }
 
         .crm-file-link:hover {

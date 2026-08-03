@@ -3,8 +3,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient, buildVerifyUrl } from '@/lib/supabase/admin';
 import { friendlyAuthError } from '@/lib/auth-errors';
-import { sendEmail } from '@/lib/email/resend';
-import { confirmSignupEmail, resetPasswordEmail } from '@/lib/email/templates';
+import { sendTemplate } from '@/lib/email/resend';
+import {
+  confirmSignupEmail,
+  resetPasswordEmail,
+  passwordChangedEmail,
+} from '@/lib/email/templates';
 import { getPortal, isRoleAllowed, safeNextForPortal, homeForRole } from '@/lib/auth/roles.mjs';
 import { redirect } from 'next/navigation';
 
@@ -44,7 +48,7 @@ export async function signUp(formData) {
   });
 
   try {
-    await sendEmail({ to: email, subject, html });
+    await sendTemplate({ subject, html }, { to: email, tags: ['signup-confirm'] });
   } catch (sendError) {
     console.error('Failed to send signup confirmation email:', sendError);
     return {
@@ -130,9 +134,10 @@ export async function getUserProfile() {
   return { user, profile };
 }
 
-// Still on Supabase's built-in resend (not yet migrated to
-// generateLink()/Resend like signUp() above) - it uses Supabase's default
-// confirmation template rather than lib/email/templates.js's branded one.
+// Mirrors signUp(): generateLink() + Resend so the resent message is the
+// same branded template as the original, instead of Supabase's default one.
+// Always reports success so the endpoint cannot be used to enumerate which
+// addresses have an unconfirmed account.
 export async function resendConfirmationEmail(formData) {
   const email = formData.get('email');
 
@@ -140,18 +145,27 @@ export async function resendConfirmationEmail(formData) {
     return { error: 'Email is required' };
   }
 
-  const supabase = await createClient();
+  const adminClient = createAdminClient();
 
-  const { error } = await supabase.auth.resend({
+  const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'signup',
     email,
     options: {
-      emailRedirectTo: `${APP_URL}/auth/callback?next=/dashboard`,
+      redirectTo: `${APP_URL}/auth/callback?next=/dashboard`,
     },
   });
 
-  if (error) {
-    return { error: friendlyAuthError(error.message) };
+  if (!error) {
+    const { subject, html } = confirmSignupEmail({
+      confirmUrl: buildVerifyUrl({ properties: data.properties, next: '/dashboard' }),
+      fullName: data.user?.user_metadata?.full_name,
+    });
+
+    try {
+      await sendTemplate({ subject, html }, { to: email, tags: ['signup-confirm'] });
+    } catch (sendError) {
+      console.error('Failed to resend confirmation email:', sendError);
+    }
   }
 
   return { success: true };
@@ -185,7 +199,7 @@ export async function requestPasswordReset(formData) {
     });
 
     try {
-      await sendEmail({ to: email, subject, html });
+      await sendTemplate({ subject, html }, { to: email, tags: ['password-reset'] });
     } catch (sendError) {
       console.error('Failed to send password reset email:', sendError);
     }
@@ -202,10 +216,27 @@ export async function updatePassword(formData) {
   }
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { error } = await supabase.auth.updateUser({ password });
 
   if (error) {
     return { error: friendlyAuthError(error.message) };
+  }
+
+  // Security notice - best effort. A password change that succeeded must not
+  // be reported as a failure just because the notification could not be sent.
+  if (user?.email) {
+    try {
+      const { subject, html } = passwordChangedEmail({
+        fullName: user.user_metadata?.full_name,
+      });
+      await sendTemplate({ subject, html }, { to: user.email, tags: ['password-changed'] });
+    } catch (sendError) {
+      console.error('Failed to send password change notification:', sendError);
+    }
   }
 
   redirect('/dashboard');

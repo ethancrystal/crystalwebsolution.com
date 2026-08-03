@@ -135,9 +135,16 @@ export default function EditDealPage() {
         project_type: form.project_type || null,
       };
 
-      const { error } = await supabase.from('deals').update(payload).eq('id', id);
+      const { data, error } = await supabase
+        .from('deals')
+        .update(payload)
+        .eq('id', id)
+        .select();
 
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('Update failed - no rows changed (check permissions).');
+      }
 
       router.push(`/admin/deals/${id}`);
     } catch (err) {
@@ -146,10 +153,18 @@ export default function EditDealPage() {
     }
   }
 
-  if (isLoading || !form) {
+  if (isLoading) {
     return (
       <div className="crm-admin-page">
         <div className="crm-loading">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error && !form) {
+    return (
+      <div className="crm-admin-page">
+        <div className="crm-error">{error}</div>
       </div>
     );
   }

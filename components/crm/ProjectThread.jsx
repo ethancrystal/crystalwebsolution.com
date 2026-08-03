@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/browser';
 import { listProjectMessages } from '@/lib/crm/projects';
+import { postProjectMessage, reserveAttachment, finalizeAttachment } from '@/app/actions/project-actions';
 
 function formatBytes(bytes) {
   if (!bytes && bytes !== 0) return '';
@@ -71,23 +72,12 @@ export default function ProjectThread({ projectId, role }) {
     setError(null);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('You must be signed in to send a message.');
+      const formData = new FormData();
+      formData.set('projectId', projectId);
+      formData.set('body', trimmed);
 
-      const clientGeneratedId = crypto.randomUUID();
-
-      const { error } = await supabase.from('project_messages').insert({
-        project_id: projectId,
-        sender_id: user.id,
-        body: trimmed,
-        visibility: role === 'client' ? 'shared' : 'shared',
-        client_generated_id: clientGeneratedId,
-      });
-
-      if (error) throw error;
+      const result = await postProjectMessage(formData);
+      if (!result.ok) throw new Error(result.error || 'Unable to send this message.');
 
       setBody('');
       await load();
@@ -106,32 +96,28 @@ export default function ProjectThread({ projectId, role }) {
     setError(null);
 
     try {
+      const reserveForm = new FormData();
+      reserveForm.set('projectId', projectId);
+      reserveForm.set('fileName', file.name);
+      reserveForm.set('mimeType', file.type || 'application/octet-stream');
+      reserveForm.set('sizeBytes', String(file.size));
+
+      const reserved = await reserveAttachment(reserveForm);
+      if (!reserved.ok) throw new Error(reserved.error || 'Unable to reserve this upload.');
+
       const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('You must be signed in to upload a file.');
-
-      const storagePath = `${projectId}/${crypto.randomUUID()}-${file.name}`;
-
       const { error: uploadError } = await supabase.storage
         .from('project-files')
-        .upload(storagePath, file);
+        .upload(reserved.data.storagePath, file);
 
       if (uploadError) throw uploadError;
 
-      const { error: insertError } = await supabase.from('project_attachments').insert({
-        project_id: projectId,
-        uploaded_by: user.id,
-        file_name: file.name,
-        storage_path: storagePath,
-        mime_type: file.type || null,
-        size_bytes: file.size,
-        status: 'ready',
-        visibility: role === 'client' ? 'shared' : 'shared',
-      });
+      const finalizeForm = new FormData();
+      finalizeForm.set('projectId', projectId);
+      finalizeForm.set('attachmentId', reserved.data.attachmentId);
 
-      if (insertError) throw insertError;
+      const finalized = await finalizeAttachment(finalizeForm);
+      if (!finalized.ok) throw new Error(finalized.error || 'Unable to finalize this upload.');
 
       await load();
     } catch (err) {
@@ -249,6 +235,7 @@ export default function ProjectThread({ projectId, role }) {
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Write a message..."
+          aria-label="Write a message"
           rows={2}
         />
         <button type="submit" className="thread-send-button" disabled={isSending || !body.trim()}>

@@ -1,5 +1,11 @@
 # Pixel-Polish Execution Plan — Every Corner, Every Transition
 
+> **Historical plan — superseded.** This plan is tied to the archived
+> eleven-section Hive audit and its 2026 checkpoint. It is retained for design
+> history, not as the current backlog or architecture contract. Use
+> `../AGENTS.md`, `../README.md`, `../STATUS.md`, `Experience.jsx`, and
+> `Scene.jsx` for current state.
+
 Companion to `docs/HIVE-AUDIT.md`. That doc is the diagnosis + judged priority
 order; this is the execution plan — phased, file-level, with acceptance
 criteria and a coherence pass woven through every phase rather than bolted on

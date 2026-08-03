@@ -118,7 +118,7 @@ export default function AdminProjectsPage() {
                     </Link>
                   </td>
                   <td>{project.company?.name || '—'}</td>
-                  <td>{project.status}</td>
+                  <td>{STATUS_FILTERS.find((s) => s.value === project.status)?.label || project.status}</td>
                   <td>{project.assignee?.full_name || '—'}</td>
                   <td>{project.target_date || '—'}</td>
                 </tr>

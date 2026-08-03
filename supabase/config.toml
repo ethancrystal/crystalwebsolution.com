@@ -155,12 +155,28 @@ max_indexes = 5
 [auth]
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
-# in emails.
-site_url = "http://127.0.0.1:3000"
+# in emails. Overridden per-environment by the SUPABASE_AUTH_SITE_URL env var so the same file
+# serves local dev and the deployed site.
+site_url = "env(SUPABASE_AUTH_SITE_URL)"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+#
+# Every auth email the app sends routes through its own /auth/verify (see
+# lib/supabase/admin.js buildVerifyUrl) or /auth/callback, on localhost during
+# development and on the production domain once deployed. Any redirect target
+# not listed here is rejected by GoTrue, which is what silently breaks
+# confirm/reset/invite links in production.
+#
+# Wildcards follow the globbing syntax documented at
+# https://supabase.com/docs/guides/auth/redirect-urls
+additional_redirect_urls = [
+  "http://localhost:3000/**",
+  "http://127.0.0.1:3000/**",
+  "https://crystalwebsolution.com/**",
+  "https://www.crystalwebsolution.com/**",
+]
+
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -233,15 +249,21 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
+# Use a production-ready SMTP server.
+#
+# The application sends its own auth mail through Resend's HTTP API
+# (lib/email/resend.js), so this block is only what GoTrue itself uses for
+# any flow the app has not taken over (e.g. email-change confirmations
+# triggered directly through the Supabase client). Point it at Resend's SMTP
+# bridge so those messages leave from the same verified domain.
 # [auth.email.smtp]
 # enabled = true
-# host = "smtp.sendgrid.net"
+# host = "smtp.resend.com"
 # port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# user = "resend"
+# pass = "env(RESEND_API_KEY)"
+# admin_email = "info@crystalwebsolution.com"
+# sender_name = "Crystal Web Solution"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

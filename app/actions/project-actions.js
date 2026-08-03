@@ -587,12 +587,13 @@ export async function updateProjectApproval(formData) {
   const profile = await authenticatedProfile(['project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to review approvals.');
 
+  const projectId = formString(formData, 'projectId');
   const approvalId = formString(formData, 'approvalId');
   const status = formString(formData, 'status');
   const note = optionalFormString(formData, 'note');
 
-  if (!isCanonicalUuid(approvalId)) {
-    return invalid(requestId, 'Choose a valid approval.');
+  if (!isCanonicalUuid(projectId) || !isCanonicalUuid(approvalId)) {
+    return invalid(requestId, 'Choose a valid project approval.');
   }
   if (!['approved', 'rejected'].includes(status)) {
     return invalid(requestId, 'Approval status must be approved or rejected.');
@@ -615,7 +616,7 @@ export async function updateProjectApproval(formData) {
     return databaseFailure(error, requestId, 'Unable to review this approval.');
   }
 
-  revalidateAllProjectPaths(data);
+  revalidateAllProjectPaths(projectId);
   return success(requestId, { approvalId: data });
 }
 
@@ -624,11 +625,12 @@ export async function publishDeliverable(formData) {
   const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to publish deliverables.');
 
+  const projectId = formString(formData, 'projectId');
   const deliverableId = formString(formData, 'deliverableId');
   const status = formString(formData, 'status') || 'submitted';
 
-  if (!isCanonicalUuid(deliverableId)) {
-    return invalid(requestId, 'Choose a valid deliverable.');
+  if (!isCanonicalUuid(projectId) || !isCanonicalUuid(deliverableId)) {
+    return invalid(requestId, 'Choose a valid project deliverable.');
   }
   if (!['submitted', 'approved', 'rejected'].includes(status)) {
     return invalid(requestId, 'Choose a valid deliverable status.');
@@ -647,8 +649,134 @@ export async function publishDeliverable(formData) {
     return databaseFailure(error, requestId, 'Unable to publish this deliverable.');
   }
 
-  revalidateAllProjectPaths(data);
+  revalidateAllProjectPaths(projectId);
   return success(requestId, { deliverableId: data });
+}
+
+function deliverableData(row) {
+  const deliverable = Array.isArray(row) ? row[0] : row;
+  if (!deliverable || !isCanonicalUuid(deliverable.id)) return null;
+
+  return {
+    deliverableId: deliverable.id,
+    projectId: deliverable.project_id,
+    title: deliverable.title,
+    description: deliverable.description,
+    fileName: deliverable.file_name,
+    storagePath: deliverable.storage_path,
+    mimeType: deliverable.mime_type,
+    sizeBytes: deliverable.size_bytes,
+    status: deliverable.status,
+    visibility: deliverable.visibility,
+    version: deliverable.version,
+  };
+}
+
+export async function createProjectDeliverable(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to create deliverables.');
+
+  const projectId = formString(formData, 'projectId');
+  const visibility = formString(formData, 'visibility') || 'shared';
+  const title = formString(formData, 'title').trim();
+  const description = optionalFormString(formData, 'description') ?? '';
+  const fileName = formString(formData, 'fileName').trim();
+  const mimeType = formString(formData, 'mimeType').trim().toLowerCase();
+  const sizeText = formString(formData, 'sizeBytes');
+  const sizeBytes = /^\d+$/.test(sizeText) ? Number(sizeText) : Number.NaN;
+  const version = optionalFormString(formData, 'version') ?? '1';
+
+  if (!isCanonicalUuid(projectId)) {
+    return invalid(requestId, 'Choose a valid project.');
+  }
+  if (
+    !MESSAGE_VISIBILITIES.includes(visibility) ||
+    !canPostVisibility(profile.role, visibility)
+  ) {
+    return invalid(requestId, 'Choose a valid deliverable visibility.');
+  }
+  if (!validBoundedText(title, 1, 255)) {
+    return invalid(requestId, 'Title must be 1 to 255 characters.');
+  }
+  if (!validBoundedText(description, 0, 10000)) {
+    return invalid(requestId, 'Description must be at most 10000 characters.');
+  }
+  if (!validBoundedText(fileName, 1, MAX_FILE_NAME_LENGTH)) {
+    return invalid(requestId, 'File name must be 1 to 255 characters.');
+  }
+  if (!ALLOWED_FILE_TYPES.has(mimeType)) {
+    return invalid(requestId, 'This file type is not supported.');
+  }
+  if (!Number.isSafeInteger(sizeBytes) || sizeBytes < 1 || sizeBytes > MAX_FILE_SIZE_BYTES) {
+    return invalid(requestId, 'File must be no larger than 10 MiB.');
+  }
+  if (!validBoundedText(version, 1, 32)) {
+    return invalid(requestId, 'Version must be 1 to 32 characters.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to create this deliverable.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('create_project_deliverable', {
+      p_project_id: projectId,
+      p_title: title,
+      p_file_name: fileName,
+      p_mime_type: mimeType,
+      p_size_bytes: sizeBytes,
+      p_description: description,
+      p_visibility: visibility,
+      p_version: version,
+    }),
+  );
+
+  const deliverable = deliverableData(data);
+  if (error || !deliverable) {
+    return databaseFailure(error, requestId, 'Unable to create this deliverable.');
+  }
+
+  revalidateAllProjectPaths(projectId);
+  return success(requestId, deliverable);
+}
+
+export async function postProjectNote(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to post notes.');
+
+  const projectId = formString(formData, 'projectId');
+  const visibility = formString(formData, 'visibility') || 'shared';
+  const note = formString(formData, 'note').trim();
+
+  if (!isCanonicalUuid(projectId)) {
+    return invalid(requestId, 'Choose a valid project.');
+  }
+  if (
+    !MESSAGE_VISIBILITIES.includes(visibility) ||
+    !canPostVisibility(profile.role, visibility)
+  ) {
+    return invalid(requestId, 'Choose a valid note visibility.');
+  }
+  if (!validBoundedText(note, 1, MAX_STATUS_NOTE_LENGTH)) {
+    return invalid(requestId, 'Note must be 1 to 2000 characters.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to post this note.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('post_project_note', {
+      p_project_id: projectId,
+      p_note: note,
+      p_visibility: visibility,
+    }),
+  );
+
+  if (error || !isCanonicalUuid(data)) {
+    return databaseFailure(error, requestId, 'Unable to post this note.');
+  }
+
+  revalidateAllProjectPaths(projectId);
+  return success(requestId, { historyId: data });
 }
 
 export async function enqueueNotification(formData) {

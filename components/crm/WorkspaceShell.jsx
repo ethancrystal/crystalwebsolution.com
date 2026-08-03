@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { homeForRole } from '@/lib/auth/roles.mjs';
 
 const SECTION_CLASSES = 'crm-workspace-section';
 
 export default function WorkspaceShell({ role = 'client', title, children }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const projectsHref = homeForRole(role) ?? '/dashboard';
 
   return (
     <div className="crm-workspace">
@@ -27,17 +29,8 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
       <div className="crm-workspace-body">
         <aside className={`crm-workspace-sidebar ${isSidebarOpen ? 'is-open' : ''}`}>
           <nav className="crm-workspace-nav">
-            <a className="crm-workspace-nav-link" href="/dashboard">
+            <a className="crm-workspace-nav-link" href={projectsHref}>
               Projects
-            </a>
-            <a className="crm-workspace-nav-link" href="/dashboard">
-              Overview
-            </a>
-            <a className="crm-workspace-nav-link" href="/dashboard">
-              Messages
-            </a>
-            <a className="crm-workspace-nav-link" href="/dashboard">
-              Files
             </a>
           </nav>
         </aside>
@@ -91,7 +84,7 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
         }
 
         .crm-workspace-sidebar-toggle {
-          display: inline-flex;
+          display: none;
           border: 1px solid rgba(100, 200, 255, 0.35);
           background: rgba(100, 200, 255, 0.08);
           color: #64c8ff;
@@ -114,7 +107,7 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
           position: sticky;
           top: 5rem;
           align-self: start;
-          display: none;
+          display: flex;
           flex-direction: column;
           gap: 0.75rem;
           background: rgba(30, 35, 60, 0.8);
@@ -122,10 +115,6 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
           border-radius: 12px;
           padding: 1rem;
           backdrop-filter: blur(10px);
-        }
-
-        .crm-workspace-sidebar.is-open {
-          display: flex;
         }
 
         .crm-workspace-nav {
@@ -163,6 +152,10 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
         }
 
         @media (max-width: 768px) {
+          .crm-workspace-sidebar-toggle {
+            display: inline-flex;
+          }
+
           .crm-workspace-body {
             grid-template-columns: 1fr;
             padding: 1rem;

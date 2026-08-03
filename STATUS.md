@@ -1,14 +1,102 @@
 # Crystal Web Solution CRM - Implementation Status
 
-## 📅 Last Updated: 2026-08-01
-## 👤 Last Agent: Claude (Sonnet 5)
-## 🔗 Current Branch: merged into `main`
+## 📅 Last Updated: 2026-08-03
+## 👤 Last Agent: Claude
+## 🔗 Current Branch: `main`
 ## 🔑 Source of Truth
-- Checked-in migrations: `supabase/migrations/0001` … `0011` (all applied remotely — see below)
+- Checked-in migrations: canonical `supabase/migrations/0001` … `0013`;
+  live history intentionally omits `0007` and records the ad-hoc `0009b`
+  operation before canonical `0009`–`0011` (see below)
 - Project read boundary: `lib/crm/projects.js`
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
 - Supabase project ref: `wmnjosiikehsuaqucvja`
+
+## ⚠️ Check open branches/PRs before starting CRM fix work
+
+**Incident (2026-08-03):** two separate agent sessions independently ran a
+CRM bug audit and both fixed largely the same findings, in the same ~12
+files, without either being aware of the other (PR #49 `fix-crm-core-flows`
+and PR #50 `workflow-crm-ultracode-sweep`, plus a third session that landed
+its own migration `0012` directly on `main` while a fourth landed the
+email/cron-drain rewrite in commits `880c4d6`/`3f76c84`). Reconciling this
+took a full review pass to find PR #50's overlapping reimplementations were
+independently broken in ways PR #49's tested versions weren't (a missing
+`await` on an async `createClient()`, a wrong Supabase count-query
+destructure, an undefined-variable `ReferenceError`, a response-shape
+mismatch, incomplete role-routing) — see PR #49's merge commit for the
+full comparison and PR #50's closing comment for the itemized verdict.
+
+**Before starting any broad CRM bug-fix/audit pass:**
+1. Run `git branch -a` and `gh pr list` and read anything CRM-related that's
+   open before touching `app/actions/project-actions.js`, `components/crm/*`,
+   `app/{dashboard,team,admin}/**`, or `supabase/migrations/*` — these are
+   the files most likely to collide.
+2. Check the migration number actually live on Supabase
+   (`list_migrations` via MCP, or `supabase migration list`) before naming a
+   new migration file — local `supabase/migrations/` and what's actually
+   applied can drift when multiple sessions work in parallel worktrees.
+3. If you find an open PR touching the same files you're about to fix, stop
+   and reconcile rather than opening a third parallel implementation.
+
+## 🗄️ Migrations 0012–0013 (2026-08-03)
+
+- `0012_project_task_update_fixes.sql` — fixes `update_project_task`'s
+  NULL-permissive assignee check and its silent overwrite of
+  assignee_id/due_date on partial updates. Applied live directly (by a
+  separate session, reconciled after the fact); now checked into `main`'s
+  migration history in sequence.
+- `0013_project_notes_and_deliverables.sql` — adds `post_project_note()`
+  (lets `NotesPanel.jsx` post a standalone update despite
+  `project_status_history.to_status` being NOT NULL) and
+  `create_project_deliverable()` + matching `storage.objects` policies
+  (the only INSERT path `project_deliverables` has ever had). Applied live
+  via Supabase MCP `apply_migration`, verified by direct query
+  (`pg_proc`/`pg_policies`) after applying. App-code wiring (server actions
+  + UI) is in PR #49, gated on this migration already being live — it is.
+
+### 🧹 Repository preservation cleanup (2026-08-02)
+
+- Removed only explicitly approved generated residue, 12 reverified
+  runtime-unreachable source files, their dead CSS, unused direct dependencies,
+  and three rejected untracked migration alternatives.
+- Restored historical migration `0007` to its committed bytes; canonical
+  `0009`–`0011` were retained unchanged.
+- Preserved the current public design, one-Canvas animation architecture,
+  Lab DOM/CSS-3D carousel and fallbacks, Motion selected-work rail, all CRM
+  routes/actions/read models, every branch, and every recovery stash.
+- Repaired the `/login` portal chooser and linked `/signup` page without
+  changing copy, routes, forms, or authentication behavior: both CWS marks are
+  intrinsically bounded and centered, and the three intended portal controls
+  render correctly through Next Link's styled-jsx boundary.
+- Restored the generic `sendEmail` export already called by signup confirmation,
+  password reset, and staff invite actions; the existing invite helper now
+  shares that tested Resend boundary. No live email was sent during verification.
+- Ended with one canonical worktree. Full worktree/stash recovery evidence is
+  in `docs/WORKTREE-STATE.md`; the exact cleanup and retention manifest is in
+  `docs/REPOSITORY-CLEANUP-2026-08-02.md`.
+- Current verification: CRM tests 59/59, full suite 110/110, production build
+  43/43 pages, desktop/mobile/browser CRM smoke checks with no console errors.
+- Read-only live Supabase checks confirmed canonical migrations 0009–0011 and
+  18 public CRM tables with RLS enabled. No database write or deployment was
+  performed. Local `test:db` remains unavailable until Docker Desktop runs.
+
+### 📌 Git checkpoint and remote boundary (2026-08-02)
+
+- The reviewed cleanup/auth/documentation checkpoint is commit `aa50610`
+  (`chore: preserve and consolidate repository state`). It contains no merge,
+  rebase, cherry-pick, database write, or deployment.
+- A pre-push fetch found that `origin/main` had independently advanced from
+  `c5a922f` to `540887d` while this checkpoint was being finished. That remote
+  commit changes only `CLAUDE.md` and was not merged or copied into the local
+  checkpoint.
+- Local `main` and `origin/main` therefore each have one unique commit. A
+  force-push is prohibited; the preserved publication target for this exact
+  checkpoint is `origin/codex/repository-cleanup-2026-08-02` until a future,
+  explicitly authorized reconciliation decision is made.
+- The newly requested Services-scene synchronization and responsive navigation
+  overlap repairs were deliberately not mixed into this checkpoint. They remain
+  the next public-UI work after this clean recovery point.
 
 ### 🔀 Branch reconciliation with `origin/main` (2026-08-01)
 
@@ -33,7 +121,7 @@ Explicitly **not** ported, as a documented decision rather than an oversight:
 - `client_visible` filtering is not enforced anywhere (no RLS policy or read-model filter checks it). Every project participant currently sees every task regardless of this flag, same as before this migration.
 - `budget_amount`/`currency` are not exposed to the `client` role — `clientSafeProject()` in `lib/crm/projects.js` was deliberately left unchanged, so these two columns stay admin/PM-visible only. This is a conservative default, not a modeled business decision — revisit if clients should see budget.
 
-### ✅ Completed this session
+### ✅ Completed 2026-08-01
 - **Fixed a real regression**: `app/dashboard/projects/[id]/page.jsx` didn't call the Phase 1 read functions (`listProjectTasks`, `listProjectApprovals`, `listProjectDeliverables`, `listNotifications`) the prior commit's own test expected. Wired them in, added `components/crm/NotificationsPanel.jsx`.
 - **Fixed a real data bug**: `listProjectTasks`/`listProjectApprovals`/`listProjectDeliverables` in `lib/crm/projects.js` returned raw rows with no profile joins, so assignee/requester/reviewer names always rendered "Unknown"/"Unassigned". Added the same profile-mapping `getProjectWorkspace` already did. Also fixed `getProjectWorkspace` itself, which had the identical gap for `tasks`/`approvals` (deliverables was already fixed) — this silently broke names on the **admin and team** project pages too, not just the client one.
 - **Closed the Supabase migration drift** — the live database was missing every project/workspace table before this session (see next section).
@@ -51,7 +139,7 @@ Actions taken:
 - **0011 (`workspace_hardening_from_main`) — applied.** See "Branch reconciliation" above.
 - Remote now has all 18 tables from 0009/0010 (verified via `list_tables`), RLS enabled and forced on every one, plus 0011's column additions. `get_advisors(security)` shows only the pre-existing, intentional pattern (SECURITY DEFINER functions callable by `authenticated`, each with its own internal auth checks) — no new findings from this session's changes. `get_advisors(performance)` shows only WARN/INFO noise (unused indexes on empty tables, etc.), no errors.
 
-### ⚠️ Known gaps (found but intentionally not fixed this session — flagging for a decision, not silently patched)
+### ⚠️ Known gaps carried forward
 - **Notifications are enqueued automatically now** (0011), but there is still no delivery pipeline that reads `notifications_outbox` and sends anything. `app/api/cron/crm-notifications/route.js` is a stub that always returns `{queued: 0}` — no email sending despite the `resend` dependency being present. Rows will accumulate with `status = 'pending'` and never move to `'sent'`.
 - **`update_project_task`'s authorization check is NULL-permissive**: `v_task.assignee_id <> v_user_id` evaluates to `NULL`/false when `assignee_id` is `NULL`, so an *unassigned* task can be updated by any project participant, not just an assignee. Unchanged this session — a decision, not a bug fix, since it may be intentional (letting anyone claim an unassigned task).
 - **`update_project_task`'s `assignee_id`/`due_date` are unconditionally overwritten** from the (nullable, default-null) params, unlike `title`/`description`/`status` which only update when explicitly passed — calling the RPC to change just the status will silently clear the assignee and due date. Unchanged this session.
@@ -59,10 +147,13 @@ Actions taken:
 - **Live end-to-end verification wasn't possible in this session** — no `.env.local` / Supabase credentials in this worktree, and provisioning test users (`pnpm crm:provision-test-users --execute`) sends real invite emails to live-looking addresses, which needs explicit go-ahead first. Everything above was verified via direct Supabase MCP calls against the live schema (`list_tables`, `list_migrations`, `execute_sql`, `get_advisors`) plus `pnpm test` / `pnpm build`, not a logged-in browser session.
 
 ### ✅ Verification
-- `pnpm test` — 106/106 passing (full suite, includes `tests/crm/*`)
+- `pnpm test` — 110/110 passing (full suite, includes `tests/crm/*`)
 - `pnpm build` — production build passes
-- Remote schema confirmed to match the checked-in migrations via Supabase MCP (`list_tables`, `list_migrations`)
-- Deployed to Vercel production (`vercel --prod`), aliased to `https://www.crystalwebsolution.com`
+- Read-only Supabase inspection confirmed canonical `0009`–`0011` and all 18
+  public CRM tables with RLS enabled; checked-in historical `0007` remains
+  intentionally absent from live migration history.
+- Historical 2026-08-01 state: deployed to Vercel production and aliased to
+  `https://www.crystalwebsolution.com`. The 2026-08-02 cleanup did not deploy.
 
 ### 🚧 In Progress / Next
 - Build the notification delivery pipeline (cron processing + actual sends) that consumes the now-retryable `notifications_outbox`.

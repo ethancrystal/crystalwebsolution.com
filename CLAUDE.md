@@ -18,12 +18,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Crystal Web Solution is a dark, cinematic, scroll-driven agency homepage. The
-whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM
+Crystal Web Solution is a Next.js 15 / React 19 application containing a dark,
+cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
+The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM
 scrolls over it while a virtual camera flies through one continuous 3D space
-past a refracting crystal, glass showcase slabs, an assembling brand mark,
-and drifting particles. Scene and project visuals are code-generated; the
-only static visual assets are the brand logo and application icon.
+past a refracting crystal, service-signal instruments, an approach compass,
+procedural particles, and a morphing backdrop. Lab and Motion add DOM/CSS-3D
+card experiences over the same canvas. Marketing scene and project visuals
+are procedural; tracked static files are limited to served brand/application
+assets and compatibility URLs. CRM routes live under `/login`, `/dashboard`,
+`/team`, and `/admin` and use Supabase Auth/Postgres/Storage/RLS.
 
 ## Commands
 
@@ -32,6 +36,8 @@ pnpm install --frozen-lockfile
 pnpm dev         # http://localhost:3000
 pnpm test        # full Node test suite
 pnpm test:crm    # CRM-focused contracts
+pnpm test:db     # Supabase database tests; requires the local stack
+pnpm test:e2e    # planned gate; tests/e2e is not yet checked in
 pnpm build       # production build
 pnpm start       # serve the production build
 ```
@@ -54,8 +60,8 @@ anything that touches scroll or animation:
   rather than starting an independent loop.
 - **Per-frame data lives in module-level singleton objects, never React
   state.** `lib/scrollState.js` (`{ progress, velocity, focus }`),
-  `lib/pulse.js` (hero click "blast"), and `lib/chime.js` (Recognition medal
-  hover) are all plain mutable objects: DOM code writes to them, R3F
+  `lib/pulse.js` (hero click "blast"), `lib/motionScale.js`, and
+  `lib/motionFlight.mjs` are plain mutable objects: DOM code writes to them, R3F
   components read them inside `useFrame`. This avoids re-render storms for
   values that change dozens of times a second. When adding a new
   cross-boundary per-frame value, follow this same singleton pattern instead
@@ -80,7 +86,8 @@ each frame, finds which segment of `STOPS` it falls in, and lerps/damps the
 camera toward it, adding pointer parallax and velocity-based roll.
 
 Segment boundaries are **not** a uniform `index / (STOPS.length - 1)` split —
-sections vary hugely in scroll length (Showcase's project grid dwarfs Hero).
+sections vary hugely in scroll length (Lab's sticky flight stage is much taller
+than a standard beat).
 `lib/beatProgress.js` measures each section's real DOM position
 (`measureBeats`, called from `SmoothScroll.jsx` via a `ResizeObserver` on
 `<body>`, always against `lenis.limit` so the fractions share
@@ -89,11 +96,17 @@ against those measured breakpoints instead.
 
 When adding or reordering a scroll section, `STOPS`/`CLUSTERS` in
 `lib/journey.js`, `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`
-(read by `measureBeats`), and the section's 3D counterpart in `Scene.jsx`
-all have to move together.
+(read by `measureBeats`), and any matching 3D actor in `Scene.jsx` all have to
+move together.
 
 ### Component layout
 
+- `Experience.jsx` renders the current beats in this order: Hero, About,
+  Services, Approach, Stories, Mark, Lab, Motion, Contact.
+- `Scene.jsx` mounts one Canvas with `CameraRig`, `Lights`, `Effects`,
+  `FocusDimmer`, `Crystal`, `Sparks`, `ServiceRail`, `ApproachCompass`,
+  `Particles`, and `BackdropMorph`. Lab and Motion do not mount separate scene
+  actors.
 - Sections communicate with their 3D counterpart only through the
   singletons above (or GSAP ScrollTrigger), never via props/context across
   the DOM/canvas boundary.
@@ -110,15 +123,36 @@ all have to move together.
 
 ## Conventions
 
-- No binary/image/video assets. Every visual — icons, avatars, textures — is
-  generated procedurally (canvas, SVG, or Three.js geometry/shaders). Keep
-  new visuals consistent with this rule.
+- Keep new marketing scene/project visuals procedural (canvas, SVG, or Three.js
+  geometry/shaders). Do not add decorative binary media when the established
+  procedural path is sufficient. Existing served brand/application assets and
+  compatibility URLs are intentional and must not be removed without a URL and
+  runtime audit.
 - No TypeScript, no Tailwind — plain JSX and global CSS with the design
   tokens defined at the top of `app/globals.css` (`--bg`, `--ink`, `--cyan`,
   `--blue`, `--violet`, etc.).
-- The CRM uses Supabase for auth, RLS, and data — see `supabase/migrations/`
-  and `docs/CRM-OPERATIONS.md`. `.mcp.json` configures a Supabase MCP server for
-  development-time queries.
+- Supabase is the live CRM boundary. Application clients live under
+  `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL
+  lives in `supabase/migrations/0001` through `0011`. `.mcp.json` configures a
+  Supabase MCP server for development-time queries. Two data-access shapes
+  coexist deliberately:
+  - **Project delivery** — the newer, contract-tested path. Reads go through
+    `lib/crm/projects.js` against the `lib/crm/project-contract.mjs` shape;
+    writes go through the `'use server'` actions in
+    `app/actions/project-actions.js` (server client + `lib/auth/require-role.js`).
+    Used by `/dashboard`, `/team/projects/[id]`, `/admin/projects`. Extend
+    this path for new delivery work, and keep `tests/crm/` in step.
+  - **Companies / contacts / deals / tasks / users** — client components that
+    call `createClient()` from `lib/supabase/browser.js` and query tables
+    directly, relying on RLS for scoping (the old `lib/crm/companies.js`,
+    `contacts.js`, `deals.js`, `tasks.js` modules were removed in `aa50610`).
+    Don't re-add per-table `lib/crm/` modules for these unless you're actually
+    migrating them onto the contract/server-action path.
+
+  Auth/role mutations live in `app/auth/actions.js`,
+  `app/admin/users/actions.js`, and `app/auth/*/route.js`. Never infer
+  database correctness from source tests alone; verify RLS and migration state
+  against an isolated database or the approved read-only live boundary.
 
 ## Planning docs (not yet implemented)
 
@@ -128,6 +162,7 @@ CWS components (e.g. a future `ServiceRock.jsx`, pinned-horizontal Showcase/
 Motion sliders, a `ChromeSliverField.jsx` hero interaction). They describe
 target structure and motion mechanics only — **never copy Trionn's actual
 copy, client names, testimonials, logos, or media**; everything is rebuilt
-with CWS's own brand voice and procedural visuals, per the project's
-no-binary-assets rule. Treat these files as a design reference when
-implementing the features they describe, not as already-built.
+with CWS's own brand voice and procedural marketing visuals, following the
+procedural-first rule and its intentional served brand/application-asset
+exception. Treat these files as a design reference when implementing the
+features they describe, not as already-built.

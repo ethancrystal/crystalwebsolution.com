@@ -114,7 +114,13 @@ export default function ClientProjectPage() {
       <NotificationsPanel notifications={notifications} />
       <ProjectTimeline history={workspace.statusHistory} />
       <ProjectTasks tasks={tasks} readOnly />
-      <ProjectFiles files={workspace.attachments ?? []} deliverables={deliverables} canUpload={false} />
+      <ProjectFiles
+        files={workspace.attachments ?? []}
+        deliverables={deliverables}
+        canUpload={false}
+        projectId={projectId}
+        onChanged={loadWorkspace}
+      />
       <ProjectApprovals approvals={approvals} />
       <ProjectThread projectId={projectId} role={profile?.role || 'client'} />
       <NotesPanel projectId={projectId} />

@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient, buildVerifyUrl } from '@/lib/supabase/admin';
-import { sendEmail } from '@/lib/email/resend';
+import { sendTemplate } from '@/lib/email/resend';
 import { inviteUserEmail } from '@/lib/email/templates';
 import { requireRole } from '@/lib/auth/require-role';
 import { redirect } from 'next/navigation';
@@ -59,9 +59,9 @@ export async function inviteUser(formData) {
   });
 
   try {
-    await sendEmail({ to: email, subject, html });
+    await sendTemplate({ subject, html }, { to: email, tags: ['invite'] });
   } catch (sendError) {
-    await supabase.auth.admin.deleteUser(data.user.id).catch(() => null);
+    await adminClient.auth.admin.deleteUser(data.user.id).catch(() => null);
     return { error: `Invite created, but the email failed to send: ${sendError.message}` };
   }
 
@@ -73,7 +73,7 @@ export async function inviteUser(formData) {
   });
 
   if (roleError) {
-    await supabase.auth.admin.deleteUser(data.user.id).catch(() => null);
+    await adminClient.auth.admin.deleteUser(data.user.id).catch(() => null);
     return { error: 'Invite sent, but role assignment failed.' };
   }
 
