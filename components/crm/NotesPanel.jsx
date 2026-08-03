@@ -84,6 +84,7 @@ export default function NotesPanel({ projectId }) {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Add an update..."
+          aria-label="Add an update"
           rows={3}
         />
         <button type="submit" className="notes-button" disabled={isSaving || !content.trim()}>

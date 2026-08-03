@@ -150,7 +150,12 @@ export default function AdminProjectPage() {
         projectId={projectId}
         onChanged={loadWorkspace}
       />
-      <ProjectApprovals approvals={workspace.approvals ?? []} canDecide />
+      <ProjectApprovals
+        approvals={workspace.approvals ?? []}
+        canDecide
+        projectId={projectId}
+        onChanged={loadWorkspace}
+      />
       <ProjectThread projectId={projectId} role="admin" />
       <NotesPanel projectId={projectId} />
 

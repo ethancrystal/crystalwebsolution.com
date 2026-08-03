@@ -187,7 +187,12 @@ export default function TeamProjectPage() {
         projectId={projectId}
         onChanged={loadWorkspace}
       />
-      <ProjectApprovals approvals={workspace.approvals ?? []} canDecide />
+      <ProjectApprovals
+        approvals={workspace.approvals ?? []}
+        canDecide
+        projectId={projectId}
+        onChanged={loadWorkspace}
+      />
       <ProjectThread projectId={projectId} role={profile?.role || 'project_manager'} />
       <NotesPanel projectId={projectId} />
 

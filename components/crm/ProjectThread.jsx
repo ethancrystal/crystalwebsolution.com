@@ -235,6 +235,7 @@ export default function ProjectThread({ projectId, role }) {
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Write a message..."
+          aria-label="Write a message"
           rows={2}
         />
         <button type="submit" className="thread-send-button" disabled={isSending || !body.trim()}>

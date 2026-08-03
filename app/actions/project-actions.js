@@ -587,12 +587,13 @@ export async function updateProjectApproval(formData) {
   const profile = await authenticatedProfile(['project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to review approvals.');
 
+  const projectId = formString(formData, 'projectId');
   const approvalId = formString(formData, 'approvalId');
   const status = formString(formData, 'status');
   const note = optionalFormString(formData, 'note');
 
-  if (!isCanonicalUuid(approvalId)) {
-    return invalid(requestId, 'Choose a valid approval.');
+  if (!isCanonicalUuid(projectId) || !isCanonicalUuid(approvalId)) {
+    return invalid(requestId, 'Choose a valid project approval.');
   }
   if (!['approved', 'rejected'].includes(status)) {
     return invalid(requestId, 'Approval status must be approved or rejected.');
@@ -615,7 +616,7 @@ export async function updateProjectApproval(formData) {
     return databaseFailure(error, requestId, 'Unable to review this approval.');
   }
 
-  revalidateAllProjectPaths(data);
+  revalidateAllProjectPaths(projectId);
   return success(requestId, { approvalId: data });
 }
 
