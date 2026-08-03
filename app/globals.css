@@ -1625,6 +1625,11 @@ html[data-cws-intro-seen='1'] .loader {
   width: 100%;
   height: 100%;
   z-index: 1;
+  /* Vertical clearance below .about-kicker is measured and applied as an
+     inline transform in components/sections/About.jsx (alignCopyBelowKicker) -
+     both the kicker's wrapped height and this SVG's viewBox-scaled first-row
+     position vary independently with viewport size, so no fixed CSS value
+     here can predict every combination. */
 }
 .about-smil-word {
   fill: #f3f4ef;
@@ -1644,15 +1649,6 @@ html[data-cws-intro-seen='1'] .loader {
      edges on phones, since the copy spans almost the full viewBox
      width side to side. */
   .about-smil-word { font-size: 72px; }
-  /* .about-kicker (absolute, top:clamp(6.5rem,11vh,8.5rem)) wraps to more
-     lines on narrow phones than its desktop max-width:72vw budget assumes,
-     growing taller than the gap before .about-smil-copy's vertically-
-     centered word grid (first row sits ~1/3 down the 1440x900 viewBox).
-     The two layers don't know about each other's height, so on phones the
-     "WE BUILD DIGITAL" row can render on top of the kicker's last lines.
-     Push the whole word-grid layer down to guarantee clearance instead of
-     trying to predict the kicker's wrapped height exactly. */
-  .about-smil-copy { transform: translateY(9vh); }
 }
 
 /* ---------- facts / precision ledger ---------- */

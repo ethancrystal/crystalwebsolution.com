@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
+import { SkeletonTable } from '@/components/crm/Skeleton';
 
 export default function CompaniesPage() {
   const { isAdmin } = useUserRole();
@@ -36,7 +37,7 @@ export default function CompaniesPage() {
   if (isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonTable columns={5} />
       </div>
     );
   }
