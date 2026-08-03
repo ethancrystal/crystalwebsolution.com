@@ -1,4 +1,4 @@
--- Notes and deliverables write paths. Depends on 0011.
+-- Notes and deliverables write paths. Depends on 0012.
 --
 -- Two real gaps found during a CRM audit, neither fixable from application
 -- code alone:
