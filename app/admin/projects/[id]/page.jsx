@@ -143,7 +143,13 @@ export default function AdminProjectPage() {
         </div>
       </section>
 
-      <ProjectFiles files={workspace.attachments ?? []} deliverables={workspace.deliverables ?? []} canUpload />
+      <ProjectFiles
+        files={workspace.attachments ?? []}
+        deliverables={workspace.deliverables ?? []}
+        canUpload
+        projectId={projectId}
+        onChanged={loadWorkspace}
+      />
       <ProjectApprovals approvals={workspace.approvals ?? []} canDecide />
       <ProjectThread projectId={projectId} role="admin" />
       <NotesPanel projectId={projectId} />

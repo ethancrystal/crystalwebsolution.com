@@ -180,7 +180,13 @@ export default function TeamProjectPage() {
         </div>
       </section>
 
-      <ProjectFiles files={workspace.attachments ?? []} deliverables={workspace.deliverables ?? []} canUpload />
+      <ProjectFiles
+        files={workspace.attachments ?? []}
+        deliverables={workspace.deliverables ?? []}
+        canUpload
+        projectId={projectId}
+        onChanged={loadWorkspace}
+      />
       <ProjectApprovals approvals={workspace.approvals ?? []} canDecide />
       <ProjectThread projectId={projectId} role={profile?.role || 'project_manager'} />
       <NotesPanel projectId={projectId} />

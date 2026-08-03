@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/browser';
+import { postProjectNote } from '@/app/actions/project-actions';
 
 function formatWhen(value) {
   if (!value) return '';
@@ -21,6 +22,8 @@ export default function NotesPanel({ projectId }) {
   const [notes, setNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [content, setContent] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const load = useCallback(async () => {
     if (!projectId) return;
@@ -46,15 +49,47 @@ export default function NotesPanel({ projectId }) {
     if (projectId) load();
   }, [projectId, load]);
 
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const trimmed = content.trim();
+    if (!trimmed || !projectId) return;
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.set('projectId', projectId);
+      formData.set('note', trimmed);
+
+      const result = await postProjectNote(formData);
+      if (!result.ok) throw new Error(result.error || 'Unable to post this note.');
+
+      setContent('');
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <div className="notes-card">
       <h2 className="notes-title">Project Updates</h2>
 
       {error && <div className="notes-error">{error}</div>}
-      <p className="notes-disabled-hint">
-        Posting a standalone update isn't available yet — updates are currently only recorded
-        automatically when a project's status changes.
-      </p>
+      <form onSubmit={handleSubmit} className="notes-form">
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Add an update..."
+          rows={3}
+        />
+        <button type="submit" className="notes-button" disabled={isSaving || !content.trim()}>
+          {isSaving ? 'Saving...' : 'Add update'}
+        </button>
+      </form>
 
       {isLoading ? (
         <p className="notes-empty">Loading updates...</p>
@@ -99,12 +134,52 @@ export default function NotesPanel({ projectId }) {
           font-size: 0.9rem;
         }
 
-        .notes-disabled-hint {
-          color: #999;
-          font-size: 0.85rem;
+        .notes-form {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
           margin-bottom: 1.5rem;
           padding-bottom: 1.5rem;
           border-bottom: 1px solid rgba(100, 200, 255, 0.1);
+        }
+
+        .notes-form textarea {
+          background: rgba(15, 20, 40, 0.6);
+          border: 1px solid rgba(100, 200, 255, 0.2);
+          border-radius: 6px;
+          padding: 0.65rem 0.9rem;
+          color: #e0e0e0;
+          font-size: 0.95rem;
+          font-family: inherit;
+          resize: vertical;
+        }
+
+        .notes-form textarea:focus {
+          outline: none;
+          border-color: rgba(100, 200, 255, 0.6);
+        }
+
+        .notes-button {
+          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
+          color: #0a0e27;
+          padding: 0.6rem 1.3rem;
+          border-radius: 6px;
+          border: none;
+          font-weight: 600;
+          font-size: 0.9rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          align-self: flex-start;
+        }
+
+        .notes-button:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
+        }
+
+        .notes-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
 
         .notes-list {
