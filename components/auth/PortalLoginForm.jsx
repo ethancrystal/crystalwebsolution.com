@@ -62,6 +62,11 @@ export default function PortalLoginForm({ portal }) {
           </button>
         </form>
 
+        {portal.role === 'client' && (
+          <p className="crm-signup-link">
+            New customer? <Link href="/signup">Sign up to start a project</Link>
+          </p>
+        )}
         <p className="crm-signup-link"><Link href="/forgot-password">Forgot password?</Link></p>
         <p className="crm-signup-link"><Link href="/login">Choose another portal</Link></p>
       </div>
