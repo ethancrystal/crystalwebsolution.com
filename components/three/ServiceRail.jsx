@@ -7,6 +7,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { scrollState } from '../../lib/scrollState';
 import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
 import { beacon } from '../../lib/beacon';
+import { motionScale } from '../../lib/motionScale';
 import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
 import { SERVICES } from '../../lib/services.mjs';
 import { SERVICE_SIGNAL_META } from '../../lib/serviceSignals.mjs';
@@ -350,8 +351,8 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
       );
       mat.emissive.lerpColors(EMISSIVE_BASE, EMISSIVE_ACTIVE, heat);
 
-      g.rotation.y += dt * RAIL_META[i].rotSpeed * (1 + heat * 1.5);
-      g.rotation.x = Math.sin(t * 0.4 + i * 1.3) * 0.18;
+      g.rotation.y += dt * RAIL_META[i].rotSpeed * (1 + heat * 1.5) * motionScale.value;
+      g.rotation.x = Math.sin(t * 0.4 + i * 1.3) * 0.18 * motionScale.value;
       g.scale.setScalar(BASE_SCALE * (1 + Math.max(0, s.value - LEVEL_LIT) * 0.2));
     }
   });
