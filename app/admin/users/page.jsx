@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
 import { changeUserRole, resolveStaffRequest } from './actions';
+import { SkeletonTable } from '@/components/crm/Skeleton';
 
 const ROLE_LABELS = {
   admin: 'Admin',
@@ -113,7 +114,7 @@ export default function UsersPage() {
   if (isRoleLoading || !isAdmin || isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonTable columns={4} />
       </div>
     );
   }

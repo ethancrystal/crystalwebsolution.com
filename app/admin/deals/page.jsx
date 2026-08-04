@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { projectTypeLabel } from '@/lib/projectTypes';
 import { useUserRole } from '@/lib/useUserRole';
+import { SkeletonTable } from '@/components/crm/Skeleton';
 
 const STAGE_LABELS = {
   prospecting: 'Prospecting',
@@ -91,7 +92,7 @@ export default function DealsPage() {
   if (isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonTable columns={6} />
       </div>
     );
   }
