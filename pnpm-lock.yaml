@@ -7,7 +7,7 @@ settings:
 overrides:
   postcss: '>=8.5.18'
   sharp: '>=0.35.0'
-  cookie: '>=0.7.0'
+  cookie: '>=0.7.0 <1.0.0'
 
 importers:
 
@@ -528,9 +528,9 @@ packages:
   client-only@0.0.1:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
 
-  cookie@2.0.1:
-    resolution: {integrity: sha512-yuToqVvRrj6pfDXREyQAAv8SkAEk/8GS3jQRTiUMm66TVtBYmqQeoEjL2Lmq8Rpo6271vH76InTChTitEAm65w==}
-    engines: {node: '>=22'}
+  cookie@0.7.2:
+    resolution: {integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==}
+    engines: {node: '>= 0.6'}
 
   cross-env@7.0.3:
     resolution: {integrity: sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==}
@@ -1213,7 +1213,7 @@ snapshots:
   '@supabase/ssr@0.4.1(@supabase/supabase-js@2.112.0)':
     dependencies:
       '@supabase/supabase-js': 2.112.0
-      cookie: 2.0.1
+      cookie: 0.7.2
     optionalDependencies:
       '@rollup/rollup-linux-x64-gnu': 4.62.4
 
@@ -1287,7 +1287,7 @@ snapshots:
 
   client-only@0.0.1: {}
 
-  cookie@2.0.1: {}
+  cookie@0.7.2: {}
 
   cross-env@7.0.3:
     dependencies:
