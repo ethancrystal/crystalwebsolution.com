@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import { getPortal, homeForRole, isRoleAllowed, portalForPath } from './lib/auth/roles.mjs';
+import { CRM_ENABLED } from './lib/crmFlag.js';
 
 function redirectWithCookies(url, response) {
   const redirectResponse = NextResponse.redirect(url);
@@ -16,6 +17,13 @@ function portalLoginResponse(request, portalName, response, error) {
 }
 
 export async function middleware(request) {
+  // Every path this middleware runs on (see `config.matcher` below) is
+  // CRM/auth-only. When the CRM is disabled for this deployment (production,
+  // pre-launch), bounce straight home instead of touching Supabase at all.
+  if (!CRM_ENABLED) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
