@@ -1,16 +1,71 @@
 # Crystal Web Solution CRM - Implementation Status
 
-## 📅 Last Updated: 2026-08-03
+## 📅 Last Updated: 2026-08-04
 ## 👤 Last Agent: Claude
 ## 🔗 Current Branch: `main`
 ## 🔑 Source of Truth
-- Checked-in migrations: canonical `supabase/migrations/0001` … `0013`;
+- Checked-in migrations: canonical `supabase/migrations/0001` … `0014`;
   live history intentionally omits `0007` and records the ad-hoc `0009b`
   operation before canonical `0009`–`0011` (see below)
 - Project read boundary: `lib/crm/projects.js`
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
 - Supabase project ref: `wmnjosiikehsuaqucvja`
+
+## 🗺️ Current shape of the app (2026-08-04)
+
+**Stack:** Next.js 15 / React 19, plain JSX + global CSS (no TypeScript, no
+Tailwind), Supabase (Postgres/Auth/Storage/RLS), Resend for transactional
+email, GSAP/Lenis-driven scroll animation on the marketing site. `pnpm`
+only; no lint script exists, don't add one.
+
+**Two halves of one app:**
+- **Marketing site** (`/`) — one fixed WebGL canvas (`components/Scene.jsx`)
+  the DOM scrolls over; camera path driven by `lib/journey.js`
+  `STOPS`/`CLUSTERS` against real measured beat positions
+  (`lib/beatProgress.js`). Sections: Hero, About, Services, Approach,
+  Stories, Mark, Lab, Motion, Contact. See `CLAUDE.md`'s "core idiom"
+  section before touching anything scroll/animation-related.
+- **CRM** (`/login`, `/dashboard`, `/team`, `/admin`) — three roles, gated by
+  `middleware.js` at the server edge for the entire subtree of each portal
+  (`/dashboard/**`→client, `/team/**`→employee, `/admin/**`→admin), backed
+  by RLS. Two data-access shapes coexist deliberately (see CLAUDE.md's
+  "Conventions" section): the contract-tested project-delivery path
+  (`lib/crm/projects.js` + `app/actions/project-actions.js`) for
+  dashboard/team/admin project pages, and direct-Supabase-client + RLS for
+  companies/contacts/deals/tasks/users.
+
+**Auth model** (as of migration `0014`, 2026-08-04): clients self-signup via
+`/signup`. Signup also offers a client/employee choice, but the choice only
+sets `profiles.requested_staff_access` — it can never mint a role by itself;
+`handle_new_user()` still hardcodes every new account to `client`. An admin
+promotes a pending request to `project_manager` via
+`admin_resolve_staff_request()`. The `admin` role is pinned in the database
+to a single address (`public.pinned_admin_email()` + a partial unique index
++ a `BEFORE INSERT OR UPDATE OF role` trigger) — it cannot be reached from
+signup, invite, or any role-change path, by design.
+
+**Current verification (2026-08-04):** `pnpm test` — 146/146 passing (full
+suite, up from 110 at the last full check — new coverage added for the
+services signal metadata, the notes/deliverables migration contract, and
+the client-workspace project-scoping regex). `pnpm build` — clean, no
+errors or warnings, 43 pages.
+
+**Recent PRs merged today (2026-08-03/04), most-recent first:**
+- **#54** `feat(auth): client/employee signup choice with a pinned single admin` — migration `0014`, the auth model described above, plus a fix for a live signup crash (`createAdminClient()` throwing unguarded when the service-role key is unset).
+- **#53** `fix(deps): cookie override regression` — **urgent hotfix**. PR #51's dependency chore added an unbounded `pnpm.overrides["cookie"] = ">=0.7.0"`, which resolved to `cookie@2.0.1` (a completely different, incompatible API — no `parse`/`serialize`). `@supabase/ssr` needs the old API for every auth cookie it sets, so login/signup/session-refresh across all three portals would have thrown at runtime. Bounded to `>=0.7.0 <1.0.0`. **If you're reading this after `main` diverges further, verify this range hasn't been widened again.**
+- **#52** About-section kicker/word-grid overlap fix (real bug: fixed-position kicker vs. viewBox-scaled SVG word grid collided on short-but-wide viewports, not just narrow phones — a width-based media query couldn't catch it) + started a shared CRM loading-state system (`components/crm/Spinner.jsx`, `Skeleton.jsx`).
+- **#51** Dependency chore (see #53 — this is the PR that introduced the regression #53 fixed).
+- **#49** CRM core-flow fixes: PM status transitions/task creation were calling undefined functions (completely broken), PM had no way to discover assigned projects, every client with a company got "unauthorized" instead of their project list, admin invite cleanup used the wrong Supabase client, client messaging/uploads were bypassing RLS-revoked direct table writes instead of the validated RPCs, a deal's chat/notes were wired to the wrong entity. Also migration `0013` (`post_project_note`, `create_project_deliverable` + storage policies).
+- **#48** ServiceRail wireframe/rotation-speed signal-index bug (post six-to-eight-service-row split, the wireframe treatment stayed pinned to index 2 instead of following the signal it was designed for) + gated its per-frame rotation by `motionScale.value` (it was the only animated 3D actor not respecting `prefers-reduced-motion`).
+
+**Closed as stale/superseded** (confirmed by reading their actual diffs, not assumed): #26 (pre-dates the entire current CRM architecture), #29 (redundant no-op changes), #39 (main already has a newer dependency version), #46 (~95% already on `main` verbatim; the one real gap - `lib/beacon.js`/`lib/pointerState.js` missing from CLAUDE.md's singleton list - was too small to be worth its own PR). #50 was closed after reconciliation into #49 - see the "duplicate-work incident" note below, still relevant reading before starting broad CRM audit work.
+
+**Left alone, not stale**: #8 (`feature/trionn-visual-parity-v2`) is a deliberately parked foundation branch for a future redesign - not abandoned, just not picked up yet. #45 ("Session record...") is an audit/record artifact (base is an old baseline branch, head is `main` - backwards for a normal merge), not meant to be merged in the usual sense.
+
+**In progress**: a CRM-wide loading-state pass (skeletons on list pages, spinners on detail/edit/workspace pages and inline button states) - `Spinner.jsx`/`Skeleton.jsx` exist and are applied to companies/contacts/deals/tasks/users list pages; the remaining ~19 detail/edit/new/workspace pages and inline button-loading text are still on plain `"Loading..."` text.
+
+**Minor drift to reconcile**: the live database has a migration named `fix_handle_new_user_coalesce` (applied 2026-08-04, right after `0014`) with no corresponding local file. Compared its live function body against local `0014`'s `handle_new_user()` - they match, so this looks like a same-day hotfix whose content was folded directly into `0014`'s file rather than tracked as a separate `0015`. Not a functional problem, but worth a real `0015` file (or a note in `0014`) so local migration history has no unexplained gap - same category of issue the "check open branches/PRs" guidance below exists to prevent.
 
 ## ⚠️ Check open branches/PRs before starting CRM fix work
 
@@ -140,11 +195,23 @@ Actions taken:
 - Remote now has all 18 tables from 0009/0010 (verified via `list_tables`), RLS enabled and forced on every one, plus 0011's column additions. `get_advisors(security)` shows only the pre-existing, intentional pattern (SECURITY DEFINER functions callable by `authenticated`, each with its own internal auth checks) — no new findings from this session's changes. `get_advisors(performance)` shows only WARN/INFO noise (unused indexes on empty tables, etc.), no errors.
 
 ### ⚠️ Known gaps carried forward
-- **Notifications are enqueued automatically now** (0011), but there is still no delivery pipeline that reads `notifications_outbox` and sends anything. `app/api/cron/crm-notifications/route.js` is a stub that always returns `{queued: 0}` — no email sending despite the `resend` dependency being present. Rows will accumulate with `status = 'pending'` and never move to `'sent'`.
-- **`update_project_task`'s authorization check is NULL-permissive**: `v_task.assignee_id <> v_user_id` evaluates to `NULL`/false when `assignee_id` is `NULL`, so an *unassigned* task can be updated by any project participant, not just an assignee. Unchanged this session — a decision, not a bug fix, since it may be intentional (letting anyone claim an unassigned task).
-- **`update_project_task`'s `assignee_id`/`due_date` are unconditionally overwritten** from the (nullable, default-null) params, unlike `title`/`description`/`status` which only update when explicitly passed — calling the RPC to change just the status will silently clear the assignee and due date. Unchanged this session.
-- **`priority`/`client_visible` (0011) are not yet settable via RPC** and `client_visible` is not enforced anywhere — see "Branch reconciliation" above.
-- **Live end-to-end verification wasn't possible in this session** — no `.env.local` / Supabase credentials in this worktree, and provisioning test users (`pnpm crm:provision-test-users --execute`) sends real invite emails to live-looking addresses, which needs explicit go-ahead first. Everything above was verified via direct Supabase MCP calls against the live schema (`list_tables`, `list_migrations`, `execute_sql`, `get_advisors`) plus `pnpm test` / `pnpm build`, not a logged-in browser session.
+
+**Resolved since first documented — kept here so the fix history is traceable:**
+- ~~No notification delivery pipeline~~ — fixed. The email module was unified (`lib/email/resend.js`/`templates.js`) and `app/api/cron/crm-notifications/route.js` now actually drains `notifications_outbox` (claims a batch of due `channel='email'` rows, sends via Resend, records `status`/`sent_at`/`attempts`/`last_error` with backoff, fails closed when `CRM_CRON_SECRET` is unset).
+- ~~`update_project_task`'s NULL-permissive authorization check~~ — fixed in migration `0012`: unassigned tasks now require `assignee_id IS NOT NULL AND assignee_id = v_user_id` instead of relying on `NULL <> x` silently evaluating false.
+- ~~`update_project_task` unconditionally overwrote `assignee_id`/`due_date`~~ — fixed in `0012`: only overwrites when the caller explicitly passes a value.
+- ~~`project_status_history`/`project_deliverables` had no valid write path for notes/deliverable-creation~~ — fixed in migration `0013` (`post_project_note`, `create_project_deliverable` + `storage.objects` policies), wired into `NotesPanel.jsx`/`ProjectFiles.jsx` in PR #49.
+- ~~`cookie` package resolved to an incompatible major version, breaking auth cookies~~ — fixed in PR #53 (`pnpm.overrides` bounded to `>=0.7.0 <1.0.0`).
+
+**Still open:**
+- **`priority`/`client_visible` (0011) are not yet settable via RPC** and `client_visible` is not enforced anywhere — `create_project_task`/`update_project_task` don't accept them as parameters yet.
+- **`budget_amount`/`currency` are not exposed to the `client` role** — `clientSafeProject()` deliberately unchanged. Conservative default, not a modeled decision; revisit if clients should see budget.
+- **`revalidateAllProjectPaths` passed the wrong id** in `updateProjectTask`/`updateProjectApproval` before PR #49 fixed `updateProjectApproval`'s call site specifically (when `ProjectApprovals`' approve/reject UI was wired up). `updateProjectTask`'s equivalent call is still wrong, but `ProjectTasks.jsx` has no update UI yet, so it's unreachable today — fix it *before* adding task-edit UI, not after, to avoid shipping the same freshly-reachable bug again.
+- **Companies/contacts `NotesPanel` prop mismatch**: `NotesPanel` is project-scoped (`projectId` prop) but the companies/contacts detail pages still pass `companyId`/`contactId`, so notes silently never load or save there. Unlike the equivalent deal-detail-page bug (fixed in PR #49 by looking up the deal's linked project via `source_deal_id`), a company/contact can have zero-to-many projects, not one — needs a real design decision (which project? a picker? restore company/contact-scoped notes on a different table?), not a mechanical fix.
+- **CRM loading states**: in progress, see "Current shape" above.
+- **Migration drift**: the `fix_handle_new_user_coalesce` live-only migration, see "Current shape" above.
+- **Unconfirmed**: whether `.env.local` has `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` (flagged as missing earlier; only non-prefixed `SUPABASE_URL`/`SUPABASE_ANON_KEY` were present, which the code doesn't read for client-side Supabase init) and whether the Supabase Auth "Redirect URLs" allow-list has been populated in the dashboard (was empty; without it, GoTrue rejects every emailed auth link). Both need the owner to check/fix directly — no tool access to confirm from here.
+- **Live end-to-end verification still isn't done via a logged-in browser session** — verification throughout has been direct Supabase MCP calls against the live schema (`list_tables`, `list_migrations`, `execute_sql`, `get_advisors`) plus `pnpm test`/`pnpm build`, not an actual signed-in click-through of login/signup/CRM flows in a browser.
 
 ### ✅ Verification
 - `pnpm test` — 110/110 passing (full suite, includes `tests/crm/*`)
@@ -155,14 +222,18 @@ Actions taken:
 - Historical 2026-08-01 state: deployed to Vercel production and aliased to
   `https://www.crystalwebsolution.com`. The 2026-08-02 cleanup did not deploy.
 
-### 🚧 In Progress / Next
-- Build the notification delivery pipeline (cron processing + actual sends) that consumes the now-retryable `notifications_outbox`.
-- Decide intended behavior for `update_project_task`'s partial-update semantics and unassigned-task authorization, then patch if needed.
+### 🚧 In Progress / Next (2026-08-04)
+- Finish the CRM loading-state pass: `Spinner.jsx`/`Skeleton.jsx` exist and cover the list pages; detail/edit/new pages, the three role project-workspace pages, and inline button-loading text (Save/Submit/Sending/Uploading across ~19 files) are still plain `"Loading..."` text.
 - Decide whether `priority`/`client_visible` should be exposed via `create_project_task`/`update_project_task`, and whether `client_visible` should filter task visibility for the `client` role.
 - Decide whether `budget_amount`/`currency` should be client-visible.
-- Run `pnpm crm:verify` (`test:crm && test:db`) with a proper local Supabase stack once available — `test:db` has not been run this session.
+- Resolve the companies/contacts `NotesPanel` prop mismatch (needs a design decision, not a mechanical fix — see "Known gaps" above).
+- Fix `updateProjectTask`'s `revalidateAllProjectPaths` wrong-id bug before shipping any task-edit UI (currently unreachable, would become live the moment `ProjectTasks.jsx` gets an update control, same pattern as the `updateProjectApproval`/`publishDeliverable` bugs already fixed once each became reachable).
+- Reconcile the `fix_handle_new_user_coalesce` live-only migration into a tracked local file.
+- Confirm `.env.local`'s `NEXT_PUBLIC_SUPABASE_*` vars and the Supabase Auth "Redirect URLs" allow-list (owner action, not something verifiable from a coding session).
+- Run `pnpm crm:verify` (`test:crm && test:db`) with a proper local Supabase stack once available — `test:db` still hasn't been run.
+- A real, logged-in browser click-through of login/signup/CRM flows for all three roles is still outstanding — everything to date has been verified via Supabase MCP + `pnpm test`/`pnpm build`, not an actual session.
 
 ### 📋 How to Continue
 1. Re-run `pnpm test` and `pnpm build`.
-2. If picking up notifications: implement the cron route body to process `notifications_outbox` rows (`status = 'pending' AND available_at <= now()`), sending via Resend and updating `status`/`attempts`/`last_error`.
+2. Read the "⚠️ Check open branches/PRs before starting CRM fix work" section above *before* starting any broad CRM audit/fix pass — this exact mistake has happened twice this week (PR #49/#50, and the untracked `fix_handle_new_user_coalesce` migration).
 3. Update this file with any new findings/commits before ending the session.

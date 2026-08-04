@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { SkeletonTable } from '@/components/crm/Skeleton';
 
 function isOverdue(task) {
   if (!task.due_date || task.status === 'completed') return false;
@@ -41,7 +42,7 @@ export default function TasksPage() {
   if (isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonTable columns={6} />
       </div>
     );
   }
