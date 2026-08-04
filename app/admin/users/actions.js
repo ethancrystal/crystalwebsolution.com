@@ -8,7 +8,16 @@ import { requireRole } from '@/lib/auth/require-role';
 import { redirect } from 'next/navigation';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
-const ASSIGNABLE_ROLES = ['admin', 'project_manager'];
+
+// 'admin' is deliberately absent. Migration 0014 pins the admin role to a
+// single address and caps the table at one admin row, so offering it here
+// could only ever produce a database error - the role is not assignable
+// through the application at all. Moving accounts between client and
+// project_manager remains available.
+const ASSIGNABLE_ROLES = ['project_manager', 'client'];
+
+// Invitations are for staff only; a client account is self-service via /signup.
+const INVITABLE_ROLES = ['project_manager'];
 
 async function requireAdmin() {
   return requireRole(['admin'], '/login/admin');
@@ -33,11 +42,17 @@ export async function inviteUser(formData) {
   if (!email || !fullName || !role) {
     return { error: 'Missing required fields' };
   }
-  if (!ASSIGNABLE_ROLES.includes(role)) {
+  if (!INVITABLE_ROLES.includes(role)) {
     return { error: 'Invalid role' };
   }
 
-  const adminClient = createAdminClient();
+  let adminClient;
+  try {
+    adminClient = createAdminClient();
+  } catch (configError) {
+    console.error('Invite unavailable - admin client misconfigured:', configError);
+    return { error: 'Invites are temporarily unavailable. Please try again later.' };
+  }
 
   const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'invite',
@@ -78,6 +93,30 @@ export async function inviteUser(formData) {
   }
 
   redirect('/admin/users');
+}
+
+// Resolves a staff-access request raised at signup. Approving grants
+// project_manager and nothing higher - admin_resolve_staff_request() cannot
+// reach the admin role, and re-checks is_admin() itself, so this action is a
+// convenience wrapper rather than the security boundary.
+export async function resolveStaffRequest(formData) {
+  await requireAdmin();
+
+  const userId = formData.get('userId');
+  const decision = formData.get('decision');
+
+  if (!userId || !['approve', 'decline'].includes(decision)) {
+    return { ok: false, error: 'Missing or invalid decision' };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('admin_resolve_staff_request', {
+    p_user_id: userId,
+    p_approve: decision === 'approve',
+  });
+
+  if (error) return { ok: false, error: 'Unable to resolve this request.' };
+  return { ok: true, profile: data };
 }
 
 // Reassigns an existing account through the database's validated command.

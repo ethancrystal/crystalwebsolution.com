@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
-import { changeUserRole } from './actions';
+import { changeUserRole, resolveStaffRequest } from './actions';
 
 const ROLE_LABELS = {
   admin: 'Admin',
@@ -13,7 +13,9 @@ const ROLE_LABELS = {
   client: 'Client',
 };
 
-const ASSIGNABLE_ROLES = ['admin', 'project_manager'];
+// Admin is pinned to one address in the database (0014), so it is never an
+// option here - only movement between client and project_manager.
+const ASSIGNABLE_ROLES = ['project_manager', 'client'];
 
 export default function UsersPage() {
   const router = useRouter();
@@ -37,7 +39,7 @@ export default function UsersPage() {
         const supabase = createClient();
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, full_name, role, company_id, created_at')
+          .select('id, full_name, role, company_id, created_at, requested_staff_access')
           .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -74,6 +76,40 @@ export default function UsersPage() {
     }
   }
 
+  async function handleStaffRequest(userId, decision) {
+    setError(null);
+    setUpdatingId(userId);
+
+    const previousUsers = users;
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === userId
+          ? {
+              ...u,
+              requested_staff_access: false,
+              role: decision === 'approve' ? 'project_manager' : u.role,
+            }
+          : u,
+      ),
+    );
+
+    try {
+      const formData = new FormData();
+      formData.set('userId', userId);
+      formData.set('decision', decision);
+
+      const result = await resolveStaffRequest(formData);
+      if (result?.error) throw new Error(result.error);
+    } catch (err) {
+      setUsers(previousUsers);
+      setError(err.message);
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  const pendingRequests = users.filter((u) => u.requested_staff_access);
+
   if (isRoleLoading || !isAdmin || isLoading) {
     return (
       <div className="crm-admin-page">
@@ -92,6 +128,48 @@ export default function UsersPage() {
       </header>
 
       {error && <div className="crm-error">{error}</div>}
+
+      {pendingRequests.length > 0 && (
+        <section className="crm-requests" aria-labelledby="staff-requests-heading">
+          <h2 id="staff-requests-heading">
+            Pending employee requests ({pendingRequests.length})
+          </h2>
+          <p className="crm-requests-hint">
+            These accounts asked for employee access at signup. They currently have
+            client access only; approving grants Project Manager.
+          </p>
+          <ul className="crm-request-list">
+            {pendingRequests.map((user) => (
+              <li key={user.id} className="crm-request">
+                <div className="crm-request-who">
+                  <span className="crm-request-name">{user.full_name || 'Unnamed account'}</span>
+                  <span className="crm-request-date">
+                    Requested {new Date(user.created_at).toLocaleDateString('en-US')}
+                  </span>
+                </div>
+                <div className="crm-request-actions">
+                  <button
+                    type="button"
+                    className="crm-approve"
+                    disabled={updatingId === user.id}
+                    onClick={() => handleStaffRequest(user.id, 'approve')}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    className="crm-decline"
+                    disabled={updatingId === user.id}
+                    onClick={() => handleStaffRequest(user.id, 'decline')}
+                  >
+                    Decline
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="crm-table-container">
         {users.length > 0 ? (
@@ -129,7 +207,9 @@ export default function UsersPage() {
                         ))}
                       </select>
                     ) : (
-                      <span className="crm-muted">Client accounts aren&apos;t reassigned here</span>
+                      <span className="crm-muted">
+                        The admin account is pinned and can&apos;t be reassigned
+                      </span>
                     )}
                   </td>
                 </tr>
@@ -181,6 +261,116 @@ export default function UsersPage() {
         .crm-button:hover {
           transform: translateY(-2px);
           box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
+        }
+
+        .crm-requests {
+          background: rgba(251, 191, 36, 0.06);
+          border: 1px solid rgba(251, 191, 36, 0.28);
+          border-radius: 12px;
+          padding: 1.25rem 1.5rem 1.5rem;
+          max-width: 1200px;
+          margin: 0 auto 1.5rem;
+        }
+
+        .crm-requests h2 {
+          font-size: 1.1rem;
+          color: #fbbf24;
+          margin-bottom: 0.35rem;
+        }
+
+        .crm-requests-hint {
+          color: #b9a06a;
+          font-size: 0.85rem;
+          line-height: 1.45;
+          margin-bottom: 1rem;
+        }
+
+        .crm-request-list {
+          list-style: none;
+          display: flex;
+          flex-direction: column;
+          gap: 0.6rem;
+          margin: 0;
+          padding: 0;
+        }
+
+        .crm-request {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          flex-wrap: wrap;
+          background: rgba(15, 20, 40, 0.5);
+          border: 1px solid rgba(100, 200, 255, 0.1);
+          border-radius: 8px;
+          padding: 0.75rem 1rem;
+        }
+
+        .crm-request-who {
+          display: flex;
+          flex-direction: column;
+          gap: 0.15rem;
+        }
+
+        .crm-request-name {
+          color: #e0e0e0;
+          font-weight: 500;
+        }
+
+        .crm-request-date {
+          color: #888;
+          font-size: 0.8rem;
+        }
+
+        .crm-request-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .crm-approve,
+        .crm-decline {
+          border-radius: 6px;
+          padding: 0.5rem 1rem;
+          font-size: 0.85rem;
+          font-weight: 600;
+          font-family: inherit;
+          cursor: pointer;
+          border: 1px solid transparent;
+          transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .crm-approve {
+          background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+          color: #0a0e27;
+        }
+
+        .crm-decline {
+          background: transparent;
+          border-color: rgba(255, 100, 100, 0.4);
+          color: #ff9999;
+        }
+
+        .crm-approve:hover:not(:disabled),
+        .crm-decline:hover:not(:disabled) {
+          transform: translateY(-1px);
+        }
+
+        .crm-approve:disabled,
+        .crm-decline:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .crm-approve,
+          .crm-decline {
+            transition: none;
+          }
+
+          .crm-approve:hover:not(:disabled),
+          .crm-decline:hover:not(:disabled) {
+            transform: none;
+          }
         }
 
         .crm-table-container {

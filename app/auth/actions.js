@@ -9,7 +9,13 @@ import {
   resetPasswordEmail,
   passwordChangedEmail,
 } from '@/lib/email/templates';
-import { getPortal, isRoleAllowed, safeNextForPortal, homeForRole } from '@/lib/auth/roles.mjs';
+import {
+  getPortal,
+  isRoleAllowed,
+  safeNextForPortal,
+  homeForRole,
+  SIGNUP_ACCOUNT_TYPES,
+} from '@/lib/auth/roles.mjs';
 import { redirect } from 'next/navigation';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
@@ -18,22 +24,41 @@ export async function signUp(formData) {
   const email = formData.get('email');
   const password = formData.get('password');
   const fullName = formData.get('fullName');
+  const accountType = formData.get('accountType');
 
   if (!email || !password || !fullName) {
     return { error: 'Missing required fields' };
   }
 
+  // Only the two self-service choices are accepted. account_type never
+  // becomes a role - handle_new_user() hardcodes 'client' and reads this
+  // solely to raise profiles.requested_staff_access, which an admin must
+  // approve before it grants anything (0014). Anything unrecognised is
+  // rejected here rather than silently coerced.
+  if (!SIGNUP_ACCOUNT_TYPES.includes(accountType)) {
+    return { error: 'Choose whether this is a client or employee account.' };
+  }
+
   // Uses generateLink() + Resend instead of the anon client's signUp(),
   // which would send Supabase's own confirmation email - see
   // lib/email/resend.js for why every auth-flow email goes through here.
-  const adminClient = createAdminClient();
+  let adminClient;
+  try {
+    adminClient = createAdminClient();
+  } catch (configError) {
+    // A missing SUPABASE_SERVICE_ROLE_KEY would otherwise throw straight out
+    // of the action, which Next.js renders as an opaque "error occurred in
+    // the Server Components render" digest on the signup form.
+    console.error('Signup unavailable - admin client misconfigured:', configError);
+    return { error: 'Signup is temporarily unavailable. Please try again later.' };
+  }
 
   const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'signup',
     email,
     password,
     options: {
-      data: { full_name: fullName },
+      data: { full_name: fullName, account_type: accountType },
       redirectTo: `${APP_URL}/auth/callback?next=/dashboard`,
     },
   });
@@ -145,7 +170,15 @@ export async function resendConfirmationEmail(formData) {
     return { error: 'Email is required' };
   }
 
-  const adminClient = createAdminClient();
+  // Mirrors signUp()'s guard. Reports the same generic success as every other
+  // outcome here so a misconfiguration cannot be used to probe for accounts.
+  let adminClient;
+  try {
+    adminClient = createAdminClient();
+  } catch (configError) {
+    console.error('Resend confirmation unavailable - admin client misconfigured:', configError);
+    return { success: true };
+  }
 
   const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'signup',
@@ -183,7 +216,15 @@ export async function requestPasswordReset(formData) {
   // whether an account exists for a given email (anti-enumeration); we
   // preserve that by always returning success regardless of what
   // generateLink() reports, and only sending mail when it found a user.
-  const adminClient = createAdminClient();
+  // Same guard and same unconditional success as above, for the same
+  // anti-enumeration reason.
+  let adminClient;
+  try {
+    adminClient = createAdminClient();
+  } catch (configError) {
+    console.error('Password reset unavailable - admin client misconfigured:', configError);
+    return { success: true };
+  }
 
   const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'recovery',
