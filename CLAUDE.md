@@ -29,6 +29,32 @@ are procedural; tracked static files are limited to served brand/application
 assets and compatibility URLs. CRM routes live under `/login`, `/dashboard`,
 `/team`, and `/admin` and use Supabase Auth/Postgres/Storage/RLS.
 
+## Environments and deployment
+
+Two long-lived branches map to two Vercel environments:
+
+- **`preview`** — full implementation, CRM included. This is the default
+  branch for ongoing Claude Code / Codex work. Every push gets its own
+  Vercel preview deployment (behind Vercel Authentication), plus a stable
+  branch-alias preview URL for `preview` itself.
+- **`production`** — what's live at crystalwebsolution.com. Same codebase as
+  `preview`/`main`; the CRM is hidden there via the `NEXT_PUBLIC_CRM_ENABLED`
+  flag (`lib/crmFlag.js`), not by diverging code. Vercel's Project Settings ->
+  Environment Variables sets `NEXT_PUBLIC_CRM_ENABLED=false` for the
+  Production environment only, so `middleware.js` redirects
+  `/admin`, `/dashboard`, `/team`, `/login*`, `/signup`, `/forgot-password`
+  straight home, and `components/Nav.jsx` / `Menu.jsx` hide the Log in /
+  Client access links. Flip that one env var back to unset (or `true`) when
+  the CRM is ready to go live, rather than re-diverging the branches.
+
+Promote `preview` -> `production` only via a reviewed PR/merge on GitHub.
+
+**Never run `vercel --prod` (or `vercel deploy --prod`) from a Claude Code
+session.** Vercel's CLI deploys straight to the production alias regardless
+of which git branch is checked out or what the Production Branch setting is
+— it bypasses this entire branch strategy. Production only ships through the
+Git integration: a merge into the `production` branch.
+
 ## Commands
 
 ```bash

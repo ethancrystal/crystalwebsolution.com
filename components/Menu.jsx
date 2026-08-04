@@ -4,6 +4,7 @@ import { useRef, useEffect } from 'react';
 import Link from 'next/link';
 import gsap from 'gsap';
 import { SITE } from '../lib/site';
+import { CRM_ENABLED } from '../lib/crmFlag';
 
 // Fullscreen overlay menu: big staggered links + contact block.
 export default function Menu({ open, onClose }) {
@@ -115,14 +116,16 @@ export default function Menu({ open, onClose }) {
           <p className="menu-meta-label">Crystal Web Solution</p>
           <p className="menu-meta-note">Web, brand, motion<br />and automation.</p>
         </div>
-        <div>
-          <p className="menu-meta-label">Client access</p>
-          {SITE.authNav.map((item) => (
-            <Link key={item.label} href={item.href} onClick={onClose} tabIndex={open ? 0 : -1}>
-              {item.label}
-            </Link>
-          ))}
-        </div>
+        {CRM_ENABLED && (
+          <div>
+            <p className="menu-meta-label">Client access</p>
+            {SITE.authNav.map((item) => (
+              <Link key={item.label} href={item.href} onClick={onClose} tabIndex={open ? 0 : -1}>
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </nav>
   );

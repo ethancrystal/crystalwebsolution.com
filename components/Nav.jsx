@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Magnetic from './Magnetic';
 import Menu from './Menu';
+import { CRM_ENABLED } from '../lib/crmFlag';
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
@@ -53,9 +54,11 @@ export default function Nav() {
           </span>
         </Link>
         <div className="nav-right">
-          <Link href="/login" className="nav-login-link" data-cursor="Log in">
-            Log in
-          </Link>
+          {CRM_ENABLED && (
+            <Link href="/login" className="nav-login-link" data-cursor="Log in">
+              Log in
+            </Link>
+          )}
           <Magnetic>
             <a href="/#contact" className="btn btn-ghost" data-cursor="Say hi">
               Start a project
