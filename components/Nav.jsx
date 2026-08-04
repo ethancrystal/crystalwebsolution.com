@@ -53,9 +53,6 @@ export default function Nav() {
           </span>
         </Link>
         <div className="nav-right">
-          <Link href="/login" className="nav-login-link" data-cursor="Log in">
-            Log in
-          </Link>
           <Magnetic>
             <a href="/#contact" className="btn btn-ghost" data-cursor="Say hi">
               Start a project

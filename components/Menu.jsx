@@ -115,14 +115,6 @@ export default function Menu({ open, onClose }) {
           <p className="menu-meta-label">Crystal Web Solution</p>
           <p className="menu-meta-note">Web, brand, motion<br />and automation.</p>
         </div>
-        <div>
-          <p className="menu-meta-label">Client access</p>
-          {SITE.authNav.map((item) => (
-            <Link key={item.label} href={item.href} onClick={onClose} tabIndex={open ? 0 : -1}>
-              {item.label}
-            </Link>
-          ))}
-        </div>
       </div>
     </nav>
   );
