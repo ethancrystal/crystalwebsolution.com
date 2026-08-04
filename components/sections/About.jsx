@@ -30,6 +30,7 @@ const ROWS = [...new Set(WORDS.map((word) => word.y))].map((y) => ({
 export default function About() {
   const rootRef = useRef(null);
   const svgRef = useRef(null);
+  const kickerRef = useRef(null);
   const lastBlastRef = useRef(0);
   const wordElementsRef = useRef([]);
   const wordCentersRef = useRef([]);
@@ -38,6 +39,7 @@ export default function About() {
   useEffect(() => {
     const root = rootRef.current;
     const svg = svgRef.current;
+    const kicker = kickerRef.current;
     if (!root || !svg) return;
 
     const words = [...svg.querySelectorAll('[data-about-word]')];
@@ -56,10 +58,36 @@ export default function About() {
       });
     };
 
+    // Keeps the word grid's first row clear of the kicker paragraph above
+    // it. Both the kicker's wrapped height and the SVG's viewBox-scaled
+    // first-row position vary independently with viewport size (the kicker
+    // via text wrap, the word grid via preserveAspectRatio scaling to fit
+    // the section) - a fixed breakpoint can't predict every combination, so
+    // measure both directly instead. Runs regardless of prefers-reduced-motion
+    // since this is a layout fix, not decoration.
+    const alignCopyBelowKicker = () => {
+      if (!kicker || !words[0]) return;
+      svg.style.transform = '';
+      const kickerRect = kicker.getBoundingClientRect();
+      const firstWordRect = words[0].getBoundingClientRect();
+      const clearance = 16;
+      const shift = Math.max(0, kickerRect.bottom + clearance - firstWordRect.top);
+      svg.style.transform = shift > 0 ? `translateY(${Math.round(shift)}px)` : '';
+    };
+
+    alignCopyBelowKicker();
+    const alignResizeObserver = new ResizeObserver(alignCopyBelowKicker);
+    alignResizeObserver.observe(root);
+    window.addEventListener('resize', alignCopyBelowKicker, { passive: true });
+    document.fonts?.ready.then(alignCopyBelowKicker).catch(() => {});
+
     if (reduced) {
       gsap.set(words, { opacity: 1 });
       gsap.set(rows, { clipPath: 'inset(0 0 0 0)' });
-      return undefined;
+      return () => {
+        alignResizeObserver.disconnect();
+        window.removeEventListener('resize', alignCopyBelowKicker);
+      };
     }
 
     const rowReveal = gsap.fromTo(
@@ -104,7 +132,9 @@ export default function About() {
       rowReveal.scrollTrigger?.kill();
       rowReveal.kill();
       resizeObserver.disconnect();
+      alignResizeObserver.disconnect();
       window.removeEventListener('resize', measureWordCenters);
+      window.removeEventListener('resize', alignCopyBelowKicker);
       wordElementsRef.current = [];
       wordCentersRef.current = [];
     };
@@ -154,7 +184,7 @@ export default function About() {
       }}
       aria-label="About Crystal Web Solution"
     >
-      <p className="about-kicker">If your brand reads like everyone else's, your best work gets lost in the scroll — Crystal Web Solution is the independent studio that builds you to stand out instead.</p>
+      <p className="about-kicker" ref={kickerRef}>If your brand reads like everyone else's, your best work gets lost in the scroll — Crystal Web Solution is the independent studio that builds you to stand out instead.</p>
       <h2 className="sr-only">We build digital experiences that turn clear strategy into brands people remember.</h2>
       <svg ref={svgRef} className="about-smil-copy" viewBox="0 0 1440 900" aria-hidden="true">
         {ROWS.map((row) => (
