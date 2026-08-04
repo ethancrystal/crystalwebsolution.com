@@ -4,9 +4,17 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { signUp } from '@/app/auth/actions';
 
+// Mirrors SIGNUP_ACCOUNT_TYPES in lib/auth/roles.mjs, which the server action
+// re-validates against. Admin is absent by design and is not self-service.
+const ACCOUNT_TYPES = [
+  { value: 'client', label: 'A client', description: 'Track your projects with us' },
+  { value: 'employee', label: 'An employee', description: 'Requires admin approval' },
+];
+
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [accountType, setAccountType] = useState('client');
 
   async function handleSubmit(formData) {
     const password = formData.get('password');
@@ -49,6 +57,35 @@ export default function SignupPage() {
 
         <form action={handleSubmit} className="crm-form">
           {error && <div className="crm-error">{error}</div>}
+
+          <fieldset className="crm-account-type">
+            <legend>I&apos;m signing up as</legend>
+            <div className="crm-account-options">
+              {ACCOUNT_TYPES.map((option) => (
+                <label
+                  key={option.value}
+                  className={`crm-account-option${accountType === option.value ? ' is-selected' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="accountType"
+                    value={option.value}
+                    checked={accountType === option.value}
+                    onChange={() => setAccountType(option.value)}
+                    disabled={isLoading}
+                  />
+                  <span className="crm-account-title">{option.label}</span>
+                  <span className="crm-account-desc">{option.description}</span>
+                </label>
+              ))}
+            </div>
+            {accountType === 'employee' && (
+              <p className="crm-account-note">
+                Employee accounts need admin approval. You&apos;ll sign in with client
+                access until Crystal Web Solution approves the request.
+              </p>
+            )}
+          </fieldset>
 
           <div className="crm-form-group">
             <label htmlFor="fullName">Full Name</label>
@@ -188,6 +225,87 @@ export default function SignupPage() {
           display: flex;
           flex-direction: column;
           gap: 0.5rem;
+        }
+
+        .crm-account-type {
+          border: 0;
+          padding: 0;
+          margin: 0;
+          /* Fieldsets have a UA min-width that would stop the grid shrinking. */
+          min-inline-size: 0;
+        }
+
+        .crm-account-type legend {
+          color: var(--ink);
+          font-size: 0.85rem;
+          font-weight: 500;
+          padding: 0;
+          margin-bottom: 0.5rem;
+        }
+
+        .crm-account-options {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.75rem;
+        }
+
+        .crm-account-option {
+          display: flex;
+          flex-direction: column;
+          gap: 0.2rem;
+          padding: 0.8rem 0.9rem;
+          border: 1px solid var(--line);
+          border-radius: 10px;
+          background: rgba(4, 6, 12, 0.6);
+          cursor: pointer;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease,
+            background-color 0.2s ease;
+        }
+
+        .crm-account-option.is-selected {
+          border-color: var(--cyan);
+          background: rgba(89, 243, 255, 0.06);
+          box-shadow: 0 0 0 3px rgba(89, 243, 255, 0.12);
+        }
+
+        .crm-account-option:focus-within {
+          border-color: var(--cyan);
+        }
+
+        /* The radio itself is redundant once the card reflects selection, but
+           it stays in the accessibility tree so the group remains keyboard
+           and screen-reader navigable. */
+        .crm-account-option input {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .crm-account-title {
+          color: var(--ink);
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
+
+        .crm-account-desc {
+          color: var(--muted);
+          font-size: 0.78rem;
+          line-height: 1.35;
+        }
+
+        .crm-account-note {
+          color: var(--muted);
+          font-size: 0.8rem;
+          line-height: 1.45;
+          margin-top: 0.6rem;
+        }
+
+        @media (max-width: 380px) {
+          .crm-account-options {
+            grid-template-columns: 1fr;
+          }
         }
 
         .crm-form-group label {

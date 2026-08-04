@@ -133,7 +133,7 @@ move together.
   `--blue`, `--violet`, etc.).
 - Supabase is the live CRM boundary. Application clients live under
   `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL
-  lives in `supabase/migrations/0001` through `0011`. `.mcp.json` configures a
+  lives in `supabase/migrations/0001` through `0014`. `.mcp.json` configures a
   Supabase MCP server for development-time queries. Two data-access shapes
   coexist deliberately:
   - **Project delivery** — the newer, contract-tested path. Reads go through
@@ -153,6 +153,16 @@ move together.
   `app/admin/users/actions.js`, and `app/auth/*/route.js`. Never infer
   database correctness from source tests alone; verify RLS and migration state
   against an isolated database or the approved read-only live boundary.
+
+  Roles are assigned by the database, never by the client. `handle_new_user()`
+  hardcodes every new account to `client`; the `account_type` chosen on
+  `/signup` only raises `profiles.requested_staff_access`, which an admin
+  clears through `admin_resolve_staff_request()` to grant `project_manager`.
+  The `admin` role is pinned to a single address by
+  `public.pinned_admin_email()` plus a partial unique index and a
+  `BEFORE INSERT OR UPDATE OF role` trigger (migration `0014`), so it is not
+  reachable from signup, invite, or role-change paths. Don't add a UI that
+  offers `admin` as an assignable role — it can only fail at the database.
 
 ## Planning docs (not yet implemented)
 

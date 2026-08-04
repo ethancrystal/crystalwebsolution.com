@@ -99,8 +99,9 @@ export default function InviteUserPage() {
               value={form.role}
               onChange={(e) => handleChange('role', e.target.value)}
             >
+              {/* Admin is not invitable - the role is pinned to a single
+                  address in the database (migration 0014). */}
               <option value="project_manager">Project Manager</option>
-              <option value="admin">Admin</option>
             </select>
           </div>
 
