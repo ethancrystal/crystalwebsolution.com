@@ -7,8 +7,10 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { scrollState } from '../../lib/scrollState';
 import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
 import { beacon } from '../../lib/beacon';
+import { motionScale } from '../../lib/motionScale';
 import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
 import { SERVICES } from '../../lib/services.mjs';
+import { SERVICE_SIGNAL_META } from '../../lib/serviceSignals.mjs';
 
 // The services beat: eight abstract emblems on a vertical rail, one per
 // service row in components/sections/Services.jsx. They deliberately describe
@@ -33,9 +35,14 @@ const RAIL_X = -1.15;
 const TOP_Y = 1.05;
 const STEP_Y = 1;
 // This shallow stagger gives pointer parallax depth without losing the
-// top-to-bottom service mapping in CameraRig's framed services beat.
-const Z_OFF = [0.35, -0.44, 0.1, -0.28, 0.54, -0.12, 0.4, -0.36];
-const ROT_SPEED = [0.19, 0.26, 0.24, 0.32, 0.3, 0.9, 0.36, 0.22];
+// top-to-bottom service mapping in CameraRig's framed services beat. Values
+// live in lib/serviceSignals.mjs, keyed by signal (not index), so reordering
+// SERVICES can't silently detach an emblem from its own motion/wireframe.
+const RAIL_META = SERVICES.map(({ signal }) => {
+  const meta = SERVICE_SIGNAL_META[signal];
+  if (!meta) throw new Error(`Missing service signal metadata: ${signal}`);
+  return meta;
+});
 const BASE_SCALE = 0.19;
 
 // Spring levels: dark until the scroll window ignites a row, bright while
@@ -279,7 +286,7 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
             emissiveIntensity: LEVEL_UNLIT,
             metalness: 0.3,
             roughness: 0.3,
-            wireframe: i === 2,
+            wireframe: RAIL_META[i].wireframe === true,
           })
       ),
     []
@@ -344,8 +351,8 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
       );
       mat.emissive.lerpColors(EMISSIVE_BASE, EMISSIVE_ACTIVE, heat);
 
-      g.rotation.y += dt * ROT_SPEED[i] * (1 + heat * 1.5);
-      g.rotation.x = Math.sin(t * 0.4 + i * 1.3) * 0.18;
+      g.rotation.y += dt * RAIL_META[i].rotSpeed * (1 + heat * 1.5) * motionScale.value;
+      g.rotation.x = Math.sin(t * 0.4 + i * 1.3) * 0.18 * motionScale.value;
       g.scale.setScalar(BASE_SCALE * (1 + Math.max(0, s.value - LEVEL_LIT) * 0.2));
     }
   });
@@ -356,7 +363,7 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
         <group
           key={index}
           ref={(el) => (emblems.current[index] = el)}
-          position={[RAIL_X, TOP_Y - STEP_Y * index, Z_OFF[index]]}
+          position={[RAIL_X, TOP_Y - STEP_Y * index, RAIL_META[index].zOffset]}
           scale={BASE_SCALE}
         >
           <mesh geometry={geometry} material={materials[index]} />

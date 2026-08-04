@@ -7,6 +7,7 @@ node_modules/
 .playwright-mcp/
 .zcode/
 /.claude/settings.local.json
+/.claude/workflows/
 
 # Temporary logo inspection exports
 /logo-preview.png
