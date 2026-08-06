@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
 import { SITE } from '../../lib/site';
+import MarketingShell from '../../components/marketing/MarketingShell';
 
 const REVIEWS_TITLE = 'Client Reviews';
 const REVIEWS_DESCRIPTION =
@@ -33,16 +34,8 @@ function Rating({ value }) {
 
 export default function ReviewsPage() {
   return (
-    <div className="subpage reviews-page">
-      <header className="nav">
-        <Link href="/" className="nav-logo" data-cursor="Home">
-          <span className="nav-logo-monogram" aria-hidden="true">CWS</span>
-          <span className="nav-logo-name">{SITE.name}</span>
-        </Link>
-        <Link href="/#contact" className="btn btn-ghost" data-cursor="Say hi">Start a project</Link>
-      </header>
-
-      <main className="reviews-index">
+    <MarketingShell>
+      <main className="reviews-index mkt-inner">
         <section className="reviews-hero" aria-labelledby="reviews-title">
           <p className="eyebrow">Client feedback</p>
           <h1 id="reviews-title" className="page-title">What clients said, in their own words.</h1>
@@ -113,6 +106,6 @@ export default function ReviewsPage() {
           <a href={`mailto:${SITE.email}`} className="btn btn-solid">Start a project <span aria-hidden="true">→</span></a>
         </section>
       </main>
-    </div>
+    </MarketingShell>
   );
 }

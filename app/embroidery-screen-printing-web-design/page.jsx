@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SITE } from '../../lib/site';
+import MarketingShell from '../../components/marketing/MarketingShell';
 
 export const metadata = {
   title: 'Embroidery & Screen-Printing Web Design',
@@ -22,17 +23,8 @@ export const metadata = {
 
 export default function EmbroideryScreenPrintingWebDesign() {
   return (
-    <div className="subpage">
-      <header className="nav">
-        <Link href="/" className="nav-logo" data-cursor="Home">
-          <span className="nav-logo-mark">◆</span>
-          <span className="nav-logo-text">{SITE.name}</span>
-        </Link>
-        <Link href="/#contact" className="btn btn-ghost" data-cursor="Say hi">
-          get a quote
-        </Link>
-      </header>
-      <main className="case">
+    <MarketingShell>
+      <main className="case mkt-inner">
         <p className="eyebrow">Web Design for the Trade</p>
         <h1 className="page-title">Website Design for Embroidery &amp; Screen-Printing Shops</h1>
 
@@ -140,6 +132,6 @@ export default function EmbroideryScreenPrintingWebDesign() {
           <span className="case-next-title">Every project, one standard →</span>
         </Link>
       </main>
-    </div>
+    </MarketingShell>
   );
 }

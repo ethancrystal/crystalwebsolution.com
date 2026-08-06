@@ -1,4 +1,5 @@
 import { PROJECTS } from '../lib/projects';
+import { SERVICE_PAGE_SLUGS } from '../lib/servicePages.mjs';
 
 const SITE_URL = 'https://crystalwebsolution.com';
 
@@ -11,9 +12,20 @@ export default function sitemap() {
     priority: 0.7,
   }));
 
+  const servicePages = SERVICE_PAGE_SLUGS.map((slug) => ({
+    url: `${SITE_URL}/services/${slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
+
   return [
     { url: SITE_URL, lastModified: now, changeFrequency: 'weekly', priority: 1 },
     { url: `${SITE_URL}/work`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE_URL}/services`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE_URL}/about`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE_URL}/process`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE_URL}/contact`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${SITE_URL}/reviews`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     {
       url: `${SITE_URL}/embroidery-screen-printing-web-design`,
@@ -21,6 +33,7 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
+    ...servicePages,
     ...projectPages,
   ];
 }
