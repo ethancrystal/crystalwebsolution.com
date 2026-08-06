@@ -1,0 +1,27 @@
+.mkt-image-block {
+  position: relative;
+  display: inline-block;
+}
+
+.mkt-image-block--blur {
+  /* This class is applied when placeholder is present */
+  /* The blur effect is handled via inline styles on the placeholder image */
+}
+
+.mkt-image-block__placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mkt-image-block__image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
