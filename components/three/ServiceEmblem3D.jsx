@@ -27,7 +27,19 @@ const EMIS_HOVER = 1.4;
 const COLOR_UNLIT = new THREE.Color(EMISSIVE_BASE);
 const COLOR_ACTIVE = new THREE.Color(EMISSIVE_ACTIVE);
 
-function EmblemMesh({ signal }) {
+// Visitor-focused PAS one-liners, surfaced when the emblem is clicked.
+const SIGNAL_BLURB = {
+  web: 'Your site looks like everyone else and quietly loses the deal before a word is read — so we design with intent, clarity and craft that earns the click and the close.',
+  development: 'That internal tool or product idea keeps stalling in hand-off limbo while technical debt piles up — we architect and ship web apps your team can own and extend.',
+  brand: 'Your brand reads as a logo file somebody sent once, not a system buyers recognise — so we build a simple, ownable identity that compounds across every touchpoint.',
+  logo: 'Your mark does not survive a favicon, a stamp, or a phone lock screen — so we design a logo that holds up at 16px and at billboard scale.',
+  marketing: 'Your campaigns earn clicks that bounce because the page underneath breaks the promise — so we align the message and the experience so traffic converts.',
+  motion: 'Your story sits still while competitors move, and attention moves on — so we add motion that guides the eye to the one thing that matters.',
+  ai: 'AI is either a buzzword in your copy or a black box nobody trusts — so we wire practical, explainable automation into the work you already do.',
+  workflow: 'Your team reinvents the hand-off on every project and momentum dies in the gaps — so we design the workflow once, clearly, and let it scale.',
+};
+
+function EmblemMesh({ signal, onHover }) {
   const meshRef = useRef();
   const matRef = useRef();
   const [hovered, setHovered] = useState(false);
@@ -57,8 +69,8 @@ function EmblemMesh({ signal }) {
       ref={meshRef}
       geometry={geometry}
       scale={BASE_SCALE}
-      onPointerOver={(e) => { e.stopPropagation(); setHovered(true); }}
-      onPointerOut={() => setHovered(false)}
+      onPointerOver={(e) => { e.stopPropagation(); setHovered(true); onHover?.(true); }}
+      onPointerOut={() => { setHovered(false); onHover?.(false); }}
     >
       <meshStandardMaterial
         ref={matRef}
@@ -74,9 +86,14 @@ function EmblemMesh({ signal }) {
 }
 
 export default function ServiceEmblem3D({ signal, className = '' }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const blurb = SIGNAL_BLURB[signal] || '';
+
   return (
-    <div className={`mkt-emblem3d ${className}`} aria-hidden="true">
+    <div className={`mkt-emblem3d ${className}`}>
+      {/* The WebGL canvas is decorative; the interactive summary is the button below. */}
       <Canvas
+        aria-hidden="true"
         dpr={[1, 2]}
         camera={{ fov: 45, position: [0, 0, 4] }}
         gl={{ antialias: true, alpha: true }}
@@ -85,8 +102,27 @@ export default function ServiceEmblem3D({ signal, className = '' }) {
         <ambientLight intensity={0.6} />
         <pointLight position={[3, 3, 4]} intensity={1.1} color="#bfe9ff" />
         <pointLight position={[-3, -2, 2]} intensity={0.5} color="#3c6cff" />
-        <EmblemMesh signal={signal} />
+        <EmblemMesh
+          signal={signal}
+          onHover={setShowTooltip}
+        />
       </Canvas>
+      {blurb && (
+        <button
+          type="button"
+          className="mkt-em-tooltip-toggle"
+          aria-label={showTooltip ? 'Hide service summary' : 'Show service summary'}
+          aria-expanded={showTooltip}
+          onClick={() => setShowTooltip((v) => !v)}
+        >
+          {showTooltip ? '−' : '?'}
+        </button>
+      )}
+      {showTooltip && blurb && (
+        <div className="mkt-em-tooltip" role="tooltip">
+          <p className="mkt-em-tooltip__text">{blurb}</p>
+        </div>
+      )}
     </div>
   );
 }

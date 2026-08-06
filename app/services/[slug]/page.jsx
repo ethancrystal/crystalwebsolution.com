@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ServicePage from '../../../components/marketing/ServicePage';
 import MarketingShell from '../../../components/marketing/MarketingShell';
+import ServiceSchema from '../../../components/marketing/ServiceSchema';
 import { SERVICE_PAGES, getServicePageBySlug } from '../../../lib/servicePages.mjs';
 import { SITE } from '../../../lib/site';
 
@@ -52,6 +53,7 @@ export default async function ServiceDetail({ params }) {
         <span aria-current="page">{page.title}</span>
       </nav>
       <ServicePage page={page} />
+      <ServiceSchema n={page.title} title={page.seoTitle} description={page.metaDescription} />
     </MarketingShell>
   );
 }

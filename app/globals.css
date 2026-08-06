@@ -3021,7 +3021,39 @@ html[data-cws-intro-seen='1'] .loader {
 
 /* Hero placement: one large 3D emblem beside the page title. */
 .mkt-service-hero-emblem { width: clamp(120px, 22vw, 200px); height: clamp(120px, 22vw, 200px); margin-top: 1.25rem; }
-.mkt-emblem3d { width: 100%; height: 100%; min-height: 120px; }
+.mkt-emblem3d { width: 100%; height: 100%; min-height: 120px; position: relative; }
+
+/* Click-to-reveal blurb on the 3D service emblem (hero). */
+.mkt-em-tooltip-toggle {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--rail-accent, #3c6cff);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink, #0c1430);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.mkt-em-tooltip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2.5rem;
+  margin: 0 auto;
+  max-width: 22rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  background: rgba(12, 20, 48, 0.92);
+  color: #eaf2ff;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  box-shadow: 0 12px 30px rgba(8, 14, 38, 0.35);
+}
+.mkt-em-tooltip__text { margin: 0; }
 
 /* Grid card emblem: small static SVG mark above the title. */
 .mkt-service-card-emblem { width: 44px; height: 44px; margin-bottom: 0.75rem; }
@@ -3029,5 +3061,22 @@ html[data-cws-intro-seen='1'] .loader {
 /* Belt-and-braces guard for reduced motion; JS also gates the 3D rotation. */
 @media (prefers-reduced-motion: reduce) {
   .mkt-emblem-svg--static * { animation: none !important; }
+}
+
+/* Keyboard focus visibility for marketing interactive elements. */
+.mkt-focus-visible:focus-visible {
+  outline: 2px solid var(--cyan, #3cc6ff);
+  outline-offset: 2px;
+}
+/* Apply the focus ring to the concrete marketing controls. */
+.mkt-header-nav a:focus-visible,
+.mkt-footer a:focus-visible,
+.btn:focus-visible,
+.contact-form input:focus-visible,
+.contact-form textarea:focus-visible,
+.contact-form select:focus-visible,
+.mkt-em-tooltip-toggle:focus-visible {
+  outline: 2px solid var(--cyan, #3cc6ff);
+  outline-offset: 2px;
 }
 
