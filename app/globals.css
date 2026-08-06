@@ -2998,3 +2998,36 @@ html[data-cws-intro-seen='1'] .loader {
    extracted form keeps its look without leaking onto CRM surfaces. */
 .mkt-contact-wrap .contact-form { width: 100%; }
 
+/* --- service emblem (shared mark tying inner pages to the homepage rail) --- */
+.mkt-emblem { display: inline-flex; align-items: center; gap: 0.5rem; }
+.mkt-emblem svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.mkt-emblem--3d { position: relative; display: block; }
+.mkt-emblem--placeholder { display: block; width: 100%; height: 100%; min-height: 120px; border-radius: 14px; background: rgba(60,108,255,0.06); }
+
+/* The per-signal SVG strokes reuse the brand palette so the mark reads as a
+   child of the homepage system, not a foreign icon set. */
+.em-stroke { fill: none; stroke: var(--cyan); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.em-faint { stroke: var(--muted); stroke-width: 1.6; }
+.em-accent { stroke: var(--iris, #c084fc); stroke-width: 2.4; }
+.em-dot { fill: var(--cyan); stroke: none; }
+
+/* The numeral is the homepage card identity carried onto the inner page. */
+.mkt-emblem-n {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--cyan);
+  letter-spacing: 0.04em;
+}
+
+/* Hero placement: one large 3D emblem beside the page title. */
+.mkt-service-hero-emblem { width: clamp(120px, 22vw, 200px); height: clamp(120px, 22vw, 200px); margin-top: 1.25rem; }
+.mkt-emblem3d { width: 100%; height: 100%; min-height: 120px; }
+
+/* Grid card emblem: small static SVG mark above the title. */
+.mkt-service-card-emblem { width: 44px; height: 44px; margin-bottom: 0.75rem; }
+
+/* Belt-and-braces guard for reduced motion; JS also gates the 3D rotation. */
+@media (prefers-reduced-motion: reduce) {
+  .mkt-emblem-svg--static * { animation: none !important; }
+}
+

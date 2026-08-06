@@ -2,6 +2,7 @@ import Link from 'next/link';
 import PageHero from './PageHero';
 import ContentSection from './ContentSection';
 import ContactForm from './ContactForm';
+import ServiceEmblem from './ServiceEmblem';
 import { getRelatedServices } from '../../lib/servicePages.mjs';
 import { SITE } from '../../lib/site';
 
@@ -17,7 +18,9 @@ export default function ServicePage({ page }) {
         eyebrow={page.eyebrow}
         title={page.title}
         lede={page.hero}
-      />
+      >
+        <ServiceEmblem signal={page.signal} n={page.n} size={72} variant="3d" className="mkt-service-hero-emblem" />
+      </PageHero>
 
       <ContentSection eyebrow="Overview" title="What this looks like in practice">
         <p className="mkt-prose">{page.introduction}</p>

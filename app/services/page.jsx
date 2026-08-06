@@ -2,6 +2,7 @@ import Link from 'next/link';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import PageHero from '../../components/marketing/PageHero';
 import ContentSection from '../../components/marketing/ContentSection';
+import ServiceGrid from '../../components/marketing/ServiceGrid';
 import { SERVICE_PAGES } from '../../lib/servicePages.mjs';
 import { SITE } from '../../lib/site';
 
@@ -34,18 +35,7 @@ export default function ServicesIndex() {
         lede="Eight connected services, each run by people who do the work — not a menu of things we resell."
       />
       <ContentSection eyebrow="Services" title="Pick a thread">
-        <ul className="mkt-service-grid">
-          {SERVICE_PAGES.map((page) => (
-            <li key={page.slug} className="mkt-service-card">
-              <Link href={`/services/${page.slug}`} className="mkt-service-card-link" data-cursor="View">
-                <span className="mkt-service-card-n">{page.n}</span>
-                <h2 className="mkt-service-card-title">{page.title}</h2>
-                <p className="mkt-service-card-desc">{page.hero}</p>
-                <span className="mkt-service-card-cta">Explore {page.title} →</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <ServiceGrid pages={SERVICE_PAGES} />
       </ContentSection>
     </MarketingShell>
   );
