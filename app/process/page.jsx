@@ -85,7 +85,7 @@ export default function ProcessPage() {
           scope, timeline, cost, and the first move if it’s a fit.
         </p>
         <div className="mkt-contact-wrap">
-          <ContactForm variant="process" />
+          <ContactForm variant="marketing" />
         </div>
         <p className="mkt-contact-alt">
           Prefer email? <a href={`mailto:${SITE.email}`}>{SITE.email}</a>

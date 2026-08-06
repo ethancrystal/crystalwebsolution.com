@@ -35,7 +35,7 @@ export default function ContactPage() {
       />
       <ContentSection eyebrow="Project brief" title="The form">
         <div className="mkt-contact-wrap">
-          <ContactForm variant="contact" />
+          <ContactForm variant="marketing" />
         </div>
       </ContentSection>
       <ContentSection eyebrow="Direct" title="Prefer email or a call?" tone="alt">
