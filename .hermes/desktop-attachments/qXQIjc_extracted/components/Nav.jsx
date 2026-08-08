@@ -13,9 +13,6 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const closeMenu = useCallback(() => setOpen(false), []);
 
-  // Once page content scrolls under the fixed header, the bar becomes its
-  // own glass pane (see .nav::before) so it stays readable over any surface.
-  // Boolean state flips rarely; React bails out on same-value sets.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();

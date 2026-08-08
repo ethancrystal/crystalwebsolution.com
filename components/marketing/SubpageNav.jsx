@@ -2,20 +2,18 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import BrandLogo from './BrandLogo';
-import Magnetic from './Magnetic';
-import Menu from './Menu';
-import { CRM_ENABLED } from '../lib/crmFlag';
+import BrandLogo from '../BrandLogo';
+import Magnetic from '../Magnetic';
+import Menu from '../Menu';
+import { SITE } from '../../lib/site';
+import { CRM_ENABLED } from '../../lib/crmFlag';
 
-export default function Nav() {
+export default function SubpageNav() {
   const [open, setOpen] = useState(false);
-  const [onLightSurface, setOnLightSurface] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [onLightSurface, setOnLightSurface] = useState(false);
   const closeMenu = useCallback(() => setOpen(false), []);
 
-  // Once page content scrolls under the fixed header, the bar becomes its
-  // own glass pane (see .nav::before) so it stays readable over any surface.
-  // Boolean state flips rarely; React bails out on same-value sets.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
@@ -42,10 +40,26 @@ export default function Nav() {
 
   return (
     <>
-      <header className={`nav ${scrolled && !open ? 'nav-glass' : ''} ${onLightSurface && !open ? 'nav-on-light' : ''}`}>
-        <Link href="/" className="nav-logo" data-cursor="Home" aria-label="Crystal Web Solution home">
+      <header
+        className={`nav subpage-nav ${scrolled && !open ? 'nav-glass' : ''} ${onLightSurface && !open ? 'nav-on-light' : ''}`}
+      >
+        <Link
+          href="/"
+          className="nav-logo"
+          data-cursor="Home"
+          aria-label={`${SITE.name} home`}
+        >
           <BrandLogo />
         </Link>
+
+        <nav className="subpage-nav-links" aria-label="Marketing">
+          {SITE.nav.map((item) => (
+            <Link key={item.label} href={item.href} data-cursor={item.label}>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
         <div className="nav-right">
           {CRM_ENABLED && (
             <Link href="/login" className="nav-login-link" data-cursor="Log in">
@@ -53,15 +67,15 @@ export default function Nav() {
             </Link>
           )}
           <Magnetic>
-            <a href="/#contact" className="btn btn-ghost" data-cursor="Say hi">
+            <Link href="/contact" className="btn btn-ghost" data-cursor="Say hi">
               Start a project
-            </a>
+            </Link>
           </Magnetic>
           <Magnetic>
             <button
               type="button"
-              className={`nav-burger ${open ? 'is-open' : ''}`}
-              onClick={() => setOpen((v) => !v)}
+              className={`nav-burger subpage-nav-burger ${open ? 'is-open' : ''}`}
+              onClick={() => setOpen((value) => !value)}
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
               aria-controls="site-menu"
