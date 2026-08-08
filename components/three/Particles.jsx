@@ -36,7 +36,7 @@ const FRAGMENT_SHADER = `
 `;
 
 // Ambient dust drifting through the whole camera volume.
-export default function Particles({ count = 900, animate = true }) {
+export default function Particles({ count = 900, animate = true, color = '#8fd8ff' }) {
   const points = useRef();
 
   const { positions, seeds, uniforms } = useMemo(() => {
@@ -60,11 +60,11 @@ export default function Particles({ count = 900, animate = true }) {
         uTime: { value: 0 },
         uVelocity: { value: 0 },
         uSize: { value: 0.05 },
-        uColor: { value: new THREE.Color('#8fd8ff') },
+        uColor: { value: new THREE.Color(color) },
         uOpacity: { value: 0.55 },
       },
     };
-  }, [count]);
+  }, [count, color]);
 
   useFrame((state) => {
     if (!points.current || !animate) return;

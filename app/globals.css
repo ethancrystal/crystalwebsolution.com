@@ -2985,9 +2985,136 @@ html[data-cws-intro-seen='1'] .loader {
 .mkt-related-title { font-family: var(--font-display); font-size: 1.1rem; flex: 1; }
 .mkt-related-arrow { color: var(--cyan); }
 
-.mkt-principles { list-style: none; display: grid; gap: 1.5rem; margin-top: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.mkt-principles-wrap { display: flex; gap: 2rem; align-items: flex-start; margin-top: 1.5rem; }
+.mkt-principles { list-style: none; display: grid; gap: 1.5rem; margin-top: 0; flex: 1; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .mkt-principle-title { font-family: var(--font-display); font-size: 1.2rem; color: var(--ink); margin-bottom: 0.5rem; }
 .mkt-principle-body { color: var(--muted); line-height: 1.6; }
+
+/* ===================================================================
+   FoundingRail — About page only (components/marketing/FoundingRail.jsx)
+   Small vertical "founded -> Today" rail shown beside .mkt-principles.
+   Do not extend for other pages; keep this block self-contained.
+   =================================================================== */
+.founding-rail {
+  position: relative;
+  flex-shrink: 0;
+  width: 2.5rem;
+  min-height: 11rem;
+  display: none;
+}
+@media (min-width: 720px) {
+  .founding-rail { display: block; }
+}
+.founding-rail-line {
+  position: absolute;
+  left: 50%;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--line);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.founding-rail.is-visible .founding-rail-line {
+  transform: scaleY(1);
+}
+.founding-rail-tick {
+  position: absolute;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  opacity: 0;
+  transition: opacity 0.5s ease 0.5s;
+}
+.founding-rail.is-visible .founding-rail-tick {
+  opacity: 1;
+}
+.founding-rail-tick-start { top: 0; transform: translateX(-50%); }
+.founding-rail-tick-end { bottom: 0; transform: translateX(-50%); }
+.founding-rail-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px rgba(89, 243, 255, 0.5);
+}
+.founding-rail-tick-end .founding-rail-dot {
+  background: var(--violet, #c084fc);
+  box-shadow: 0 0 8px rgba(192, 132, 252, 0.5);
+}
+.founding-rail-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .founding-rail-line {
+    transition: none;
+    transform: scaleY(1);
+  }
+  .founding-rail-tick {
+    transition: none;
+    opacity: 1;
+  }
+}
+/* --- end FoundingRail --- */
+
+/* ===================================================================
+   ServiceThreadArc — Services page only (components/marketing/ServiceThreadArc.jsx)
+   Dashed arc + node motif above the "Pick a thread" header, evoking the
+   eight connected services listed in ServiceGrid. Draws in once on
+   scroll-into-view via stroke-dashoffset. Do not extend for other pages.
+   =================================================================== */
+.service-thread-arc {
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 0 0.75rem;
+}
+.service-thread-arc svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.service-thread-arc-path {
+  stroke: var(--cyan);
+  stroke-width: 1;
+  stroke-dasharray: 0.02 0.02;
+  stroke-dashoffset: 1;
+  opacity: 0.55;
+  transition: stroke-dashoffset 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.service-thread-arc.is-visible .service-thread-arc-path {
+  stroke-dashoffset: 0;
+}
+.service-thread-arc-node {
+  fill: var(--line);
+  opacity: 0;
+  transition: opacity 0.4s ease 0.6s, fill 0.4s ease 0.6s;
+}
+.service-thread-arc.is-visible .service-thread-arc-node {
+  opacity: 1;
+  fill: var(--cyan);
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-thread-arc-path {
+    transition: none;
+    stroke-dashoffset: 0;
+  }
+  .service-thread-arc-node {
+    transition: none;
+    opacity: 1;
+    fill: var(--cyan);
+  }
+}
+/* --- end ServiceThreadArc --- */
 
 /* --- contact --- */
 .mkt-contact-wrap { margin-top: 1.5rem; max-width: 52rem; }
@@ -3302,6 +3429,65 @@ html[data-cws-intro-seen='1'] .loader {
   .work-filter-chip,
   .work-row-visual .project-visual,
   .subpage-nav-links a::after {
+    transition: none;
+  }
+}
+
+/* ===================================================================
+   PROCESS PAGE — scroll-scrubbed progress rail alongside the steps list
+   =================================================================== */
+
+.process-steps-rail {
+  display: grid;
+  grid-template-columns: 2px 1fr;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+  align-items: start;
+}
+
+.process-rail {
+  position: relative;
+  width: 2px;
+  height: 100%;
+  min-height: 100%;
+  align-self: stretch;
+}
+
+.process-rail-track {
+  position: absolute;
+  inset: 0;
+  width: 2px;
+  background: var(--line);
+}
+
+.process-rail-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--cyan), transparent);
+  transform-origin: top;
+  transform: scaleY(0);
+  box-shadow: 0 0 12px 0 color-mix(in srgb, var(--cyan) 60%, transparent);
+}
+
+.process-steps-rail .mkt-steps {
+  margin-top: 0;
+}
+
+@media (max-width: 720px) {
+  .process-steps-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .process-rail {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .process-rail-fill {
+    transform: scaleY(1);
     transition: none;
   }
 }
