@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
 import { SITE } from '../../lib/site';
 import MarketingShell from '../../components/marketing/MarketingShell';
+import SectionReveal from '../../components/SectionReveal';
 
 const REVIEWS_TITLE = 'Client Reviews';
 const REVIEWS_DESCRIPTION =
@@ -37,39 +38,43 @@ export default function ReviewsPage() {
     <MarketingShell>
       <main className="reviews-index mkt-inner">
         <section className="reviews-hero" aria-labelledby="reviews-title">
-          <p className="eyebrow">Client feedback</p>
-          <h1 id="reviews-title" className="page-title">What clients said, in their own words.</h1>
-          <p className="reviews-lede">
+          <SectionReveal as="p" className="eyebrow" direction="left">Client feedback</SectionReveal>
+          <SectionReveal as="h1" id="reviews-title" className="page-title" direction="left" delay={0.05}>
+            What clients said, in their own words.
+          </SectionReveal>
+          <SectionReveal as="p" className="reviews-lede" direction="up" delay={0.1}>
             {REVIEW_STATS.total} client reviews, published in full. Read the praise, the criticism, and the company replies in one place.
-          </p>
-          <dl className="reviews-summary" aria-label="Review summary">
+          </SectionReveal>
+          <SectionReveal as="dl" className="reviews-summary" aria-label="Review summary" direction="up" delay={0.15}>
             <div><dt>Reviews</dt><dd>{REVIEW_STATS.total}</dd></div>
             <div><dt>Average</dt><dd>{REVIEW_STATS.average}/5</dd></div>
             <div><dt>Four or five stars</dt><dd>{REVIEW_STATS.positive}</dd></div>
             <div><dt>Latest review</dt><dd>{REVIEW_STATS.latest}</dd></div>
-          </dl>
-          <aside className="reviews-transparency">
+          </SectionReveal>
+          <SectionReveal as="aside" className="reviews-transparency" direction="up" delay={0.15}>
             <strong>Transparency</strong>
             <p>Every published review appears here, including critical feedback. Company replies appear beneath the relevant review.</p>
-          </aside>
+          </SectionReveal>
         </section>
 
         <section className="reviews-standard" aria-labelledby="response-standard-title">
-          <p className="eyebrow">Response standard</p>
-          <h2 id="response-standard-title">Concerns deserve a clear, documented response.</h2>
-          <ul>
+          <SectionReveal as="p" className="eyebrow" direction="left">Response standard</SectionReveal>
+          <SectionReveal as="h2" id="response-standard-title" direction="left" delay={0.05}>
+            Concerns deserve a clear, documented response.
+          </SectionReveal>
+          <SectionReveal as="ul" direction="up" delay={0.1}>
             <li>Acknowledge the concern without arguing with the reviewer.</li>
             <li>State what can be confirmed and what still needs clarification.</li>
             <li>Avoid discussing confidential project details in public.</li>
             <li>Offer one current contact route and a specific next step.</li>
-          </ul>
+          </SectionReveal>
         </section>
 
         <section className="review-archive" aria-labelledby="archive-title">
-          <div className="review-archive-heading">
+          <SectionReveal as="div" className="review-archive-heading" direction="up">
             <p className="eyebrow">Published reviews</p>
             <h2 id="archive-title">All client reviews</h2>
-          </div>
+          </SectionReveal>
 
           <div className="review-list">
             {REVIEWS.map((review) => (
@@ -100,10 +105,14 @@ export default function ReviewsPage() {
         </section>
 
         <section className="reviews-close">
-          <p className="eyebrow">From idea to outcome</p>
-          <h2>Let&apos;s make something rare.</h2>
-          <p>Send us your brief. We&apos;ll give you a straight read on scope, timeline, cost, and the first move if it&apos;s a fit.</p>
-          <a href={`mailto:${SITE.email}`} className="btn btn-solid">Start a project <span aria-hidden="true">→</span></a>
+          <SectionReveal as="p" className="eyebrow" direction="left">From idea to outcome</SectionReveal>
+          <SectionReveal as="h2" direction="left" delay={0.05}>Let&apos;s make something rare.</SectionReveal>
+          <SectionReveal as="p" direction="up" delay={0.1}>
+            Send us your brief. We&apos;ll give you a straight read on scope, timeline, cost, and the first move if it&apos;s a fit.
+          </SectionReveal>
+          <SectionReveal direction="up" delay={0.15}>
+            <a href={`mailto:${SITE.email}`} className="btn btn-solid">Start a project <span aria-hidden="true">→</span></a>
+          </SectionReveal>
         </section>
       </main>
     </MarketingShell>
