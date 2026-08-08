@@ -3492,3 +3492,46 @@ html[data-cws-intro-seen='1'] .loader {
   }
 }
 
+/* ===================================================================
+   Case study narrative beats + gallery + nav rail
+   (app/work/[slug]/page.jsx, components/marketing/CaseGallery.jsx,
+   components/marketing/CaseNavRail.jsx). Case-study page only.
+   =================================================================== */
+.case-beats { display: grid; gap: 3.5rem; margin: 4rem 0; }
+.case-beat { max-width: 42ch; }
+.case-beat.is-offset { margin-left: auto; text-align: left; }
+.case-beat-eyebrow { margin-bottom: 0.9rem; }
+.case-beat p:not(.case-beat-eyebrow) { color: var(--muted); line-height: 1.9; margin-bottom: 1.4rem; font-size: 1.02rem; }
+.case-beat p:last-child { margin-bottom: 0; }
+
+.case-gallery-wrap { margin: 4rem 0; }
+.case-gallery-wrap > .eyebrow { margin-bottom: 1.25rem; }
+.case-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+.case-gallery-tile.is-offset { transform: translateY(4rem); }
+
+.case-nav-rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); margin-top: 3rem; }
+.case-nav-cell { display: flex; align-items: center; gap: 1rem; padding: 2rem 1.5rem; transition: background-color 0.25s; }
+.case-nav-prev { border-right: 1px solid var(--line); }
+.case-nav-next { justify-content: flex-end; text-align: right; }
+.case-nav-cell:hover,
+.case-nav-cell:focus-visible { background: rgba(89, 243, 255, 0.05); }
+.case-nav-text { display: flex; flex-direction: column; gap: 0.4rem; }
+.case-nav-title { font-family: var(--font-display); font-size: clamp(1.2rem, 2.6vw, 1.7rem); transition: color 0.3s; }
+.case-nav-arrow { font-size: 1.4rem; color: var(--cyan); transition: transform 0.25s; }
+.case-nav-cell:hover .case-nav-title,
+.case-nav-cell:focus-visible .case-nav-title { color: var(--cyan); }
+.case-nav-prev:hover .case-nav-arrow,
+.case-nav-prev:focus-visible .case-nav-arrow { transform: translateX(-4px); }
+.case-nav-next:hover .case-nav-arrow,
+.case-nav-next:focus-visible .case-nav-arrow { transform: translateX(4px); }
+
+@media (max-width: 720px) {
+  .case-beat.is-offset { margin-left: 0; }
+  .case-gallery { grid-template-columns: 1fr; }
+  .case-gallery-tile.is-offset { transform: none; }
+  .case-nav-rail { grid-template-columns: 1fr; }
+  .case-nav-prev { border-right: 0; border-bottom: 1px solid var(--line); }
+  .case-nav-next { justify-content: flex-start; text-align: left; }
+}
+/* --- end case study upgrade --- */
+
