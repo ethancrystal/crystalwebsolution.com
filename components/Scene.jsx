@@ -1,6 +1,8 @@
 'use client';
 
-import { Canvas } from '@react-three/fiber';
+import { useEffect, useState } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import * as THREE from 'three';
 import CameraRig from './three/CameraRig';
 import FocusDimmer from './three/FocusDimmer';
 import Crystal from './three/Crystal';
@@ -11,7 +13,7 @@ import Sparks from './three/Sparks';
 import BackdropMorph from './three/BackdropMorph';
 import Lights from './three/Lights';
 import Effects from './three/Effects';
-import { CLUSTERS } from '../lib/journey';
+import { CLUSTERS, STOPS } from '../lib/journey';
 import { useRenderQuality } from '../lib/useRenderQuality';
 
 // One fixed, non-interactive canvas behind the whole page.
@@ -51,6 +53,50 @@ export default function Scene() {
         <Particles count={900} />
         <BackdropMorph />
         <Effects />
+      </Canvas>
+    </div>
+  );
+}
+
+// Aims the parked idle camera once on mount — IdleScene has no CameraRig,
+// so nothing else points it at the crystal.
+function IdleCameraAim() {
+  const camera = useThree((state) => state.camera);
+  useEffect(() => {
+    camera.lookAt(new THREE.Vector3(...STOPS[0].look));
+  }, [camera]);
+  return null;
+}
+
+// A parked, low-cost variant of the same WebGL space for inner pages: the
+// camera is fixed at the home's first stop instead of scroll-driven, and
+// only Crystal + half-density Particles + Lights render (no ServiceRail,
+// ApproachCompass, Sparks, BackdropMorph, CameraRig, or FocusDimmer).
+// Pauses its own draw loop while the tab is hidden.
+export function IdleScene() {
+  const [frameloop, setFrameloop] = useState('always');
+
+  useEffect(() => {
+    const onVisibility = () => setFrameloop(document.visibilityState === 'hidden' ? 'never' : 'always');
+    onVisibility();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
+  return (
+    <div className="scene-canvas" aria-hidden="true">
+      <Canvas
+        frameloop={frameloop}
+        dpr={[1, 1.5]}
+        gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
+        camera={{ fov: 42, near: 0.1, far: 260, position: STOPS[0].pos }}
+      >
+        <color attach="background" args={['#04060c']} />
+        <fog attach="fog" args={['#04060c', 10, 48]} />
+        <IdleCameraAim />
+        <Lights />
+        <Crystal position={[0, 0, CLUSTERS.crystal]} />
+        <Particles count={450} />
       </Canvas>
     </div>
   );

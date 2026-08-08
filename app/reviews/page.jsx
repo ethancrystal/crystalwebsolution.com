@@ -1,4 +1,5 @@
-import Link from 'next/link';
+import SubpageShell from '../../components/SubpageShell';
+import ReviewsClient, { ReviewStat } from '../../components/reviews/ReviewsClient';
 import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
 import { SITE } from '../../lib/site';
 
@@ -22,27 +23,10 @@ export const metadata = {
   },
 };
 
-function Rating({ value }) {
-  return (
-    <span className="review-rating" aria-label={`${value} out of 5 stars`}>
-      <span aria-hidden="true">{'★'.repeat(value)}{'☆'.repeat(5 - value)}</span>
-      <span>{value}/5</span>
-    </span>
-  );
-}
-
 export default function ReviewsPage() {
   return (
-    <div className="subpage reviews-page">
-      <header className="nav">
-        <Link href="/" className="nav-logo" data-cursor="Home">
-          <span className="nav-logo-monogram" aria-hidden="true">CWS</span>
-          <span className="nav-logo-name">{SITE.name}</span>
-        </Link>
-        <Link href="/#contact" className="btn btn-ghost" data-cursor="Say hi">Start a project</Link>
-      </header>
-
-      <main className="reviews-index">
+    <SubpageShell>
+      <div className="reviews-index reviews-page">
         <section className="reviews-hero" aria-labelledby="reviews-title">
           <p className="eyebrow">Client feedback</p>
           <h1 id="reviews-title" className="page-title">What clients said, in their own words.</h1>
@@ -50,9 +34,9 @@ export default function ReviewsPage() {
             {REVIEW_STATS.total} client reviews, published in full. Read the praise, the criticism, and the company replies in one place.
           </p>
           <dl className="reviews-summary" aria-label="Review summary">
-            <div><dt>Reviews</dt><dd>{REVIEW_STATS.total}</dd></div>
-            <div><dt>Average</dt><dd>{REVIEW_STATS.average}/5</dd></div>
-            <div><dt>Four or five stars</dt><dd>{REVIEW_STATS.positive}</dd></div>
+            <ReviewStat label="Reviews" value={REVIEW_STATS.total} />
+            <ReviewStat label="Average" value={REVIEW_STATS.average} suffix="/5" />
+            <ReviewStat label="Four or five stars" value={REVIEW_STATS.positive} />
             <div><dt>Latest review</dt><dd>{REVIEW_STATS.latest}</dd></div>
           </dl>
           <aside className="reviews-transparency">
@@ -78,41 +62,19 @@ export default function ReviewsPage() {
             <h2 id="archive-title">All client reviews</h2>
           </div>
 
-          <div className="review-list">
-            {REVIEWS.map((review) => (
-              <article key={review.id} id={review.id} className={`review-card review-card-${review.rating}`}>
-                <header className="review-card-header">
-                  <div>
-                    <h3>{review.reviewer}</h3>
-                    {review.company && <p className="review-client">{review.company}</p>}
-                    <p className="review-headline">{review.headline}</p>
-                  </div>
-                  <Rating value={review.rating} />
-                </header>
-                <p className="review-meta">
-                  {review.country} • {review.reviewCount} {review.reviewCount === 1 ? 'review' : 'reviews'} • {review.date}
-                </p>
-                <div className="review-body">
-                  {review.body.map((paragraph, index) => <p key={`${review.id}-${index}`}>{paragraph}</p>)}
-                </div>
-                {review.reply && (
-                  <aside className="review-reply">
-                    <strong>Company reply • {review.reply.date}</strong>
-                    <p>{review.reply.body}</p>
-                  </aside>
-                )}
-              </article>
-            ))}
-          </div>
+          <ReviewsClient reviews={REVIEWS} />
         </section>
 
-        <section className="reviews-close">
+        <section id="reviews-close" className="reviews-close">
           <p className="eyebrow">From idea to outcome</p>
           <h2>Let&apos;s make something rare.</h2>
-          <p>Send us your brief. We&apos;ll give you a straight read on scope, timeline, cost, and the first move if it&apos;s a fit.</p>
-          <a href={`mailto:${SITE.email}`} className="btn btn-solid">Start a project <span aria-hidden="true">→</span></a>
+          <p>Send us your brief, or read how we work first — either way, we&apos;ll give you a straight answer.</p>
+          <div className="reviews-close-actions">
+            <a href="/#contact" className="btn btn-solid">Start a project <span aria-hidden="true">→</span></a>
+            <a href="/#approach" className="btn btn-ghost">Read our process <span aria-hidden="true">→</span></a>
+          </div>
         </section>
-      </main>
-    </div>
+      </div>
+    </SubpageShell>
   );
 }

@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import ProjectVisual from '../../../components/ProjectVisual';
+import SubpageShell from '../../../components/SubpageShell';
+import CaseStudyClient from '../../../components/work/CaseStudyClient';
 import { PROJECTS, getProject } from '../../../lib/projects';
 import { SITE } from '../../../lib/site';
 
@@ -41,32 +41,13 @@ export default async function CaseStudy({ params }) {
 
   const index = PROJECTS.findIndex((item) => item.slug === project.slug);
   const next = PROJECTS[(index + 1) % PROJECTS.length];
+  const prev = PROJECTS[(index - 1 + PROJECTS.length) % PROJECTS.length];
 
   return (
-    <div className="subpage">
-      <header className="nav">
-        <Link href="/" className="nav-logo" data-cursor="Home">
-          <span className="nav-logo-monogram" aria-hidden="true">CWS</span>
-          <span className="nav-logo-name">{SITE.name}</span>
-        </Link>
-        <Link href="/work" className="btn btn-ghost" data-cursor="Back">All projects</Link>
-      </header>
-      <main className="case">
-        <p className="eyebrow">Case study • {project.category}</p>
-        <h1 className="page-title">{project.title}</h1>
-        <p className="case-summary">{project.summary}</p>
-        <ul className="case-services" aria-label="Services">
-          {project.services.map((service) => <li key={service}>{service}</li>)}
-        </ul>
-        <ProjectVisual palette={project.palette} title={project.title} ratio="21 / 9" />
-        <div className="case-body">
-          {project.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-        </div>
-        <Link href={`/work/${next.slug}`} className="case-next" data-cursor="Next case">
-          <span className="eyebrow">Next case study</span>
-          <span className="case-next-title">{next.title} →</span>
-        </Link>
-      </main>
-    </div>
+    <SubpageShell>
+      <div className="case">
+        <CaseStudyClient project={project} prev={prev} next={next} />
+      </div>
+    </SubpageShell>
   );
 }
