@@ -1874,6 +1874,18 @@ html[data-cws-intro-seen='1'] .loader {
     var(--bg);
 }
 .work-index, .case, .reviews-index { padding: 18vh 8vw 12vh; max-width: 1200px; margin: 0 auto; }
+.case-back {
+  display: inline-block;
+  margin-bottom: 2.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+.case-back:hover,
+.case-back:focus-visible { color: var(--cyan); }
 .page-title {
   font-family: var(--font-display);
   font-size: clamp(2.4rem, 6vw, 4.6rem);

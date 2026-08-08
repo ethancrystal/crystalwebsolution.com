@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProjectVisual from '../../../components/ProjectVisual';
+import MarketingShell from '../../../components/marketing/MarketingShell';
 import { PROJECTS, getProject } from '../../../lib/projects';
 import { SITE } from '../../../lib/site';
 
@@ -43,15 +44,9 @@ export default async function CaseStudy({ params }) {
   const next = PROJECTS[(index + 1) % PROJECTS.length];
 
   return (
-    <div className="subpage">
-      <header className="nav">
-        <Link href="/" className="nav-logo" data-cursor="Home">
-          <span className="nav-logo-monogram" aria-hidden="true">CWS</span>
-          <span className="nav-logo-name">{SITE.name}</span>
-        </Link>
-        <Link href="/work" className="btn btn-ghost" data-cursor="Back">All projects</Link>
-      </header>
-      <main className="case">
+    <MarketingShell>
+      <article className="case">
+        <Link href="/work" className="case-back" data-cursor="Work">← All projects</Link>
         <p className="eyebrow">Case study • {project.category}</p>
         <h1 className="page-title">{project.title}</h1>
         <p className="case-summary">{project.summary}</p>
@@ -66,7 +61,7 @@ export default async function CaseStudy({ params }) {
           <span className="eyebrow">Next case study</span>
           <span className="case-next-title">{next.title} →</span>
         </Link>
-      </main>
-    </div>
+      </article>
+    </MarketingShell>
   );
 }
