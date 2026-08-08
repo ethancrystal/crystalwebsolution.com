@@ -3,6 +3,7 @@ import MarketingShell from '../../components/marketing/MarketingShell';
 import PageHero from '../../components/marketing/PageHero';
 import ContentSection from '../../components/marketing/ContentSection';
 import ContactForm from '../../components/marketing/ContactForm';
+import ProcessStepsRail from '../../components/marketing/ProcessStepsRail';
 import { SITE } from '../../lib/site';
 
 const TITLE = 'Process';
@@ -60,24 +61,14 @@ const STEPS = [
 
 export default function ProcessPage() {
   return (
-    <MarketingShell>
+    <MarketingShell sceneVariant="process">
       <PageHero
         eyebrow="Process"
         title="From idea to outcome, without the limbo."
         lede="A clear path built to keep design and engineering in lockstep — so good ideas actually ship."
       />
       <ContentSection eyebrow="How we work" title="Six steps, one standard of care">
-        <ol className="mkt-steps mkt-steps--wide">
-          {STEPS.map((step) => (
-            <li key={step.n} className="mkt-step">
-              <span className="mkt-step-index">{step.n}</span>
-              <div className="mkt-step-body">
-                <h2 className="mkt-step-title">{step.title}</h2>
-                <p className="mkt-step-text">{step.body}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <ProcessStepsRail steps={STEPS} />
       </ContentSection>
       <ContentSection eyebrow="Start" title="Bring us the brief" tone="alt">
         <p className="mkt-prose">

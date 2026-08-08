@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/browser';
 import { listProjectMessages } from '@/lib/crm/projects';
-import { postProjectMessage, reserveAttachment, finalizeAttachment } from '@/app/actions/project-actions';
+import { postProjectMessage, editProjectMessage, reserveAttachment, finalizeAttachment } from '@/app/actions/project-actions';
 
 function formatBytes(bytes) {
   if (!bytes && bytes !== 0) return '';
@@ -27,11 +27,15 @@ function formatWhen(value) {
 export default function ProjectThread({ projectId, role }) {
   const [userId, setUserId] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [threadId, setThreadId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [body, setBody] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editBody, setEditBody] = useState('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const fileInputRef = useRef(null);
   const listEndRef = useRef(null);
 
@@ -46,8 +50,13 @@ export default function ProjectThread({ projectId, role }) {
       } = await supabase.auth.getUser();
       setUserId(user?.id || null);
 
-      const { messages } = await listProjectMessages(supabase, { profile: { role: role || 'client' } }, projectId);
+      const { messages, threadId } = await listProjectMessages(
+        supabase,
+        { profile: { role: role || 'client' } },
+        projectId,
+      );
       setMessages(messages || []);
+      setThreadId(threadId || null);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -59,9 +68,72 @@ export default function ProjectThread({ projectId, role }) {
     load();
   }, [load]);
 
+  // Live delivery: any INSERT/UPDATE on this project's own message thread
+  // (from any participant, in any tab/session) reloads the list. Reload
+  // rather than patching a single row in place - the read path already
+  // applies visibility filtering (sharedOnly) and profile joins that a
+  // bare Postgres change payload doesn't carry, so re-fetching through
+  // listProjectMessages is the only way to keep those rules intact.
+  useEffect(() => {
+    if (!threadId) return undefined;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`project-thread-${threadId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'project_messages', filter: `thread_id=eq.${threadId}` },
+        () => {
+          load();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [threadId, load]);
+
   useEffect(() => {
     listEndRef.current?.scrollIntoView({ block: 'nearest' });
   }, [messages.length]);
+
+  function startEdit(message) {
+    setEditingId(message.id);
+    setEditBody(message.body);
+    setError(null);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditBody('');
+  }
+
+  async function handleSaveEdit(messageId) {
+    const trimmed = editBody.trim();
+    if (!trimmed) return;
+
+    setIsSavingEdit(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.set('projectId', projectId);
+      formData.set('messageId', messageId);
+      formData.set('body', trimmed);
+
+      const result = await editProjectMessage(formData);
+      if (!result.ok) throw new Error(result.error || 'Unable to edit this message.');
+
+      setEditingId(null);
+      setEditBody('');
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSavingEdit(false);
+    }
+  }
 
   async function handleSend(e) {
     e.preventDefault();
@@ -212,18 +284,52 @@ export default function ProjectThread({ projectId, role }) {
 
       <div className="thread-messages">
         {messages.length > 0 ? (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`thread-message ${message.sender_id === userId ? 'is-own' : ''}`}
-            >
-              <div className="thread-message-meta">
-                <strong>{message.sender?.full_name || 'Unknown'}</strong>
-                <span>{formatWhen(message.created_at)}</span>
+          messages.map((message) => {
+            const isOwn = message.sender_id === userId;
+            const isEditing = editingId === message.id;
+            return (
+              <div key={message.id} className={`thread-message ${isOwn ? 'is-own' : ''}`}>
+                <div className="thread-message-meta">
+                  <strong>{message.sender?.full_name || 'Unknown'}</strong>
+                  <span>
+                    {formatWhen(message.created_at)}
+                    {message.edited_at ? ' · edited' : ''}
+                  </span>
+                </div>
+                {isEditing ? (
+                  <div className="thread-message-edit">
+                    <textarea
+                      value={editBody}
+                      onChange={(e) => setEditBody(e.target.value)}
+                      rows={2}
+                      aria-label="Edit message"
+                    />
+                    <div className="thread-message-edit-actions">
+                      <button
+                        type="button"
+                        onClick={() => handleSaveEdit(message.id)}
+                        disabled={isSavingEdit || !editBody.trim()}
+                      >
+                        {isSavingEdit ? 'Saving...' : 'Save'}
+                      </button>
+                      <button type="button" onClick={cancelEdit} disabled={isSavingEdit}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="thread-message-body">{message.body}</p>
+                    {isOwn && (
+                      <button type="button" className="thread-message-edit-trigger" onClick={() => startEdit(message)}>
+                        Edit
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
-              <p className="thread-message-body">{message.body}</p>
-            </div>
-          ))
+            );
+          })
         ) : (
           <p className="thread-empty">No messages yet — say hello.</p>
         )}
@@ -379,6 +485,65 @@ export default function ProjectThread({ projectId, role }) {
           color: #e0e0e0;
           white-space: pre-wrap;
           line-height: 1.55;
+        }
+
+        .thread-message-edit-trigger {
+          background: none;
+          border: none;
+          color: #64c8ff;
+          font-size: 0.75rem;
+          cursor: pointer;
+          padding: 0.35rem 0 0;
+          font-family: inherit;
+          opacity: 0.7;
+        }
+
+        .thread-message-edit-trigger:hover {
+          opacity: 1;
+          text-decoration: underline;
+        }
+
+        .thread-message-edit {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .thread-message-edit textarea {
+          background: rgba(15, 20, 40, 0.6);
+          border: 1px solid rgba(100, 200, 255, 0.2);
+          border-radius: 6px;
+          padding: 0.5rem 0.7rem;
+          color: #e0e0e0;
+          font-size: 0.9rem;
+          font-family: inherit;
+          resize: vertical;
+        }
+
+        .thread-message-edit textarea:focus {
+          outline: none;
+          border-color: rgba(100, 200, 255, 0.6);
+        }
+
+        .thread-message-edit-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .thread-message-edit-actions button {
+          background: rgba(100, 200, 255, 0.1);
+          border: 1px solid rgba(100, 200, 255, 0.3);
+          color: #64c8ff;
+          padding: 0.35rem 0.8rem;
+          border-radius: 6px;
+          font-size: 0.8rem;
+          cursor: pointer;
+          font-family: inherit;
+        }
+
+        .thread-message-edit-actions button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
 
         .thread-empty {
