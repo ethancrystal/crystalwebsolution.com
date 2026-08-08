@@ -66,7 +66,7 @@ export default async function CaseStudy({ params }) {
         <SectionReveal as="div" className="case-body" direction="up" delay={0.1}>
           {project.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
         </SectionReveal>
-        <Link href={`/work/${next.slug}`} className="case-next" data-cursor="Next case study">
+        <Link href={`/work/${next.slug}`} className="case-next" data-cursor="Next case">
           <span className="eyebrow">Next case study</span>
           <span className="case-next-title">{next.title} →</span>
         </Link>
