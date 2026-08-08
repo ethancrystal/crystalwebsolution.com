@@ -29,7 +29,7 @@ export default function WorkIndex() {
   return (
     <MarketingShell>
       <section className="work-index mkt-inner" aria-labelledby="work-title">
-        <SectionReveal as="p" className="eyebrow" direction="left">Selected work</SectionReveal>
+        <p className="eyebrow"><SectionReveal as="span" direction="left">Selected work</SectionReveal></p>
         <SectionReveal as="h1" id="work-title" className="page-title" direction="left" delay={0.05}>
           Built around the real problem.
         </SectionReveal>

@@ -3391,6 +3391,7 @@ html[data-cws-intro-seen='1'] .loader {
   gap: 2rem;
   margin-top: clamp(4rem, 8vw, 7rem);
   padding: clamp(1.5rem, 4vw, 2.5rem) 0;
+  padding-inline: 24px;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }

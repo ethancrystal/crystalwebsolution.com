@@ -26,7 +26,7 @@ export default function EmbroideryScreenPrintingWebDesign() {
   return (
     <MarketingShell>
       <main className="case mkt-inner">
-        <SectionReveal as="p" className="eyebrow" direction="left">Web Design for the Trade</SectionReveal>
+        <p className="eyebrow"><SectionReveal as="span" direction="left">Web Design for the Trade</SectionReveal></p>
         <SectionReveal as="h1" className="page-title" direction="left" delay={0.05}>
           Website Design for Embroidery &amp; Screen-Printing Shops
         </SectionReveal>

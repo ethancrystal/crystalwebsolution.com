@@ -38,7 +38,7 @@ export default function ReviewsPage() {
     <MarketingShell>
       <main className="reviews-index mkt-inner">
         <section className="reviews-hero" aria-labelledby="reviews-title">
-          <SectionReveal as="p" className="eyebrow" direction="left">Client feedback</SectionReveal>
+          <p className="eyebrow"><SectionReveal as="span" direction="left">Client feedback</SectionReveal></p>
           <SectionReveal as="h1" id="reviews-title" className="page-title" direction="left" delay={0.05}>
             What clients said, in their own words.
           </SectionReveal>
@@ -58,7 +58,7 @@ export default function ReviewsPage() {
         </section>
 
         <section className="reviews-standard" aria-labelledby="response-standard-title">
-          <SectionReveal as="p" className="eyebrow" direction="left">Response standard</SectionReveal>
+          <p className="eyebrow"><SectionReveal as="span" direction="left">Response standard</SectionReveal></p>
           <SectionReveal as="h2" id="response-standard-title" direction="left" delay={0.05}>
             Concerns deserve a clear, documented response.
           </SectionReveal>
@@ -105,7 +105,7 @@ export default function ReviewsPage() {
         </section>
 
         <section className="reviews-close">
-          <SectionReveal as="p" className="eyebrow" direction="left">From idea to outcome</SectionReveal>
+          <p className="eyebrow"><SectionReveal as="span" direction="left">From idea to outcome</SectionReveal></p>
           <SectionReveal as="h2" direction="left" delay={0.05}>Let&apos;s make something rare.</SectionReveal>
           <SectionReveal as="p" direction="up" delay={0.1}>
             Send us your brief. We&apos;ll give you a straight read on scope, timeline, cost, and the first move if it&apos;s a fit.

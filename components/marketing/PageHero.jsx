@@ -20,7 +20,9 @@ export default function PageHero({ eyebrow, title, lede, children }) {
             {lede}
           </SectionReveal>
         )}
-        {children}
+        <SectionReveal direction="up" delay={0.2}>
+          {children}
+        </SectionReveal>
       </div>
     </section>
   );
