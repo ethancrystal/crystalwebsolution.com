@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import WorkLibrary from '../../components/marketing/WorkLibrary';
+import SectionReveal from '../../components/SectionReveal';
 import { PROJECTS } from '../../lib/projects';
 import { SITE } from '../../lib/site';
 
@@ -28,20 +29,22 @@ export default function WorkIndex() {
   return (
     <MarketingShell>
       <section className="work-index mkt-inner" aria-labelledby="work-title">
-        <p className="eyebrow">Selected work</p>
-        <h1 id="work-title" className="page-title">Built around the real problem.</h1>
-        <p className="work-index-intro">
+        <SectionReveal as="p" className="eyebrow" direction="left">Selected work</SectionReveal>
+        <SectionReveal as="h1" id="work-title" className="page-title" direction="left" delay={0.05}>
+          Built around the real problem.
+        </SectionReveal>
+        <SectionReveal as="p" className="work-index-intro" direction="up" delay={0.15}>
           Six projects, each shaped around what the visitor needed to understand, feel, or do next.
-        </p>
+        </SectionReveal>
 
-        <div className="work-library-heading">
+        <SectionReveal as="div" className="work-library-heading" direction="up">
           <p className="eyebrow">Project library</p>
           <h2>Different briefs. One standard of care.</h2>
-        </div>
+        </SectionReveal>
 
         <WorkLibrary projects={PROJECTS} />
 
-        <div className="work-closing-plate">
+        <SectionReveal as="div" className="work-closing-plate" direction="up">
           <div>
             <p className="eyebrow">One standard of care</p>
             <h2>Every project starts with the real problem.</h2>
@@ -49,7 +52,7 @@ export default function WorkIndex() {
           <Link href="/process" className="btn btn-ghost" data-cursor="Process">
             View the process →
           </Link>
-        </div>
+        </SectionReveal>
       </section>
     </MarketingShell>
   );
