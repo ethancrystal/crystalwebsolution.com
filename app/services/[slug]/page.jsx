@@ -3,10 +3,12 @@ import { notFound } from 'next/navigation';
 import ServicePage from '../../../components/marketing/ServicePage';
 import MarketingShell from '../../../components/marketing/MarketingShell';
 import ServiceSchema from '../../../components/marketing/ServiceSchema';
+import BreadcrumbSchema from '../../../components/marketing/BreadcrumbSchema';
 import { SERVICE_PAGES, getServicePageBySlug } from '../../../lib/servicePages.mjs';
 import { SITE } from '../../../lib/site';
+import { SITE_ORIGIN } from '../../../lib/seo.mjs';
 
-const SITE_URL = 'https://crystalwebsolution.com';
+const SITE_URL = SITE_ORIGIN;
 
 export function generateStaticParams() {
   return SERVICE_PAGES.map((page) => ({ slug: page.slug }));
@@ -54,6 +56,12 @@ export default async function ServiceDetail({ params }) {
       </nav>
       <ServicePage page={page} />
       <ServiceSchema n={page.title} title={page.seoTitle} description={page.metaDescription} />
+      <BreadcrumbSchema
+        trail={[
+          { name: 'Services', path: '/services' },
+          { name: page.title, path: `/services/${page.slug}` },
+        ]}
+      />
     </MarketingShell>
   );
 }

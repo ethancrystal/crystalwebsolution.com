@@ -49,7 +49,7 @@ export default function SignupPage() {
     <div className="crm-auth-container">
       <div className="crm-auth-card">
         <Link href="/" className="crm-auth-mark" aria-label="Crystal Web Solution home">
-          <img className="crm-auth-logo" src="/crystal-web-solution-icon.svg" alt="" width="160" height="63" />
+          <img className="crm-auth-logo" src="/crystal-web-solution-icon.svg" alt="Crystal Web Solution" width="160" height="63" />
         </Link>
 
         <h1>Create your account</h1>

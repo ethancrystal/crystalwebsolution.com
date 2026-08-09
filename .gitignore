@@ -20,3 +20,5 @@ node_modules/
 .vercel
 .env*
 !.env.example
+
+.hermes/

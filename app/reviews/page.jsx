@@ -1,8 +1,19 @@
 import Link from 'next/link';
 import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
 import { SITE } from '../../lib/site';
+import { absoluteUrl } from '../../lib/seo.mjs';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import SectionReveal from '../../components/SectionReveal';
+import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
+
+// schema.org datePublished must be ISO 8601; lib/reviews.js stores
+// human-readable strings like "June 15, 2026". Returns undefined rather than
+// an invalid date so a malformed entry omits the field instead of emitting
+// "Invalid Date" into the markup.
+function isoDate(value) {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString().slice(0, 10);
+}
 
 const REVIEWS_TITLE = 'Client Reviews';
 const REVIEWS_DESCRIPTION =
@@ -115,6 +126,41 @@ export default function ReviewsPage() {
           </SectionReveal>
         </section>
       </main>
+      <BreadcrumbSchema trail={[{ name: REVIEWS_TITLE, path: '/reviews' }]} />
+      {/* Google requires AggregateRating to be backed by actual Review nodes
+          with named authors. These are real, attributable client reviews —
+          never synthesise entries here, and keep parseDate in sync with the
+          human-readable `date` strings in lib/reviews.js. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ItemList',
+            name: `${REVIEWS_TITLE} — ${SITE.name}`,
+            numberOfItems: REVIEWS.length,
+            itemListElement: REVIEWS.map((review, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              item: {
+                '@type': 'Review',
+                '@id': absoluteUrl(`/reviews#${review.id}`),
+                name: review.headline,
+                reviewBody: review.body.join(' '),
+                datePublished: isoDate(review.date),
+                author: { '@type': 'Person', name: review.reviewer },
+                reviewRating: {
+                  '@type': 'Rating',
+                  ratingValue: review.rating,
+                  bestRating: 5,
+                  worstRating: 1,
+                },
+                itemReviewed: { '@id': `${absoluteUrl('/')}#organization` },
+              },
+            })),
+          }),
+        }}
+      />
     </MarketingShell>
   );
 }
