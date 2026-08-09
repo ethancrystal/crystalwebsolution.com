@@ -68,13 +68,22 @@ export default async function CaseStudy({ params }) {
     <MarketingShell>
       <article className="case">
         <Link href="/work" className="case-back" data-cursor="Work">← All projects</Link>
-        <p className="eyebrow">Case study • {project.category}</p>
-        <h1 className="page-title">{project.title}</h1>
-        <p className="case-summary">{project.summary}</p>
-        <ul className="case-services" aria-label="Services">
+        <p className="eyebrow">
+          <SectionReveal as="span" direction="left">Case study • {project.category}</SectionReveal>
+        </p>
+        <SectionReveal as="h1" className="page-title" direction="left" delay={0.05}>
+          {project.title}
+        </SectionReveal>
+        <SectionReveal as="p" className="case-summary" direction="up" delay={0.1}>
+          {project.summary}
+        </SectionReveal>
+        <SectionReveal as="ul" className="case-services" aria-label="Services" direction="up" delay={0.15}>
           {project.services.map((service) => <li key={service}>{service}</li>)}
-        </ul>
-        <ProjectVisual palette={project.palette} title={project.title} ratio="21 / 9" />
+        </SectionReveal>
+
+        <SectionReveal direction="up" delay={0.2}>
+          <ProjectVisual palette={project.palette} title={project.title} ratio="21 / 9" />
+        </SectionReveal>
 
         <div className="case-beats">
           {beats.map((beat) => (
