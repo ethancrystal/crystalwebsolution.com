@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { SITE } from '../../lib/site';
+import { blast } from '../../lib/pulse';
 import {
   CONTACT_BUDGETS,
   CONTACT_FIELD_LIMITS,
@@ -129,6 +130,7 @@ export default function ContactForm({ variant = 'marketing' }) {
             value={values.name}
             onChange={updateValue}
             onBlur={validateField}
+            onFocus={() => blast(0.5, 0.5)}
             autoComplete="name"
             maxLength={CONTACT_FIELD_LIMITS.name}
             aria-invalid={Boolean(errors.name)}

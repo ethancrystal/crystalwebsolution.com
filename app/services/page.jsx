@@ -3,6 +3,7 @@ import MarketingShell from '../../components/marketing/MarketingShell';
 import PageHero from '../../components/marketing/PageHero';
 import ContentSection from '../../components/marketing/ContentSection';
 import ServiceGrid from '../../components/marketing/ServiceGrid';
+import ServiceThreadArc from '../../components/marketing/ServiceThreadArc';
 import { SERVICE_PAGES } from '../../lib/servicePages.mjs';
 import { SITE } from '../../lib/site';
 
@@ -28,13 +29,14 @@ export const metadata = {
 
 export default function ServicesIndex() {
   return (
-    <MarketingShell>
+    <MarketingShell sceneVariant="services">
       <PageHero
         eyebrow="What we do"
         title="Focused offers. Owned end to end."
         lede="Eight connected services, each run by people who do the work — not a menu of things we resell."
       />
       <ContentSection eyebrow="Services" title="Pick a thread">
+        <ServiceThreadArc />
         <ServiceGrid pages={SERVICE_PAGES} />
       </ContentSection>
     </MarketingShell>
