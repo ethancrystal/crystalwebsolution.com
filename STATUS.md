@@ -1,16 +1,68 @@
 # Crystal Web Solution CRM - Implementation Status
 
-## 📅 Last Updated: 2026-08-08
+## 📅 Last Updated: 2026-08-09
 ## 👤 Last Agent: Claude
-## 🔗 Current Branch: `agent/crm-notifications-and-messaging` (see below; `main` is stale relative to this session's 3 open PRs)
+## 🔗 Current Branch: `preview` (the single active integration branch — see 2026-08-09 update)
 ## 🔑 Source of Truth
-- Checked-in migrations: canonical `supabase/migrations/0001` … `0014`;
+- Checked-in migrations: canonical `supabase/migrations/0001` … `0015`;
   live history intentionally omits `0007` and records the ad-hoc `0009b`
-  operation before canonical `0009`–`0011` (see below)
+  operation before canonical `0009`–`0011` (see below); `fix_handle_new_user_coalesce`
+  is applied live with no tracked file yet — see `plan/feature-crm-remaining-work-2.md`
 - Project read boundary: `lib/crm/projects.js`
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
 - Supabase project ref: `wmnjosiikehsuaqucvja`
+
+## 📌 Session update (2026-08-09)
+
+**Branch consolidation completed.** PR #58 (marketing identity), #62
+(entrance reveals, merged into #58's branch first), #61 (case-study
+narrative/gallery — hand-resolved a real conflict against #62's changes to
+`app/work/[slug]/page.jsx`, keeping both sides' content), #60 (CRM
+notifications/messaging/PM assignment), and a new #64 (Screaming Frog SEO
+remediation, extracted from a prior session's uncommitted working tree) are
+all merged into `preview`, in that order. `pnpm test` (157/158, 1
+pre-existing unrelated `auth-portals` failure) and `pnpm build` verified
+clean after every merge. Full sequencing plan: `plan/process-branch-
+consolidation-1.md`.
+
+**Migration `0015` is now applied to the live database**, closing the
+single highest-priority blocker from the 2026-08-08 update below. Verified
+directly (not just "ran without erroring"): `project_messages.edited_at`/
+`.edited_by` exist, `public.update_project_message` exists,
+`project_messages` is in the `supabase_realtime` publication. Message
+editing, PM-assignment notifications, and Realtime message delivery are no
+longer inert — **but still not click-through verified in a real logged-in
+browser session**, which remains the top item in the next plan.
+
+**Production's deploy pipeline was broken independently of any CRM
+work**, discovered while investigating why `www.crystalwebsolution.com`
+was serving a commit from PR #45 — two weeks and ~15 PRs behind `main`'s
+actual tip. Root cause: `main`'s `vercel.json` still had `crm-notifications`
+on `*/15 * * * *`, which the Hobby plan rejects outright, so every deploy
+attempt from `main` had been failing validation since PR #56 introduced it
+(the fix already existed on the `preview` track via commit `0dbfb24`, just
+never ported to `main`). Fixed directly on `main` and confirmed a
+successful production deploy. Separately, found `NEXT_PUBLIC_CRM_ENABLED`
+and `NEXT_PUBLIC_SUPABASE_ANON_KEY` **did not exist at all** in Vercel's
+project env vars — not misconfigured, just never created — which is why
+the CRM login/signup pages were fully public on production with no gating,
+and why `/dashboard`/`/admin` were erroring with `?error=configuration`.
+Both now exist (`NEXT_PUBLIC_CRM_ENABLED=false` scoped to Production only);
+confirmed live via direct HTTP check that `/login`, `/signup`, `/dashboard`,
+`/admin`, `/team` all redirect to `/` on production, and that the nav no
+longer links to them, while `preview` still serves the CRM normally for
+testing. This is `production`-branch/Vercel-config housekeeping, not CRM
+app code — the `production` git branch itself was never touched, per
+standing instruction.
+
+**Next plan for continuing CRM work**: `plan/feature-crm-remaining-work-2.md`
+— the never-yet-done three-role browser verification pass (now unblocked
+by the migration fix above), the `priority`/`client_visible` and
+`budget_amount`/`currency` exposure decisions, `updateProjectTask`'s
+latent `revalidateAllProjectPaths` bug, the companies/contacts `NotesPanel`
+design decision, finishing the loading-state pass, and migration/env
+housekeeping (`fix_handle_new_user_coalesce` → a tracked `0016` file).
 
 ## 📌 Session update (2026-08-08)
 
