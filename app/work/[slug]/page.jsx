@@ -5,8 +5,10 @@ import MarketingShell from '../../../components/marketing/MarketingShell';
 import CaseGallery from '../../../components/marketing/CaseGallery';
 import CaseNavRail from '../../../components/marketing/CaseNavRail';
 import SectionReveal from '../../../components/SectionReveal';
+import BreadcrumbSchema from '../../../components/marketing/BreadcrumbSchema';
 import { PROJECTS, getProject } from '../../../lib/projects';
 import { SITE } from '../../../lib/site';
+import { absoluteUrl } from '../../../lib/seo.mjs';
 
 // Splits a project's body[] into the narrative beats the case-study layout
 // reads: THE PROBLEM (opening paragraph), OUR APPROACH (the middle of the
@@ -106,6 +108,34 @@ export default async function CaseStudy({ params }) {
 
         <CaseNavRail prev={prev} next={next} />
       </article>
+      <BreadcrumbSchema
+        trail={[
+          { name: 'Work', path: '/work' },
+          { name: project.title, path: `/work/${project.slug}` },
+        ]}
+      />
+      {/* CreativeWork ties each case study back to the Organization node in
+          app/layout.jsx, so the portfolio reads as authored work rather than
+          unattributed pages. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'CreativeWork',
+            '@id': `${absoluteUrl(`/work/${project.slug}`)}#case-study`,
+            name: project.title,
+            headline: `${project.title} — ${project.category}`,
+            description: project.summary,
+            url: absoluteUrl(`/work/${project.slug}`),
+            genre: project.category,
+            keywords: project.services.join(', '),
+            inLanguage: 'en',
+            creator: { '@id': `${absoluteUrl('/')}#organization` },
+            provider: { '@id': `${absoluteUrl('/')}#organization` },
+          }),
+        }}
+      />
     </MarketingShell>
   );
 }

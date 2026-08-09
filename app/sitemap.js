@@ -1,7 +1,10 @@
 import { PROJECTS } from '../lib/projects';
 import { SERVICE_PAGE_SLUGS } from '../lib/servicePages.mjs';
+import { SITE_ORIGIN } from '../lib/seo.mjs';
 
-const SITE_URL = 'https://crystalwebsolution.com';
+// Must match the canonical host emitted by app/layout.jsx. Listing apex URLs
+// here would advertise 308-redirecting locs to crawlers.
+const SITE_URL = SITE_ORIGIN;
 
 export default function sitemap() {
   const now = new Date();

@@ -37,6 +37,12 @@ export default function Hero() {
         </p>
         <h1 className="hero-title">
           <DecodeText as="span" text="Built to be" speed={0.045} delay={introDelay + 0.1} className="hero-line" />
+          {/* Whitespace text node between the two block-level .hero-line spans.
+              Purely visual, the blocks already stack — but without it the H1's
+              textContent concatenates to "Built to beunforgettable.", which is
+              exactly what crawlers (and Screaming Frog) index. Collapsed by the
+              block formatting context, so rendering is unchanged. */}
+          {' '}
           <DecodeText as="span" text="unforgettable." speed={0.045} delay={introDelay + 0.5} className="hero-line hero-line-accent" />
         </h1>
         <Reveal className="hero-sub" delay={introDelay + 1}>
