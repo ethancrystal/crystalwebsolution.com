@@ -257,7 +257,7 @@ export default function AdminProjectPage() {
         projectId={projectId}
         onChanged={loadWorkspace}
       />
-      <ProjectThread projectId={projectId} role="admin" />
+      <ProjectThread projectId={projectId} profile={profile} />
       <NotesPanel projectId={projectId} />
 
       <style jsx>{`

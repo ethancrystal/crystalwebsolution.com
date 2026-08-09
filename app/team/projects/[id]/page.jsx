@@ -193,7 +193,7 @@ export default function TeamProjectPage() {
         projectId={projectId}
         onChanged={loadWorkspace}
       />
-      <ProjectThread projectId={projectId} role={profile?.role || 'project_manager'} />
+      <ProjectThread projectId={projectId} profile={profile} />
       <NotesPanel projectId={projectId} />
 
       <style jsx>{`

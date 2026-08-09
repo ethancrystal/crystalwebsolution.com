@@ -122,7 +122,7 @@ export default function ClientProjectPage() {
         onChanged={loadWorkspace}
       />
       <ProjectApprovals approvals={approvals} />
-      <ProjectThread projectId={projectId} role={profile?.role || 'client'} />
+      <ProjectThread projectId={projectId} profile={profile} />
       <NotesPanel projectId={projectId} />
 
       <style jsx>{`

@@ -24,7 +24,7 @@ function formatWhen(value) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function ProjectThread({ projectId, role }) {
+export default function ProjectThread({ projectId, profile }) {
   const [userId, setUserId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [threadId, setThreadId] = useState(null);
@@ -52,7 +52,7 @@ export default function ProjectThread({ projectId, role }) {
 
       const { messages, threadId } = await listProjectMessages(
         supabase,
-        { profile: { role: role || 'client' } },
+        { profile },
         projectId,
       );
       setMessages(messages || []);
@@ -62,7 +62,7 @@ export default function ProjectThread({ projectId, role }) {
     } finally {
       setIsLoading(false);
     }
-  }, [projectId, role]);
+  }, [projectId, profile]);
 
   useEffect(() => {
     load();
