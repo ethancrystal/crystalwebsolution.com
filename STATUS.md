@@ -4,7 +4,7 @@
 ## 👤 Last Agent: Claude
 ## 🔗 Current Branch: `preview` (the single active integration branch — see 2026-08-09 update)
 ## 🔑 Source of Truth
-- Checked-in migrations: canonical `supabase/migrations/0001` … `0015`;
+- Checked-in migrations: canonical `supabase/migrations/0001` … `0017`;
   live history intentionally omits `0007` and records the ad-hoc `0009b`
   operation before canonical `0009`–`0011` (see below); `fix_handle_new_user_coalesce`
   is applied live with no tracked file yet — see `plan/feature-crm-remaining-work-2.md`
@@ -12,6 +12,104 @@
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
 - Supabase project ref: `wmnjosiikehsuaqucvja`
+
+## 📌 Session update (2026-08-09, Phase 1 CRM verification)
+
+Ran `plan/feature-crm-remaining-work-2.md`'s Phase 1 (the never-yet-done
+live three-role browser verification) against `preview` run locally via
+`pnpm dev` against the live Supabase project (Vercel's preview deployments
+are behind Vercel Authentication/SSO, which this session couldn't get past
+without the owner's Vercel login — running locally against the same live
+database was the practical substitute). Created two real test accounts
+(`phase1-client-test@crystalwebsolution.com`, `phase1-pm-test@crystalwebsolution.com`,
+both password `Phase1Test!2026`) plus a company and a test project
+("Phase1 Verification Project") to exercise messaging. **Left in place
+deliberately** — see "Test data left in place" below.
+
+**This verification pass found and fixed three real, previously-undetected
+bugs that no code review or `pnpm test` run had ever caught, because none
+of them execute against a real database through the real RPC/PostgREST
+path:**
+
+1. **`ProjectThread.jsx` has never successfully loaded a message list, for
+   any role, on any project, since the component was written** (commit
+   `2d2b7af`, 2026-08-03). It built a fake viewer object with only `{role}`
+   — no `id`, no `company_id` — and `requireViewer()` (`lib/crm/projects.js`,
+   checks added `2026-07-31`, three days earlier) has always rejected that
+   shape. Every client/PM/admin project page ever loaded showed "Unable to
+   authorize project access" in the Conversation panel. Fixed by passing the
+   full profile object each portal page already fetches instead of a
+   role-only stub (`components/crm/ProjectThread.jsx` +
+   `app/{dashboard,team,admin}/projects/[id]/page.jsx`).
+2. **`post_project_message` and `onboard_client_company(p_name, p_email)`
+   have been broken since their original definitions** (migrations `0009`
+   and `0008` respectively) **by an invalid-syntax bug: `pg_catalog.coalesce(...)`
+   and `pg_catalog.nullif(...)`.** COALESCE/NULLIF are special SQL-standard
+   forms, not schema-qualifiable catalogued functions — calling them
+   schema-qualified raises `42883` ("function does not exist") at call
+   time. This means **no project message has ever been postable through the
+   live RPC endpoint** (PostgREST), only via direct SQL. `0015`'s
+   `create or replace` carried the bug forward unchanged. Fixed in
+   `supabase/migrations/0016_fix_pg_catalog_coalesce_syntax.sql` (applied
+   and verified live).
+3. **`audit_events_event_type_check` never included `'project.message_edited'`**
+   (the one new event type `0015` introduced) — the exact same class of gap
+   `STATUS.md` already documents for migration `0010`'s original 6 new event
+   types. Editing a message failed with `23514` on its own audit-log insert.
+   Fixed in `supabase/migrations/0017_add_message_edited_audit_event_type.sql`
+   (applied and verified live).
+
+**One major finding recorded but *not* fixed this session — needs deliberate
+scoping, not a rushed patch:** RLS on `public.profiles` has no policy
+allowing a project participant to see another participant's profile —
+only your own row (`auth.uid() = id`), `is_admin()`, or a deal-owner
+exception. Confirmed directly: querying `profiles` with the PM test
+account's own JWT for both its own id and the client test account's id
+returns only its own row. This is why the PM's view showed "Unknown" as
+the sender name on the client's messages, and it isn't messaging-specific
+— `loadProfiles()` in `lib/crm/projects.js` is the same helper behind
+task `createdBy`/`assignee`, approval `requestedBy`/`reviewedBy`, and
+deliverable/attachment `uploadedBy` resolution across the entire project
+workspace, for every role, whenever the target profile isn't the viewer's
+own. **Needs a new RLS policy scoped to "profiles of people who share a
+project with me"** (mirroring `private.can_access_project()`'s
+project_assignments/company_id join logic), written deliberately in its
+own migration — not bundled into this session's other fixes. Added to
+`plan/feature-crm-remaining-work-2.md` as the new top-priority item.
+
+**Verified end-to-end through the real browser UI** (not just direct SQL):
+post a message as client → appears immediately → notification_outbox gets
+both `in_app` and `email` rows for the assigned PM. Edit that message →
+"edited" indicator renders correctly → a second, distinct
+`project.message_edited` outbox pair is created.
+
+**Not fully verified this session:**
+- **Realtime cross-session delivery (two simultaneous sessions)** — the
+  browser tool's tabs share one cookie jar, so logging into the PM account
+  in a second tab silently switched the "client" tab's session too; a true
+  two-independent-session test wasn't achievable with this tooling.
+  Independently confirmed the WebSocket layer connects successfully (both a
+  raw HTTP Upgrade handshake and a direct `new WebSocket(...)` call from
+  inside the page succeeded) and the `project_messages` Realtime publication
+  is correctly configured (verified in the 2026-08-08 update). Needs a
+  spot-check with two actual separate browsers/devices.
+- **PM assignment via the admin UI** — the `admin` role is pinned to a
+  single real email (`ethan@crystalwebsolution.com`) by a DB trigger, so a
+  test admin account can't be created; this session had no way to log in as
+  the real admin. `assign_project_user`'s RPC body was read and doesn't use
+  the `pg_catalog.coalesce`/`nullif` pattern, so it isn't hit by fix #2
+  above, but its live behavior (email + `notifications_outbox` rows, the
+  admin projects-list column) is unverified. Needs the owner to either spot-check
+  it directly, or grant temporary access to verify it.
+
+**Test data left in place, deliberately:** the two test accounts and
+"Phase1 Verification Project" (with the PM already assigned) still exist
+in the live database. Recommend using them to close the PM-assignment gap
+above — log in as the real admin, assign `Phase1 PM Test` to a project (or
+reassign it on the existing test project) via the admin UI, and confirm
+the email + projects-list column. Delete the test accounts/company/project
+via Supabase once verification is done; they're clearly named and isolated
+(no real client data touches them).
 
 ## 📌 Session update (2026-08-09)
 

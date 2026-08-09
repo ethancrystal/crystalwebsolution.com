@@ -48,6 +48,37 @@ here so Hermes doesn't redo them:
   files Phase 1's browser pass will exercise, so don't be surprised to see
   `BreadcrumbSchema`/JSON-LD markup on those routes; it's expected and unrelated
   to CRM behavior.
+- **Phase 1 (below) has been run.** Full detail in `STATUS.md`'s "Session
+  update (2026-08-09, Phase 1 CRM verification)". Summary: post-message and
+  edit-message are now verified end-to-end through the real browser UI
+  (previously impossible — see the three bugs below), PM-assignment and
+  cross-session Realtime delivery are **not yet verified** (owner-only admin
+  account, tooling limitation respectively — see that section for exact next
+  steps). Two real test accounts + a test project were deliberately left in
+  the live database to make the remaining verification easy — see
+  `STATUS.md` for credentials and cleanup instructions.
+- **Three real, previously-undetected bugs were found and fixed**, all in
+  code that had existed for days-to-weeks without ever being exercised
+  through a real database call: `ProjectThread.jsx` passed a fake viewer
+  object missing `id`/`company_id`, so message loading has *never* worked,
+  for any role, on any project, since 2026-08-03 (fixed in app code);
+  `post_project_message`/`onboard_client_company` used
+  `pg_catalog.coalesce`/`nullif`, which is invalid Postgres syntax (COALESCE/
+  NULLIF can't be schema-qualified) — no message has ever been postable
+  through the live RPC endpoint since migration `0009` (fixed in migration
+  `0016`); `audit_events_event_type_check` never included
+  `'project.message_edited'`, the exact same class of gap already documented
+  for migration `0010` (fixed in migration `0017`). Full detail, including
+  why none of this was ever caught by `pnpm test` or code review, is in
+  `STATUS.md`.
+- **New highest-priority finding, not yet fixed — see Implementation Phase 0
+  below (inserted ahead of the original Phase 1):** RLS on `public.profiles`
+  has no policy letting project participants see each other's profiles, only
+  their own row (plus admin, plus a deal-owner exception). This silently
+  breaks name resolution — sender names, task assignees, approval/deliverable
+  actors — across the *entire* project workspace for every role whenever the
+  target isn't the viewer. Confirmed directly via a scoped JWT query, not
+  inferred.
 - **Production's Vercel deployment pipeline was broken independently of all
   CRM work** — `main`'s `vercel.json` still had a `*/15 * * * *` cron the
   Hobby plan rejects, so every deploy from `main` had been failing since
@@ -110,8 +141,9 @@ here so Hermes doesn't redo them:
   migration file. Its live function body already matches local `0014`'s
   `handle_new_user()` (previously verified) — this is bookkeeping, not a
   functional change. **Numbering note**: local migrations now go up to
-  `0015` (this session applied it live and it's merged into `preview`) —
-  name this reconciliation file `0016_track_handle_new_user_coalesce_hotfix.sql`
+  `0017` (`0016`/`0017` were used this session for the two live bugs found
+  during Phase 1 — see Section 0) — name this reconciliation file
+  `0018_track_handle_new_user_coalesce_hotfix.sql`
   and make it a no-op/idempotent `create or replace` of the same function
   body, not a fresh change, so applying it against the live database (which
   already has the fix) is safe.
@@ -148,18 +180,30 @@ here so Hermes doesn't redo them:
 
 ## 2. Implementation Steps
 
-### Implementation Phase 1: Live three-role verification (REQ-001)
+### Implementation Phase 0: Cross-role profile visibility (new — highest priority)
 
-- GOAL-001: Prove PR #60's notification/messaging/PM-assignment work actually functions end-to-end, not just in code review.
+- GOAL-000: Add an RLS policy on `public.profiles` letting project participants see each other's `id`/`full_name`/`avatar_url` when they share a project, without over-broadening read access to unrelated profiles or exposing fields (email, phone, role internals) that shouldn't travel with it.
 
 | Task | Description | Completed | Date |
 | ---- | ---- | ---- | ---- |
-| TASK-001 | Get (or create) one test account per role — client, project_manager, admin — against the live Supabase project. Confirm REQ-008 (Redirect URLs) first; if it's still empty, use `admin_resolve_staff_request()`/direct profile role updates via SQL to bypass broken email-based signup confirmation rather than blocking this phase on an owner-only dashboard fix. | | |
-| TASK-002 | As the client, post a project message. As the assigned staff/admin, confirm an email arrives (check Resend's dashboard or the `notifications_outbox` table's `status`/`attempts` columns if inbox access isn't available). | | |
-| TASK-003 | Edit that message as its author. Confirm a second, distinct email fires for the edit (not a duplicate of the post email — check `event_type = 'project.message_edited'` in the outbox). | | |
-| TASK-004 | As admin, assign a project_manager to a project via `app/admin/projects/[id]/page.jsx`'s assignee picker. Confirm the assigned user gets an email, and confirm the admin projects list's "Project Manager" column now shows a name instead of "—". | | |
-| TASK-005 | Open the same project in two separate browser sessions (e.g. incognito + normal, or two roles). Post a message in one; confirm it appears in the other without a manual reload (Realtime subscription working). | | |
-| TASK-006 | Record the full verification result in `STATUS.md`, including anything that *didn't* work — this phase's entire point is to catch what code review can't. | | |
+| TASK-P0-1 | Write a `SELECT` policy on `public.profiles`, e.g. `USING (EXISTS (SELECT 1 FROM project_assignments my_a JOIN project_assignments their_a ON my_a.project_id = their_a.project_id WHERE my_a.user_id = auth.uid() AND their_a.user_id = profiles.id) OR EXISTS (SELECT 1 FROM projects p JOIN profiles me ON me.id = auth.uid() WHERE p.company_id = me.company_id AND (p.company_id = (SELECT company_id FROM profiles WHERE id = profiles.id) )))` — sketch only, work out the exact staff↔client and staff↔staff cases carefully rather than copying this verbatim. Mirror `private.can_access_project()`'s existing logic rather than inventing new semantics. | | |
+| TASK-P0-2 | Decide whether the policy should apply to the whole row or whether a narrower view/RPC (returning only `id`/`full_name`/`avatar_url`) is safer, given `profiles` likely has columns (email, phone, internal role metadata) that shouldn't be broadly readable even within a shared project. Check the full column list before deciding. | | |
+| TASK-P0-3 | Apply via the Supabase MCP, verify per GUD-002 with the same scoped-JWT-query technique used to confirm the bug (`curl` the REST API with a real non-admin JWT, confirm it now returns the other participant's row), then re-check the browser: PM's view of the client's messages should now show the real name instead of "Unknown". | | |
+| TASK-P0-4 | Spot-check that this doesn't over-expose: a client on Project A should still NOT see a PM's profile via Project B if they don't share it, and a client should not see other clients' profiles. | | |
+
+### Implementation Phase 1: Live three-role verification (REQ-001) — mostly done, two items remain
+
+- GOAL-001: Prove PR #60's notification/messaging/PM-assignment work actually functions end-to-end, not just in code review.
+- **Status as of 2026-08-09: TASK-001 through TASK-003 and TASK-006 are done — see `STATUS.md`'s "Session update (2026-08-09, Phase 1 CRM verification)" for full detail, including three bugs found and fixed along the way (now closed) and the new Phase 0 finding above (not yet closed).** TASK-004 and TASK-005 remain open for the reasons below — pick up there, don't redo TASK-001–003/006.
+
+| Task | Description | Completed | Date |
+| ---- | ---- | ---- | ---- |
+| TASK-001 | Get (or create) one test account per role — client, project_manager, admin — against the live Supabase project. Confirm REQ-008 (Redirect URLs) first; if it's still empty, use `admin_resolve_staff_request()`/direct profile role updates via SQL to bypass broken email-based signup confirmation rather than blocking this phase on an owner-only dashboard fix. | ✅ (client + PM; admin can't be created — pinned to a single real email) | 2026-08-09 |
+| TASK-002 | As the client, post a project message. As the assigned staff/admin, confirm an email arrives (check Resend's dashboard or the `notifications_outbox` table's `status`/`attempts` columns if inbox access isn't available). | ✅ verified through the real browser UI; both `in_app`/`email` outbox rows confirmed | 2026-08-09 |
+| TASK-003 | Edit that message as its author. Confirm a second, distinct email fires for the edit (not a duplicate of the post email — check `event_type = 'project.message_edited'` in the outbox). | ✅ verified through the real browser UI; "edited" indicator renders, distinct outbox pair confirmed | 2026-08-09 |
+| TASK-004 | As admin, assign a project_manager to a project via `app/admin/projects/[id]/page.jsx`'s assignee picker. Confirm the assigned user gets an email, and confirm the admin projects list's "Project Manager" column now shows a name instead of "—". | **Open — needs the real admin account** (`ethan@crystalwebsolution.com`, pinned by DB trigger; no way to create a test admin). The test project + PM test user are already set up for this — see `STATUS.md`. | |
+| TASK-005 | Open the same project in two separate browser sessions (e.g. incognito + normal, or two roles). Post a message in one; confirm it appears in the other without a manual reload (Realtime subscription working). | **Open — tooling limitation, not a known bug.** The automated browser tool's tabs share one cookie jar, so two roles can't hold independent sessions simultaneously in it. WebSocket connectivity and the Realtime publication were independently confirmed working. Needs a spot-check with two real separate browsers/devices. | |
+| TASK-006 | Record the full verification result in `STATUS.md`, including anything that *didn't* work — this phase's entire point is to catch what code review can't. | ✅ | 2026-08-09 |
 
 ### Implementation Phase 2: RPC parameter exposure decisions (REQ-002, REQ-003)
 
@@ -203,7 +247,7 @@ here so Hermes doesn't redo them:
 
 | Task | Description | Completed | Date |
 | ---- | ---- | ---- | ---- |
-| TASK-015 | Write `0016_track_handle_new_user_coalesce_hotfix.sql` as an idempotent `create or replace function public.handle_new_user()` matching the already-live body (REQ-007). Apply and verify per GUD-002 — expect a true no-op against the live database, which is the point (it's tracking history, not changing behavior). | | |
+| TASK-015 | Write `0018_track_handle_new_user_coalesce_hotfix.sql` as an idempotent `create or replace function public.handle_new_user()` matching the already-live body (REQ-007). Apply and verify per GUD-002 — expect a true no-op against the live database, which is the point (it's tracking history, not changing behavior). | | |
 | TASK-016 | Check local `.env.local` for `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` (REQ-009). Add if missing, sourced from the same values now correctly set in Vercel. | | |
 
 ## 3. Alternatives
@@ -223,7 +267,8 @@ here so Hermes doesn't redo them:
 - **FILE-002**: `app/actions/project-actions.js` — Phase 2 (task RPC params), Phase 3 (revalidate-path fix).
 - **FILE-003**: `components/crm/NotesPanel.jsx`, `app/admin/companies/[id]/page.jsx`, contacts equivalent — Phase 4.
 - **FILE-004**: `components/crm/Spinner.jsx`, `Skeleton.jsx`, and the ~19 files consuming them — Phase 5.
-- **FILE-005**: `supabase/migrations/0016_track_handle_new_user_coalesce_hotfix.sql` (new) — Phase 6.
+- **FILE-005**: `supabase/migrations/0018_track_handle_new_user_coalesce_hotfix.sql` (new) — Phase 6.
+- **FILE-007**: `supabase/migrations/0016_fix_pg_catalog_coalesce_syntax.sql`, `0017_add_message_edited_audit_event_type.sql` — already applied and committed this session (Section 0), listed here for completeness.
 - **FILE-006**: `.env.local` — Phase 6 (local-only, not committed).
 
 ## 6. Testing
