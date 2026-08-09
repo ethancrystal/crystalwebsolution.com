@@ -2,9 +2,27 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProjectVisual from '../../../components/ProjectVisual';
 import MarketingShell from '../../../components/marketing/MarketingShell';
+import CaseGallery from '../../../components/marketing/CaseGallery';
+import CaseNavRail from '../../../components/marketing/CaseNavRail';
 import SectionReveal from '../../../components/SectionReveal';
 import { PROJECTS, getProject } from '../../../lib/projects';
 import { SITE } from '../../../lib/site';
+
+// Splits a project's body[] into the narrative beats the case-study layout
+// reads: THE PROBLEM (opening paragraph), OUR APPROACH (the middle of the
+// story), THE RESULT (closing paragraph). Content is progressive — a project
+// with fewer than 3 paragraphs still renders correctly as a single beat,
+// no data migration required.
+function beatsFor(body) {
+  if (body.length < 3) {
+    return [{ id: 'work', eyebrow: 'THE WORK', direction: 'up', paragraphs: body }];
+  }
+  return [
+    { id: 'problem', eyebrow: '01 — THE PROBLEM', direction: 'left', paragraphs: body.slice(0, 1) },
+    { id: 'approach', eyebrow: '02 — OUR APPROACH', direction: 'right', paragraphs: body.slice(1, -1) },
+    { id: 'result', eyebrow: '03 — THE RESULT', direction: 'left', paragraphs: body.slice(-1) },
+  ];
+}
 
 export function generateStaticParams() {
   return PROJECTS.map((project) => ({ slug: project.slug }));
@@ -42,7 +60,9 @@ export default async function CaseStudy({ params }) {
   if (!project) notFound();
 
   const index = PROJECTS.findIndex((item) => item.slug === project.slug);
+  const prev = PROJECTS[(index - 1 + PROJECTS.length) % PROJECTS.length];
   const next = PROJECTS[(index + 1) % PROJECTS.length];
+  const beats = beatsFor(project.body);
 
   return (
     <MarketingShell>
@@ -60,16 +80,31 @@ export default async function CaseStudy({ params }) {
         <SectionReveal as="ul" className="case-services" aria-label="Services" direction="up" delay={0.15}>
           {project.services.map((service) => <li key={service}>{service}</li>)}
         </SectionReveal>
+
         <SectionReveal direction="up" delay={0.2}>
           <ProjectVisual palette={project.palette} title={project.title} ratio="21 / 9" />
         </SectionReveal>
-        <SectionReveal as="div" className="case-body" direction="up" delay={0.25}>
-          {project.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+
+        <div className="case-beats">
+          {beats.map((beat) => (
+            <SectionReveal
+              key={beat.id}
+              as="section"
+              direction={beat.direction}
+              className={`case-beat${beat.direction === 'right' ? ' is-offset' : ''}`}
+            >
+              <p className="eyebrow case-beat-eyebrow">{beat.eyebrow}</p>
+              {beat.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            </SectionReveal>
+          ))}
+        </div>
+
+        <SectionReveal as="div" direction="up" className="case-gallery-wrap">
+          <p className="eyebrow">The look</p>
+          <CaseGallery palette={project.palette} title={project.title} />
         </SectionReveal>
-        <Link href={`/work/${next.slug}`} className="case-next" data-cursor="Next case">
-          <span className="eyebrow">Next case study</span>
-          <span className="case-next-title">{next.title} →</span>
-        </Link>
+
+        <CaseNavRail prev={prev} next={next} />
       </article>
     </MarketingShell>
   );
