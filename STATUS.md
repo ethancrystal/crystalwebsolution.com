@@ -1,8 +1,8 @@
 # Crystal Web Solution CRM - Implementation Status
 
-## 📅 Last Updated: 2026-08-04
+## 📅 Last Updated: 2026-08-08
 ## 👤 Last Agent: Claude
-## 🔗 Current Branch: `main`
+## 🔗 Current Branch: `agent/crm-notifications-and-messaging` (see below; `main` is stale relative to this session's 3 open PRs)
 ## 🔑 Source of Truth
 - Checked-in migrations: canonical `supabase/migrations/0001` … `0014`;
   live history intentionally omits `0007` and records the ad-hoc `0009b`
@@ -11,6 +11,97 @@
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
 - Supabase project ref: `wmnjosiikehsuaqucvja`
+
+## 📌 Session update (2026-08-08)
+
+Full-completion audit against an explicit spec (three-role hierarchy, one
+project = one dedicated message thread, instant email on every message
+*and* every edit, admin-assignable project managers). Verified live
+against the connected Supabase project's actual function bodies and
+`pg_publication_tables`/`pg_policies`, not from memory or prior docs.
+
+**Headline finding: most of the spec already existed and was already
+shipped.** Auth, project creation, the status lifecycle, and the entire
+per-project messaging UI/backend (`ProjectThread.jsx`,
+`post_project_message` RPC) were built and working. The real gaps were
+narrower and more specific than "messaging isn't built":
+
+1. **Every notification-producing RPC was silently broken at the producer
+   end.** `post_project_message` and `assign_project_user` never wrote to
+   `notifications_outbox` *at all*, despite their email templates already
+   existing and being registered. `transition_project_status`,
+   `update_project_approval`, `publish_project_deliverable` *did* write to
+   the outbox, but hardcoded `channel: 'in_app'` and only ever addressed
+   `project_assignments` (assigned staff) — structurally excluding the
+   client, who is scoped by `company_id`, not an assignment row. Net
+   effect: **the drain worker documented as "fixed" below (the cron that
+   sends `channel='email'` rows via Resend) has had nothing to drain for
+   4 of 5 event types, and nothing at all for messages/assignments.**
+   That earlier fix was real and necessary but was the delivery half of a
+   two-part pipeline; the producer half had its own, separate bugs.
+2. **Message editing did not exist at any layer** — no `edited_at`/
+   `edited_by` columns, no update RPC, no UI. Required by the spec
+   ("Message edited → ... triggers email notification").
+3. **`project_messages` was not in the `supabase_realtime` publication**
+   (`select * from pg_publication_tables where pubname='supabase_realtime'`
+   returned zero rows for it) — `ProjectThread.jsx` only ever fetched
+   messages once on mount, with no subscription, no polling. A message
+   posted by another participant never appeared without a manual page
+   reload.
+4. **`assign_project_user`'s RPC/action layer was fully built with zero UI
+   ever calling it** — the admin projects list's "Project Manager" column
+   always rendered "—" because `listProjectsForViewer` never joined
+   assignments either.
+
+**What shipped this session** (branch `agent/crm-notifications-and-messaging`,
+PR **#60**, stacked independently of the marketing branches):
+- `supabase/migrations/0015_project_notifications_and_message_editing.sql`
+  — centralised recipient helper (assigned staff + client company), both
+  channels from all 5 event-producing RPCs, new `update_project_message`
+  RPC + schema, `publish_project_deliverable`'s payload enriched with the
+  deliverable's title/version (was previously always blank in that
+  email), `pinned_admin_email()` search_path pinned, Realtime enabled on
+  `project_messages`.
+  **⚠️ NOT YET APPLIED to the live database** — `apply_migration` was
+  blocked by the Claude Code auto-mode permission classifier (a live-DDL
+  write). Needs the owner's explicit one-time approval or manual
+  application via the Supabase SQL editor / `supabase db push` before any
+  of this session's notification/edit/realtime work actually functions.
+- `ProjectThread.jsx`: Realtime subscription (live message delivery,
+  reloads through the same RLS-respecting read path rather than patching
+  a raw payload in place) + inline edit UI on the sender's own messages.
+- `app/admin/projects/[id]/page.jsx`: assignee picker wired to the
+  already-built `assignProject`/`removeProjectAssignment` actions.
+- `lib/crm/projects.js`: `listProjectsForViewer` now joins the primary
+  assignee (fixes the admin list's dead column); `listProjectMessages`
+  returns `threadId` + `edited_at`/`edited_by`.
+
+Full audit trail and 6 phases of remaining work (security/Auth-config
+items, the pre-existing gaps below, the never-yet-done full logged-in
+three-role click-through):
+`plan/feature-crm-website-completion-1.md`.
+
+**Also this session, separate branches, same session:**
+- **PR #58** (`agent/marketing-inner-pages` → `preview`, open) — gave
+  About/Services/Contact/Process each a distinct `IdleScene` backdrop
+  variant + one bespoke element (FoundingRail, ServiceThreadArc,
+  ContactPulseLinks+pulse.js blast on focus, ProcessRail), plus the
+  Hobby-plan cron-frequency fix that was blocking every PR's Vercel
+  deployment (`vercel.json`'s `crm-notifications` cron was `*/15 * * * *`,
+  which Hobby rejects outright — reduced to daily; this delays outbox
+  email latency from ~15min to up to 24h until the plan is upgraded).
+- **PR #62** (`agent/marketing-inner-pages-polish` → `agent/marketing-inner-pages`,
+  open) — scroll-entrance reveals (`SectionReveal`, the same component
+  the homepage already uses everywhere) across all 9 inner-page route
+  templates, which previously had zero entrance animation. Built with
+  `superpowers:subagent-driven-development`; ledger and plan at
+  `docs/superpowers/plans/2026-08-08-inner-pages-entrance-reveals.md`.
+
+**Newly confirmed live-account gaps this session** (owner action only, no
+tool access to fix): the Supabase Auth "Redirect URLs" allow-list is
+still empty (confirmed via a live dashboard screenshot) — every emailed
+auth link (signup confirmation, password reset, staff invite) is
+rejected by GoTrue until at least one URL is added.
 
 ## 🗺️ Current shape of the app (2026-08-04)
 
@@ -197,13 +288,14 @@ Actions taken:
 ### ⚠️ Known gaps carried forward
 
 **Resolved since first documented — kept here so the fix history is traceable:**
-- ~~No notification delivery pipeline~~ — fixed. The email module was unified (`lib/email/resend.js`/`templates.js`) and `app/api/cron/crm-notifications/route.js` now actually drains `notifications_outbox` (claims a batch of due `channel='email'` rows, sends via Resend, records `status`/`sent_at`/`attempts`/`last_error` with backoff, fails closed when `CRM_CRON_SECRET` is unset).
+- ~~No notification delivery pipeline~~ — fixed *on the delivery/drain side only*, 2026-08-04. **2026-08-08 correction: the producer side was still broken until PR #60** — `app/api/cron/crm-notifications/route.js` correctly drains any `channel='email'` outbox row via Resend, but until PR #60's migration is applied, `post_project_message`/`assign_project_user` never created one at all, and `transition_project_status`/`update_project_approval`/`publish_project_deliverable` only ever created `channel='in_app'` rows scoped to `project_assignments` (never the client). Read this line as "the worker that would deliver emails works" — not "emails get sent" — until PR #60 merges and its migration is applied.
 - ~~`update_project_task`'s NULL-permissive authorization check~~ — fixed in migration `0012`: unassigned tasks now require `assignee_id IS NOT NULL AND assignee_id = v_user_id` instead of relying on `NULL <> x` silently evaluating false.
 - ~~`update_project_task` unconditionally overwrote `assignee_id`/`due_date`~~ — fixed in `0012`: only overwrites when the caller explicitly passes a value.
 - ~~`project_status_history`/`project_deliverables` had no valid write path for notes/deliverable-creation~~ — fixed in migration `0013` (`post_project_note`, `create_project_deliverable` + `storage.objects` policies), wired into `NotesPanel.jsx`/`ProjectFiles.jsx` in PR #49.
 - ~~`cookie` package resolved to an incompatible major version, breaking auth cookies~~ — fixed in PR #53 (`pnpm.overrides` bounded to `>=0.7.0 <1.0.0`).
 
 **Still open:**
+- **PR #60's migration (`0015_project_notifications_and_message_editing.sql`) is written and reviewed but not applied to the live database** — blocked by the Claude Code auto-mode permission classifier on live DDL writes. Needs the owner's explicit approval or manual application. Until then, message editing, live (Realtime) message delivery, and every notification email described in PR #60 are inert in the deployed app even after merge.
 - **`priority`/`client_visible` (0011) are not yet settable via RPC** and `client_visible` is not enforced anywhere — `create_project_task`/`update_project_task` don't accept them as parameters yet.
 - **`budget_amount`/`currency` are not exposed to the `client` role** — `clientSafeProject()` deliberately unchanged. Conservative default, not a modeled decision; revisit if clients should see budget.
 - **`revalidateAllProjectPaths` passed the wrong id** in `updateProjectTask`/`updateProjectApproval` before PR #49 fixed `updateProjectApproval`'s call site specifically (when `ProjectApprovals`' approve/reject UI was wired up). `updateProjectTask`'s equivalent call is still wrong, but `ProjectTasks.jsx` has no update UI yet, so it's unreachable today — fix it *before* adding task-edit UI, not after, to avoid shipping the same freshly-reachable bug again.
@@ -222,7 +314,10 @@ Actions taken:
 - Historical 2026-08-01 state: deployed to Vercel production and aliased to
   `https://www.crystalwebsolution.com`. The 2026-08-02 cleanup did not deploy.
 
-### 🚧 In Progress / Next (2026-08-04)
+### 🚧 In Progress / Next (2026-08-08)
+- **Apply `supabase/migrations/0015_project_notifications_and_message_editing.sql` to the live database** (PR #60) — the single highest-priority item; everything else in PR #60 is inert until this lands.
+- Merge PR #58, #60, #62 (in that order — #62 stacks on #58; #60 is independent).
+- After #60 merges and its migration applies: run the manual verification it still needs — post a message and confirm an email arrives, edit it and confirm an edit email arrives, assign a PM from the new admin UI and confirm both the email and the projects-list column, open a project in two sessions and confirm live delivery without a reload.
 - Finish the CRM loading-state pass: `Spinner.jsx`/`Skeleton.jsx` exist and cover the list pages; detail/edit/new pages, the three role project-workspace pages, and inline button-loading text (Save/Submit/Sending/Uploading across ~19 files) are still plain `"Loading..."` text.
 - Decide whether `priority`/`client_visible` should be exposed via `create_project_task`/`update_project_task`, and whether `client_visible` should filter task visibility for the `client` role.
 - Decide whether `budget_amount`/`currency` should be client-visible.

@@ -420,6 +420,42 @@ export async function postProjectMessage(formData) {
   return success(requestId, { messageId: data, clientGeneratedId });
 }
 
+export async function editProjectMessage(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to edit messages.');
+
+  const projectId = formString(formData, 'projectId');
+  const messageId = formString(formData, 'messageId');
+  const body = formString(formData, 'body').trim();
+
+  if (!isCanonicalUuid(projectId)) {
+    return invalid(requestId, 'Choose a valid project.');
+  }
+  if (!isCanonicalUuid(messageId)) {
+    return invalid(requestId, 'Choose a valid message.');
+  }
+  if (!validBoundedText(body, 1, MAX_MESSAGE_LENGTH)) {
+    return invalid(requestId, 'Message must be 1 to 10000 characters.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to edit this message.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('update_project_message', {
+      p_message_id: messageId,
+      p_body: body,
+    }),
+  );
+
+  if (error || !isCanonicalUuid(data)) {
+    return databaseFailure(error, requestId, 'Unable to edit this message.');
+  }
+
+  revalidateAllProjectPaths(projectId);
+  return success(requestId, { messageId: data });
+}
+
 export async function finalizeAttachment(formData) {
   const requestId = randomUUID();
   const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
