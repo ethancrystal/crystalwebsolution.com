@@ -116,7 +116,7 @@ would mask anyway).
 
 ## 📌 Session update (2026-08-09, CRM remaining-decisions batch — Tasks 1–8)
 
-Closed the eight remaining CRM decisions from `docs/superpowers/plans/2026-08-09-crm-remaining-decisions.md`, executed in the `crm/remaining-decisions` worktree (branch `crm/remaining-decisions`). All code is **staged but not yet committed** at time of writing — commits/push are held for owner go-ahead.
+Closed the eight remaining CRM decisions from `docs/superpowers/plans/2026-08-09-crm-remaining-decisions.md`, executed in the `crm/remaining-decisions` worktree (branch `crm/remaining-decisions`). All code is **committed on the `crm/remaining-decisions` branch** (three commits: migration 0019, the bundled tasks 2–8, and a follow-up fix round) — the merge into `preview` is held for owner go-ahead.
 
 | # | Item | Result |
 |---|------|--------|

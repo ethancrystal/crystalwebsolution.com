@@ -18,14 +18,14 @@ test('listProjectTasks filters through clientVisibleOnly', async () => {
   const source = await read('lib/crm/projects.js');
   const fnStart = source.indexOf('export async function listProjectTasks');
   const fnBody = source.slice(fnStart, source.indexOf('\nexport async function listProjectApprovals'));
-  assert.match(fnBody, /clientVisibleOnly\(data(?: \?\? \[\])?, v?iewer\.role\)/);
+  assert.match(fnBody, /clientVisibleOnly\(data(?: \?\? \[\])?, viewer\.role\)/);
 });
 
 test('getProjectWorkspace filters tasks through clientVisibleOnly before mapping', async () => {
   const source = await read('lib/crm/projects.js');
   const fnStart = source.indexOf('export async function getProjectWorkspace');
   const fnBody = source.slice(fnStart, source.indexOf('\nexport async function listProjectMessages'));
-  assert.match(fnBody, /clientVisibleOnly\(taskData(?: \?\? \[\])?, v?iewer\.role\)/);
+  assert.match(fnBody, /clientVisibleOnly\(taskData(?: \?\? \[\])?, viewer\.role\)/);
 });
 
 test('ProjectTasks renders a priority badge', async () => {
