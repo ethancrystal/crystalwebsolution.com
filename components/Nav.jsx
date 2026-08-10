@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import BrandLogo from './BrandLogo';
 import Magnetic from './Magnetic';
 import Menu from './Menu';
 import { CRM_ENABLED } from '../lib/crmFlag';
@@ -12,9 +13,6 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const closeMenu = useCallback(() => setOpen(false), []);
 
-  // Once page content scrolls under the fixed header, the bar becomes its
-  // own glass pane (see .nav::before) so it stays readable over any surface.
-  // Boolean state flips rarely; React bails out on same-value sets.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
@@ -43,15 +41,7 @@ export default function Nav() {
     <>
       <header className={`nav ${scrolled && !open ? 'nav-glass' : ''} ${onLightSurface && !open ? 'nav-on-light' : ''}`}>
         <Link href="/" className="nav-logo" data-cursor="Home" aria-label="Crystal Web Solution home">
-          <span className="nav-logo-art" aria-hidden="true">
-            <img
-              className="nav-logo-art-full"
-              src="/crystal-web-solution-logo.svg"
-              alt=""
-              width="1616"
-              height="243"
-            />
-          </span>
+          <BrandLogo />
         </Link>
         <div className="nav-right">
           {CRM_ENABLED && (

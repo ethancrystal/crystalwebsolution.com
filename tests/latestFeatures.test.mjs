@@ -15,7 +15,9 @@ const navSource = readFileSync(new URL('../components/Nav.jsx', import.meta.url)
 
 test('navigation uses the same full logo whether or not the menu is open', () => {
   assert.ok(existsSync(new URL('../public/crystal-web-solution-logo.svg', import.meta.url)));
-  assert.match(navSource, /crystal-web-solution-logo\.svg/);
+  const brandLogoSource = readFileSync(new URL('../components/BrandLogo.jsx', import.meta.url), 'utf8');
+  assert.match(brandLogoSource, /crystal-web-solution-logo\.svg/);
+  assert.match(navSource, /BrandLogo/);
   assert.doesNotMatch(navSource, /crystal-web-solution-icon\.svg/);
 });
 
