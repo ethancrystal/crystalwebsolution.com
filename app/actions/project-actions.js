@@ -494,6 +494,8 @@ export async function createProjectTask(formData) {
   const status = formString(formData, 'status') || 'todo';
   const assigneeId = optionalFormString(formData, 'assigneeId');
   const dueDate = optionalFormString(formData, 'dueDate');
+  const priority = formString(formData, 'priority') || 'medium';
+  const clientVisible = formString(formData, 'clientVisible') === 'true';
 
   if (!isCanonicalUuid(projectId)) {
     return invalid(requestId, 'Choose a valid project.');
@@ -506,6 +508,9 @@ export async function createProjectTask(formData) {
   }
   if (!['todo', 'in_progress', 'review', 'done', 'blocked'].includes(status)) {
     return invalid(requestId, 'Choose a valid task status.');
+  }
+  if (!['low', 'medium', 'high'].includes(priority)) {
+    return invalid(requestId, 'Choose a valid task priority.');
   }
   if (dueDate !== null && !validDateOnly(dueDate)) {
     return invalid(requestId, 'Choose a valid due date.');
@@ -521,6 +526,8 @@ export async function createProjectTask(formData) {
       p_status: status,
       p_assignee_id: assigneeId,
       p_due_date: dueDate,
+      p_priority: priority,
+      p_client_visible: clientVisible,
     }),
   );
 

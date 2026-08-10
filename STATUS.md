@@ -114,6 +114,36 @@ would mask anyway).
   admin projects-list column) is unverified. Needs the owner to either spot-check
   it directly, or grant temporary access to verify it.
 
+## 📌 Session update (2026-08-09, CRM remaining-decisions batch — Tasks 1–8)
+
+Closed the eight remaining CRM decisions from `docs/superpowers/plans/2026-08-09-crm-remaining-decisions.md`, executed in the `crm/remaining-decisions` worktree (branch `crm/remaining-decisions`). All code is **staged but not yet committed** at time of writing — commits/push are held for owner go-ahead.
+
+| # | Item | Result |
+|---|------|--------|
+| 1 | Migration 0019 — add `priority`/`client_visible` params to `create_project_task` + backfill | applied live, verified (backfill 0, no drift) |
+| 2 | Migration 0020 — `project.delivered` review-request email (email-only, company-scoped, no staff, no new audit type) | applied live, verified |
+| 3 | `EntityNotes.jsx` — real `notes`-table read/write for companies/contacts (replaces broken `NotesPanel` prop pass) | done, 3/3 |
+| 4 | Task form sends `priority` + `clientVisible` to `createProjectTask` | done, 3/3 |
+| 5 | `clientVisibleOnly` read filter + priority badge + `createdBy` display bug fix | done, 5/5 |
+| 6 | `clientSafeProject` exposes `budget_amount`/`currency` to client role | done, 2/2 |
+| 7 | `project.delivered` email template | done, 3/3 (see correction below) |
+| 8 | `project.message_edited` email template (was missing → outbox rows failed) | done, 3/3 (see correction below) |
+
+**Plan-vs-code corrections (the plan was written against a structure that no longer exists):** Tasks 7 & 8 specified adding entries to a literal `emailTemplates = { subject, template }` object in `lib/email/templates.js`. That object does **not** exist — the file dispatches via the `NOTIFICATION_TEMPLATES` factory map (event_type → factory returning `{subject, html}` via `emailLayout()`), drained by `renderNotificationEmail()`. A literal block would have been dead code the outbox drain never calls. Both templates were instead implemented as real `emailLayout` factories registered in `NOTIFICATION_TEMPLATES`, and their tests assert the actual integration (registered + renders subject/html with the real `/dashboard/projects/{id}` CTA) rather than the plan's impossible text-grep. Task 7's CTA points to `/dashboard/projects/{id}` (the plan's `/client/projects/` route does not exist).
+
+**Verification (plan's Final Verification gates, both green):**
+- `node --test tests/crm/*.test.mjs` → 106/107. The single failure is the pre-existing `auth-portals` middleware auth-cookie test — unrelated to these tasks, reported by every subagent, not touched.
+- `pnpm build` → passes (exit 0; full route table including `/team/projects/[id]`).
+
+**Resolves these previously-documented known gaps:**
+- `priority`/`client_visible` not settable via RPC + `client_visible` not enforced → Tasks 1, 4, 5.
+- `budget_amount`/`currency` not exposed to client role → Task 6.
+- Companies/contacts `NotesPanel` prop mismatch → Task 3 (`EntityNotes.jsx`).
+- `project.message_edited` outbox rows now render (were failing: no template) → Task 8.
+- `project.delivered` notifications now have a renderer (new event from Task 2) → Task 7.
+
+**Not done this session (per owner no-commit preference):** no commit, no push to `preview`. DB migrations 0019 + 0020 are already applied to the live dev Supabase project.
+
 **Test data left in place, deliberately:** the two test accounts and
 "Phase1 Verification Project" (with the PM already assigned) still exist
 in the live database. Recommend using them to close the PM-assignment gap
@@ -458,10 +488,10 @@ Actions taken:
 
 **Still open:**
 - **PR #60's migration (`0015_project_notifications_and_message_editing.sql`) is written and reviewed but not applied to the live database** — blocked by the Claude Code auto-mode permission classifier on live DDL writes. Needs the owner's explicit approval or manual application. Until then, message editing, live (Realtime) message delivery, and every notification email described in PR #60 are inert in the deployed app even after merge.
-- **`priority`/`client_visible` (0011) are not yet settable via RPC** and `client_visible` is not enforced anywhere — `create_project_task`/`update_project_task` don't accept them as parameters yet.
-- **`budget_amount`/`currency` are not exposed to the `client` role** — `clientSafeProject()` deliberately unchanged. Conservative default, not a modeled decision; revisit if clients should see budget.
+- ~~**`priority`/`client_visible` (0011) are not yet settable via RPC** and `client_visible` is not enforced anywhere~~ — resolved 2026-08-09 (Tasks 1, 4, 5): `create_project_task` now takes `p_priority`/`p_client_visible` (migration 0019) and the client read-model filters via `clientVisibleOnly`.
+- ~~**`budget_amount`/`currency` are not exposed to the `client` role**~~ — resolved 2026-08-09 (Task 6): `clientSafeProject()` now exposes both fields to the client role.
 - **`revalidateAllProjectPaths` passed the wrong id** in `updateProjectTask`/`updateProjectApproval` before PR #49 fixed `updateProjectApproval`'s call site specifically (when `ProjectApprovals`' approve/reject UI was wired up). `updateProjectTask`'s equivalent call is still wrong, but `ProjectTasks.jsx` has no update UI yet, so it's unreachable today — fix it *before* adding task-edit UI, not after, to avoid shipping the same freshly-reachable bug again.
-- **Companies/contacts `NotesPanel` prop mismatch**: `NotesPanel` is project-scoped (`projectId` prop) but the companies/contacts detail pages still pass `companyId`/`contactId`, so notes silently never load or save there. Unlike the equivalent deal-detail-page bug (fixed in PR #49 by looking up the deal's linked project via `source_deal_id`), a company/contact can have zero-to-many projects, not one — needs a real design decision (which project? a picker? restore company/contact-scoped notes on a different table?), not a mechanical fix.
+- ~~**Companies/contacts `NotesPanel` prop mismatch**~~ — resolved 2026-08-09 (Task 3): replaced with `EntityNotes.jsx` which reads/writes the `notes` table directly keyed on `company_id` (and optionally `contact_id`), swapped into both detail pages. `NotesPanel` remains project-scoped and untouched.
 - **CRM loading states**: in progress, see "Current shape" above.
 - **Migration drift**: the `fix_handle_new_user_coalesce` live-only migration, see "Current shape" above.
 - **Unconfirmed**: whether `.env.local` has `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` (flagged as missing earlier; only non-prefixed `SUPABASE_URL`/`SUPABASE_ANON_KEY` were present, which the code doesn't read for client-side Supabase init) and whether the Supabase Auth "Redirect URLs" allow-list has been populated in the dashboard (was empty; without it, GoTrue rejects every emailed auth link). Both need the owner to check/fix directly — no tool access to confirm from here.
@@ -481,9 +511,9 @@ Actions taken:
 - Merge PR #58, #60, #62 (in that order — #62 stacks on #58; #60 is independent).
 - After #60 merges and its migration applies: run the manual verification it still needs — post a message and confirm an email arrives, edit it and confirm an edit email arrives, assign a PM from the new admin UI and confirm both the email and the projects-list column, open a project in two sessions and confirm live delivery without a reload.
 - Finish the CRM loading-state pass: `Spinner.jsx`/`Skeleton.jsx` exist and cover the list pages; detail/edit/new pages, the three role project-workspace pages, and inline button-loading text (Save/Submit/Sending/Uploading across ~19 files) are still plain `"Loading..."` text.
-- Decide whether `priority`/`client_visible` should be exposed via `create_project_task`/`update_project_task`, and whether `client_visible` should filter task visibility for the `client` role.
-- Decide whether `budget_amount`/`currency` should be client-visible.
-- Resolve the companies/contacts `NotesPanel` prop mismatch (needs a design decision, not a mechanical fix — see "Known gaps" above).
+- ~~Decide whether `priority`/`client_visible` should be exposed via `create_project_task`/`update_project_task`, and whether `client_visible` should filter task visibility for the `client` role.~~ — decided & implemented 2026-08-09 (Tasks 1, 4, 5).
+- ~~Decide whether `budget_amount`/`currency` should be client-visible.~~ — decided & implemented 2026-08-09 (Task 6).
+- ~~Resolve the companies/contacts `NotesPanel` prop mismatch~~ — resolved 2026-08-09 (Task 3).
 - Fix `updateProjectTask`'s `revalidateAllProjectPaths` wrong-id bug before shipping any task-edit UI (currently unreachable, would become live the moment `ProjectTasks.jsx` gets an update control, same pattern as the `updateProjectApproval`/`publishDeliverable` bugs already fixed once each became reachable).
 - Reconcile the `fix_handle_new_user_coalesce` live-only migration into a tracked local file.
 - Confirm `.env.local`'s `NEXT_PUBLIC_SUPABASE_*` vars and the Supabase Auth "Redirect URLs" allow-list (owner action, not something verifiable from a coding session).
