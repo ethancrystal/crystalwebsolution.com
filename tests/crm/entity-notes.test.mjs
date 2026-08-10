@@ -29,3 +29,13 @@ test('contact detail page uses EntityNotes with both ids, not NotesPanel', async
   assert.match(source, /<EntityNotes companyId=\{contact\.company_id\} contactId=\{contact\.id\} \/>/);
   assert.doesNotMatch(source, /<NotesPanel/);
 });
+
+test('resolves note authors via a separate profiles query, not an unsupported PostgREST embed', async () => {
+  const source = await read('components/crm/EntityNotes.jsx');
+  // notes.created_by references auth.users, not public.profiles -- PostgREST
+  // cannot auto-embed across that FK, so a `.select('*, profiles(...))` embed
+  // silently fails every load. Must resolve via a second query instead.
+  assert.doesNotMatch(source, /profiles\(full_name\)/, 'notes.created_by has no FK to profiles -- this embed cannot resolve');
+  assert.match(source, /from\('profiles'\)/);
+  assert.match(source, /\.in\('id', authorIds\)/);
+});

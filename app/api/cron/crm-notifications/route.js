@@ -49,6 +49,7 @@ function templateContextFor(row, { recipient, project }) {
     fullName: recipient.fullName,
     projectName: project?.title ?? payload.project_name,
     projectUrl: projectUrlFor(row.project_id),
+    reviewsUrl: APP_URL ? `${APP_URL}/reviews` : undefined,
     fromStatus: payload.from_status,
     toStatus: payload.to_status,
     status: payload.status,

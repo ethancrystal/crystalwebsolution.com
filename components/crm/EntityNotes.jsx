@@ -26,17 +26,31 @@ export default function EntityNotes({ companyId, contactId }) {
 
   const load = useCallback(async () => {
     if (!companyId) return;
+    setError(null);
     try {
       const supabase = createClient();
       let query = supabase
         .from('notes')
-        .select('*, profiles(full_name)')
+        .select('*')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false });
       query = contactId ? query.eq('contact_id', contactId) : query.is('contact_id', null);
       const { data, error } = await query;
       if (error) throw error;
-      setNotes(data || []);
+
+      const notesData = data || [];
+      const authorIds = [...new Set(notesData.map((note) => note.created_by).filter(Boolean))];
+      let profilesById = new Map();
+      if (authorIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', authorIds);
+        if (profilesError) throw profilesError;
+        profilesById = new Map((profiles || []).map((profile) => [profile.id, profile]));
+      }
+
+      setNotes(notesData.map((note) => ({ ...note, author: profilesById.get(note.created_by) ?? null })));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -100,7 +114,7 @@ export default function EntityNotes({ companyId, contactId }) {
           {notes.map((note) => (
             <li key={note.id} className="notes-item">
               <div className="notes-item-meta">
-                <strong>{note.profiles?.full_name || 'Unknown'}</strong>
+                <strong>{note.author?.full_name || 'Unknown'}</strong>
                 <span>{formatWhen(note.created_at)}</span>
               </div>
               <p className="notes-item-content">{note.content}</p>
