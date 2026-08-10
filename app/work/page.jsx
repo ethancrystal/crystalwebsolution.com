@@ -1,5 +1,7 @@
 import Link from 'next/link';
-import ProjectVisual from '../../components/ProjectVisual';
+import MarketingShell from '../../components/marketing/MarketingShell';
+import WorkLibrary from '../../components/marketing/WorkLibrary';
+import SectionReveal from '../../components/SectionReveal';
 import { PROJECTS } from '../../lib/projects';
 import { SITE } from '../../lib/site';
 
@@ -25,40 +27,33 @@ export const metadata = {
 
 export default function WorkIndex() {
   return (
-    <div className="subpage">
-      <header className="nav">
-        <Link href="/" className="nav-logo" data-cursor="Home">
-          <span className="nav-logo-monogram" aria-hidden="true">CWS</span>
-          <span className="nav-logo-name">{SITE.name}</span>
-        </Link>
-        <Link href="/#contact" className="btn btn-ghost" data-cursor="Say hi">let&apos;s talk</Link>
-      </header>
-      <main className="work-index">
-        <p className="eyebrow">Selected work</p>
-        <h1 className="page-title">Built around the real problem.</h1>
-        <p className="work-index-intro">Six projects, each shaped around what the visitor needed to understand, feel, or do next.</p>
-        <div className="work-library-heading">
-          <p className="eyebrow">{PROJECTS.length} case studies</p>
+    <MarketingShell>
+      <section className="work-index mkt-inner" aria-labelledby="work-title">
+        <p className="eyebrow"><SectionReveal as="span" direction="left">Selected work</SectionReveal></p>
+        <SectionReveal as="h1" id="work-title" className="page-title" direction="left" delay={0.05}>
+          Built around the real problem.
+        </SectionReveal>
+        <SectionReveal as="p" className="work-index-intro" direction="up" delay={0.15}>
+          Six projects, each shaped around what the visitor needed to understand, feel, or do next.
+        </SectionReveal>
+
+        <SectionReveal as="div" className="work-library-heading" direction="up">
+          <p className="eyebrow">Project library</p>
           <h2>Different briefs. One standard of care.</h2>
-        </div>
-        <div className="work-list">
-          {PROJECTS.map((project) => (
-            <article key={project.slug} id={project.slug} className="work-row client-work-row">
-              <Link href={`/work/${project.slug}`} data-cursor="View case" aria-label={`${project.title} — view case study`}>
-                <ProjectVisual palette={project.palette} title={project.title} ratio="16 / 9" />
-              </Link>
-              <div className="work-row-meta">
-                <h2>{project.title}</h2>
-                <p>{project.category} • {project.services.join(' • ')}</p>
-                <p className="work-row-summary">{project.summary}</p>
-                <p className="client-work-links">
-                  <Link href={`/work/${project.slug}`} data-cursor="View case">View the case →</Link>
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </main>
-    </div>
+        </SectionReveal>
+
+        <WorkLibrary projects={PROJECTS} />
+
+        <SectionReveal as="div" className="work-closing-plate" direction="up">
+          <div>
+            <p className="eyebrow">One standard of care</p>
+            <h2>Every project starts with the real problem.</h2>
+          </div>
+          <Link href="/process" className="btn btn-ghost" data-cursor="Process">
+            View the process →
+          </Link>
+        </SectionReveal>
+      </section>
+    </MarketingShell>
   );
 }

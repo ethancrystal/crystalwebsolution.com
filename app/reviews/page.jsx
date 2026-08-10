@@ -1,6 +1,19 @@
 import Link from 'next/link';
 import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
 import { SITE } from '../../lib/site';
+import { absoluteUrl } from '../../lib/seo.mjs';
+import MarketingShell from '../../components/marketing/MarketingShell';
+import SectionReveal from '../../components/SectionReveal';
+import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
+
+// schema.org datePublished must be ISO 8601; lib/reviews.js stores
+// human-readable strings like "June 15, 2026". Returns undefined rather than
+// an invalid date so a malformed entry omits the field instead of emitting
+// "Invalid Date" into the markup.
+function isoDate(value) {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString().slice(0, 10);
+}
 
 const REVIEWS_TITLE = 'Client Reviews';
 const REVIEWS_DESCRIPTION =
@@ -33,50 +46,46 @@ function Rating({ value }) {
 
 export default function ReviewsPage() {
   return (
-    <div className="subpage reviews-page">
-      <header className="nav">
-        <Link href="/" className="nav-logo" data-cursor="Home">
-          <span className="nav-logo-monogram" aria-hidden="true">CWS</span>
-          <span className="nav-logo-name">{SITE.name}</span>
-        </Link>
-        <Link href="/#contact" className="btn btn-ghost" data-cursor="Say hi">Start a project</Link>
-      </header>
-
-      <main className="reviews-index">
+    <MarketingShell>
+      <main className="reviews-index mkt-inner">
         <section className="reviews-hero" aria-labelledby="reviews-title">
-          <p className="eyebrow">Client feedback</p>
-          <h1 id="reviews-title" className="page-title">What clients said, in their own words.</h1>
-          <p className="reviews-lede">
+          <p className="eyebrow"><SectionReveal as="span" direction="left">Client feedback</SectionReveal></p>
+          <SectionReveal as="h1" id="reviews-title" className="page-title" direction="left" delay={0.05}>
+            What clients said, in their own words.
+          </SectionReveal>
+          <SectionReveal as="p" className="reviews-lede" direction="up" delay={0.1}>
             {REVIEW_STATS.total} client reviews, published in full. Read the praise, the criticism, and the company replies in one place.
-          </p>
-          <dl className="reviews-summary" aria-label="Review summary">
+          </SectionReveal>
+          <SectionReveal as="dl" className="reviews-summary" aria-label="Review summary" direction="up" delay={0.15}>
             <div><dt>Reviews</dt><dd>{REVIEW_STATS.total}</dd></div>
             <div><dt>Average</dt><dd>{REVIEW_STATS.average}/5</dd></div>
             <div><dt>Four or five stars</dt><dd>{REVIEW_STATS.positive}</dd></div>
             <div><dt>Latest review</dt><dd>{REVIEW_STATS.latest}</dd></div>
-          </dl>
-          <aside className="reviews-transparency">
+          </SectionReveal>
+          <SectionReveal as="aside" className="reviews-transparency" direction="up" delay={0.15}>
             <strong>Transparency</strong>
             <p>Every published review appears here, including critical feedback. Company replies appear beneath the relevant review.</p>
-          </aside>
+          </SectionReveal>
         </section>
 
         <section className="reviews-standard" aria-labelledby="response-standard-title">
-          <p className="eyebrow">Response standard</p>
-          <h2 id="response-standard-title">Concerns deserve a clear, documented response.</h2>
-          <ul>
+          <p className="eyebrow"><SectionReveal as="span" direction="left">Response standard</SectionReveal></p>
+          <SectionReveal as="h2" id="response-standard-title" direction="left" delay={0.05}>
+            Concerns deserve a clear, documented response.
+          </SectionReveal>
+          <SectionReveal as="ul" direction="up" delay={0.1}>
             <li>Acknowledge the concern without arguing with the reviewer.</li>
             <li>State what can be confirmed and what still needs clarification.</li>
             <li>Avoid discussing confidential project details in public.</li>
             <li>Offer one current contact route and a specific next step.</li>
-          </ul>
+          </SectionReveal>
         </section>
 
         <section className="review-archive" aria-labelledby="archive-title">
-          <div className="review-archive-heading">
+          <SectionReveal as="div" className="review-archive-heading" direction="up">
             <p className="eyebrow">Published reviews</p>
             <h2 id="archive-title">All client reviews</h2>
-          </div>
+          </SectionReveal>
 
           <div className="review-list">
             {REVIEWS.map((review) => (
@@ -107,12 +116,51 @@ export default function ReviewsPage() {
         </section>
 
         <section className="reviews-close">
-          <p className="eyebrow">From idea to outcome</p>
-          <h2>Let&apos;s make something rare.</h2>
-          <p>Send us your brief. We&apos;ll give you a straight read on scope, timeline, cost, and the first move if it&apos;s a fit.</p>
-          <a href={`mailto:${SITE.email}`} className="btn btn-solid">Start a project <span aria-hidden="true">→</span></a>
+          <p className="eyebrow"><SectionReveal as="span" direction="left">From idea to outcome</SectionReveal></p>
+          <SectionReveal as="h2" direction="left" delay={0.05}>Let&apos;s make something rare.</SectionReveal>
+          <SectionReveal as="p" direction="up" delay={0.1}>
+            Send us your brief. We&apos;ll give you a straight read on scope, timeline, cost, and the first move if it&apos;s a fit.
+          </SectionReveal>
+          <SectionReveal direction="up" delay={0.15}>
+            <a href={`mailto:${SITE.email}`} className="btn btn-solid">Start a project <span aria-hidden="true">→</span></a>
+          </SectionReveal>
         </section>
       </main>
-    </div>
+      <BreadcrumbSchema trail={[{ name: REVIEWS_TITLE, path: '/reviews' }]} />
+      {/* Google requires AggregateRating to be backed by actual Review nodes
+          with named authors. These are real, attributable client reviews —
+          never synthesise entries here, and keep parseDate in sync with the
+          human-readable `date` strings in lib/reviews.js. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ItemList',
+            name: `${REVIEWS_TITLE} — ${SITE.name}`,
+            numberOfItems: REVIEWS.length,
+            itemListElement: REVIEWS.map((review, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              item: {
+                '@type': 'Review',
+                '@id': absoluteUrl(`/reviews#${review.id}`),
+                name: review.headline,
+                reviewBody: review.body.join(' '),
+                datePublished: isoDate(review.date),
+                author: { '@type': 'Person', name: review.reviewer },
+                reviewRating: {
+                  '@type': 'Rating',
+                  ratingValue: review.rating,
+                  bestRating: 5,
+                  worstRating: 1,
+                },
+                itemReviewed: { '@id': `${absoluteUrl('/')}#organization` },
+              },
+            })),
+          }),
+        }}
+      />
+    </MarketingShell>
   );
 }

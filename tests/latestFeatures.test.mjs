@@ -13,10 +13,13 @@ const globalCss = readFileSync(new URL('../app/globals.css', import.meta.url), '
 const motionSource = readFileSync(new URL('../components/sections/Motion.jsx', import.meta.url), 'utf8');
 const navSource = readFileSync(new URL('../components/Nav.jsx', import.meta.url), 'utf8');
 
-test('navigation uses the same full logo whether or not the menu is open', () => {
+test('navigation uses the shared brand logo atom (full wordmark, never the icon)', () => {
+  const brandLogoSource = readFileSync(new URL('../components/BrandLogo.jsx', import.meta.url), 'utf8');
   assert.ok(existsSync(new URL('../public/crystal-web-solution-logo.svg', import.meta.url)));
-  assert.match(navSource, /crystal-web-solution-logo\.svg/);
-  assert.doesNotMatch(navSource, /crystal-web-solution-icon\.svg/);
+  assert.match(navSource, /<BrandLogo\s*\/>/);
+  assert.match(brandLogoSource, /crystal-web-solution-logo\.svg/);
+  assert.doesNotMatch(brandLogoSource, /crystal-web-solution-icon\.svg/);
+  assert.doesNotMatch(navSource, /crystal-web-solution-logo\.svg/);
 });
 
 test('open navigation keeps its first link below the fixed header on short viewports', () => {

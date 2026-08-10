@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { canTransition } from '@/lib/crm/project-contract.mjs';
 import { getProjectWorkspace } from '@/lib/crm/projects';
-import { transitionProject } from '@/app/actions/project-actions';
+import { transitionProject, assignProject, removeProjectAssignment } from '@/app/actions/project-actions';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
 import ProjectOverview from '@/components/crm/ProjectOverview';
 import ProjectTimeline from '@/components/crm/ProjectTimeline';
@@ -23,6 +23,10 @@ export default function AdminProjectPage() {
   const [workspace, setWorkspace] = useState(null);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [candidatePMs, setCandidatePMs] = useState([]);
+  const [selectedPMId, setSelectedPMId] = useState('');
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [removingUserId, setRemovingUserId] = useState(null);
 
   const loadWorkspace = useCallback(async () => {
     if (!projectId) return;
@@ -56,6 +60,13 @@ export default function AdminProjectPage() {
 
       const data = await getProjectWorkspace(supabase, { profile: profileData }, projectId);
       setWorkspace(data);
+
+      const { data: pmProfiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('role', 'project_manager')
+        .order('full_name', { ascending: true });
+      setCandidatePMs(pmProfiles || []);
     } catch (err) {
       setError(err.message || 'Unable to load this project.');
     } finally {
@@ -66,6 +77,49 @@ export default function AdminProjectPage() {
   useEffect(() => {
     loadWorkspace();
   }, [loadWorkspace]);
+
+  async function handleAssign() {
+    if (!selectedPMId) return;
+
+    setIsAssigning(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.set('projectId', projectId);
+      formData.set('userId', selectedPMId);
+
+      const result = await assignProject(formData);
+      if (!result.ok) throw new Error(result.error || 'Unable to assign this project.');
+
+      setSelectedPMId('');
+      await loadWorkspace();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsAssigning(false);
+    }
+  }
+
+  async function handleRemoveAssignment(userId) {
+    setRemovingUserId(userId);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.set('projectId', projectId);
+      formData.set('userId', userId);
+
+      const result = await removeProjectAssignment(formData);
+      if (!result.ok) throw new Error(result.error || 'Unable to remove this assignment.');
+
+      await loadWorkspace();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRemovingUserId(null);
+    }
+  }
 
   async function handleTransition(nextStatus) {
     if (!workspace?.project || !profile) return;
@@ -124,6 +178,53 @@ export default function AdminProjectPage() {
       <ProjectTasks tasks={workspace.tasks ?? []} />
 
       <section className="crm-ops-section">
+        <h2>Project Manager</h2>
+        {workspace.assignments?.length > 0 ? (
+          <ul className="crm-assignee-list">
+            {workspace.assignments.map((assignment) => (
+              <li key={assignment.id} className="crm-assignee-item">
+                <span>{assignment.user?.full_name || 'Unknown'}</span>
+                <button
+                  type="button"
+                  className="crm-assignee-remove"
+                  onClick={() => handleRemoveAssignment(assignment.user_id)}
+                  disabled={removingUserId === assignment.user_id}
+                >
+                  {removingUserId === assignment.user_id ? 'Removing...' : 'Remove'}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="crm-ops-empty">No project manager assigned yet.</p>
+        )}
+        <div className="crm-assign-row">
+          <select
+            value={selectedPMId}
+            onChange={(e) => setSelectedPMId(e.target.value)}
+            aria-label="Select a project manager to assign"
+          >
+            <option value="">Select a project manager...</option>
+            {candidatePMs
+              .filter((pm) => !workspace.assignments?.some((a) => a.user_id === pm.id))
+              .map((pm) => (
+                <option key={pm.id} value={pm.id}>
+                  {pm.full_name || pm.id}
+                </option>
+              ))}
+          </select>
+          <button
+            type="button"
+            className="crm-ops-button"
+            onClick={handleAssign}
+            disabled={!selectedPMId || isAssigning}
+          >
+            {isAssigning ? 'Assigning...' : 'Assign'}
+          </button>
+        </div>
+      </section>
+
+      <section className="crm-ops-section">
         <h2>Admin Operations</h2>
         <div className="crm-ops-row">
           {NEXT_OPTIONS.length > 0 ? (
@@ -156,7 +257,7 @@ export default function AdminProjectPage() {
         projectId={projectId}
         onChanged={loadWorkspace}
       />
-      <ProjectThread projectId={projectId} role="admin" />
+      <ProjectThread projectId={projectId} profile={profile} />
       <NotesPanel projectId={projectId} />
 
       <style jsx>{`
@@ -240,6 +341,58 @@ export default function AdminProjectPage() {
         .crm-ops-empty {
           color: #999;
           font-size: 0.9rem;
+        }
+
+        .crm-assignee-list {
+          list-style: none;
+          display: flex;
+          flex-direction: column;
+          gap: 0.6rem;
+          margin-bottom: 1rem;
+        }
+
+        .crm-assignee-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: rgba(15, 20, 40, 0.6);
+          border: 1px solid rgba(100, 200, 255, 0.12);
+          border-radius: 6px;
+          padding: 0.6rem 0.9rem;
+        }
+
+        .crm-assignee-remove {
+          background: none;
+          border: 1px solid rgba(255, 100, 100, 0.3);
+          color: #ff9999;
+          padding: 0.3rem 0.7rem;
+          border-radius: 6px;
+          font-size: 0.78rem;
+          cursor: pointer;
+          font-family: inherit;
+        }
+
+        .crm-assignee-remove:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .crm-assign-row {
+          display: flex;
+          gap: 0.75rem;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+
+        .crm-assign-row select {
+          background: rgba(15, 20, 40, 0.6);
+          border: 1px solid rgba(100, 200, 255, 0.2);
+          border-radius: 6px;
+          padding: 0.6rem 0.8rem;
+          color: #e0e0e0;
+          font-size: 0.9rem;
+          font-family: inherit;
+          min-width: 14rem;
         }
       `}</style>
     </WorkspaceShell>

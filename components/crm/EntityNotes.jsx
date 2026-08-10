@@ -1,0 +1,229 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/browser';
+
+function formatWhen(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  const diffMs = Date.now() - date.getTime();
+  const diffMin = Math.round(diffMs / 60000);
+  if (diffMin < 1) return 'just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.round(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.round(diffHr / 24);
+  if (diffDay < 7) return `${diffDay}d ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+export default function EntityNotes({ companyId, contactId }) {
+  const [notes, setNotes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [content, setContent] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!companyId) return;
+    setError(null);
+    try {
+      const supabase = createClient();
+      let query = supabase
+        .from('notes')
+        .select('*')
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: false });
+      query = contactId ? query.eq('contact_id', contactId) : query.is('contact_id', null);
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const notesData = data || [];
+      const authorIds = [...new Set(notesData.map((note) => note.created_by).filter(Boolean))];
+      let profilesById = new Map();
+      if (authorIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', authorIds);
+        if (profilesError) throw profilesError;
+        profilesById = new Map((profiles || []).map((profile) => [profile.id, profile]));
+      }
+
+      setNotes(notesData.map((note) => ({ ...note, author: profilesById.get(note.created_by) ?? null })));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [companyId, contactId]);
+
+  useEffect(() => {
+    if (companyId) load();
+  }, [companyId, load]);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const trimmed = content.trim();
+    if (!trimmed || !companyId) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('You must be signed in to add a note.');
+      const { error } = await supabase.from('notes').insert({
+        company_id: companyId,
+        contact_id: contactId ?? null,
+        content: trimmed,
+        visibility: 'internal',
+        created_by: user.id,
+      });
+      if (error) throw error;
+      setContent('');
+      await load();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <div className="notes-card">
+      <h2 className="notes-title">Notes</h2>
+      {error && <div className="notes-error">{error}</div>}
+      <form onSubmit={handleSubmit} className="notes-form">
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Add a note..."
+          aria-label="Add a note"
+          rows={3}
+        />
+        <button type="submit" className="notes-button" disabled={isSaving || !content.trim()}>
+          {isSaving ? 'Saving...' : 'Add note'}
+        </button>
+      </form>
+      {isLoading ? (
+        <p className="notes-empty">Loading notes...</p>
+      ) : notes.length > 0 ? (
+        <ul className="notes-list">
+          {notes.map((note) => (
+            <li key={note.id} className="notes-item">
+              <div className="notes-item-meta">
+                <strong>{note.author?.full_name || 'Unknown'}</strong>
+                <span>{formatWhen(note.created_at)}</span>
+              </div>
+              <p className="notes-item-content">{note.content}</p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="notes-empty">No notes yet.</p>
+      )}
+      <style jsx>{`
+        .notes-card {
+          background: rgba(30, 35, 60, 0.8);
+          border: 1px solid rgba(100, 200, 255, 0.15);
+          border-radius: 12px;
+          padding: 1.5rem;
+          backdrop-filter: blur(10px);
+        }
+        .notes-title {
+          font-size: 1.25rem;
+          color: #64c8ff;
+          margin-bottom: 1.25rem;
+        }
+        .notes-error {
+          background: rgba(255, 100, 100, 0.1);
+          border: 1px solid rgba(255, 100, 100, 0.3);
+          color: #ff9999;
+          padding: 0.75rem 1rem;
+          border-radius: 6px;
+          margin-bottom: 1rem;
+          font-size: 0.9rem;
+        }
+        .notes-form {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1.5rem;
+          border-bottom: 1px solid rgba(100, 200, 255, 0.1);
+        }
+        .notes-form textarea {
+          background: rgba(15, 20, 40, 0.6);
+          border: 1px solid rgba(100, 200, 255, 0.2);
+          border-radius: 6px;
+          padding: 0.65rem 0.9rem;
+          color: #e0e0e0;
+          font-size: 0.95rem;
+          font-family: inherit;
+          resize: vertical;
+        }
+        .notes-form textarea:focus {
+          outline: none;
+          border-color: rgba(100, 200, 255, 0.6);
+        }
+        .notes-button {
+          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
+          color: #0a0e27;
+          padding: 0.6rem 1.3rem;
+          border-radius: 6px;
+          border: none;
+          font-weight: 600;
+          font-size: 0.9rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          align-self: flex-start;
+        }
+        .notes-button:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
+        }
+        .notes-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        .notes-list {
+          list-style: none;
+          display: flex;
+          flex-direction: column;
+          gap: 0.9rem;
+        }
+        .notes-item {
+          background: rgba(15, 20, 40, 0.6);
+          border: 1px solid rgba(100, 200, 255, 0.1);
+          border-radius: 8px;
+          padding: 0.75rem 1rem;
+        }
+        .notes-item-meta {
+          display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          margin-bottom: 0.35rem;
+          font-size: 0.8rem;
+        }
+        .notes-item-meta strong {
+          color: #64c8ff;
+        }
+        .notes-item-meta span {
+          color: #999;
+          white-space: nowrap;
+        }
+        .notes-item-content {
+          color: #e0e0e0;
+          white-space: pre-wrap;
+          line-height: 1.55;
+        }
+        .notes-empty {
+          color: #999;
+          font-size: 0.9rem;
+        }
+      `}</style>
+    </div>
+  );
+}

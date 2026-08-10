@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import NotesPanel from '@/components/crm/NotesPanel';
+import EntityNotes from '@/components/crm/EntityNotes';
 
 function formatDate(value) {
   if (!value) return '-';
@@ -215,7 +215,7 @@ export default function ContactDetailPage() {
       </div>
 
       <div className="crm-notes-wrap">
-        <NotesPanel companyId={contact.company_id} contactId={contact.id} />
+        <EntityNotes companyId={contact.company_id} contactId={contact.id} />
       </div>
 
       <style jsx>{`

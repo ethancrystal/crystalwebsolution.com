@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { SITE } from '../../lib/site';
+import MarketingShell from '../../components/marketing/MarketingShell';
+import SectionReveal from '../../components/SectionReveal';
 
 export const metadata = {
   title: 'Embroidery & Screen-Printing Web Design',
@@ -22,21 +24,14 @@ export const metadata = {
 
 export default function EmbroideryScreenPrintingWebDesign() {
   return (
-    <div className="subpage">
-      <header className="nav">
-        <Link href="/" className="nav-logo" data-cursor="Home">
-          <span className="nav-logo-mark">◆</span>
-          <span className="nav-logo-text">{SITE.name}</span>
-        </Link>
-        <Link href="/#contact" className="btn btn-ghost" data-cursor="Say hi">
-          get a quote
-        </Link>
-      </header>
-      <main className="case">
-        <p className="eyebrow">Web Design for the Trade</p>
-        <h1 className="page-title">Website Design for Embroidery &amp; Screen-Printing Shops</h1>
+    <MarketingShell>
+      <main className="case mkt-inner">
+        <p className="eyebrow"><SectionReveal as="span" direction="left">Web Design for the Trade</SectionReveal></p>
+        <SectionReveal as="h1" className="page-title" direction="left" delay={0.05}>
+          Website Design for Embroidery &amp; Screen-Printing Shops
+        </SectionReveal>
 
-        <div className="callout">
+        <SectionReveal as="div" className="callout" direction="up" delay={0.1}>
           <p>
             <strong>Short answer:</strong> most embroidery and screen-printing shop websites
             don&rsquo;t lose orders because they look dated. They lose orders because a template
@@ -46,9 +41,9 @@ export default function EmbroideryScreenPrintingWebDesign() {
             else. If a returning customer has to call instead of click &ldquo;reorder,&rdquo;
             that&rsquo;s the actual problem, and it&rsquo;s fixable.
           </p>
-        </div>
+        </SectionReveal>
 
-        <div className="case-body">
+        <SectionReveal as="div" className="case-body" direction="up" delay={0.1}>
           <p>
             A screen-printing shop doesn&rsquo;t lose a wholesale account because the homepage
             font is wrong. It loses the account because the customer who ordered 200 hoodies in
@@ -127,19 +122,19 @@ export default function EmbroideryScreenPrintingWebDesign() {
             We won&rsquo;t build you the expensive version if the affordable template genuinely
             does the job. We will tell you, plainly, which one you actually need.
           </p>
-        </div>
+        </SectionReveal>
 
-        <ul className="case-services">
+        <SectionReveal as="ul" className="case-services" direction="up" delay={0.1}>
           <li>Custom Web Design</li>
           <li>Embroidery &amp; Print Catalogs</li>
           <li>B2B &amp; Wholesale Accounts</li>
-        </ul>
+        </SectionReveal>
 
         <Link href="/work" className="case-next" data-cursor="View work">
           <span className="eyebrow">See our work</span>
           <span className="case-next-title">Every project, one standard →</span>
         </Link>
       </main>
-    </div>
+    </MarketingShell>
   );
 }

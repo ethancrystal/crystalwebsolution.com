@@ -36,6 +36,12 @@ export default function ProjectOverview({ project }) {
           <span className="crm-overview-label">Target Date</span>
           <span className="crm-overview-value">{project.target_date || '-'}</span>
         </div>
+        {project.budget_amount != null && (
+          <div className="crm-overview-item">
+            <span className="crm-overview-label">Budget</span>
+            <span className="crm-overview-value">{project.currency} {project.budget_amount}</span>
+          </div>
+        )}
         <div className="crm-overview-item">
           <span className="crm-overview-label">Created</span>
           <span className="crm-overview-value">

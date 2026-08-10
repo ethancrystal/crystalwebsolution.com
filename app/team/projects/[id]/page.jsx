@@ -100,6 +100,8 @@ export default function TeamProjectPage() {
     const form = e.target;
     const title = form.taskTitle?.value?.trim();
     const due = form.taskDue?.value?.trim();
+    const priority = form.taskPriority?.value || 'medium';
+    const clientVisible = form.taskClientVisible?.checked ?? false;
 
     if (!title) return;
 
@@ -109,6 +111,8 @@ export default function TeamProjectPage() {
     formData.set('projectId', workspace.project.id);
     formData.set('title', title);
     if (due) formData.set('dueDate', due);
+    formData.set('priority', priority);
+    formData.set('clientVisible', clientVisible ? 'true' : 'false');
 
     const result = await createProjectTask(formData);
 
@@ -153,11 +157,15 @@ export default function TeamProjectPage() {
           <div className="crm-ops-row">
             <input name="taskTitle" placeholder="New task title" required />
             <input name="taskDue" type="date" />
-            <select name="taskPriority">
+            <select name="taskPriority" defaultValue="medium">
               <option value="low">Low</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>
             </select>
+            <label className="crm-ops-checkbox">
+              <input name="taskClientVisible" type="checkbox" />
+              Visible to client
+            </label>
             <button type="submit" className="crm-ops-button">Add Task</button>
           </div>
         </form>
@@ -193,7 +201,7 @@ export default function TeamProjectPage() {
         projectId={projectId}
         onChanged={loadWorkspace}
       />
-      <ProjectThread projectId={projectId} role={profile?.role || 'project_manager'} />
+      <ProjectThread projectId={projectId} profile={profile} />
       <NotesPanel projectId={projectId} />
 
       <style jsx>{`
@@ -302,6 +310,15 @@ export default function TeamProjectPage() {
         .crm-ops-empty {
           color: #999;
           font-size: 0.9rem;
+        }
+
+        .crm-ops-checkbox {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          color: #e0e0e0;
+          font-size: 0.85rem;
+          white-space: nowrap;
         }
       `}</style>
     </WorkspaceShell>
