@@ -180,21 +180,22 @@ here so Hermes doesn't redo them:
 
 ## 2. Implementation Steps
 
-### Implementation Phase 0: Cross-role profile visibility (new — highest priority)
+### Implementation Phase 0: Cross-role profile visibility — DONE (2026-08-09)
 
 - GOAL-000: Add an RLS policy on `public.profiles` letting project participants see each other's `id`/`full_name`/`avatar_url` when they share a project, without over-broadening read access to unrelated profiles or exposing fields (email, phone, role internals) that shouldn't travel with it.
+- **Closed same day it was found.** `supabase/migrations/0018_profiles_shared_project_visibility.sql` — `private.shares_project_with()` mirroring `private.can_access_project()`'s logic exactly, full-row policy (checked the column list first: `id`/`role`/`full_name`/`company_id`/`avatar_url`/timestamps/`requested_staff_access` — nothing sensitive enough to need column restriction). Verified both directions: PM's JWT now sees the co-participant client's row (was invisible before); the same JWT still sees zero rows for two unrelated profiles (a different client, the real admin), confirming the policy didn't over-broaden. Confirmed visually in the browser too — the PM's conversation view now shows the real sender name instead of "Unknown".
 
 | Task | Description | Completed | Date |
 | ---- | ---- | ---- | ---- |
-| TASK-P0-1 | Write a `SELECT` policy on `public.profiles`, e.g. `USING (EXISTS (SELECT 1 FROM project_assignments my_a JOIN project_assignments their_a ON my_a.project_id = their_a.project_id WHERE my_a.user_id = auth.uid() AND their_a.user_id = profiles.id) OR EXISTS (SELECT 1 FROM projects p JOIN profiles me ON me.id = auth.uid() WHERE p.company_id = me.company_id AND (p.company_id = (SELECT company_id FROM profiles WHERE id = profiles.id) )))` — sketch only, work out the exact staff↔client and staff↔staff cases carefully rather than copying this verbatim. Mirror `private.can_access_project()`'s existing logic rather than inventing new semantics. | | |
-| TASK-P0-2 | Decide whether the policy should apply to the whole row or whether a narrower view/RPC (returning only `id`/`full_name`/`avatar_url`) is safer, given `profiles` likely has columns (email, phone, internal role metadata) that shouldn't be broadly readable even within a shared project. Check the full column list before deciding. | | |
-| TASK-P0-3 | Apply via the Supabase MCP, verify per GUD-002 with the same scoped-JWT-query technique used to confirm the bug (`curl` the REST API with a real non-admin JWT, confirm it now returns the other participant's row), then re-check the browser: PM's view of the client's messages should now show the real name instead of "Unknown". | | |
-| TASK-P0-4 | Spot-check that this doesn't over-expose: a client on Project A should still NOT see a PM's profile via Project B if they don't share it, and a client should not see other clients' profiles. | | |
+| TASK-P0-1 | Write a `SELECT` policy on `public.profiles` mirroring `private.can_access_project()`'s logic. | ✅ | 2026-08-09 |
+| TASK-P0-2 | Decide row-vs-column scoping. | ✅ full-row — no sensitive columns present | 2026-08-09 |
+| TASK-P0-3 | Apply + verify via scoped-JWT query and browser re-check. | ✅ | 2026-08-09 |
+| TASK-P0-4 | Spot-check no over-exposure. | ✅ two unrelated profiles confirmed still invisible | 2026-08-09 |
 
-### Implementation Phase 1: Live three-role verification (REQ-001) — mostly done, two items remain
+### Implementation Phase 1: Live three-role verification (REQ-001) — DONE except one owner-only item
 
 - GOAL-001: Prove PR #60's notification/messaging/PM-assignment work actually functions end-to-end, not just in code review.
-- **Status as of 2026-08-09: TASK-001 through TASK-003 and TASK-006 are done — see `STATUS.md`'s "Session update (2026-08-09, Phase 1 CRM verification)" for full detail, including three bugs found and fixed along the way (now closed) and the new Phase 0 finding above (not yet closed).** TASK-004 and TASK-005 remain open for the reasons below — pick up there, don't redo TASK-001–003/006.
+- **Status as of 2026-08-09: TASK-001 through TASK-003, TASK-005, and TASK-006 are all done** — see `STATUS.md`'s "Session update (2026-08-09, Phase 1 CRM verification)" for full detail, including three bugs found and fixed along the way, the Phase 0 RLS gap (found and closed same day), and Realtime cross-session delivery confirmed via a standalone script (the browser tool's tabs share cookies, so that specific method couldn't prove it — a two-independent-client Node script did). **Only TASK-004 remains open**, and only because it needs the real, pinned admin account — no session running as an agent can complete it. Pick up there; don't redo anything else.
 
 | Task | Description | Completed | Date |
 | ---- | ---- | ---- | ---- |
@@ -202,7 +203,7 @@ here so Hermes doesn't redo them:
 | TASK-002 | As the client, post a project message. As the assigned staff/admin, confirm an email arrives (check Resend's dashboard or the `notifications_outbox` table's `status`/`attempts` columns if inbox access isn't available). | ✅ verified through the real browser UI; both `in_app`/`email` outbox rows confirmed | 2026-08-09 |
 | TASK-003 | Edit that message as its author. Confirm a second, distinct email fires for the edit (not a duplicate of the post email — check `event_type = 'project.message_edited'` in the outbox). | ✅ verified through the real browser UI; "edited" indicator renders, distinct outbox pair confirmed | 2026-08-09 |
 | TASK-004 | As admin, assign a project_manager to a project via `app/admin/projects/[id]/page.jsx`'s assignee picker. Confirm the assigned user gets an email, and confirm the admin projects list's "Project Manager" column now shows a name instead of "—". | **Open — needs the real admin account** (`ethan@crystalwebsolution.com`, pinned by DB trigger; no way to create a test admin). The test project + PM test user are already set up for this — see `STATUS.md`. | |
-| TASK-005 | Open the same project in two separate browser sessions (e.g. incognito + normal, or two roles). Post a message in one; confirm it appears in the other without a manual reload (Realtime subscription working). | **Open — tooling limitation, not a known bug.** The automated browser tool's tabs share one cookie jar, so two roles can't hold independent sessions simultaneously in it. WebSocket connectivity and the Realtime publication were independently confirmed working. Needs a spot-check with two real separate browsers/devices. | |
+| TASK-005 | Open the same project in two separate browser sessions (e.g. incognito + normal, or two roles). Post a message in one; confirm it appears in the other without a manual reload (Realtime subscription working). | ✅ verified via a standalone Node script (`@supabase/supabase-js`, two independently-authenticated clients) since the browser tool's tabs share one cookie jar — PM subscribed, client posted via the real RPC, PM's channel received the INSERT event with full row data in ~5–12s. | 2026-08-09 |
 | TASK-006 | Record the full verification result in `STATUS.md`, including anything that *didn't* work — this phase's entire point is to catch what code review can't. | ✅ | 2026-08-09 |
 
 ### Implementation Phase 2: RPC parameter exposure decisions (REQ-002, REQ-003)

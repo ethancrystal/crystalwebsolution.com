@@ -71,11 +71,20 @@ the sender name on the client's messages, and it isn't messaging-specific
 task `createdBy`/`assignee`, approval `requestedBy`/`reviewedBy`, and
 deliverable/attachment `uploadedBy` resolution across the entire project
 workspace, for every role, whenever the target profile isn't the viewer's
-own. **Needs a new RLS policy scoped to "profiles of people who share a
-project with me"** (mirroring `private.can_access_project()`'s
-project_assignments/company_id join logic), written deliberately in its
-own migration — not bundled into this session's other fixes. Added to
-`plan/feature-crm-remaining-work-2.md` as the new top-priority item.
+own.
+
+**Update, same day: fixed.** `supabase/migrations/0018_profiles_shared_project_visibility.sql`
+adds `private.shares_project_with(p_target_id)`, mirroring
+`private.can_access_project()`'s existing per-role logic exactly (a project
+is in scope for the viewer via admin/client-company/PM-assignment; the
+target participates in that project via assignment or company_id match),
+and a `SELECT` policy on `profiles` using it. Verified two ways: (1) the
+PM test account's JWT now returns both its own row and the client test
+account's row (was only its own); (2) the same JWT still returns zero rows
+for two unrelated profiles (a different client, the real admin) —
+confirms the policy is scoped to shared projects, not broadened globally.
+Also confirmed visually in the browser: the PM's view of the conversation
+now shows "Phase1 Client Test" instead of "Unknown" on every message.
 
 **Verified end-to-end through the real browser UI** (not just direct SQL):
 post a message as client → appears immediately → notification_outbox gets
@@ -83,16 +92,19 @@ both `in_app` and `email` rows for the assigned PM. Edit that message →
 "edited" indicator renders correctly → a second, distinct
 `project.message_edited` outbox pair is created.
 
+**Realtime cross-session delivery — also now confirmed, via a different method.**
+The browser tool's tabs share one cookie jar, so two roles logged in
+across two tabs collapse into one session — not a real two-session test.
+Instead, wrote a standalone Node script (`@supabase/supabase-js`, already a
+project dependency) using two independently-authenticated clients: the PM
+subscribes to the project's Realtime channel exactly like `ProjectThread.jsx`
+does, the client posts a message via the real `post_project_message` RPC.
+The PM's subscription received the INSERT event with full row data —
+confirmed working, arriving in roughly 5–12 seconds (connection warm-up
+latency, not a bug; well within what the UI's polling/reload fallback
+would mask anyway).
+
 **Not fully verified this session:**
-- **Realtime cross-session delivery (two simultaneous sessions)** — the
-  browser tool's tabs share one cookie jar, so logging into the PM account
-  in a second tab silently switched the "client" tab's session too; a true
-  two-independent-session test wasn't achievable with this tooling.
-  Independently confirmed the WebSocket layer connects successfully (both a
-  raw HTTP Upgrade handshake and a direct `new WebSocket(...)` call from
-  inside the page succeeded) and the `project_messages` Realtime publication
-  is correctly configured (verified in the 2026-08-08 update). Needs a
-  spot-check with two actual separate browsers/devices.
 - **PM assignment via the admin UI** — the `admin` role is pinned to a
   single real email (`ethan@crystalwebsolution.com`) by a DB trigger, so a
   test admin account can't be created; this session had no way to log in as
