@@ -21,7 +21,8 @@ export async function middleware(request) {
   // CRM/auth-only. When the CRM is disabled for this deployment (production,
   // pre-launch), bounce straight home instead of touching Supabase at all.
   if (!CRM_ENABLED) {
-    return NextResponse.redirect(new URL('/', request.url));
+    const dummyResponse = NextResponse.next();
+    return redirectWithCookies(new URL('/', request.url), dummyResponse);
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
