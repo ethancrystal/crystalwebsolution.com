@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { SITE } from '../../lib/site';
-import HalftoneGrid from '../../components/HalftoneGrid';
 
 export const metadata = {
   title: 'Embroidery & Screen-Printing Web Design',
@@ -23,8 +22,7 @@ export const metadata = {
 
 export default function EmbroideryScreenPrintingWebDesign() {
   return (
-    <div className="subpage" style={{ position: 'relative', overflow: 'hidden' }}>
-      <HalftoneGrid />
+    <div className="subpage">
       <header className="nav">
         <Link href="/" className="nav-logo" data-cursor="Home">
           <span className="nav-logo-mark">◆</span>

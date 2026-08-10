@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
 import { SITE } from '../../lib/site';
-import ReviewMotes from '../../components/ReviewMotes';
 
 const REVIEWS_TITLE = 'Client Reviews';
 const REVIEWS_DESCRIPTION =
@@ -34,8 +33,7 @@ function Rating({ value }) {
 
 export default function ReviewsPage() {
   return (
-    <div className="subpage reviews-page" style={{ position: 'relative', overflow: 'hidden' }}>
-      <ReviewMotes />
+    <div className="subpage reviews-page">
       <header className="nav">
         <Link href="/" className="nav-logo" data-cursor="Home">
           <span className="nav-logo-monogram" aria-hidden="true">CWS</span>
