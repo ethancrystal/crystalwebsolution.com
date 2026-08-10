@@ -74,8 +74,23 @@ it. `project_tasks.priority` defaults to `'medium'` at the column level.
 - `createProjectTask` (`app/actions/project-actions.js`): accept
   `priority` from the form, validate against `['low', 'medium', 'high']`,
   pass as `p_priority` to the RPC.
-- New migration: `create_project_task(..., p_priority text default
-  'medium')`, inserting `priority` into the `project_tasks` row.
+- New migration: extend `create_project_task` with `p_priority text
+  default 'medium'` (item 2) and `p_client_visible boolean default false`
+  (item 3, see below) in the same migration — one signature change, not
+  two. **Requires `DROP FUNCTION IF EXISTS public.create_project_task(uuid,
+  text, text, text, uuid, date);` before the `CREATE OR REPLACE`.** The
+  live signature already has defaults on 4 of its 6 params (confirmed via
+  `pg_get_function_arguments`); Postgres identifies a function by its full
+  parameter *type* list regardless of defaults, so appending two new
+  trailing params via a plain `create or replace` would create a second,
+  distinct 8-arg overload alongside the existing 6-arg one — not replace
+  it. Both would stay live, and named-parameter PostgREST calls could
+  resolve ambiguously (`42725`) or inconsistently between them. This is
+  the same category of RPC-signature landmine as three separate bugs
+  found during Phase 1 verification the same day this spec was written —
+  drop-then-recreate is the safe pattern here, confirmed via
+  `pg_get_function_identity_arguments` before applying and re-verified
+  after.
 - `ProjectTasks.jsx`: render a priority badge next to the existing status
   badge, reusing the `.crm-task-status` badge pattern with a parallel
   `.crm-task-priority` class (three color variants, low/medium/high, same
@@ -139,7 +154,12 @@ returned object. No migration. Display: add a labeled field to
 `ProjectOverview.jsx` (wherever category/status/target date already
 render) — format as `${currency} ${budget_amount}` when `budget_amount`
 is non-null, omit the row entirely when null (a project without a set
-budget shouldn't show a blank/zero figure to the client).
+budget shouldn't show a blank/zero figure to the client). `currency` is
+`NOT NULL DEFAULT 'USD'` at the column level (confirmed via
+`information_schema.columns`), so "budget set but currency null" is
+structurally impossible — no fallback string needed for that half; the
+only null case that exists is `budget_amount` itself, already handled by
+omitting the row.
 
 ## 5. Delivered-project review-request email
 
@@ -181,6 +201,32 @@ specific transition.
   clear call to action.
 - Migration: `create or replace function transition_project_status(...)`
   adding the one extra conditional `notifications_outbox` insert branch.
+
+## Implementation order
+
+Schema before app code that depends on it, independent items in whatever
+order — none of the five share a code path:
+
+1. Migrations first, applied and verified via the Supabase MCP before any
+   app code lands (matches this repo's established discipline): the
+   `create_project_task` drop/recreate (items 2+3 combined, one migration),
+   the `client_visible` backfill (same migration), and the
+   `transition_project_status` replace for `project.delivered` (item 5) —
+   three separate `apply_migration` calls, each verified with a direct
+   schema/data query immediately after, not batched blind.
+2. `EntityNotes.jsx` + the two page swaps (item 1) — no migration
+   dependency, can happen in parallel with step 1.
+3. `handleAddTask` + `createProjectTask` action changes (items 2+3) — only
+   after step 1's migration is live, otherwise the RPC call fails against
+   the old signature.
+4. `clientVisibleOnly()` + the two read-path call sites, `ProjectTasks.jsx`
+   priority badge (items 2+3 read side).
+5. `clientSafeProject()` + `ProjectOverview.jsx` budget field (item 4) —
+   fully independent, any point.
+6. `project.delivered` email template registration (item 5's app-side
+   half) — after step 1's `transition_project_status` migration is live.
+7. `pnpm test` / `pnpm build`, then the scoped-JWT/curl verification pass
+   below, for everything together.
 
 ## Testing
 
