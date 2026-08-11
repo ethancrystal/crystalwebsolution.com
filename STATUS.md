@@ -1,10 +1,10 @@
 # Crystal Web Solution CRM - Implementation Status
 
-## 📅 Last Updated: 2026-08-09
+## 📅 Last Updated: 2026-08-10
 ## 👤 Last Agent: Claude
-## 🔗 Current Branch: `preview` (the single active integration branch — see 2026-08-09 update)
+## 🔗 Current Branch: `preview` (the single active integration branch, confirmed at `d6ee832` locally and on `origin/preview` — see 2026-08-09 update, merge note added 2026-08-10)
 ## 🔑 Source of Truth
-- Checked-in migrations: canonical `supabase/migrations/0001` … `0017`;
+- Checked-in migrations: canonical `supabase/migrations/0001` … `0023`;
   live history intentionally omits `0007` and records the ad-hoc `0009b`
   operation before canonical `0009`–`0011` (see below); `fix_handle_new_user_coalesce`
   is applied live with no tracked file yet — see `plan/feature-crm-remaining-work-2.md`
@@ -12,6 +12,31 @@
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
 - Supabase project ref: `wmnjosiikehsuaqucvja`
+
+## 📌 Session update (2026-08-10, multi-agent code review + fixes)
+
+Ran a 6-way parallel review (`furious-reviewer` subagents, one per dimension:
+CRM backend, CRM frontend, marketing components, marketing pages/SEO,
+config/tooling, tests) of `preview` vs `main` — the entire divergence ahead
+of the open `preview -> main` PR #59, not just the CRM batch above. Every
+finding below was independently re-verified directly against source/live
+data before being accepted (several of the subagents' raw claims had wrong
+file:line citations or described code that doesn't actually exist that way;
+those were corrected or dropped during verification, not taken at face value).
+
+| # | Finding | Severity | Fix |
+|---|---|---|---|
+| 1 | `private.project_notification_recipients()` had no visibility awareness — `post_project_message`/`update_project_message`/`publish_project_deliverable` notified **every** client-company profile on a project even for `internal`-only messages/deliverables, including a 200-char body excerpt in the email | **Security — confirmed live leak** | Migration `0023`: recipient function gains `p_visibility` (default `'shared'`, backward-compatible); `internal` excludes the client-company branch. Verified live against real project data: `internal` → 1 recipient (staff only), `shared`/default → 2 (staff + client), matching pre-fix behavior exactly for every existing caller. Also restored the ACL convention on all three recreated functions (`update_project_message` had drifted to a bare PUBLIC + explicit `anon` grant — locked to `authenticated` only, matching every other project RPC). |
+| 2 | `components/crm/ProjectThread.jsx`'s `load()` `useCallback` depended on the whole `profile` prop object; the parent page creates a new `profile` object on every `loadWorkspace()` call (including from unrelated actions — file upload, approval, task creation), churning the Realtime channel subscription every time | Correctness/perf | Depend on `profile?.id`/`profile?.role`/`profile?.company_id` (the only fields `requireViewer()` actually reads) instead of the object. |
+| 3 | `components/marketing/ServiceEmblem.jsx`'s 3D variant wrapped the whole `<ServiceEmblem3D>` output — including its real, focusable tooltip-toggle button — in `aria-hidden="true"`, hiding a keyboard-tabbable control from assistive tech (WCAG 4.1.2) | Accessibility | Removed `aria-hidden` from the wrapper; `ServiceEmblem3D`'s own `<Canvas>` already carries its own correct `aria-hidden`. |
+| 4 | `components/three/ServiceEmblem3D.jsx`'s `useFrame` called `matchMedia('(prefers-reduced-motion: reduce)')` every frame (~60x/sec/instance), violating this repo's own "no allocation inside `useFrame`" rule; the glow/emissive animation also ignored reduced-motion entirely (only rotation was gated) | Perf + accessibility | Read `matchMedia` once in a `useEffect`, cache in a ref, update via a `change` listener (with teardown); glow animation now also gated on the same flag. |
+| 5 | `components/marketing/ImageBlock.jsx` imported its CSS Modules file for a side effect only and discarded the export, then used literal unscoped class name strings that can never match the hashed names the CSS Modules loader generates — currently dormant since the component is unused anywhere else in the app | Correctness (dormant) | `import styles from './ImageBlock.module.css'` + bracket-notation lookups (`styles['mkt-image-block']` etc., hyphenated keys). |
+| 6 | `.hermes/` (binary `.zip` desktop attachments + a fully extracted, superseded implementation-proposal bundle — confirmed every file it "intended to add/replace" already exists as the real, current, tracked version) was committed to git, not just gitignored going forward | Housekeeping | `git rm -r --cached .hermes` (kept on disk, just untracked — the `.gitignore` entry already added upstream now takes effect). |
+| 7 | `layout_summary.txt`/`task_complete.txt` (scratch progress notes, zero references anywhere) and `scripts_livecheck.mjs` (a real, working Playwright smoke-test script, but unwired and at the repo root, with a hardcoded `localhost:3115` that doesn't match `pnpm dev`'s actual port 3000) | Housekeeping | Removed the two scratch files; moved the script to `scripts/livecheck.mjs`, added a `pnpm livecheck` script entry, base URL now defaults to `localhost:3000` (overridable via `LIVECHECK_BASE_URL`). |
+
+**Noticed, explicitly left alone:** `Dockerfile` (an added `HEALTHCHECK` hitting a new `app/api/health/` route) appeared modified/untracked in the working tree during this session, unrelated to anything above — same concurrent-session collision pattern already documented twice this week (PR #49/#50, the `crm/remaining-decisions` batch's `700bee7`). Not part of this review; not touched.
+
+**Verification:** `pnpm test` — all new/modified test files pass (`tests/crm/migration-0023-visibility-aware-notifications.test.mjs`, `tests/crm/project-thread-stable-callback-deps.test.mjs`, `tests/marketing/serviceEmblemAria.test.jsx`, `tests/marketing/serviceEmblemReducedMotion.test.jsx`, updated `tests/marketing/imageBlock.test.jsx`), only the pre-existing unrelated `auth-portals` failure remains. `pnpm build` — clean.
 
 ## 📌 Session update (2026-08-09, Phase 1 CRM verification)
 
@@ -116,7 +141,17 @@ would mask anyway).
 
 ## 📌 Session update (2026-08-09, CRM remaining-decisions batch — Tasks 1–8)
 
-Closed the eight remaining CRM decisions from `docs/superpowers/plans/2026-08-09-crm-remaining-decisions.md`, executed in the `crm/remaining-decisions` worktree (branch `crm/remaining-decisions`). All code is **committed on the `crm/remaining-decisions` branch** (three commits: migration 0019, the bundled tasks 2–8, and a follow-up fix round) — the merge into `preview` is held for owner go-ahead.
+**Update 2026-08-10: this batch is merged.** `crm/remaining-decisions` was fast-forward merged into `preview` and pushed; both local and `origin/preview` are confirmed at `d6ee832`. The worktree and local feature branch have been cleaned up (`git worktree remove` hit Windows's path-length limit, resolved via `git worktree prune`; `git branch -d crm/remaining-decisions` succeeded). The stale note below ("merge held for owner go-ahead") describes an intermediate state from before this session finished the SDD execution flow — kept for history, not current.
+
+Closed the eight remaining CRM decisions from `docs/superpowers/plans/2026-08-09-crm-remaining-decisions.md`, executed in the `crm/remaining-decisions` worktree (branch `crm/remaining-decisions`).
+
+**Mid-execution collision, same pattern as PR #49/#50:** after Task 1 was dispatched and reviewed clean, a concurrent session (commit `700bee7`, authored `ethancrystal`, not a subagent this session dispatched) landed Tasks 2–8 directly on the shared worktree branch in one shot, including applying migration `0020` live — bypassing the per-task review loop entirely. Rather than discard it, it was verified as real/functional (tests passing, migration confirmed live via Supabase MCP) and subjected to a retroactive catch-up review as a single gate. That review found and fixed in one commit (`5585c41`): a Critical bug (`EntityNotes.jsx`'s `.select('*, profiles(...))` embed can never work — `notes.created_by` has no FK to `profiles`, only to `auth.users`; fixed via a separate `profiles` query), and three Task-7 spec gaps (wrong prop name/URL target on the delivered-project email, `templateContextFor` never wired to supply it, and a test that asserted the bug instead of catching it).
+
+A subsequent final whole-branch review found two more Important issues, both fixed and verified live before merge: `create_project_task`'s migration-0019 `DROP FUNCTION`/`CREATE FUNCTION` had silently regained a default PUBLIC execute grant (fixed via migration `0021`, confirmed via `proacl` before/after); and the task-priority allowlist was inconsistent across the DB CHECK constraint (4 values incl. `urgent`) vs. every app layer (3 values) — resolved via owner decision (kept 3-tier) and migration `0022` tightening the CHECK constraint after confirming 0 live rows used `urgent`.
+
+Five smaller findings were parked rather than blocking merge: the delivered-notification email has no `role = 'client'` guard on its recipient query (spec-compliant as written, low risk); `ProjectTasks.jsx` has no CSS for an `urgent` priority (moot now that `urgent` is no longer a valid value); a test-file regex typo (`v?iewer.role`) that weakened 2 assertions, fixed directly; `projectMessageEditedEmail`'s function name deviates from the brief's `messageEditedEmail` (naming only); and STATUS.md briefly said this batch was "staged but not committed" when it was already committed.
+
+Final state before merge: `pnpm test` — only the pre-existing, unrelated `auth-portals` failure; `pnpm build` — clean.
 
 | # | Item | Result |
 |---|------|--------|
@@ -142,7 +177,7 @@ Closed the eight remaining CRM decisions from `docs/superpowers/plans/2026-08-09
 - `project.message_edited` outbox rows now render (were failing: no template) → Task 8.
 - `project.delivered` notifications now have a renderer (new event from Task 2) → Task 7.
 
-**Not done this session (per owner no-commit preference):** no commit, no push to `preview`. DB migrations 0019 + 0020 are already applied to the live dev Supabase project.
+**Update 2026-08-10:** the above is now committed and merged — see the note at the top of this section. All of migrations 0019–0022 are applied to the live dev Supabase project.
 
 **Test data left in place, deliberately:** the two test accounts and
 "Phase1 Verification Project" (with the PM already assigned) still exist
@@ -487,6 +522,7 @@ Actions taken:
 - ~~`cookie` package resolved to an incompatible major version, breaking auth cookies~~ — fixed in PR #53 (`pnpm.overrides` bounded to `>=0.7.0 <1.0.0`).
 
 **Still open:**
+- **Untracked SEO-crawl CSVs in `public/`** (`accessibility_all.csv`, `sitemaps_all.csv`, `structured_data_all.csv`, and ~27 others, ~30 files total) — appeared 2026-08-10, not committed, not gitignored, unrelated to any work in this session. Since `public/` is served statically, committing them as-is would make a raw SEO audit export publicly downloadable. Not cleaned up here — belongs to whichever session generated them; flagged to the owner, needs a decision (move out of `public/`, gitignore, or delete).
 - **PR #60's migration (`0015_project_notifications_and_message_editing.sql`) is written and reviewed but not applied to the live database** — blocked by the Claude Code auto-mode permission classifier on live DDL writes. Needs the owner's explicit approval or manual application. Until then, message editing, live (Realtime) message delivery, and every notification email described in PR #60 are inert in the deployed app even after merge.
 - ~~**`priority`/`client_visible` (0011) are not yet settable via RPC** and `client_visible` is not enforced anywhere~~ — resolved 2026-08-09 (Tasks 1, 4, 5): `create_project_task` now takes `p_priority`/`p_client_visible` (migration 0019) and the client read-model filters via `clientVisibleOnly`.
 - ~~**`budget_amount`/`currency` are not exposed to the `client` role**~~ — resolved 2026-08-09 (Task 6): `clientSafeProject()` now exposes both fields to the client role.
