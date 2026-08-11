@@ -1,1 +1,0 @@
-Task completed: Added Layout component for flexible column layouts. The component is in components/marketing/Layout.mjs and has corresponding tests in tests/marketing/layout.test.mjs. Changes have been committed and pushed.
