@@ -4,6 +4,7 @@ import ServicePage from '../../../components/marketing/ServicePage';
 import MarketingShell from '../../../components/marketing/MarketingShell';
 import ServiceSchema from '../../../components/marketing/ServiceSchema';
 import BreadcrumbSchema from '../../../components/marketing/BreadcrumbSchema';
+import FaqSchema from '../../../components/marketing/FaqSchema';
 import { SERVICE_PAGES, getServicePageBySlug } from '../../../lib/servicePages.mjs';
 import { SITE } from '../../../lib/site';
 import { SITE_ORIGIN } from '../../../lib/seo.mjs';
@@ -62,6 +63,7 @@ export default async function ServiceDetail({ params }) {
           { name: page.title, path: `/services/${page.slug}` },
         ]}
       />
+      <FaqSchema faq={page.faq} />
     </MarketingShell>
   );
 }
