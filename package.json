@@ -12,7 +12,8 @@
     "test:db": "supabase test db",
     "test:e2e": "playwright test tests/e2e",
     "crm:verify": "pnpm test:crm && pnpm test:db",
-    "crm:provision-test-users": "node scripts/provision-crm-test-users.mjs"
+    "crm:provision-test-users": "node scripts/provision-crm-test-users.mjs",
+    "livecheck": "node scripts/livecheck.mjs"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.2.3",

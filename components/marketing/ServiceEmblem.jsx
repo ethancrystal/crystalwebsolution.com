@@ -129,7 +129,11 @@ function SvgMark({ signal, animate }) {
 export default function ServiceEmblem({ signal, n, size = 64, variant = 'svg', className = '' }) {
   if (variant === '3d') {
     return (
-      <span className={`mkt-emblem mkt-emblem--3d ${className}`} aria-hidden="true">
+      // No aria-hidden here: ServiceEmblem3D renders a real, focusable
+      // tooltip-toggle button (its Canvas alone carries aria-hidden), so
+      // hiding this whole subtree would keep the button keyboard-tabbable
+      // while making it invisible to assistive tech.
+      <span className={`mkt-emblem mkt-emblem--3d ${className}`}>
         <ServiceEmblem3D signal={signal} />
         {n && <span className="mkt-emblem-n">{n}</span>}
       </span>

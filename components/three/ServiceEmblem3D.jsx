@@ -15,7 +15,7 @@
 // (same rotSpeed/wireframe per signal the rail uses). Hover-light is LOCAL to
 // this canvas; it does not touch the homepage beacon singleton, because the
 // inner page has no rail to coordinate with.
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { getSignalGeometry, EMISSIVE_BASE, EMISSIVE_ACTIVE } from '../../lib/serviceSignalGeometry.mjs';
@@ -47,13 +47,26 @@ function EmblemMesh({ signal, onHover }) {
 
   const meta = SERVICE_SIGNAL_META[signal] || { rotSpeed: 0.3, wireframe: false };
   const geometry = getSignalGeometry(signal);
+  const reduceRef = useRef(false);
+
+  // Read prefers-reduced-motion once and keep it current via a listener,
+  // rather than calling matchMedia() on every useFrame tick (allocation on
+  // the per-frame path, forbidden by this repo's animation conventions).
+  useEffect(() => {
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+    reduceRef.current = mql.matches;
+    const onChange = (e) => { reduceRef.current = e.matches; };
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
 
   useFrame((state, delta) => {
-    const reduce = state.gl.domElement.ownerDocument.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduce = reduceRef.current;
     if (meshRef.current && !reduce) {
       meshRef.current.rotation.y += delta * meta.rotSpeed;
       meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.4) * 0.16;
     }
+    if (reduce) return;
     // Smooth hover glow (no spring lib needed for a single emblem).
     const target = hovered ? EMIS_HOVER : EMIS_UNLIT;
     glow.current += (target - glow.current) * Math.min(1, delta * 8);
