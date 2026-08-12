@@ -1,8 +1,8 @@
 # Crystal Web Solution CRM - Implementation Status
 
-## 📅 Last Updated: 2026-08-10
-## 👤 Last Agent: Claude
-## 🔗 Current Branch: `preview` (the single active integration branch, confirmed at `d6ee832` locally and on `origin/preview` — see 2026-08-09 update, merge note added 2026-08-10)
+## 📅 Last Updated: 2026-08-11
+## 👤 Last Agent: Hermes (subagent-driven-development)
+## 🔗 Current Branch: `agent/reviews-instrument-row` (this plan's 8 tasks were executed/verified here; the underlying fixes were authored on `preview` and are the basis of PR #59 — see 2026-08-10 update below)
 ## 🔑 Source of Truth
 - Checked-in migrations: canonical `supabase/migrations/0001` … `0023`;
   live history intentionally omits `0007` and records the ad-hoc `0009b`
@@ -12,6 +12,40 @@
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
 - Supabase project ref: `wmnjosiikehsuaqucvja`
+
+## 📌 Session update (2026-08-11, Code Review Fixes plan executed)
+
+Executed `docs/superpowers/plans/2026-08-10-code-review-fixes.md` (the 8-task
+PR #59 prep plan) end-to-end on branch `agent/reviews-instrument-row` via the
+subagent-driven-development workflow. All 8 tasks were already implemented on
+`preview` (migration `0023` at `4874408`; component fixes at `6a51592`) — this
+pass re-verified each against source and the live test/build suite rather than
+re-implementing:
+
+| # | Plan task | Status |
+|---|-----------|--------|
+| 1 | Migration `0023` — visibility-aware notification recipients (security) | ✅ migration + `tests/crm/migration-0023-visibility-aware-notifications.test.mjs` present and green; `0023` already applied to live dev project (verified 2026-08-10) |
+| 2 | `ProjectThread.jsx` — stable `load()` deps (no Realtime churn) | ✅ `tests/crm/project-thread-stable-callback-deps.test.mjs` green; callback depends on `profile?.id`/`profile?.role`/`profile?.company_id` only |
+| 3 | `ServiceEmblem.jsx` — 3D variant no longer `aria-hidden`s the tooltip button | ✅ button reachable; `ServiceEmblem3D`'s own `<Canvas>` keeps its correct `aria-hidden` |
+| 4 | `ServiceEmblem3D.jsx` — no `matchMedia` in `useFrame`; glow gated on reduced-motion | ✅ `tests/marketing/serviceEmblemReducedMotion.test.jsx` green; cached via ref + `change` listener |
+| 5 | `ImageBlock.jsx` — CSS Modules import used (not discarded) | ✅ `tests/marketing/imageBlock.test.jsx` green; `import styles` + bracket-notation lookups |
+| 6 | Stop tracking `.hermes/` | ✅ already `git rm -r --cached` (2026-08-10) and covered by `.gitignore`; not in working tree |
+| 7 | Remove scratch files; wire `livecheck` script | ✅ `layout_summary.txt`/`task_complete.txt` gone; `scripts/livecheck.mjs` wired as `pnpm livecheck` (defaults to localhost:3000) |
+| 8 | This STATUS.md update | ✅ this section + header refresh |
+
+**Verification (full):** `pnpm test` → 199/199 passing (only the pre-existing
+unrelated `auth-portals` failure is absent — it is not part of this suite and
+was out of scope). `pnpm build` → clean (full route table, exit 0). No code
+changes were required in this pass — every fix was already in place and was
+confirmed, so the plan's "implement" steps were satisfied by re-verification
+against the committed state. Migration `0023` was NOT re-applied (it was already
+live and verified on 2026-08-10; re-applying an idempotent `create or replace`
+is safe but unnecessary, and the plan's Step 3 "apply and verify live" was
+already completed in that earlier session).
+
+**No new known gaps introduced.** The `public/*.csv` SEO-audit exports and the
+other "Still open" items from 2026-08-10 were left untouched, per the plan's
+scope boundary.
 
 ## 📌 Session update (2026-08-10, multi-agent code review + fixes)
 
