@@ -101,7 +101,7 @@ export default function EditContactPage() {
   if (isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <LoadingState />
       </div>
     );
   }
@@ -369,14 +369,6 @@ export default function EditContactPage() {
           margin-right: auto;
         }
 
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
       `}</style>
     </div>
   );
