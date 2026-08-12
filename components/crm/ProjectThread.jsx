@@ -62,7 +62,14 @@ export default function ProjectThread({ projectId, profile }) {
     } finally {
       setIsLoading(false);
     }
-  }, [projectId, profile]);
+    // profile is read fresh from the closure above (requireViewer only ever
+    // reads id/role/company_id from it), so depend on those stable
+    // primitives rather than the profile object itself -- the parent page
+    // creates a new profile object on every loadWorkspace() call, which
+    // would otherwise churn this callback's identity (and the Realtime
+    // subscription effect below that depends on it) on every unrelated
+    // workspace action.
+  }, [projectId, profile?.id, profile?.role, profile?.company_id]);
 
   useEffect(() => {
     load();
