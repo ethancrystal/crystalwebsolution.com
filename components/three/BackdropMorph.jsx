@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { scrollState } from '../../lib/scrollState';
+import { motionScale } from '../../lib/motionScale';
 
 // A vast wireframe shell around everything whose hue drifts with progress —
 // gives each depth of the journey its own atmosphere.
@@ -17,8 +18,8 @@ export default function BackdropMorph({ animate = true }) {
   useFrame((state, delta) => {
     if (!mesh.current || !animate) return;
     const dt = Math.min(delta, 0.05);
-    mesh.current.rotation.y += dt * 0.015;
-    mesh.current.rotation.x += dt * 0.006;
+    mesh.current.rotation.y += dt * 0.015 * motionScale.value;
+    mesh.current.rotation.x += dt * 0.006 * motionScale.value;
     tmpColor.copy(COLOR_A).lerp(COLOR_B, scrollState.progress);
     mesh.current.material.color.lerp(tmpColor, 1 - Math.exp(-dt * 3));
     // The journey runs to CLUSTERS.contact = -130; keep the shell receding
