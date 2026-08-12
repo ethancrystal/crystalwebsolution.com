@@ -6,6 +6,7 @@ import { MeshTransmissionMaterial, Float } from '@react-three/drei';
 import * as THREE from 'three';
 import { pulse } from '../../lib/pulse';
 import { scrollState } from '../../lib/scrollState';
+import { motionScale } from '../../lib/motionScale';
 
 // The hero mascot: a refracting crystal that spins slowly and "roars"
 // (pulse of scale + spin + emissive core) when the hero is clicked.
