@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
 import { SITE } from '../../lib/site';
 import { absoluteUrl } from '../../lib/seo.mjs';
