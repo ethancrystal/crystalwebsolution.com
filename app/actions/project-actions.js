@@ -544,6 +544,7 @@ export async function updateProjectTask(formData) {
   const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to update tasks.');
 
+  const projectId = formString(formData, 'projectId');
   const taskId = formString(formData, 'taskId');
   const title = optionalFormString(formData, 'title');
   const description = optionalFormString(formData, 'description');
@@ -551,6 +552,9 @@ export async function updateProjectTask(formData) {
   const assigneeId = optionalFormString(formData, 'assigneeId');
   const dueDate = optionalFormString(formData, 'dueDate');
 
+  if (!isCanonicalUuid(projectId)) {
+    return invalid(requestId, 'Choose a valid project.');
+  }
   if (!isCanonicalUuid(taskId)) {
     return invalid(requestId, 'Choose a valid task.');
   }
@@ -584,7 +588,7 @@ export async function updateProjectTask(formData) {
     return databaseFailure(error, requestId, 'Unable to update this task.');
   }
 
-  revalidateAllProjectPaths(data);
+  revalidateAllProjectPaths(projectId);
   return success(requestId, { taskId: data });
 }
 

@@ -109,3 +109,23 @@ test('uses generic errors, safe logs, server idempotency ids, and role-correct r
   assert.match(source, /\/team\/projects\/\$\{projectId\}/);
   assert.match(source, /\/admin\/projects\/\$\{projectId\}/);
 });
+
+test('updateProjectTask reads projectId from the form and revalidates with it, not the RPC-returned task id', async () => {
+  const source = await readActions();
+  const fn = source.slice(
+    source.indexOf('export async function updateProjectTask'),
+    source.indexOf('export async function createProjectApproval'),
+  );
+
+  assert.match(
+    fn,
+    /const projectId = formString\(formData, 'projectId'\);/,
+    'update_project_task returns the task id, not the project id -- the caller must supply projectId separately for revalidation',
+  );
+  assert.match(fn, /isCanonicalUuid\(projectId\)/);
+  assert.match(
+    fn,
+    /revalidateAllProjectPaths\(projectId\);/,
+    'must revalidate with the form-supplied projectId, not the RPC return value (which is the task id)',
+  );
+});

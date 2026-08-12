@@ -9,6 +9,7 @@
     "start": "next start",
     "test": "node --test tests/*.test.mjs tests/crm/*.test.mjs",
     "test:crm": "node --test tests/crm/*.test.mjs",
+    "test:jsx": "vitest run tests/marketing",
     "test:db": "supabase test db",
     "test:e2e": "playwright test tests/e2e",
     "crm:verify": "pnpm test:crm && pnpm test:db",

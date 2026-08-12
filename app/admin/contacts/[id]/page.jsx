@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import EntityNotes from '@/components/crm/EntityNotes';
+import { LoadingState } from '@/components/crm/Spinner';
 
 function formatDate(value) {
   if (!value) return '-';
@@ -75,7 +76,7 @@ export default function ContactDetailPage() {
   if (isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <LoadingState />
       </div>
     );
   }
@@ -380,14 +381,6 @@ export default function ContactDetailPage() {
           margin-right: auto;
         }
 
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
       `}</style>
     </div>
   );

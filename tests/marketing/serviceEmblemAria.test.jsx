@@ -7,14 +7,18 @@ import { readFile } from 'node:fs/promises';
 // async lazy-load + WebGL mock for a single markup assertion.
 describe('ServiceEmblem 3d variant accessibility', () => {
   it('does not wrap ServiceEmblem3D (and its focusable tooltip button) in aria-hidden', async () => {
-    const source = await readFile('components/marketing/ServiceEmblem.jsx', 'utf8');
+    const source = (await readFile('components/marketing/ServiceEmblem.jsx', 'utf8')).replace(/\r\n/g, '\n');
     const threeDBranch = source.match(/if \(variant === '3d'\) \{([\s\S]*?)\n {2}\}/);
     expect(threeDBranch).not.toBeNull();
     expect(threeDBranch[1]).not.toMatch(/aria-hidden="true"[\s\S]*<ServiceEmblem3D/);
   });
 
   it('still hides the decorative SVG variant from assistive tech (unchanged, no interactive content)', async () => {
-    const source = await readFile('components/marketing/ServiceEmblem.jsx', 'utf8');
+    // Line endings are normalized before the indexOf search below: this repo
+    // checks files out with CRLF on Windows, and a literal "\n" in the search
+    // string silently fails to match "\r\n" (indexOf returns -1, .slice(-1)
+    // then returns just the file's last character) rather than throwing.
+    const source = (await readFile('components/marketing/ServiceEmblem.jsx', 'utf8')).replace(/\r\n/g, '\n');
     const svgBranch = source.slice(source.indexOf("return (\n    <span className={`mkt-emblem "));
     expect(svgBranch).toMatch(/<span className=\{`mkt-emblem \$\{className\}`\} data-signal=\{signal\} aria-hidden="true">/);
   });

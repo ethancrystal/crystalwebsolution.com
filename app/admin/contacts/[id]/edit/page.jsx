@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { LoadingState } from '@/components/crm/Spinner';
 
 const STATUS_OPTIONS = ['lead', 'prospect', 'customer', 'inactive'];
 
