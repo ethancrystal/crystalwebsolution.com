@@ -32,16 +32,17 @@ export default function Crystal({ position = [0, 0, 0] }) {
     const e = energy.current;
 
     if (outer.current) {
-      outer.current.rotation.y += dt * (0.25 + e * 4.0 + Math.abs(scrollState.velocity) * 0.0008);
-      outer.current.rotation.x = Math.sin(t * 0.3) * 0.15 + e * 0.4;
-      const s = 1 + Math.sin(t * 1.2) * 0.02 + e * 0.22;
+      const spin = (0.25 + e * 4.0 + Math.abs(scrollState.velocity) * 0.0008) * motionScale.value;
+      outer.current.rotation.y += dt * spin;
+      outer.current.rotation.x = (Math.sin(t * 0.3) * 0.15 + e * 0.4) * motionScale.value;
+      const s = 1 + (Math.sin(t * 1.2) * 0.02 + e * 0.22) * motionScale.value;
       tmpScale.copy(baseScale).multiplyScalar(s);
       outer.current.scale.copy(tmpScale);
     }
     if (core.current) {
-      core.current.rotation.y -= dt * 0.6;
-      core.current.material.emissiveIntensity = 0.8 + Math.sin(t * 2.0) * 0.25 + e * 6.0;
-      const cs = 0.42 * (1 + e * 0.5);
+      core.current.rotation.y -= dt * 0.6 * motionScale.value;
+      core.current.material.emissiveIntensity = 0.8 + (Math.sin(t * 2.0) * 0.25 + e * 6.0) * motionScale.value;
+      const cs = 0.42 * (1 + e * 0.5 * motionScale.value);
       core.current.scale.setScalar(cs);
     }
   });
