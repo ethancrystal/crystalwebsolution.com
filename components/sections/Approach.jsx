@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { LazyMotion, domAnimation, m } from 'motion/react';
 import SectionReveal from '../SectionReveal';
 import { useCardMouseReveal } from '../CardHoverReveal';
@@ -34,6 +34,7 @@ const STEPS = [
 
 export default function Approach() {
   const sectionRef = useRef(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   const height = 930;
 
@@ -46,9 +47,11 @@ export default function Approach() {
   }, '');
 
   useEffect(() => {
-    const root = sectionRef.current;
-    if (!root) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply = () => setReducedMotion(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
   }, []);
 
   return (
@@ -81,12 +84,12 @@ export default function Approach() {
                   strokeLinecap="round"
                   vectorEffect="non-scaling-stroke"
                   initial={{ strokeDashoffset: 0 }}
-                  animate={{ strokeDashoffset: -140 }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 3,
-                    ease: 'linear',
-                  }}
+                  animate={{ strokeDashoffset: reducedMotion ? 0 : -140 }}
+                  transition={
+                    reducedMotion
+                      ? { duration: 0 }
+                      : { repeat: Infinity, duration: 3, ease: 'linear' }
+                  }
                 />
               </svg>
             </div>

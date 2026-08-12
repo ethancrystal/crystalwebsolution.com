@@ -4,6 +4,7 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { pulse } from '../../lib/pulse';
+import { motionScale } from '../../lib/motionScale';
 
 // Burst particles ejected from the crystal on each hero blast.
 const COUNT = 120;
@@ -46,10 +47,11 @@ export default function Sparks({ position = [0, 0, 0] }) {
     if (life.current > 0.001) {
       life.current *= Math.exp(-dt * 1.4);
       const arr = points.current.geometry.attributes.position.array;
+      const spread = dt * motionScale.value;
       for (let i = 0; i < COUNT; i++) {
-        arr[i * 3] += velocities[i * 3] * dt;
-        arr[i * 3 + 1] += velocities[i * 3 + 1] * dt;
-        arr[i * 3 + 2] += velocities[i * 3 + 2] * dt;
+        arr[i * 3] += velocities[i * 3] * spread;
+        arr[i * 3 + 1] += velocities[i * 3 + 1] * spread;
+        arr[i * 3 + 2] += velocities[i * 3 + 2] * spread;
       }
       points.current.geometry.attributes.position.needsUpdate = true;
     }

@@ -135,7 +135,7 @@ export default function ServiceEmblem({ signal, n, size = 64, variant = 'svg', c
       // while making it invisible to assistive tech.
       <span className={`mkt-emblem mkt-emblem--3d ${className}`}>
         <ServiceEmblem3D signal={signal} />
-        {n && <span className="mkt-emblem-n">{n}</span>}
+        {n && <span className="mkt-emblem-n" aria-hidden="true">{n}</span>}
       </span>
     );
   }

@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { scrollState } from '../../lib/scrollState';
 import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
 import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
+import { motionScale } from '../../lib/motionScale';
 
 // The approach beat: four step-markers ("Discover / Design / Build /
 // Launch") orbit a small core, dark until Approach's own measured scroll
@@ -47,7 +48,7 @@ export default function ApproachCompass({ position = [0, 0, 0], animate = true }
     const ease = THREE.MathUtils.clamp((scrollState.progress - a) / span, 0, 1);
     const activeStep = Math.min(COUNT - 1, Math.floor(ease * COUNT));
 
-    group.current.rotation.y += dt * 0.12;
+    group.current.rotation.y += dt * 0.12 * motionScale.value;
 
     for (let i = 0; i < group.current.children.length; i++) {
       const m = group.current.children[i];
@@ -57,13 +58,13 @@ export default function ApproachCompass({ position = [0, 0, 0], animate = true }
       s.velocity += force * dt;
       s.value += s.velocity * dt;
       m.material.emissiveIntensity = Math.max(0, s.value);
-      m.rotation.x += dt * 0.4;
-      m.rotation.y += dt * 0.6;
+      m.rotation.x += dt * 0.4 * motionScale.value;
+      m.rotation.y += dt * 0.6 * motionScale.value;
     }
 
     if (core.current) {
-      core.current.rotation.y -= dt * 0.3;
-      core.current.material.emissiveIntensity = 0.6 + Math.sin(t * 1.6) * 0.2;
+      core.current.rotation.y -= dt * 0.3 * motionScale.value;
+      core.current.material.emissiveIntensity = 0.6 + Math.sin(t * 1.6) * 0.2 * motionScale.value;
     }
   });
 
