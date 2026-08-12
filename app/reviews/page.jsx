@@ -5,6 +5,7 @@ import { absoluteUrl } from '../../lib/seo.mjs';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
+import ReviewArchive from '../../components/marketing/ReviewArchive';
 
 // schema.org datePublished must be ISO 8601; lib/reviews.js stores
 // human-readable strings like "June 15, 2026". Returns undefined rather than
@@ -34,15 +35,6 @@ export const metadata = {
     description: REVIEWS_DESCRIPTION,
   },
 };
-
-function Rating({ value }) {
-  return (
-    <span className="review-rating" aria-label={`${value} out of 5 stars`}>
-      <span aria-hidden="true">{'★'.repeat(value)}{'☆'.repeat(5 - value)}</span>
-      <span>{value}/5</span>
-    </span>
-  );
-}
 
 export default function ReviewsPage() {
   return (
@@ -87,32 +79,7 @@ export default function ReviewsPage() {
             <h2 id="archive-title">All client reviews</h2>
           </SectionReveal>
 
-          <div className="review-list">
-            {REVIEWS.map((review) => (
-              <article key={review.id} id={review.id} className={`review-card review-card-${review.rating}`}>
-                <header className="review-card-header">
-                  <div>
-                    <h3>{review.reviewer}</h3>
-                    {review.company && <p className="review-client">{review.company}</p>}
-                    <p className="review-headline">{review.headline}</p>
-                  </div>
-                  <Rating value={review.rating} />
-                </header>
-                <p className="review-meta">
-                  {review.country} • {review.reviewCount} {review.reviewCount === 1 ? 'review' : 'reviews'} • {review.date}
-                </p>
-                <div className="review-body">
-                  {review.body.map((paragraph, index) => <p key={`${review.id}-${index}`}>{paragraph}</p>)}
-                </div>
-                {review.reply && (
-                  <aside className="review-reply">
-                    <strong>Company reply • {review.reply.date}</strong>
-                    <p>{review.reply.body}</p>
-                  </aside>
-                )}
-              </article>
-            ))}
-          </div>
+          <ReviewArchive reviews={REVIEWS} />
         </section>
 
         <section className="reviews-close">
