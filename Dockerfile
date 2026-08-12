@@ -41,6 +41,12 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+# Alpine's busybox wget is already present in the base image, so this needs
+# no extra package install. Hits the dependency-free /api/health route added
+# alongside this Dockerfile; a non-zero exit marks the container unhealthy.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/api/health || exit 1
+
 # SUPABASE_SERVICE_ROLE_KEY is server-only and never inlined into the build
 # (unlike the NEXT_PUBLIC_* vars above) - supply it at `docker run -e` /
 # compose runtime so the secret never lands in an image layer.
