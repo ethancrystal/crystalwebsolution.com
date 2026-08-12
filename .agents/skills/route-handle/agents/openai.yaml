@@ -1,0 +1,4 @@
+interface:
+  display_name: "Route Handle"
+  short_description: "Route repo and system work with low overhead"
+  default_prompt: "Use $route-handle to choose the right TTML files, tools, and checks before making changes."
