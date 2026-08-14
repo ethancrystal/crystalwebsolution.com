@@ -7,6 +7,8 @@ import { getAuthenticatedProfile } from '@/lib/auth/require-role';
 import {
   MESSAGE_VISIBILITIES,
   PROJECT_STATUSES,
+  TASK_PRIORITIES,
+  TASK_STATUSES,
   canPostVisibility,
   canTransition,
   isProjectCategory,
@@ -509,7 +511,7 @@ export async function createProjectTask(formData) {
   if (!['todo', 'in_progress', 'review', 'done', 'blocked'].includes(status)) {
     return invalid(requestId, 'Choose a valid task status.');
   }
-  if (!['low', 'medium', 'high'].includes(priority)) {
+  if (!TASK_PRIORITIES.includes(priority)) {
     return invalid(requestId, 'Choose a valid task priority.');
   }
   if (dueDate !== null && !validDateOnly(dueDate)) {
@@ -560,7 +562,7 @@ export async function updateProjectTask(formData) {
   if (description !== null && !validBoundedText(description, 0, 10000)) {
     return invalid(requestId, 'Task description must be at most 10000 characters.');
   }
-  if (status !== null && !['todo', 'in_progress', 'review', 'done', 'blocked'].includes(status)) {
+  if (status !== null && !TASK_STATUSES.includes(status)) {
     return invalid(requestId, 'Choose a valid task status.');
   }
   if (dueDate !== null && !validDateOnly(dueDate)) {
@@ -835,6 +837,9 @@ export async function enqueueNotification(formData) {
 
   if (!isCanonicalUuid(projectId)) {
     return invalid(requestId, 'Choose a valid project.');
+  }
+  if (userId !== null && !isCanonicalUuid(userId)) {
+    return invalid(requestId, 'Choose a valid notification recipient.');
   }
   if (!['email', 'in_app', 'realtime'].includes(channel)) {
     return invalid(requestId, 'Choose a valid notification channel.');

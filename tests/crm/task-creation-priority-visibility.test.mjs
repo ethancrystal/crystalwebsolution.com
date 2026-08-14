@@ -8,7 +8,7 @@ async function read(path) {
 
 test('createProjectTask validates and forwards priority', async () => {
   const source = await read('app/actions/project-actions.js');
-  assert.match(source, /\['low', 'medium', 'high'\]\.includes\(priority\)/);
+  assert.match(source, /TASK_PRIORITIES\.includes\(priority\)/);
   assert.match(source, /p_priority:\s*priority/);
 });
 
