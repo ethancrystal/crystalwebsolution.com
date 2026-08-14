@@ -109,3 +109,8 @@ test('uses generic errors, safe logs, server idempotency ids, and role-correct r
   assert.match(source, /\/team\/projects\/\$\{projectId\}/);
   assert.match(source, /\/admin\/projects\/\$\{projectId\}/);
 });
+
+test('optional notification recipient is UUID-validated before the RPC', async () => {
+  const source = await readActions();
+  assert.match(source, /userId !== null && !isCanonicalUuid\(userId\)/);
+});

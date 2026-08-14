@@ -44,6 +44,30 @@ Ran a 3-way parallel audit (`delegate_task`, one agent per plan slice) to verify
 
 **Verification:** `pnpm test` — 199/199 passing (full Node test suite, no regressions from any plan). `pnpm build` — clean, 56 routes, no errors.
 
+## 📌 Session update (2026-08-13, CRM audit-and-harden sweep — 3-slice parallel + serial re-run)
+
+Mapped all CRM functionality across read-model, server actions, and frontend/portals. Three subagents ran in parallel then re-ran serially (rate-limit recovery); each owned a disjoint file set and only fixed safe, clearly-correct gaps.
+
+**Verification:** `pnpm test` — 225/225 passing (full suite; +26 from two new hardening test files). `pnpm build` — clean, all routes.
+
+### Read-model layer (`lib/crm/projects.js`, `project-contract.mjs`, `lib/supabase/browser.js`)
+- **PM scope gate** (FIXED): `loadProjectForViewer` now fails closed — a project_manager with no `project_assignments` row for a project reads as "not found", never as access. Mirrors DB per-role logic.
+- **Pagination cursor** (FIXED): `nextMessageCursor` now measures the raw query page, not the visibility-filtered list — previously a partly-filtered full page read as "no older messages" and silently truncated history.
+- **Browser env guard** (FIXED): `createClient` throws a clear misconfig error at construction instead of an opaque auth failure at first query.
+- **Shared enums/validators** (ADDED): `TASK_PRIORITIES`, `TASK_STATUSES`, `APPROVAL_STATUSES`, `DELIVERABLE_STATUSES`, `ATTACHMENT_STATUSES`, `RECORD_VISIBILITIES`, `DEFAULT_TASK_PRIORITY`, and `is*` validators — centralizes the status/priority domains so a drifted fourth tier can't reappear.
+- 25 new tests: `tests/crm/crm-read-model-hardening.test.mjs`.
+
+### Server actions (`app/actions/project-actions.js`)
+- Already well-hardened: every action has `authenticatedProfile(roles)`, UUID validation, length bounds, generic errors, correct RPC arg names vs migrations 0015–0023.
+- 5 new tests: `tests/crm/project-actions.test.mjs`. No code changes required — only the enum→shared-constant swap was considered (blocked by an out-of-scope sibling test) and `editProjectMessage` ownership is enforced in the RPC/migrations (cross-cutting, left as-is).
+
+### Frontend / portals (`components/crm/*`, `middleware.js`, `app/dashboard|team|admin`)
+- No safe fixes required. `middleware.js` correctly gates `/dashboard`→client, `/team`→project_manager, `/admin`→admin at the edge. No `dangerouslySetInnerHTML` anywhere; all user content JSX-escaped. Prior `ProjectThread` fix (passes `profile?.id/role/company_id`, not the whole object) confirmed intact and test-backed.
+
+### Cross-cutting items (reported, NOT fixed — need migration or cross-file decision)
+1. `project_tasks` RLS is `can_access_project` only (no `client_visible` predicate) — the app-level `clientVisibleOnly()` filter is the sole client-visibility boundary, and `listProjectMessages` runs in the browser where clients can query directly. Recommend a `client_visible` predicate in RLS for defense-in-depth.
+2. Hardcoded `['low','medium','high']` / status arrays in 4 files should adopt the new `TASK_PRIORITIES` / `TASK_STATUSES` constants (server-actions file deferred due to a sibling test asserting the literal).
+
 ### Plan: `2026-08-06-marketing-inner-pages-enhancement-plan.md` (6 tasks)
 
 | Task | Status | Evidence |
