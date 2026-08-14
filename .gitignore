@@ -27,3 +27,4 @@ node_modules/
 .direnv/
 
 .copilot-tracking/
+*.docx
