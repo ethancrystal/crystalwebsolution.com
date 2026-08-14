@@ -44,7 +44,7 @@ export async function POST(request) {
   if (!webhookUrl && !emailEnabled) {
     return json({
       ok: false,
-      message: 'Online form delivery is not configured. Use the direct email option on this page.',
+      message: 'Please use the direct email option on this page.',
     }, 503);
   }
 
