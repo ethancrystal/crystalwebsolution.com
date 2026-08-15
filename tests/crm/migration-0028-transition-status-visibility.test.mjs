@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const migrationPath = 'supabase/migrations/0024_transition_project_status_visibility_recipients.sql';
+const migrationPath = 'supabase/migrations/0028_transition_project_status_visibility_recipients.sql';
 
 async function readMigration() {
   return readFile(migrationPath, 'utf8');

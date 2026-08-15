@@ -1,4 +1,20 @@
--- 0024_transition_project_status_visibility_recipients.sql
+-- 0028_transition_project_status_visibility_recipients.sql
+--
+-- RENUMBERED from 0024 on 2026-08-15. It was authored as 0024 but never
+-- merged, and 0025/0026/0027 have since been applied live -- keeping 0024
+-- would have made the applied list read out of chronological order. Nothing
+-- in 0025-0027 touches transition_project_status, so the reordering is
+-- functionally inert on a fresh rebuild.
+--
+-- ALREADY LIVE, UNTRACKED. Verified 2026-08-15 against the production
+-- database: transition_project_status already forwards p_visibility to
+-- private.project_notification_recipients, i.e. the leak below is already
+-- closed in production -- but no migration row records it (supabase_migrations
+-- .schema_migrations has no 0024 entry). This file is therefore a drift
+-- reconciliation in the same spirit as 0009b/0014b (PR #72): re-applying it
+-- is a harmless no-op CREATE OR REPLACE that brings tracked history back in
+-- line with live state, and its test locks in behavior that currently exists
+-- only as untracked live state.
 --
 -- transition_project_status validates and stores its own p_visibility
 -- (project_status_history.visibility, the audit_events metadata) but never
