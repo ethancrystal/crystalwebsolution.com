@@ -5,6 +5,7 @@ import Link from 'next/link';
 import BrandLogo from './BrandLogo';
 import Magnetic from './Magnetic';
 import Menu from './Menu';
+import RollText from './RollText';
 import { CRM_ENABLED } from '../lib/crmFlag';
 
 export default function Nav() {
@@ -49,12 +50,12 @@ export default function Nav() {
         <div className="nav-right">
           {CRM_ENABLED && (
             <Link href="/login" className="nav-login-link" data-cursor="Log in">
-              Log in
+              <RollText>Log in</RollText>
             </Link>
           )}
           <Magnetic>
             <a href="/#contact" className="btn btn-ghost" data-cursor="Say hi">
-              Start a project
+              <RollText>Start a project</RollText>
             </a>
           </Magnetic>
           <Magnetic>

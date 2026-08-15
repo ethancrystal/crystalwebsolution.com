@@ -188,6 +188,32 @@ h1, h2 {
   padding: 1.3rem 2.6rem;
 }
 
+/* Roll-up label swap (see RollText.jsx). The mask is inline-grid so both faces
+   stack in the same cell and the element keeps the natural width/height of one
+   line — no fixed sizing, so it adapts to whatever type scale wraps it. */
+.roll {
+  display: inline-grid;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.roll-face {
+  grid-area: 1 / 1;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.roll-face-clone { transform: translateY(100%); }
+:is(a, button):hover .roll-face { transform: translateY(-100%); }
+:is(a, button):hover .roll-face-clone { transform: translateY(0); }
+/* Keyboard parity — the swap should read the same on focus as on hover. */
+:is(a, button):focus-visible .roll-face { transform: translateY(-100%); }
+:is(a, button):focus-visible .roll-face-clone { transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  /* Hold the original face still rather than snapping the clone into place —
+     the label must never travel, and the two faces are identical anyway. */
+  .roll-face { transition: none; }
+  :is(a, button):is(:hover, :focus-visible) .roll-face { transform: none; }
+  :is(a, button):is(:hover, :focus-visible) .roll-face-clone { transform: translateY(100%); }
+}
+
 .link-underline {
   font-family: var(--font-mono);
   font-size: 0.85rem;

@@ -1,0 +1,17 @@
+{
+  "projectId": "6f658d22-fb7f-4e65-88dc-2baac5c1c907",
+  "shape": "package",
+  "pkg": "crystal-web-solution",
+  "globalName": "CrystalWebSolution",
+  "srcDir": "components",
+  "cssEntry": "app/globals.css",
+  "tsconfig": ".design-sync/tsconfig.shim.json",
+  "readmeHeader": ".design-sync/conventions.md",
+  "extraFonts": [".design-sync/fonts/fonts.css"],
+  "overrides": {
+    "ServiceEmblem": { "cardMode": "column" }
+  },
+  "libOverrides": {
+    "source-kit.mjs": "two synth-entry fixes: (1) re-exports each file's default under its declared name, since `export *` never forwards `default` and every component here is `export default function Name()`; (2) excludes components/crm/ and components/auth/, which import 'use server' actions (Node builtins, service-role Supabase clients) that can't bundle for a browser preview"
+  }
+}
