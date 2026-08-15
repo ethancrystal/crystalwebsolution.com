@@ -18,14 +18,14 @@ Crystal Web Solution is a Next.js 15 / React 19 application containing a dark, c
 
 ## Environments and Deployment
 
-Two long-lived branches map to two Vercel environments:
+**`main` is the production branch.** Vercel's Production Branch setting is `main` (verified against the Vercel API 2026-08-15): every merge into `main` auto-deploys to the Production environment and is aliased to crystalwebsolution.com. Work on a feature branch and land it in `main` via a reviewed PR — merging a PR into `main` IS deploying to production.
 
-- **`preview`** — full implementation, CRM included. This is the default branch for ongoing Gemini / Claude Code / Codex work. Every push gets its own Vercel preview deployment (behind Vercel Authentication), plus a stable branch-alias preview URL for `preview` itself.
-- **`production`** — what's live at crystalwebsolution.com. Same codebase as `preview`/`main`; the CRM is hidden there via the `NEXT_PUBLIC_CRM_ENABLED` flag (`lib/crmFlag.js`), not by diverging code. Vercel's Project Settings -> Environment Variables sets `NEXT_PUBLIC_CRM_ENABLED=false` for the Production environment only, so `middleware.js` redirects CRM routes straight home, and `components/Nav.jsx` / `Menu.jsx` hide the Log in / Client access links. Flip that one env var back to unset (or `true`) when the CRM is ready to go live, rather than re-diverging the branches.
+- **Feature branches** — every push gets its own Vercel preview deployment (behind Vercel Authentication), so anything can be verified on a real deployment before it merges.
+- **`preview` and `production` (git branches)** — historical. The repo previously ran a two-branch model (`preview` = integration, `production` = live) that Vercel's actual configuration never matched. Both branches still exist but neither controls what's deployed; don't promote through them or base new work on them.
 
-Promote `preview` -> `production` only via a reviewed PR/merge on GitHub.
+**CRM visibility is an env var, not a branch.** The CRM is hidden on the live site via `NEXT_PUBLIC_CRM_ENABLED=false` set in Vercel's Project Settings -> Environment Variables for the Production environment only (`lib/crmFlag.js`): `middleware.js` redirects CRM routes straight home, and `components/Nav.jsx` / `Menu.jsx` hide the Log in / Client access links. To launch (or hide) the CRM, flip that one env var — and because `NEXT_PUBLIC_*` values are inlined at build time, a redeploy of `main` is required after changing it; editing the variable alone changes nothing.
 
-**Never run `vercel --prod` (or `vercel deploy --prod`) from an agent session.** Vercel's CLI deploys straight to the production alias regardless of which git branch is checked out or what the Production Branch setting is — it bypasses this entire branch strategy. Production only ships through the Git integration: a merge into the `production` branch.
+**Never run `vercel --prod` (or `vercel deploy --prod`) from an agent session.** Vercel's CLI deploys straight to the production alias regardless of which git branch is checked out — it bypasses PR review entirely. Production only ships through the Git integration: a reviewed merge into `main`.
 
 ## Commands
 
