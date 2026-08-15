@@ -44,30 +44,6 @@ export default function Stories() {
     tabRefs.current[index]?.focus();
   };
 
-  const onTabKeyDown = (event, index) => {
-    let nextIndex = null;
-
-    switch (event.key) {
-      case 'ArrowRight':
-        nextIndex = (index + 1) % STORIES.length;
-        break;
-      case 'ArrowLeft':
-        nextIndex = (index - 1 + STORIES.length) % STORIES.length;
-        break;
-      case 'Home':
-        nextIndex = 0;
-        break;
-      case 'End':
-        nextIndex = STORIES.length - 1;
-        break;
-      default:
-        return;
-    }
-
-    event.preventDefault();
-    activateTab(nextIndex);
-  };
-
   return (
     <section className="section stories" id="stories" data-quiet>
       <div className="text-plate">
@@ -105,41 +81,15 @@ export default function Stories() {
       </SectionReveal>
 
       <div className="stories-grid" ref={boardRef}>
-        {STORIES.map((story, i) => {
-          const selected = i === active;
-          const { cardRef: storyRef, onMouseMove: onStoryMouseMove } = useCardMouseReveal();
-
-          return (
-            <article
-              key={`${story.id}-${selected ? active : 'hidden'}`}
-              ref={storyRef}
-              className={`story-card${selected ? ' is-active' : ''}`}
-              aria-live="polite"
-              onMouseMove={onStoryMouseMove}
-            >
-              <div className="story-card-header">
-                <div className="story-card-avatar" aria-hidden="true">
-                  {story.initials}
-                </div>
-                <div className="story-card-meta">
-                  <h3>{story.reviewer}</h3>
-                  <p>
-                    {story.company}
-                    {story.company ? ' • ' : ''}
-                    {story.rating}/5 • {story.date}
-                  </p>
-                </div>
-              </div>
-
-              <p className="story-card-quote">&ldquo;{story.quote}&rdquo;</p>
-
-              <div className="story-card-footer">
-                <span>{REVIEWS_BY_ID.get(story.id)?.reviewCount ?? 1} review{((REVIEWS_BY_ID.get(story.id)?.reviewCount ?? 1) === 1 ? '' : 's')}</span>
-                <a className="story-card-link" href={`/reviews#${story.id}`}>Open record →</a>
-              </div>
-            </article>
-          );
-        })}
+        {STORIES.map((story, i) => (
+          <StoryCard
+            key={story.id}
+            story={story}
+            selected={i === active}
+            panelId={panelId(i)}
+            reviewCount={REVIEWS_BY_ID.get(story.id)?.reviewCount ?? 1}
+          />
+        ))}
       </div>
 
       <SectionReveal className="stories-cta" delay={0.1} direction="up">
@@ -148,3 +98,70 @@ export default function Stories() {
     </section>
   );
 }
+
+// Extracted so useCardMouseReveal() is called at the top level of a stable
+// component (Rules of Hooks), not inside the parent's .map(). A stable key
+// (story.id) means the card never remounts on tab switch — visibility is
+// driven by the is-active class, so the mouse-reveal ref and any in-flight
+// animation state survive the transition.
+function StoryCard({ story, selected, panelId, reviewCount }) {
+  const { cardRef, onMouseMove } = useCardMouseReveal();
+
+  return (
+    <article
+      ref={cardRef}
+      className={`story-card${selected ? ' is-active' : ''}`}
+      role="tabpanel"
+      id={panelId}
+      aria-hidden={!selected}
+      hidden={!selected}
+      aria-live="polite"
+      onMouseMove={onMouseMove}
+    >
+      <div className="story-card-header">
+        <div className="story-card-avatar" aria-hidden="true">
+          {story.initials}
+        </div>
+        <div className="story-card-meta">
+          <h3>{story.reviewer}</h3>
+          <p>
+            {story.company}
+            {story.company ? ' • ' : ''}
+            {story.rating}/5 • {story.date}
+          </p>
+        </div>
+      </div>
+
+      <p className="story-card-quote">&ldquo;{story.quote}&rdquo;</p>
+
+      <div className="story-card-footer">
+        <span>{reviewCount} review{reviewCount === 1 ? '' : 's'}</span>
+        <a className="story-card-link" href={`/reviews#${story.id}`}>Open record →</a>
+      </div>
+    </article>
+  );
+}
+
+const onTabKeyDown = (event, index) => {
+    let nextIndex = null;
+
+    switch (event.key) {
+      case 'ArrowRight':
+        nextIndex = (index + 1) % STORIES.length;
+        break;
+      case 'ArrowLeft':
+        nextIndex = (index - 1 + STORIES.length) % STORIES.length;
+        break;
+      case 'Home':
+        nextIndex = 0;
+        break;
+      case 'End':
+        nextIndex = STORIES.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    activateTab(nextIndex);
+  };
