@@ -2,6 +2,38 @@ import { NextResponse } from 'next/server';
 import { validateContactForm } from '../../../lib/contactForm.mjs';
 import { sendTemplate, isEmailConfigured, getOperationsAddress } from '@/lib/email/resend';
 import { contactSubmissionEmail, contactAckEmail } from '@/lib/email/templates';
+import { createAdminClient } from '@/lib/supabase/admin';
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
+
+// Best-effort CRM write (create_lead_from_contact, migration 0026). Never
+// throws -- a failure here must never change the visitor-facing outcome
+// (webhookDelivered/emailDelivered) or block the response. Runs before the
+// operations email so a successful call can include a "View in CRM" link;
+// on any failure the email still sends exactly as it did before this existed.
+async function createLeadBestEffort(data) {
+  try {
+    const supabase = createAdminClient();
+    const { data: result, error } = await supabase.rpc('create_lead_from_contact', {
+      p_name: data.name,
+      p_email: data.email,
+      p_company: data.company || null,
+      p_brief: data.brief,
+      p_budget: data.budget,
+      p_source: 'website_contact_form',
+    });
+
+    if (error) {
+      console.error('create_lead_from_contact failed:', error.message);
+      return undefined;
+    }
+
+    return result?.deal_id && APP_URL ? `${APP_URL}/admin/deals/${result.deal_id}` : undefined;
+  } catch (error) {
+    console.error('create_lead_from_contact unavailable:', error.message);
+    return undefined;
+  }
+}
 
 export const runtime = 'nodejs';
 
@@ -66,13 +98,17 @@ export async function POST(request) {
     }
   }
 
+  // Honeypot-rejected submissions never reach this point (returned above),
+  // so the CRM is never written from spam.
+  const dealUrl = await createLeadBestEffort(validation.data);
+
   let emailDelivered = false;
 
   if (emailEnabled) {
     try {
       // Reply-To is the visitor, so replying from the inbox threads straight
       // back to them rather than to the no-reply sender.
-      await sendTemplate(contactSubmissionEmail(validation.data), {
+      await sendTemplate(contactSubmissionEmail({ ...validation.data, dealUrl }), {
         to: getOperationsAddress(),
         replyTo: validation.data.email,
         tags: ['contact-form'],

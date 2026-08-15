@@ -3,7 +3,12 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 RUN corepack enable
-COPY package.json pnpm-lock.yaml ./
+# pnpm-workspace.yaml carries overrides/onlyBuiltDependencies (moved out of
+# package.json), and .npmrc carries the matching onlyBuiltDependencies entry
+# and enable-pre-post-scripts. Without both, this stage's pnpm sees the
+# lockfile's recorded overrides but no config supplying them and fails with
+# ERR_PNPM_LOCKFILE_CONFIG_MISMATCH.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 
 FROM node:22-alpine AS builder
