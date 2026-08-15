@@ -1,17 +1,112 @@
 # Crystal Web Solution CRM - Implementation Status
 
-## 📅 Last Updated: 2026-08-13
-## 👤 Last Agent: Parallel audit subagents (3-way)
-## 🔗 Current Branch: `main` (confirmed at `e992809` locally and on `origin/main`)
+## 📅 Last Updated: 2026-08-15
+## 👤 Last Agent: Claude Code (CRM launch + lead capture)
+## 🔗 Current Branch: `main` (production — see "Deployment model corrected" below)
 ## 🔑 Source of Truth
-- Checked-in migrations: canonical `supabase/migrations/0001` … `0023`;
-  live history intentionally omits `0007` and records the ad-hoc `0009b`
-  operation before canonical `0009`–`0011` (see below); `fix_handle_new_user_coalesce`
-  is applied live with no tracked file yet — see `plan/feature-crm-remaining-work-2.md`
+- Checked-in migrations: canonical `supabase/migrations/0001` … `0027`
+  (`0025`/`0026` applied live 2026-08-15; `0027` written from the PR #74
+  review — see below for its live-apply state; `0009b`/`0014b` reconciled
+  from live-only to tracked files in PR #72, merged)
 - Project read boundary: `lib/crm/projects.js`
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
 - Supabase project ref: `wmnjosiikehsuaqucvja`
+- CRM launch/lead-capture design doc: `plan/feature-crm-lead-capture-and-drain-1.md`
+
+## 📌 Session update (2026-08-15, CRM launch + lead capture + 5-min drain)
+
+**Deployment model corrected.** `CLAUDE.md`/`GEMINI.md` documented a
+`preview`(integration)/`production`(live) two-branch model that Vercel's
+actual configuration never matched. Confirmed live: Vercel's Production
+Branch setting is `main` — merging a PR into `main` deploys straight to
+crystalwebsolution.com. Docs rewritten in PR #73 (merged). `preview` and
+`production` (the git branches) are now historical; don't base work on them.
+
+**Build was broken on `main`.** Two real bugs, both confirmed by reproducing
+the failure and then the fix, not just by reading the diff: (1)
+`lib/crm/project-contract.mjs` had `TASK_STATUSES`/`TASK_PRIORITIES`
+declared twice (ES module duplicate-export `SyntaxError`) — `pnpm build`
+and two test files were failing on `main` before this session. (2) The
+Dockerfile's `deps` stage only `COPY`ed `package.json`/`pnpm-lock.yaml`,
+missing `pnpm-workspace.yaml`/`.npmrc` after they picked up `pnpm`'s
+`overrides`/`onlyBuiltDependencies` config — `docker build` failed with
+`ERR_PNPM_LOCKFILE_CONFIG_MISMATCH` on every CI run since. Both fixed and
+verified (CI green) in PR #70 (merged).
+
+**CRM launched to production.** `NEXT_PUBLIC_APP_URL` and
+`NEXT_PUBLIC_CRM_ENABLED=true` set in Vercel (owner action), redeployed.
+Confirmed live: `/login` and `/signup` render real content (200), `/dashboard`
+correctly gates to `/login/client` (307) for an unauthenticated visitor.
+
+**Lead capture implemented (PR #74, merged) — the mission's headline
+feature, previously entirely missing.** `supabase/migrations/0026_create_
+lead_from_contact.sql`: `SECURITY DEFINER`, service-role-only RPC (RLS on
+`deals`/`contacts`/`companies` has no anon/authenticated insert path, so
+this is the only legal write route) that matches/creates a contact+company
+from a contact-form submission, dedupes against any open deal for that
+contact (appends an internal note instead of a second deal), and queues an
+admin notification via `notifications_outbox`. Uses the existing
+`'prospecting'` deal stage rather than inventing a `new_lead` value the
+admin Kanban board (`app/admin/deals/pipeline/page.jsx`'s
+`normalizeStage()`) would silently misbucket — see the migration header and
+`plan/feature-crm-lead-capture-and-drain-1.md` REQ-010/ALT-001. Wired into
+`app/api/contact/route.js` as a non-blocking best-effort call — failure
+never affects the visitor-facing webhook/email response. **Verified
+end-to-end against production**: a real submission created the
+company/contact/deal and queued the notification correctly (test records
+under "Plan Test Co" / `plan-test@example.com`, not yet cleaned up).
+
+**5-minute notification drain (PR #74, merged).**
+`supabase/migrations/0025_schedule_notification_drain.sql`: `pg_cron` +
+`pg_net` schedule draining the outbox every 5 minutes instead of relying
+solely on the daily Vercel cron backstop (kept as a fallback). Generated its
+own secret into Supabase Vault (`crm_cron_secret`) rather than reusing the
+existing `CRM_CRON_SECRET`, since this session has no read access to Vercel
+env var values — **the generated value still needs to be copied into
+Vercel's `CRM_CRON_SECRET` (Production) to match**; until then the cron
+calls 401 harmlessly (fails closed) against the drain endpoint.
+
+**Post-merge review of PR #74 (`/code-review xhigh`) → migration `0027`.**
+Reviewed the merged lead-capture diff in full against the live schema (real
+`pg_indexes`/constraint reads, not assumptions). No P0s — no injection (all
+inputs parameterized, no dynamic SQL), no auth bypass (RPC correctly revoked
+from `anon`/`authenticated`), no secrets in code. Four findings; the three
+code-level ones are fixed in `0027_lead_capture_review_followups.sql`:
+
+| # | Sev | Finding | Fix in `0027` |
+|---|-----|---------|---------------|
+| 1 | P2 | **Duplicate-lead race.** The match-contact-by-email `SELECT` and the follow-on `INSERT` weren't atomic, and `contacts.email` had only a plain btree (`idx_contacts_email`) — no uniqueness. Two concurrent submissions for one address (double-click, two tabs) could both read "not found" and each create a contact + company + deal. | Defense in depth: `pg_advisory_xact_lock` keyed on the normalized email serializes same-address calls (different addresses stay parallel), plus a partial unique index on `lower(email)` making it unbreakable at the storage layer. Verified zero pre-existing duplicates before adding the index. |
+| 2 | P2 | **Deal title vs. notification disagreed.** A submission with no company field but a business email domain got a deal titled after the *person* while the notification said the *domain* — and the title is the half the admin actually scans in the pipeline. | Both now read the company row actually attached to the deal. Correct on all four paths, including free-mail (title stays the person's name rather than becoming a useless "gmail.com") and existing-contact (where `0026` never computed a domain at all). |
+| 3 | P3 | **`p_source` unbounded** — the one input with no length cap, concatenated straight into `notes.content`, inconsistent with the function's own "does not trust the caller" posture. Not exploitable (sole caller hardcodes it) but stops being theoretical with a second caller. | `left(btrim(...), 50)` like every other field. |
+
+The fourth finding is **P1 and not fixable in SQL**: this feature turned
+`/api/contact` from "spam costs transient emails" into "spam writes permanent
+CRM rows," on an endpoint that still has no rate limiting. `ADR-002` already
+specifies the fix (Vercel Firewall rule); PR #74 is the reason to stop
+deferring it. **Owner action — dashboard-only.**
+
+**Still open:**
+- **Rate-limit `/api/contact`** per `ADR-002` — now higher priority than when
+  that ADR was written, because spam is persisted, not just mailed.
+- Copy the Vault-generated `crm_cron_secret` value into Vercel's
+  `CRM_CRON_SECRET` (owner action — this session can set Supabase secrets
+  but not read/write Vercel env var values). Confirmed live: `cron.job` fires
+  on schedule and `net._http_response` shows a clean `401` each run — failing
+  closed exactly as designed, and it clears the moment the secret matches.
+- Delete (or explicitly keep) the "Plan Test Co" verification records —
+  contact/company/deal + two `notifications_outbox` rows, all keyed on
+  `plan-test@example.com`.
+- PR #69 (`fix/a11y-motionscale-and-notification-visibility`) — open,
+  targets the now-historical `preview` branch, needs retargeting to `main`.
+- CRM-IMPLEMENTATION-PLAN.md Task 3.1 (three-role verification click-through
+  with the owner as admin) and Task 3.2's remaining items (test-account
+  cleanup) — not started this session.
+- Company matching still races on *concurrent submissions from different
+  addresses at the same company* (only same-address calls are serialized).
+  Deliberately not fixed: a unique constraint on company name is a product
+  decision, not a bug fix, and the failure mode is a duplicate company an
+  admin can merge — not lost or wrong data.
 
 ## 📌 Session update (2026-08-10, multi-agent code review + fixes)
 
