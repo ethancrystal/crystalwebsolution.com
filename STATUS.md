@@ -5,9 +5,9 @@
 ## 🔗 Current Branch: `main` (production — see "Deployment model corrected" below)
 ## 🔑 Source of Truth
 - Checked-in migrations: canonical `supabase/migrations/0001` … `0027`
-  (`0025`/`0026` applied live 2026-08-15; `0027` written from the PR #74
-  review — see below for its live-apply state; `0009b`/`0014b` reconciled
-  from live-only to tracked files in PR #72, merged)
+  (`0025`/`0026`/`0027` all applied live 2026-08-15; `0027` came out of the
+  PR #74 review and is verified end-to-end against production — see below;
+  `0009b`/`0014b` reconciled from live-only to tracked files in PR #72, merged)
 - Project read boundary: `lib/crm/projects.js`
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
@@ -86,6 +86,32 @@ CRM rows," on an endpoint that still has no rate limiting. `ADR-002` already
 specifies the fix (Vercel Firewall rule); PR #74 is the reason to stop
 deferring it. **Owner action — dashboard-only.**
 
+**`0027` applied live 2026-08-15 and verified end-to-end against production**
+(not just unit-tested). Confirmed after apply: the unique index exists as
+`UNIQUE … (lower(email)) WHERE email IS NOT NULL`, and the live function body
+carries the advisory lock, the `v_source` bound, and the company-name title —
+read back from `pg_proc`, not assumed from a successful apply. Then four real
+contact-form submissions against the production domain:
+
+| Case | Expected | Result |
+|------|----------|--------|
+| Business domain, no company field | Deal titled after the domain-named company (the `0026` bug titled it after the person) | `Website inquiry — crystalwebtest-example.com`, payload agrees ✅ |
+| Free-mail domain, no company field | Titled after the **person** — titling it `gmail.com` would be worse | `Website inquiry — Freemail Test Person` ✅ |
+| Same email resubmitted | Note appended, no second deal | 1 deal, 1 note, 1 contact ✅ |
+| Pre-existing dedupe behavior | Unchanged by the `CREATE OR REPLACE` | unchanged ✅ |
+
+Worth recording because it nearly shipped wrong: the review's own suggested
+one-liner for finding #2 (`coalesce(v_company_input, v_domain, v_name)`) is
+itself a bug — on the free-mail path the company is named after the person, so
+coalescing to the domain would title deals `gmail.com`. Reading the company row
+actually attached to the deal is what's correct on all four paths. The
+free-mail case above exists specifically to catch that regression.
+
+All test records (3 companies / 3 contacts / 3 deals / 2 notes / 5 outbox rows
+across `plan-test@`, `lead-domain-test@`, `crystalweb-freemail-test@`) were
+enumerated by id and deleted afterwards; the one pre-existing company row was
+verified untouched.
+
 **Still open:**
 - **Rate-limit `/api/contact`** per `ADR-002` — now higher priority than when
   that ADR was written, because spam is persisted, not just mailed.
@@ -94,9 +120,8 @@ deferring it. **Owner action — dashboard-only.**
   but not read/write Vercel env var values). Confirmed live: `cron.job` fires
   on schedule and `net._http_response` shows a clean `401` each run — failing
   closed exactly as designed, and it clears the moment the secret matches.
-- Delete (or explicitly keep) the "Plan Test Co" verification records —
-  contact/company/deal + two `notifications_outbox` rows, all keyed on
-  `plan-test@example.com`.
+- ~~Delete the "Plan Test Co" verification records~~ — done 2026-08-15, along
+  with the two `0027` verification leads; see the cleanup note above.
 - PR #69 (`fix/a11y-motionscale-and-notification-visibility`) — open,
   targets the now-historical `preview` branch, needs retargeting to `main`.
 - CRM-IMPLEMENTATION-PLAN.md Task 3.1 (three-role verification click-through
