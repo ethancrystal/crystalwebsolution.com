@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LazyMotion, domAnimation, m } from 'motion/react';
 import SectionReveal from '../SectionReveal';
 import { useCardMouseReveal } from '../CardHoverReveal';
@@ -33,7 +33,6 @@ const STEPS = [
 ];
 
 export default function Approach() {
-  const sectionRef = useRef(null);
   const [reducedMotion, setReducedMotion] = useState(false);
 
   const height = 930;
@@ -55,7 +54,7 @@ export default function Approach() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="section approach motion-story" id="approach" data-quiet>
+    <section className="section approach motion-story" id="approach" data-quiet>
       <div className="text-plate">
         <p className="eyebrow">
           <SectionReveal as="span" direction="left">How we work</SectionReveal>

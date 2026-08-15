@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { MeshTransmissionMaterial, Float } from '@react-three/drei';
 import * as THREE from 'three';
@@ -18,6 +18,22 @@ export default function Crystal({ position = [0, 0, 0] }) {
   const core = useRef();
   const lastPulse = useRef(0);
   const energy = useRef(0);
+  // motionScale gates this component's own useFrame transforms, but <Float>
+  // runs its own internal loop against the PARENT group -- a child mesh whose
+  // local transform is frozen still moves in world space while its parent is
+  // animated, so the crystal kept bobbing under reduced motion. Float takes
+  // plain numeric props with no media-query awareness, so the gate has to
+  // happen here. Zeroing the props (rather than reimplementing Float's math
+  // in the gated useFrame) keeps the full-motion look byte-identical.
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply = () => setReducedMotion(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
 
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.05);
@@ -48,7 +64,12 @@ export default function Crystal({ position = [0, 0, 0] }) {
   });
 
   return (
-    <Float speed={1.4} rotationIntensity={0.2} floatIntensity={0.6} position={position}>
+    <Float
+      speed={reducedMotion ? 0 : 1.4}
+      rotationIntensity={reducedMotion ? 0 : 0.2}
+      floatIntensity={reducedMotion ? 0 : 0.6}
+      position={position}
+    >
       <mesh ref={outer}>
         <icosahedronGeometry args={[1.35, 0]} />
         <MeshTransmissionMaterial
