@@ -38,6 +38,13 @@ function projectUrlFor(projectId) {
   return APP_URL ? `${APP_URL}/dashboard/projects/${projectId}` : undefined;
 }
 
+// lead.created rows (create_lead_from_contact, migration 0026) have no
+// project_id -- they link to the admin deals view instead.
+function dealUrlFor(dealId) {
+  if (!dealId) return undefined;
+  return APP_URL ? `${APP_URL}/admin/deals/${dealId}` : undefined;
+}
+
 // notifications_outbox.payload is built by Postgres (jsonb_build_object), so
 // its keys are snake_case: from_status, to_status, approval_id, deliverable_id.
 // The templates take camelCase props, so map explicitly rather than spreading
@@ -62,6 +69,10 @@ function templateContextFor(row, { recipient, project }) {
     authorName: payload.author_name,
     excerpt: payload.excerpt ?? payload.body,
     role: payload.role,
+    leadName: payload.lead_name,
+    leadCompany: payload.lead_company,
+    leadEmail: payload.lead_email,
+    dealUrl: dealUrlFor(payload.deal_id),
   };
 }
 
