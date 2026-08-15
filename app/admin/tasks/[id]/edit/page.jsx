@@ -4,9 +4,13 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import {
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+} from '@/lib/crm/project-contract.mjs';
 
-const STATUS_OPTIONS = ['open', 'in_progress', 'completed'];
-const PRIORITY_OPTIONS = ['low', 'medium', 'high'];
+const STATUS_OPTIONS = TASK_STATUSES;
+const PRIORITY_OPTIONS = TASK_PRIORITIES;
 
 export default function EditTaskPage() {
   const { id } = useParams();

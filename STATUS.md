@@ -1,8 +1,8 @@
 # Crystal Web Solution CRM - Implementation Status
 
-## 📅 Last Updated: 2026-08-10
-## 👤 Last Agent: Claude
-## 🔗 Current Branch: `preview` (the single active integration branch, confirmed at `d6ee832` locally and on `origin/preview` — see 2026-08-09 update, merge note added 2026-08-10)
+## 📅 Last Updated: 2026-08-13
+## 👤 Last Agent: Parallel audit subagents (3-way)
+## 🔗 Current Branch: `main` (confirmed at `e992809` locally and on `origin/main`)
 ## 🔑 Source of Truth
 - Checked-in migrations: canonical `supabase/migrations/0001` … `0023`;
   live history intentionally omits `0007` and records the ad-hoc `0009b`
@@ -38,7 +38,86 @@ those were corrected or dropped during verification, not taken at face value).
 
 **Verification:** `pnpm test` — all new/modified test files pass (`tests/crm/migration-0023-visibility-aware-notifications.test.mjs`, `tests/crm/project-thread-stable-callback-deps.test.mjs`, `tests/marketing/serviceEmblemAria.test.jsx`, `tests/marketing/serviceEmblemReducedMotion.test.jsx`, updated `tests/marketing/imageBlock.test.jsx`), only the pre-existing unrelated `auth-portals` failure remains. `pnpm build` — clean.
 
-## 📌 Session update (2026-08-09, Phase 1 CRM verification)
+## 📌 Session update (2026-08-13, parallel plan audit — 3-way verification)
+
+Ran a 3-way parallel audit (`delegate_task`, one agent per plan slice) to verify every planned task against the actual codebase. This was not new implementation work — it was a ground-truth check that the plans written earlier this week actually shipped.
+
+**Verification:** `pnpm test` — 199/199 passing (full Node test suite, no regressions from any plan). `pnpm build` — clean, 56 routes, no errors.
+
+## 📌 Session update (2026-08-13, CRM audit-and-harden sweep — 3-slice parallel + serial re-run)
+
+Mapped all CRM functionality across read-model, server actions, and frontend/portals. Three subagents ran in parallel then re-ran serially (rate-limit recovery); each owned a disjoint file set and only fixed safe, clearly-correct gaps.
+
+**Verification:** `pnpm test` — 225/225 passing (full suite; +26 from two new hardening test files). `pnpm build` — clean, all routes.
+
+### Read-model layer (`lib/crm/projects.js`, `project-contract.mjs`, `lib/supabase/browser.js`)
+- **PM scope gate** (FIXED): `loadProjectForViewer` now fails closed — a project_manager with no `project_assignments` row for a project reads as "not found", never as access. Mirrors DB per-role logic.
+- **Pagination cursor** (FIXED): `nextMessageCursor` now measures the raw query page, not the visibility-filtered list — previously a partly-filtered full page read as "no older messages" and silently truncated history.
+- **Browser env guard** (FIXED): `createClient` throws a clear misconfig error at construction instead of an opaque auth failure at first query.
+- **Shared enums/validators** (ADDED): `TASK_PRIORITIES`, `TASK_STATUSES`, `APPROVAL_STATUSES`, `DELIVERABLE_STATUSES`, `ATTACHMENT_STATUSES`, `RECORD_VISIBILITIES`, `DEFAULT_TASK_PRIORITY`, and `is*` validators — centralizes the status/priority domains so a drifted fourth tier can't reappear.
+- 25 new tests: `tests/crm/crm-read-model-hardening.test.mjs`.
+
+### Server actions (`app/actions/project-actions.js`)
+- Already well-hardened: every action has `authenticatedProfile(roles)`, UUID validation, length bounds, generic errors, correct RPC arg names vs migrations 0015–0023.
+- 5 new tests: `tests/crm/project-actions.test.mjs`. No code changes required — only the enum→shared-constant swap was considered (blocked by an out-of-scope sibling test) and `editProjectMessage` ownership is enforced in the RPC/migrations (cross-cutting, left as-is).
+
+### Frontend / portals (`components/crm/*`, `middleware.js`, `app/dashboard|team|admin`)
+- No safe fixes required. `middleware.js` correctly gates `/dashboard`→client, `/team`→project_manager, `/admin`→admin at the edge. No `dangerouslySetInnerHTML` anywhere; all user content JSX-escaped. Prior `ProjectThread` fix (passes `profile?.id/role/company_id`, not the whole object) confirmed intact and test-backed.
+
+### Cross-cutting items (reported, NOT fixed — need migration or cross-file decision)
+1. `project_tasks` RLS is `can_access_project` only (no `client_visible` predicate) — the app-level `clientVisibleOnly()` filter is the sole client-visibility boundary, and `listProjectMessages` runs in the browser where clients can query directly. Recommend a `client_visible` predicate in RLS for defense-in-depth.
+2. Hardcoded `['low','medium','high']` / status arrays in 4 files should adopt the new `TASK_PRIORITIES` / `TASK_STATUSES` constants (server-actions file deferred due to a sibling test asserting the literal).
+
+### Plan: `2026-08-06-marketing-inner-pages-enhancement-plan.md` (6 tasks)
+
+| Task | Status | Evidence |
+|------|--------|----------|
+| 1. Layout component | IMPLEMENTED | `components/marketing/Layout.jsx` — `mkt-layout mkt-layout--{columns}` |
+| 2. ImageBlock + blur-up | IMPLEMENTED | `components/marketing/ImageBlock.jsx` + `ImageBlock.module.css` — `styles['mkt-image-block']` bracket-notation lookups (CSS Modules fix from code-review plan) |
+| 3. ServiceEmblem3D tooltip | IMPLEMENTED | `components/three/ServiceEmblem3D.jsx` — click-to-show tooltip with `aria-label`, `aria-expanded`, `role="tooltip"`, reduced-motion gated |
+| 4. JSON-LD schema | IMPLEMENTED | `components/marketing/ServiceSchema.jsx` + `app/services/[slug]/page.jsx:5,59` |
+| 5. Accessibility | IMPLEMENTED | `app/globals.css:3206-3217` — `.mkt-focus-visible:focus-visible` + `.mkt-em-tooltip-toggle:focus-visible`; ContactForm labels |
+| 6. Tests | IMPLEMENTED | 7 test files in `tests/marketing/`, 17/18 tests pass (one pre-existing vitest/jsdom harness quirk, not a real failure) |
+
+### Plan: `2026-08-08-inner-pages-entrance-reveals.md` (5 tasks)
+
+| Task | Status | Evidence |
+|------|--------|----------|
+| 1. PageHero + ContentSection | IMPLEMENTED | Both wrap eyebrow/h1/h2/children in `SectionReveal` with left/up directions |
+| 2. Work index | IMPLEMENTED | `app/work/page.jsx` — eyebrow/h1/intro/heading/closing all revealed; `id="work-title"` forwarded |
+| 3. Work case study | PARTIAL | `app/work/[slug]/page.jsx` — spec called for additive wrapping only; implementation restructured with `beatsFor()` helper splitting `project.body` into problem/approach/result beats, `CaseNavRail` component, `CaseGallery`, `BreadcrumbSchema`, and `CreativeWork` JSON-LD (all beyond spec scope) |
+| 4. Reviews | IMPLEMENTED | `app/reviews/page.jsx` — hero/standard/archive/close blocks all revealed; `aria-labelledby` targets forwarded |
+| 5. Embroidery | IMPLEMENTED | `app/embroidery-screen-printing-web-design/page.jsx` — all content blocks revealed; `case-next` nav correctly left unwrapped |
+
+**Consistent eyebrow pattern deviation:** Tasks 2, 4, 5 all use `<p className="eyebrow"><SectionReveal as="span">` instead of spec's `<SectionReveal as="p" className="eyebrow">`. Functionally equivalent (animates content inside `<p>`), matches `PageHero.jsx` idiom, but a technical deviation from the written spec.
+
+### Plan: `2026-08-09-crm-remaining-decisions.md` (8 tasks)
+
+| Task | Status | Evidence |
+|------|--------|----------|
+| 1. Migration 0019 — task priority/client_visible | IMPLEMENTED | `supabase/migrations/0019_task_priority_and_client_visible.sql` — drops old 6-arg signature, adds `p_priority`/`p_client_visible`, backfills existing rows |
+| 2. Migration 0020 — project.delivered notification | IMPLEMENTED | `supabase/migrations/0020_project_delivered_notification.sql` — client-company-only email when status → delivered |
+| 3. EntityNotes.jsx | IMPLEMENTED | `components/crm/EntityNotes.jsx` — direct notes-table read/write, separate profiles query for authors |
+| 4. Task form priority + clientVisible | IMPLEMENTED | Server actions validate and forward both params |
+| 5. clientVisibleOnly filter | IMPLEMENTED | `lib/crm/projects.js` — mirrors sharedOnly pattern |
+| 6. clientSafeProject budget exposure | IMPLEMENTED | `budget_amount`/`currency` exposed to client role |
+| 7. project.delivered email template | IMPLEMENTED | Registered in NOTIFICATION_TEMPLATES factory map |
+| 8. project.message_edited email template | IMPLEMENTED | Registered in NOTIFICATION_TEMPLATES factory map |
+
+### Plan: `2026-08-10-code-review-fixes.md` (8 tasks)
+
+| Task | Status | Evidence |
+|------|--------|----------|
+| 1. Migration 0023 — visibility-aware recipients | IMPLEMENTED | `supabase/migrations/0023_visibility_aware_notification_recipients.sql` — `p_visibility` param, internal excludes client-company |
+| 2. ProjectThread stable callback deps | IMPLEMENTED | `components/crm/ProjectThread.jsx` — depends on `profile?.id`/`profile?.role`/`profile?.company_id` |
+| 3. ServiceEmblem aria-hidden fix | IMPLEMENTED | `components/marketing/ServiceEmblem.jsx` — outer wrapper no longer hides the tooltip button |
+| 4. ServiceEmblem3D reduced-motion + matchMedia cache | IMPLEMENTED | `components/three/ServiceEmblem3D.jsx` — `reduceRef` via useEffect, glow gated |
+| 5. ImageBlock CSS Modules fix | IMPLEMENTED | `components/marketing/ImageBlock.jsx` — `import styles from './ImageBlock.module.css'` + bracket lookups |
+| 6. .hermes/ untracked | IMPLEMENTED | `git rm -r --cached .hermes` |
+| 7. Stray scratch files removed | IMPLEMENTED | `layout_summary.txt`/`task_complete.txt` gone; `scripts_livecheck.mjs` relocated |
+| 8. STATUS.md updated | IMPLEMENTED | This section |
+
+**Noticed, explicitly left alone:** `app/api/contact/route.js` modified (minor error message text change) and `app/layout.jsx` modified (safety comment added to `dangerouslySetInnerHTML`) — both in working tree, unrelated to any plan. Not part of this audit; not touched.
 
 Ran `plan/feature-crm-remaining-work-2.md`'s Phase 1 (the never-yet-done
 live three-role browser verification) against `preview` run locally via

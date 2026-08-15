@@ -215,6 +215,8 @@ git commit -m "feat(marketing): add scroll-entrance reveals to the Work index pa
 
 ### Task 3: Reveal the Work case-study page
 
+> **Status: PARTIAL (deviated from spec).** The entrance reveals shipped and work correctly, but the implementation went beyond the "additive wrapping only" instruction below. See the **Deviation note** at the end of this task.
+
 **Files:**
 - Modify: `app/work/[slug]/page.jsx`
 
@@ -304,6 +306,13 @@ export default async function CaseStudy({ params }) {
 ```
 
 Note: `aria-label="Services"` moved from the `<ul>` onto the `SectionReveal` call (via `...rest` forwarding).
+
+**Deviation note (what actually shipped, 2026-08-13 audit):** The implementation did not follow the additive-wrapping-only shape above. Instead of wrapping the existing `case-body` block in one `SectionReveal`, `app/work/[slug]/page.jsx` was restructured:
+- A `beatsFor()` helper splits `project.body` into problem / approach / result beats, each wrapped in its own `<SectionReveal as="section">`.
+- The old `case-next` `<Link>` was replaced by a `CaseNavRail` component.
+- `CaseGallery`, `BreadcrumbSchema`, and a `CreativeWork` JSON-LD schema were added (all beyond this task's spec scope).
+
+The entrance reveals function correctly and the build is clean — the goal of this task (scroll-entrance animation on the work case-study page) is met. The deviation is documented here so the plan matches shipped reality; it is not a defect.
 
 - [ ] **Step 2: Verify — build**
 

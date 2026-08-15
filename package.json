@@ -2,7 +2,7 @@
   "name": "crystal-web-solution",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@10.33.4",
+  "packageManager": "pnpm@11.21.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -42,12 +42,5 @@
     "jsdom": "^30.0.1",
     "supabase": "^2.111.0",
     "vitest": "^4.1.10"
-  },
-  "pnpm": {
-    "overrides": {
-      "postcss": ">=8.5.18",
-      "sharp": ">=0.35.0",
-      "cookie": ">=0.7.0 <1.0.0"
-    }
   }
 }

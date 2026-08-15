@@ -26,3 +26,5 @@ node_modules/
 .hermes/
 .direnv/
 
+.copilot-tracking/
+*.docx

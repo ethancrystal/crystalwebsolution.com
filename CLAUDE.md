@@ -2,16 +2,11 @@
 
 ## Goal
 
-Continuously polish this site's animations, CRM workflows, and design for full
-visual coherence without ever breaking the live build or changing its current
-look, feel, or functionality. Keep the codebase lean by auditing for unused or
-orphaned files, always confirming with the owner before deleting anything.
-Every change stays accessible (respects reduced motion), production-ready, and
-gets committed to GitHub as the final step.
+Continuously polish this site's animations, CRM workflows, and design for full visual coherence without ever breaking the live build or changing its current look, feel, or functionality. Keep the codebase lean by auditing for unused or orphaned files, always confirming with the owner before deleting anything. Every change stays accessible (respects reduced motion), production-ready, and gets committed to GitHub as the final step.
 
-See `docs/PIXEL-POLISH-PLAN.md` for the phased execution plan tracking the
-remaining animation and layout-coherence work, and `docs/CRM-OPERATIONS.md`
-for CRM portal, role, and migration guidance.
+The overall mission of the CRM is to **accommodate incoming and current clients and collaborate efficiently with them while their project is ongoing**.
+
+See `docs/PIXEL-POLISH-PLAN.md` for the phased execution plan tracking the remaining animation and layout-coherence work, `docs/CRM-OPERATIONS.md` for CRM portal, role, and migration guidance, and `docs/ux/` for Jobs-to-be-Done (JTBD), user journeys, and UX specifications.
 
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -159,7 +154,7 @@ move together.
   `--blue`, `--violet`, etc.).
 - Supabase is the live CRM boundary. Application clients live under
   `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL
-  lives in `supabase/migrations/0001` through `0014`. `.mcp.json` configures a
+  lives in `supabase/migrations/0001` through `0023`. `.mcp.json` configures a
   Supabase MCP server for development-time queries. Two data-access shapes
   coexist deliberately:
   - **Project delivery** — the newer, contract-tested path. Reads go through

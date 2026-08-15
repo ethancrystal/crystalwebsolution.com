@@ -145,6 +145,7 @@ export default function RootLayout({ children }) {
       <head>
         <script
           dangerouslySetInnerHTML={{
+            // Safe: hardcoded string, no user input.
             __html: "try{if(sessionStorage.getItem('cws:intro-seen')==='1')document.documentElement.dataset.cwsIntroSeen='1'}catch(e){}",
           }}
         />
