@@ -876,3 +876,36 @@ export async function enqueueNotification(formData) {
   revalidateAllProjectPaths(projectId);
   return success(requestId, { notificationId: data });
 }
+
+
+export async function markNotificationsRead(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to update notifications.');
+
+  const notificationIds = (formData?.getAll('notificationId') ?? []).filter((value) =>
+    isCanonicalUuid(value),
+  );
+
+  if (notificationIds.length === 0 || new Set(notificationIds).size !== notificationIds.length) {
+    return invalid(requestId, 'Choose valid notifications.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to update notifications.');
+  if (client.failure) return client.failure;
+
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('mark_notifications_read', {
+      p_notification_ids: notificationIds,
+    }),
+  );
+
+  if (error || !Number.isInteger(data)) {
+    return databaseFailure(error, requestId, 'Unable to update notifications.');
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/team');
+  revalidatePath('/admin');
+  return success(requestId, { marked: data });
+}
