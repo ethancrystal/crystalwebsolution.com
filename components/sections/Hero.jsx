@@ -1,10 +1,15 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import DecodeText from '../DecodeText';
 import Reveal from '../Reveal';
 import Magnetic from '../Magnetic';
 import { blast } from '../../lib/pulse';
 import { SITE } from '../../lib/site';
+
+gsap.registerPlugin(ScrollTrigger);
 
 // Clicking anywhere in the hero makes the crystal "roar" (blast pulse).
 export default function Hero() {
@@ -15,6 +20,45 @@ export default function Hero() {
   const introSeen = typeof document !== 'undefined'
     && document.documentElement.dataset.cwsIntroSeen === '1';
   const introDelay = introSeen ? 0.15 : 2.6;
+  const heroRef = useRef(null);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return undefined;
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    if (reduced || coarse) {
+      hero.dataset.refractionFallback = 'true';
+      return undefined;
+    }
+
+    let pulsed = false;
+    const tween = gsap.to(hero, {
+      '--refraction-progress': 1,
+      '--refraction-sweep': 1,
+      scrollTrigger: {
+        trigger: hero,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 0.75,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          hero.dataset.refractionProgress = self.progress.toFixed(3);
+          if (!pulsed && self.progress > 0.52) {
+            pulsed = true;
+            hero.dataset.refractionPulse = 'true';
+          }
+        },
+      },
+      ease: 'none',
+    });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
+  }, []);
 
   const onBlast = (e) => {
     blast(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
@@ -22,12 +66,14 @@ export default function Hero() {
 
   return (
     <section
-      className="section hero hero-off-axis"
+      ref={heroRef}
+      className="section hero hero-off-axis hero-refraction"
       id="hero"
       onClick={onBlast}
       data-cursor="Tap"
       data-quiet
     >
+      <div className="hero-refraction-sweep" aria-hidden="true" />
       <div className="hero-caustics" aria-hidden="true">
         <span className="caustic-ray" />
       </div>

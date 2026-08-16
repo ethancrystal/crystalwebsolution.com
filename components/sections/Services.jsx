@@ -58,7 +58,14 @@ export default function Services() {
   function activateRow(i) {
     light(i);
     const rows = rowElsRef.current;
-    rows.forEach((el, idx) => el?.classList.toggle('is-active', idx === i));
+    rows.forEach((el, idx) => {
+      if (!el) return;
+      const active = idx === i;
+      el.classList.toggle('is-active', active);
+      el.dataset.active = active ? 'true' : 'false';
+      if (active) el.setAttribute('aria-current', 'true');
+      else el.removeAttribute('aria-current');
+    });
 
     const list = listRef.current;
     if (!list || !markerRef.current || !rows[i]) return;
@@ -129,6 +136,7 @@ export default function Services() {
         </div>
         <div
           className="services-list"
+          data-refraction-services="true"
           ref={listRef}
           onPointerLeave={() => {
             isHoveringRef.current = false;
@@ -150,7 +158,14 @@ export default function Services() {
               direction="left"
               as="div"
               onPointerEnter={() => focusRow(i)}
+              onFocus={() => focusRow(i)}
               onPointerLeave={dim}
+              onBlur={() => {
+                isHoveringRef.current = false;
+                dim();
+              }}
+              data-service-index={i}
+              data-active="false"
             >
               <h3 className="service-title" data-hover data-cursor="✦">
                 <span className="service-title-inner">{s.title}</span>

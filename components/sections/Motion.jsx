@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ProjectHandoffLink from '../ProjectHandoffLink';
 import { PROJECTS } from '../../lib/projects';
 
 const DEEP_LINK_PROGRESS = 0.32;
@@ -8,8 +9,9 @@ const RAIL_ACCENTS = ['#c084fc', '#59f3ff', '#ff8dd1', '#ffc64a', '#63d9ff', '#9
 
 function RailCard({ project, index }) {
   return (
-    <Link
+    <ProjectHandoffLink
       href={`/work/${project.slug}`}
+      label={project.title}
       className="motion-card"
       style={{ '--rail-accent': RAIL_ACCENTS[index % RAIL_ACCENTS.length] }}
       aria-label={`${project.title} — view case study`}
@@ -23,7 +25,7 @@ function RailCard({ project, index }) {
           View project <span aria-hidden="true">→</span>
         </span>
       </span>
-    </Link>
+    </ProjectHandoffLink>
   );
 }
 
