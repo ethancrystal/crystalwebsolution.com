@@ -4,6 +4,7 @@ import PageHero from '../../components/marketing/PageHero';
 import ContentSection from '../../components/marketing/ContentSection';
 import FoundingRail from '../../components/marketing/FoundingRail';
 import { SITE } from '../../lib/site';
+import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'About';
 const DESCRIPTION =
@@ -82,6 +83,7 @@ export default function AboutPage() {
         </p>
         <Link href="/#contact" className="btn btn-solid" data-cursor="Say hi">Start a project</Link>
       </ContentSection>
+      <BreadcrumbSchema trail={[{ name: 'About', path: '/about' }]} />
     </MarketingShell>
   );
 }

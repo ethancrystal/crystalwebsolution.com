@@ -5,6 +5,7 @@ import ContentSection from '../../components/marketing/ContentSection';
 import ContactForm from '../../components/marketing/ContactForm';
 import ContactPulseLinks from '../../components/marketing/ContactPulseLinks';
 import { SITE } from '../../lib/site';
+import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'Contact';
 const DESCRIPTION =
@@ -45,6 +46,7 @@ export default function ContactPage() {
         </p>
         <ContactPulseLinks />
       </ContentSection>
+      <BreadcrumbSchema trail={[{ name: 'Contact', path: '/contact' }]} />
     </MarketingShell>
   );
 }

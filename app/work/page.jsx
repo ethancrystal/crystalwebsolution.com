@@ -4,6 +4,8 @@ import WorkLibrary from '../../components/marketing/WorkLibrary';
 import SectionReveal from '../../components/SectionReveal';
 import { PROJECTS } from '../../lib/projects';
 import { SITE } from '../../lib/site';
+import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
+import { absoluteUrl } from '../../lib/seo.mjs';
 
 const WORK_TITLE = 'Selected Work';
 const WORK_DESCRIPTION =
@@ -53,6 +55,23 @@ export default function WorkIndex() {
             View the process →
           </Link>
         </SectionReveal>
+        <BreadcrumbSchema trail={[{ name: 'Work', path: '/work' }]} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'ItemList',
+              name: `${SITE.name} selected work`,
+              itemListElement: PROJECTS.map((project, index) => ({
+                '@type': 'ListItem',
+                position: index + 1,
+                name: project.title,
+                url: absoluteUrl(`/work/${project.slug}`),
+              })),
+            }),
+          }}
+        />
       </section>
     </MarketingShell>
   );
