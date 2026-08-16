@@ -6,6 +6,8 @@ import ServiceGrid from '../../components/marketing/ServiceGrid';
 import ServiceThreadArc from '../../components/marketing/ServiceThreadArc';
 import { SERVICE_PAGES } from '../../lib/servicePages.mjs';
 import { SITE } from '../../lib/site';
+import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
+import { absoluteUrl } from '../../lib/seo.mjs';
 
 const TITLE = 'Services';
 const DESCRIPTION =
@@ -39,6 +41,23 @@ export default function ServicesIndex() {
         <ServiceThreadArc />
         <ServiceGrid pages={SERVICE_PAGES} />
       </ContentSection>
+      <BreadcrumbSchema trail={[{ name: 'Services', path: '/services' }]} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ItemList',
+            name: `${SITE.name} services`,
+            itemListElement: SERVICE_PAGES.map((page, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              name: page.title,
+              url: absoluteUrl(`/services/${page.slug}`),
+            })),
+          }),
+        }}
+      />
     </MarketingShell>
   );
 }

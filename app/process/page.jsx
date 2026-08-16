@@ -5,6 +5,7 @@ import ContentSection from '../../components/marketing/ContentSection';
 import ContactForm from '../../components/marketing/ContactForm';
 import ProcessStepsRail from '../../components/marketing/ProcessStepsRail';
 import { SITE } from '../../lib/site';
+import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'Process';
 const DESCRIPTION =
@@ -82,6 +83,7 @@ export default function ProcessPage() {
           Prefer email? <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
         </p>
       </ContentSection>
+      <BreadcrumbSchema trail={[{ name: 'Process', path: '/process' }]} />
     </MarketingShell>
   );
 }
