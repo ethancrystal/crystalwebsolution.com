@@ -70,10 +70,14 @@ grant execute on function public.mark_notifications_read(uuid[]) to authenticate
 -- These helpers are used by RLS and trusted RPCs; they should not be callable
 -- as arbitrary API endpoints. These functions are created by earlier CRM
 -- migrations, so explicit signatures make the grant contract auditable.
-revoke all on function private.project_notification_recipients(uuid, uuid, text) from public;
-revoke all on function private.shares_project_with(uuid) from public;
-revoke all on function public.pinned_admin_email() from public;
-revoke all on function public.rls_auto_enable() from public;
+revoke all on function private.project_notification_recipients(uuid, uuid, text)
+  from public, anon, authenticated;
+revoke all on function private.shares_project_with(uuid)
+  from public, anon, authenticated;
+revoke all on function public.pinned_admin_email()
+  from public, anon, authenticated;
+revoke all on function public.rls_auto_enable()
+  from public, anon, authenticated;
 
 -- The live project contains a Stripe-backed foreign table that is not part of
 -- the repository schema. Remove direct API-role access if it exists, while
@@ -81,7 +85,7 @@ revoke all on function public.rls_auto_enable() from public;
 do $$
 begin
   if to_regclass('public."Payments"') is not null then
-    execute 'revoke all privileges on table public."Payments" from public';
+    execute 'revoke all privileges on table public."Payments" from public, anon, authenticated';
   end if;
 end;
 $$;
