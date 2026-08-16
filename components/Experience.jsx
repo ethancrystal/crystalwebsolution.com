@@ -15,6 +15,7 @@ import About from './sections/About';
 import Lab from './sections/Lab';
 import Motion from './sections/Motion';
 import Contact from './sections/Contact';
+import SectionHandoff from './SectionHandoff';
 
 // The Scene touches window + ships heavy libs — client-only.
 const Scene = dynamic(() => import('./Scene'), { ssr: false });
@@ -29,10 +30,10 @@ export default function Experience() {
       <ScrollProgress />
       <main className="page">
         <Hero />
-        <About />
-        <Services />
+        <SectionHandoff from="top" tone="cyan" label="about"><About /></SectionHandoff>
+        <SectionHandoff from="left" tone="cyan" label="services"><Services /></SectionHandoff>
         <Approach />
-        <Stories />
+        <SectionHandoff from="right" tone="ink" label="stories"><Stories /></SectionHandoff>
         <Mark />
         <Lab />
         <Motion />
@@ -41,3 +42,4 @@ export default function Experience() {
     </SmoothScroll>
   );
 }
+

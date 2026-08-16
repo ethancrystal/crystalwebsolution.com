@@ -3536,3 +3536,153 @@ html[data-cws-intro-seen='1'] .loader {
 }
 /* --- end case study upgrade --- */
 
+
+/* ---------- refraction interaction pass ---------- */
+.hero-refraction {
+  --refraction-progress: 0;
+  --refraction-sweep: 0;
+  overflow: clip;
+}
+
+.hero-refraction-sweep {
+  position: absolute;
+  z-index: 1;
+  inset: -20% -12%;
+  pointer-events: none;
+  opacity: calc(var(--refraction-progress) * 0.9);
+  transform: translate3d(calc((1 - var(--refraction-sweep)) * -18%), 0, 0) skewX(-14deg);
+  background: linear-gradient(100deg, transparent 34%, rgba(89, 243, 255, 0.18) 48%, rgba(234, 242, 255, 0.06) 52%, transparent 68%);
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+
+.hero-refraction[data-refraction-pulse='true'] .hero-refraction-sweep {
+  background: linear-gradient(100deg, transparent 28%, rgba(89, 243, 255, 0.24) 48%, rgba(234, 242, 255, 0.12) 53%, transparent 72%);
+}
+
+.service-row {
+  --service-signal: 0;
+  transition: border-color 0.45s var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1)), background 0.45s var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.service-row[data-active='true'] {
+  --service-signal: 1;
+  border-image: var(--accent-grad) 1;
+}
+
+.service-row[data-active='true']::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--accent-grad);
+  box-shadow: 0 0 22px rgba(89, 243, 255, 0.52);
+  transform-origin: center;
+  animation: serviceSignalPulse 0.7s var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.service-row[data-active='true'] .service-desc {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+  transform: translate3d(0, 0, 0);
+}
+
+.service-row:not([data-active='true']) .service-desc {
+  clip-path: inset(0 0 0 7%);
+  transition: opacity 0.35s ease, clip-path 0.55s var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+@keyframes serviceSignalPulse {
+  0% { transform: scaleY(0); opacity: 0; }
+  55% { transform: scaleY(1.12); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0.92; }
+}
+
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .hero-refraction-sweep {
+    opacity: 0;
+    transform: none;
+  }
+
+  .service-row[data-active='true']::before {
+    animation: none;
+  }
+
+  .service-row:not([data-active='true']) .service-desc,
+  .service-row[data-active='true'] .service-desc {
+    clip-path: inset(0);
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ---------- portfolio → case-study handoff ---------- */
+.motion-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.motion-card::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: var(--rail-accent, var(--cyan));
+  transform: scaleX(0.16);
+  transform-origin: left;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.motion-card:hover,
+.motion-card:focus-visible {
+  transform: translate3d(0, -0.35rem, 0);
+}
+
+.motion-card:hover::after,
+.motion-card:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.project-handoff-overlay {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.project-handoff-stripe {
+  display: block;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(7, 12, 20, 0.98), rgba(17, 37, 52, 0.98));
+  transform: scaleX(0);
+  will-change: transform;
+}
+
+.project-handoff-label {
+  position: absolute;
+  left: 7vw;
+  bottom: 9vh;
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .motion-card:hover,
+  .motion-card:focus-visible {
+    transform: none;
+  }
+
+  .motion-card::after {
+    transition: none;
+  }
+}
