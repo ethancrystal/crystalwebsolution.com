@@ -374,6 +374,28 @@ The first complete CRM release does not include broad accounting, trust accounti
 
 The next step is plan review, not coding. Review this document as the single CRM blueprint. Approval should confirm the three-role model, project-centric isolation, page inventory, workspace composition, data/state contracts, security gates, roadmap order, and definition of done. Once approved, each implementation slice may create a short execution checklist under this master plan, but the master plan remains the authority for product and architecture decisions.
 
+## 19. Reconciliation with updated MEMORY.md and repository operating rules
+
+The updated project memory and repository instructions introduce several operational rules that are now part of this master plan. The following rules take precedence over older feature notes and must be checked before each implementation slice.
+
+| Operating rule | Master-plan consequence |
+|---|---|
+| `main` is the Vercel production branch; merging into `main` deploys production. | Work must use a feature branch and reviewed pull request. Never deploy with `vercel --prod`. |
+| CRM visibility is controlled by the build-time `NEXT_PUBLIC_CRM_ENABLED` environment variable, not by a historical `preview` or `production` branch. | Treat CRM launch as an owner-controlled Vercel setting and redeploy requirement. Do not invent a branch-promotion workflow. |
+| The project-delivery path is intentionally contract-based: `lib/crm/projects.js` for reads and `app/actions/project-actions.js` for writes. | All new project, message, attachment, deliverable, approval, and workspace work extends this path. Do not create duplicate per-table CRM modules. |
+| Companies, contacts, deals, tasks, and users currently use direct browser Supabase reads under RLS. | Preserve this deliberate split unless a future migration explicitly moves one domain onto the contract/server-action path. |
+| Database roles are assigned by trusted database paths; the browser never selects `admin` or promotes itself. | Keep signup and invite flows role-safe, and test role changes through database-backed paths. |
+| Source tests are mostly regex-based contract checks and do not execute real RPCs or RLS. | A green `pnpm test` is necessary but insufficient for database changes. Run `pnpm test:db` with an isolated Supabase stack or use approved read-only live verification. |
+| Before changing an existing function, table, policy, or migration contract, fetch the live definition with `pg_get_functiondef` or the equivalent catalog query. | Never reconstruct live SQL from an old migration or pattern-match a function body. Record the fetched definition in the implementation ledger. |
+| The memory file records migration `0024` as unmerged, while `docs/CRM-OPERATIONS.md` describes an older `0001`–`0011` canonical chain and the prior live audit found production-only migration drift. | Migration status is unresolved until `list_migrations` and the local migration directory are rechecked together. No new production migration is approved before exact drift reconciliation. |
+| The ship loop is build → commit → push → reviewed PR into `main` → Vercel auto-deploy → authenticated browser spot-check. | Every implementation phase must include fresh build evidence, review, and preview/production verification appropriate to the risk. |
+| Vercel dashboard settings and owner-only environment mutations remain the owner’s responsibility. | Prepare exact settings instructions and verification steps, but do not mutate Vercel project configuration without explicit owner authorization. |
+| `docs/CRM-OPERATIONS.md`, `docs/ux/`, `STATUS.md`, `docs/superpowers/specs/`, and `docs/superpowers/plans/` are supporting records. | The master plan remains the product/architecture source of truth; supporting docs provide evidence and phase-specific execution detail. |
+
+### Skill-driven execution protocol
+
+Future CRM work follows this sequence: **UX framing and state inventory → written specification → executable plan → test-first contract → failing-test verification → minimal implementation → full build/test verification → focused code review → branch packaging → reviewed PR → preview/browser verification**. The implementation must stop if a design decision, live database definition, or owner-controlled deployment setting is unresolved.
+
 ## References
 
 [1]: https://github.com/ethancrystal/crystalwebsolution.com/blob/26fa1c5/middleware.js "CRM route middleware"
