@@ -77,7 +77,7 @@ The production project is `wmnjosiikehsuaqucvja` in `us-west-1`. Owner-approved 
 | Internal helper functions | `anon` and `authenticated` execution is revoked for `private.project_notification_recipients`, `private.shares_project_with`, `public.pinned_admin_email`, and `public.rls_auto_enable`. |
 | `public."Payments"` | Foreign table is preserved. Direct API-role SELECT/INSERT access is revoked; trusted `service_role` SELECT remains. No deletion was performed. |
 | Migration ledger | 0027 and corrective 0028 are recorded exactly once under the applied migration names. |
-| Remaining production concern | The live-only `lead_capture_review_followups` migration is not represented by a checked-in local file and must be recovered before the next schema migration. |
+| Remaining production concern | The live-only `lead_capture_review_followups` migration is not represented by a checked-in local file and must be recovered before the next schema migration. Open PR #69 also contains a different local `0028_transition_project_status_visibility_recipients.sql`, while the onboarding branch contains `0028_idempotent_client_project_intake.sql`; neither can land under `0028` because production already records timestamped security migrations corresponding to local 0027/0028. |
 
 The `Payments` table is backed by `Stripe_server` and mapped to Stripe `public.charges`. Repository and database dependency checks found no current CRM code or dependent schema object using it, but an external billing process cannot be excluded solely by source inspection. Billing remains a controlled review item; do not delete or re-expose the foreign table without an owner decision.
 
@@ -287,8 +287,9 @@ Work proceeds in dependency order. A phase may contain multiple PRs, but each PR
 
 - [ ] Query `list_migrations` and compare it with `supabase/migrations`; record every version/name mismatch.
 - [ ] Recover exact SQL for live-only `lead_capture_review_followups` using catalog definitions and commit a checked-in migration with the repository naming convention.
-- [ ] Compare the onboarding branch’s `0028_idempotent_client_project_intake.sql` against the live ledger; renumber it to the next unused migration number after reconciliation. Do not apply it under `0028`.
+- [ ] Compare PR #69’s `0028_transition_project_status_visibility_recipients.sql` and the onboarding branch’s `0028_idempotent_client_project_intake.sql` against the live ledger; assign both changes new, non-conflicting migration names after the live-only recovery and production 0027/0028 history are represented. Do not apply either under `0028`.
 - [ ] Fetch exact live definitions for `create_project`, `transition_project_status`, `create_project_task`, attachment RPCs, and notification helpers before modifying any of them.
+- [ ] Preserve the live `create_project(uuid, text, text, text, date, uuid)` contract while redesigning the onboarding migration: the current onboarding branch retains a browser-supplied company argument and is not yet sufficient evidence for derived-company authorization. Reconcile its signature and action payload against the live function before implementation.
 - [ ] Build an isolated/preview database from the reconciled migration chain and compare tables, functions, policies, constraints, storage policies, indexes, and grants with production.
 - [ ] Add migration contract tests for idempotency, fixed search paths, exact signatures, revokes, policy replacement, and no accidental duplicate overloads.
 
@@ -516,7 +517,8 @@ The first executable checklist is:
 - [ ] Rebase or merge the reviewed security branch and PR #76 into a clean integration branch without changing production SQL.
 - [ ] Fetch the current live migration ledger and exact live definitions for the onboarding/project functions.
 - [ ] Recover and check in `lead_capture_review_followups` from the live database.
-- [ ] Rename the onboarding idempotency migration to the next available number and update its tests, documentation, and apply name.
+- [ ] Reconcile PR #69’s transition-recipient migration and the onboarding idempotency migration as separate changes; assign both unique migration names after representing production 0027/0028 and the live-only lead-follow-up change. Update all tests, documentation, and apply names.
+- [ ] Redesign the onboarding function contract from the exact live six-argument `create_project` definition rather than copying the current branch migration: clients must not be authorized by trusting a browser company ID, and admin-assisted creation must remain explicit and tested.
 - [ ] Create real preview seed data for two companies, two clients, an assigned and unassigned employee, an admin, two projects, messages, attachments, tasks, deliverables, approvals, notifications, and audit events.
 - [ ] Run the first cross-company/cross-assignment negative test suite against preview.
 - [ ] Only after this slice is green, implement the approved messaging/asset hardening slice (Gate 4), then integrate the onboarding slice (Gate 5) if the migration chain is clean.
