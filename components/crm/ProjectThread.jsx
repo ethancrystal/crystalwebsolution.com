@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/browser';
 import { listProjectMessages } from '@/lib/crm/projects';
-import { postProjectMessage, editProjectMessage, reserveAttachment, finalizeAttachment } from '@/app/actions/project-actions';
+import {
+  createAttachmentDownloadUrl,
+  postProjectMessage,
+  editProjectMessage,
+  reserveAttachment,
+  finalizeAttachment,
+} from '@/app/actions/project-actions';
 
 function formatBytes(bytes) {
   if (!bytes && bytes !== 0) return '';
@@ -33,14 +39,21 @@ export default function ProjectThread({ projectId, profile }) {
   const [body, setBody] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [stagedAttachments, setStagedAttachments] = useState([]);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editBody, setEditBody] = useState('');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const fileInputRef = useRef(null);
   const listEndRef = useRef(null);
+  const messageAttemptIdRef = useRef(null);
+  const projectGenerationRef = useRef(0);
+  const activeProjectRef = useRef(projectId);
 
   const load = useCallback(async () => {
-    if (!projectId) return;
+    if (!projectId || activeProjectRef.current !== projectId) return;
+    const generation = projectGenerationRef.current;
 
     try {
       const supabase = createClient();
@@ -48,19 +61,24 @@ export default function ProjectThread({ projectId, profile }) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      if (activeProjectRef.current !== projectId || generation !== projectGenerationRef.current) return;
       setUserId(user?.id || null);
 
-      const { messages, threadId } = await listProjectMessages(
+      const result = await listProjectMessages(
         supabase,
         { profile },
         projectId,
+        null,
+        20,
       );
-      setMessages(messages || []);
-      setThreadId(threadId || null);
+      if (activeProjectRef.current !== projectId || generation !== projectGenerationRef.current) return;
+      setMessages(result.messages || []);
+      setNextCursor(result.nextCursor || null);
+      setThreadId(result.threadId || null);
     } catch (err) {
-      setError(err.message);
+      if (activeProjectRef.current === projectId && generation === projectGenerationRef.current) setError(err.message);
     } finally {
-      setIsLoading(false);
+      if (activeProjectRef.current === projectId && generation === projectGenerationRef.current) setIsLoading(false);
     }
     // profile is read fresh from the closure above (requireViewer only ever
     // reads id/role/company_id from it), so depend on those stable
@@ -72,34 +90,59 @@ export default function ProjectThread({ projectId, profile }) {
   }, [projectId, profile?.id, profile?.role, profile?.company_id]);
 
   useEffect(() => {
+    activeProjectRef.current = projectId;
+    projectGenerationRef.current += 1;
+    setMessages([]);
+    setThreadId(null);
+    setNextCursor(null);
+    setBody('');
+    setStagedAttachments([]);
+    setError(null);
+    setIsLoading(true);
+    setIsSending(false);
+    setIsUploading(false);
+    setIsSavingEdit(false);
+    setEditingId(null);
+    setEditBody('');
+    messageAttemptIdRef.current = null;
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [projectId]);
+
+  useEffect(() => {
     load();
   }, [load]);
 
-  // Live delivery: any INSERT/UPDATE on this project's own message thread
-  // (from any participant, in any tab/session) reloads the list. Reload
-  // rather than patching a single row in place - the read path already
-  // applies visibility filtering (sharedOnly) and profile joins that a
-  // bare Postgres change payload doesn't carry, so re-fetching through
-  // listProjectMessages is the only way to keep those rules intact.
+  // Realtime is an acceleration layer. Payloads contain identifiers only;
+  // every refresh goes back through the visibility-filtered read model.
   useEffect(() => {
     if (!threadId) return undefined;
 
     const supabase = createClient();
-    const channel = supabase
-      .channel(`project-thread-${threadId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'project_messages', filter: `thread_id=eq.${threadId}` },
-        () => {
-          load();
-        },
-      )
-      .subscribe();
+    const visibilityTopics = profile?.role === 'client' ? ['shared'] : ['shared', 'internal'];
+    const channels = visibilityTopics.map((visibility) => {
+      const refreshForEvent = ({ payload }) => {
+        if (
+          payload?.project_id !== projectId ||
+          payload?.visibility !== visibility
+        ) {
+          return;
+        }
+        void load();
+      };
+
+      return supabase
+        .channel(`project:${projectId}:${visibility}`)
+        .on('broadcast', { event: 'project_message_created' }, refreshForEvent)
+        .on('broadcast', { event: 'project_message_updated' }, refreshForEvent)
+        .subscribe();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      channels.forEach((channel) => {
+        supabase.removeChannel(channel);
+      });
     };
-  }, [threadId, load]);
+  }, [projectId, profile?.role, threadId, load]);
 
   useEffect(() => {
     listEndRef.current?.scrollIntoView({ block: 'nearest' });
@@ -118,7 +161,8 @@ export default function ProjectThread({ projectId, profile }) {
 
   async function handleSaveEdit(messageId) {
     const trimmed = editBody.trim();
-    if (!trimmed) return;
+    if (!trimmed || activeProjectRef.current !== projectId) return;
+    const generation = projectGenerationRef.current;
 
     setIsSavingEdit(true);
     setError(null);
@@ -131,21 +175,32 @@ export default function ProjectThread({ projectId, profile }) {
 
       const result = await editProjectMessage(formData);
       if (!result.ok) throw new Error(result.error || 'Unable to edit this message.');
+      if (activeProjectRef.current !== projectId || generation !== projectGenerationRef.current) return;
 
       setEditingId(null);
       setEditBody('');
       await load();
     } catch (err) {
-      setError(err.message);
+      if (activeProjectRef.current === projectId && generation === projectGenerationRef.current) {
+        setError(err.message);
+      }
     } finally {
-      setIsSavingEdit(false);
+      if (activeProjectRef.current === projectId && generation === projectGenerationRef.current) {
+        setIsSavingEdit(false);
+      }
     }
   }
 
   async function handleSend(e) {
     e.preventDefault();
+    const generation = projectGenerationRef.current;
+    if (activeProjectRef.current !== projectId) return;
     const trimmed = body.trim();
-    if (!trimmed) return;
+    if (!trimmed || stagedAttachments.some((attachment) => attachment.status !== 'ready')) return;
+
+    if (!messageAttemptIdRef.current) {
+      messageAttemptIdRef.current = globalThis.crypto.randomUUID();
+    }
 
     setIsSending(true);
     setError(null);
@@ -154,25 +209,40 @@ export default function ProjectThread({ projectId, profile }) {
       const formData = new FormData();
       formData.set('projectId', projectId);
       formData.set('body', trimmed);
+      formData.set('clientGeneratedId', messageAttemptIdRef.current);
+      stagedAttachments
+        .filter((attachment) => attachment.status === 'ready')
+        .forEach((attachment) => formData.append('attachmentIds', attachment.attachmentId));
 
       const result = await postProjectMessage(formData);
       if (!result.ok) throw new Error(result.error || 'Unable to send this message.');
+      if (activeProjectRef.current !== projectId || generation !== projectGenerationRef.current) return;
 
       setBody('');
+      setStagedAttachments([]);
+      messageAttemptIdRef.current = null;
       await load();
-    } catch (err) {
-      setError(err.message);
+    } catch {
+      if (activeProjectRef.current === projectId && generation === projectGenerationRef.current) {
+        setError('Unable to send this message. Your draft is preserved for retry.');
+      }
     } finally {
-      setIsSending(false);
+      if (activeProjectRef.current === projectId && generation === projectGenerationRef.current) {
+        setIsSending(false);
+      }
     }
   }
 
   async function handleFileChange(e) {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || activeProjectRef.current !== projectId) return;
+    const generation = projectGenerationRef.current;
+    const isCurrentProject = () =>
+      activeProjectRef.current === projectId && generation === projectGenerationRef.current;
 
     setIsUploading(true);
     setError(null);
+    let reservedAttachment = null;
 
     try {
       const reserveForm = new FormData();
@@ -183,13 +253,28 @@ export default function ProjectThread({ projectId, profile }) {
 
       const reserved = await reserveAttachment(reserveForm);
       if (!reserved.ok) throw new Error(reserved.error || 'Unable to reserve this upload.');
+      reservedAttachment = reserved.data;
+      if (isCurrentProject()) {
+        setStagedAttachments((current) => [
+          ...current,
+          { ...reserved.data, sourceFile: file, status: 'pending', uploaded: false },
+        ]);
+      }
 
       const supabase = createClient();
       const { error: uploadError } = await supabase.storage
         .from('project-files')
-        .upload(reserved.data.storagePath, file);
+        .upload(reserved.data.storagePath, file, { upsert: false });
 
       if (uploadError) throw uploadError;
+      if (!isCurrentProject()) return;
+      setStagedAttachments((current) =>
+        current.map((attachment) =>
+          attachment.attachmentId === reserved.data.attachmentId
+            ? { ...attachment, uploaded: true }
+            : attachment,
+        ),
+      );
 
       const finalizeForm = new FormData();
       finalizeForm.set('projectId', projectId);
@@ -197,28 +282,139 @@ export default function ProjectThread({ projectId, profile }) {
 
       const finalized = await finalizeAttachment(finalizeForm);
       if (!finalized.ok) throw new Error(finalized.error || 'Unable to finalize this upload.');
+      if (!isCurrentProject()) return;
 
-      await load();
-    } catch (err) {
-      setError(err.message);
+      setStagedAttachments((current) =>
+        current.map((attachment) =>
+          attachment.attachmentId === reserved.data.attachmentId
+            ? { ...attachment, status: 'ready', uploaded: true }
+            : attachment,
+        ),
+      );
+    } catch {
+      if (!isCurrentProject()) return;
+      if (reservedAttachment?.attachmentId) {
+        setStagedAttachments((current) =>
+          current.map((attachment) =>
+            attachment.attachmentId === reservedAttachment.attachmentId
+              ? { ...attachment, status: 'failed' }
+              : attachment,
+          ),
+        );
+      }
+      setError('Unable to upload this file. The staged file can be retried.');
     } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (isCurrentProject()) {
+        setIsUploading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    }
+  }
+
+  async function retryStagedAttachment(attachment) {
+    if (!attachment?.sourceFile || attachment.status !== 'failed') return;
+    if (activeProjectRef.current !== projectId) return;
+    const generation = projectGenerationRef.current;
+    const isCurrentProject = () =>
+      activeProjectRef.current === projectId && generation === projectGenerationRef.current;
+
+    setIsUploading(true);
+    setError(null);
+    setStagedAttachments((current) =>
+      current.map((item) =>
+        item.attachmentId === attachment.attachmentId ? { ...item, status: 'pending' } : item,
+      ),
+    );
+
+    try {
+      if (!attachment.uploaded) {
+        const supabase = createClient();
+        const { error: uploadError } = await supabase.storage
+          .from('project-files')
+          .upload(attachment.storagePath, attachment.sourceFile, { upsert: false });
+        if (uploadError) throw uploadError;
+      }
+
+      const finalizeForm = new FormData();
+      finalizeForm.set('projectId', projectId);
+      finalizeForm.set('attachmentId', attachment.attachmentId);
+      const finalized = await finalizeAttachment(finalizeForm);
+      if (!finalized.ok) throw new Error(finalized.error || 'Unable to finalize this upload.');
+      if (!isCurrentProject()) return;
+
+      setStagedAttachments((current) =>
+        current.map((item) =>
+          item.attachmentId === attachment.attachmentId
+            ? { ...item, status: 'ready', uploaded: true }
+            : item,
+        ),
+      );
+    } catch {
+      if (!isCurrentProject()) return;
+      setStagedAttachments((current) =>
+        current.map((item) =>
+          item.attachmentId === attachment.attachmentId ? { ...item, status: 'failed' } : item,
+        ),
+      );
+      setError('Unable to retry this file upload.');
+    } finally {
+      if (isCurrentProject()) setIsUploading(false);
+    }
+  }
+
+  async function loadOlderMessages() {
+    if (!nextCursor || isLoadingOlder || activeProjectRef.current !== projectId) return;
+    const generation = projectGenerationRef.current;
+    setIsLoadingOlder(true);
+    setError(null);
+
+    try {
+      const supabase = createClient();
+      const result = await listProjectMessages(
+        supabase,
+        { profile },
+        projectId,
+        nextCursor,
+        20,
+      );
+      if (activeProjectRef.current !== projectId || generation !== projectGenerationRef.current) return;
+      setMessages((current) => {
+        const byId = new Map([...result.messages, ...current].map((message) => [message.id, message]));
+        return [...byId.values()].sort((left, right) => {
+          const timeCompare = new Date(left.created_at).getTime() - new Date(right.created_at).getTime();
+          return timeCompare || left.id.localeCompare(right.id);
+        });
+      });
+      setNextCursor(result.nextCursor || null);
+    } catch {
+      if (activeProjectRef.current === projectId && generation === projectGenerationRef.current) {
+        setError('Unable to load older messages.');
+      }
+    } finally {
+      if (activeProjectRef.current === projectId && generation === projectGenerationRef.current) {
+        setIsLoadingOlder(false);
+      }
     }
   }
 
   async function handleDownload(projectFile) {
+    if (activeProjectRef.current !== projectId) return;
+    const generation = projectGenerationRef.current;
     setError(null);
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase.storage
-        .from('project-files')
-        .createSignedUrl(projectFile.storage_path, 60);
+      const formData = new FormData();
+      formData.set('projectId', projectId);
+      formData.set('assetId', projectFile.id);
+      formData.set('kind', 'attachment');
 
-      if (error) throw error;
-      window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
-    } catch (err) {
-      setError(err.message);
+      const result = await createAttachmentDownloadUrl(formData);
+      if (!result.ok) throw new Error(result.error || 'Unable to download this file.');
+      if (activeProjectRef.current !== projectId || generation !== projectGenerationRef.current) return;
+      window.open(result.data.signedUrl, '_blank', 'noopener,noreferrer');
+    } catch {
+      if (activeProjectRef.current === projectId && generation === projectGenerationRef.current) {
+        setError('Unable to download this file.');
+      }
     }
   }
 
@@ -288,6 +484,33 @@ export default function ProjectThread({ projectId, profile }) {
           </ul>
         )}
       </div>
+
+      {stagedAttachments.length > 0 && (
+        <ul className="thread-staged-files" aria-label="Staged files">
+          {stagedAttachments.map((attachment) => (
+            <li key={attachment.attachmentId}>
+              <span>{attachment.fileName}</span>
+              <span>{attachment.status === 'ready' ? 'Ready to attach' : attachment.status}</span>
+              {attachment.status === 'failed' && (
+                <button type="button" onClick={() => retryStagedAttachment(attachment)} disabled={isUploading}>
+                  Retry upload
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {nextCursor && (
+        <button
+          type="button"
+          className="thread-older-button"
+          onClick={loadOlderMessages}
+          disabled={isLoadingOlder}
+        >
+          {isLoadingOlder ? 'Loading older messages...' : 'Load older messages'}
+        </button>
+      )}
 
       <div className="thread-messages">
         {messages.length > 0 ? (
@@ -447,6 +670,49 @@ export default function ProjectThread({ projectId, profile }) {
         .thread-file-meta {
           color: #999;
           font-size: 0.78rem;
+        }
+
+        .thread-staged-files {
+          list-style: none;
+          display: flex;
+          flex-direction: column;
+          gap: 0.45rem;
+          margin: 0 0 1rem;
+          padding: 0.75rem;
+          border: 1px solid rgba(100, 200, 255, 0.12);
+          border-radius: 8px;
+          background: rgba(15, 20, 40, 0.45);
+        }
+
+        .thread-staged-files li {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.75rem;
+          color: #d7e7f4;
+          font-size: 0.82rem;
+        }
+
+        .thread-staged-files button,
+        .thread-older-button {
+          background: rgba(100, 200, 255, 0.1);
+          border: 1px solid rgba(100, 200, 255, 0.3);
+          color: #64c8ff;
+          border-radius: 6px;
+          padding: 0.4rem 0.7rem;
+          cursor: pointer;
+          font-family: inherit;
+        }
+
+        .thread-staged-files button:disabled,
+        .thread-older-button:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+
+        .thread-older-button {
+          align-self: flex-start;
+          margin-bottom: 0.75rem;
         }
 
         .thread-messages {

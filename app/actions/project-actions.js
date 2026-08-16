@@ -485,6 +485,66 @@ export async function finalizeAttachment(formData) {
   return success(requestId, { attachmentId: data });
 }
 
+export async function createAttachmentDownloadUrl(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to download files.');
+
+  const projectId = formString(formData, 'projectId');
+  const assetId = formString(formData, 'assetId');
+  const kind = formString(formData, 'kind').trim().toLowerCase();
+
+  if (!isCanonicalUuid(projectId) || !isCanonicalUuid(assetId)) {
+    return invalid(requestId, 'Choose a valid project file.');
+  }
+  if (!['attachment', 'deliverable'].includes(kind)) {
+    return invalid(requestId, 'Choose a valid project file.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to authorize this download.');
+  if (client.failure) return client.failure;
+
+  let query;
+  if (kind === 'attachment') {
+    query = client.supabase
+      .from('project_attachments')
+      .select('id, storage_path')
+      .eq('id', assetId)
+      .eq('project_id', projectId)
+      .eq('status', 'ready');
+  } else {
+    query = client.supabase
+      .from('project_deliverables')
+      .select('id, storage_path')
+      .eq('id', assetId)
+      .eq('project_id', projectId)
+      .neq('status', 'draft');
+  }
+
+  const { data: asset, error: assetError } = await query.maybeSingle();
+  if (assetError || !asset?.storage_path) {
+    return databaseFailure(assetError, requestId, 'Unable to authorize this download.');
+  }
+
+  try {
+    const { data, error } = await client.supabase.storage
+      .from('project-files')
+      .createSignedUrl(asset.storage_path, 60);
+
+    if (error || !data?.signedUrl) {
+      return databaseFailure(error, requestId, 'Unable to create this download.');
+    }
+
+    return success(requestId, {
+      attachmentId: asset.id,
+      signedUrl: data.signedUrl,
+      expiresIn: 60,
+    });
+  } catch (error) {
+    return databaseFailure(error, requestId, 'Unable to create this download.');
+  }
+}
+
 export async function createProjectTask(formData) {
   const requestId = randomUUID();
   const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
@@ -875,4 +935,37 @@ export async function enqueueNotification(formData) {
 
   revalidateAllProjectPaths(projectId);
   return success(requestId, { notificationId: data });
+}
+
+
+export async function markNotificationsRead(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to update notifications.');
+
+  const notificationIds = (formData?.getAll('notificationId') ?? []).filter((value) =>
+    isCanonicalUuid(value),
+  );
+
+  if (notificationIds.length === 0 || new Set(notificationIds).size !== notificationIds.length) {
+    return invalid(requestId, 'Choose valid notifications.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to update notifications.');
+  if (client.failure) return client.failure;
+
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('mark_notifications_read', {
+      p_notification_ids: notificationIds,
+    }),
+  );
+
+  if (error || !Number.isInteger(data)) {
+    return databaseFailure(error, requestId, 'Unable to update notifications.');
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/team');
+  revalidatePath('/admin');
+  return success(requestId, { marked: data });
 }

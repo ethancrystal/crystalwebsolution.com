@@ -132,15 +132,17 @@ async function drain(request) {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  if (!isEmailConfigured()) {
-    return json({ ok: false, error: 'Email delivery is not configured.' }, 503);
-  }
-
   let supabase;
   try {
     supabase = createAdminClient();
   } catch {
     return json({ ok: false, error: 'Supabase service role is not configured.' }, 503);
+  }
+
+  const cleanedAttachments = await cleanupStaleAttachments(supabase);
+
+  if (!isEmailConfigured()) {
+    return json({ ok: false, error: 'Email delivery is not configured.', cleanedAttachments }, 503);
   }
 
   const nowIso = new Date().toISOString();
@@ -160,7 +162,15 @@ async function drain(request) {
   }
 
   if (!rows?.length) {
-    return json({ ok: true, claimed: 0, sent: 0, failed: 0, skipped: 0, retrying: 0 });
+    return json({
+      ok: true,
+      claimed: 0,
+      sent: 0,
+      failed: 0,
+      skipped: 0,
+      retrying: 0,
+      cleanedAttachments,
+    });
   }
 
   const recipients = await resolveRecipients(supabase, rows);
@@ -244,7 +254,22 @@ async function drain(request) {
     }
   }
 
-  return json({ ok: true, claimed: rows.length, sent, failed, skipped, retrying });
+  return json({ ok: true, claimed: rows.length, sent, failed, skipped, retrying, cleanedAttachments });
+}
+
+async function cleanupStaleAttachments(supabase) {
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase.rpc('cleanup_stale_project_attachments', {
+    p_before: cutoff,
+  });
+
+  if (error) {
+    console.error('Stale attachment cleanup failed:', error.message);
+    return 0;
+  }
+
+  const count = Number(data);
+  return Number.isSafeInteger(count) && count >= 0 ? count : 0;
 }
 
 // profiles has no email column - addresses live in auth.users, reachable

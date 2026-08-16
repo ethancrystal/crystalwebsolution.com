@@ -1,5 +1,7 @@
 'use client';
 
+import { markNotificationsRead } from '@/app/actions/project-actions';
+
 function humanizeEventType(eventType) {
   if (!eventType) return 'Notification';
   return eventType
@@ -31,20 +33,31 @@ export default function NotificationsPanel({ notifications = [] }) {
         <p className="crm-empty-state">No notifications yet.</p>
       ) : (
         <ul className="crm-notification-list">
-          {notifications.map((notification) => (
-            <li key={notification.id} className="crm-notification-item">
-              <div className="crm-notification-main">
-                <span className="crm-notification-title">{humanizeEventType(notification.event_type)}</span>
-                <span className={`crm-notification-status ${notification.sent_at ? 'sent' : 'pending'}`}>
-                  {notification.sent_at ? 'sent' : 'pending'}
-                </span>
-              </div>
-              <div className="crm-notification-meta">
-                <span>{notification.channel}</span>
-                <span>{formatWhen(notification.created_at)}</span>
-              </div>
-            </li>
-          ))}
+          {notifications.map((notification) => {
+            const unread = notification.channel === 'in_app' && !notification.read_at;
+            return (
+              <li key={notification.id} className={`crm-notification-item ${unread ? 'unread' : ''}`}>
+                <div className="crm-notification-main">
+                  <span className="crm-notification-title">{humanizeEventType(notification.event_type)}</span>
+                  <span className={`crm-notification-status ${notification.sent_at ? 'sent' : 'pending'}`}>
+                    {notification.sent_at ? 'sent' : 'pending'}
+                  </span>
+                </div>
+                <div className="crm-notification-meta">
+                  <span>{notification.channel}</span>
+                  <span>{formatWhen(notification.created_at)}</span>
+                  {unread ? (
+                    <form action={markNotificationsRead}>
+                      <input type="hidden" name="notificationId" value={notification.id} />
+                      <button type="submit" className="crm-notification-read">Mark read</button>
+                    </form>
+                  ) : (
+                    <span>read</span>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
 
@@ -78,6 +91,11 @@ export default function NotificationsPanel({ notifications = [] }) {
           display: flex;
           flex-direction: column;
           gap: 0.35rem;
+        }
+
+        .crm-notification-item.unread {
+          border-color: rgba(100, 200, 255, 0.4);
+          box-shadow: 0 0 0 1px rgba(100, 200, 255, 0.12);
         }
 
         .crm-notification-main {
@@ -121,6 +139,19 @@ export default function NotificationsPanel({ notifications = [] }) {
           color: #999;
           font-size: 0.85rem;
           text-transform: capitalize;
+        }
+
+        .crm-notification-read {
+          border: 0;
+          padding: 0;
+          background: transparent;
+          color: #64c8ff;
+          cursor: pointer;
+          font: inherit;
+        }
+
+        .crm-notification-read:hover {
+          text-decoration: underline;
         }
 
         .crm-empty-state {

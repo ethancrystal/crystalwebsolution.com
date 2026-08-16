@@ -2,7 +2,11 @@
 
 import { useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/browser';
-import { createProjectDeliverable, publishDeliverable } from '@/app/actions/project-actions';
+import {
+  createAttachmentDownloadUrl,
+  createProjectDeliverable,
+  publishDeliverable,
+} from '@/app/actions/project-actions';
 
 function formatBytes(bytes) {
   if (!bytes && bytes !== 0) return '';
@@ -26,20 +30,26 @@ function formatWhen(value) {
 export default function ProjectFiles({ files = [], deliverables = [], canUpload = false, projectId, onChanged }) {
   const [error, setError] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
   const fileInputRef = useRef(null);
 
-  async function handleDownload(item) {
+  async function handleDownload(item, kind) {
+    if (!item?.id || downloadingId) return;
+    setDownloadingId(item.id);
     setError(null);
     try {
-      const supabase = createClient();
-      const { data, error: signError } = await supabase.storage
-        .from('project-files')
-        .createSignedUrl(item.storage_path, 60);
+      const formData = new FormData();
+      formData.set('projectId', projectId);
+      formData.set('assetId', item.id);
+      formData.set('kind', kind);
 
-      if (signError) throw signError;
-      window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
-    } catch (err) {
-      setError(err.message);
+      const result = await createAttachmentDownloadUrl(formData);
+      if (!result.ok) throw new Error(result.error || 'Unable to download this file.');
+      window.open(result.data.signedUrl, '_blank', 'noopener,noreferrer');
+    } catch {
+      setError('Unable to download this file.');
+    } finally {
+      setDownloadingId(null);
     }
   }
 
@@ -119,9 +129,14 @@ export default function ProjectFiles({ files = [], deliverables = [], canUpload 
                   {formatBytes(file.size_bytes)} &middot; {file.uploadedBy?.full_name || 'Unknown'} &middot; {formatWhen(file.created_at)}
                 </span>
               </div>
-              {file.storage_path && (
-                <button type="button" className="crm-file-link" onClick={() => handleDownload(file)}>
-                  Download
+              {file.id && (
+                <button
+                  type="button"
+                  className="crm-file-link"
+                  onClick={() => handleDownload(file, 'attachment')}
+                  disabled={Boolean(downloadingId)}
+                >
+                  {downloadingId === file.id ? 'Opening...' : 'Download'}
                 </button>
               )}
             </li>
@@ -141,9 +156,14 @@ export default function ProjectFiles({ files = [], deliverables = [], canUpload 
                     {item.createdBy?.full_name || 'Unknown'} &middot; {item.created_at ? formatWhen(item.created_at) : '-'}
                   </span>
                 </div>
-                {item.storage_path && (
-                  <button type="button" className="crm-file-link" onClick={() => handleDownload(item)}>
-                    Download
+                {item.id && (
+                  <button
+                    type="button"
+                    className="crm-file-link"
+                    onClick={() => handleDownload(item, 'deliverable')}
+                    disabled={Boolean(downloadingId)}
+                  >
+                    {downloadingId === item.id ? 'Opening...' : 'Download'}
                   </button>
                 )}
               </li>
