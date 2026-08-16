@@ -5,7 +5,7 @@ import SectionReveal from '../../components/SectionReveal';
 import { PROJECTS } from '../../lib/projects';
 import { SITE } from '../../lib/site';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
-import { absoluteUrl } from '../../lib/seo.mjs';
+import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
 const WORK_TITLE = 'Selected Work';
 const WORK_DESCRIPTION =
@@ -17,13 +17,16 @@ export const metadata = {
   alternates: { canonical: '/work' },
   openGraph: {
     type: 'website',
+    url: absoluteUrl('/work'),
     title: `${WORK_TITLE} | ${SITE.name}`,
     description: WORK_DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${WORK_TITLE} | ${SITE.name}`,
     description: WORK_DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
 };
 

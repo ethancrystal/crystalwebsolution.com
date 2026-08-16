@@ -7,7 +7,7 @@ import ServiceThreadArc from '../../components/marketing/ServiceThreadArc';
 import { SERVICE_PAGES } from '../../lib/servicePages.mjs';
 import { SITE } from '../../lib/site';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
-import { absoluteUrl } from '../../lib/seo.mjs';
+import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
 const TITLE = 'Services';
 const DESCRIPTION =
@@ -19,13 +19,16 @@ export const metadata = {
   alternates: { canonical: '/services' },
   openGraph: {
     type: 'website',
+    url: absoluteUrl('/services'),
     title: `${TITLE} | ${SITE.name}`,
     description: DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${TITLE} | ${SITE.name}`,
     description: DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
 };
 

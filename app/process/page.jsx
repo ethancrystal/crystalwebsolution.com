@@ -5,6 +5,7 @@ import ContentSection from '../../components/marketing/ContentSection';
 import ContactForm from '../../components/marketing/ContactForm';
 import ProcessStepsRail from '../../components/marketing/ProcessStepsRail';
 import { SITE } from '../../lib/site';
+import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'Process';
@@ -17,13 +18,16 @@ export const metadata = {
   alternates: { canonical: '/process' },
   openGraph: {
     type: 'website',
+    url: absoluteUrl('/process'),
     title: `${TITLE} | ${SITE.name}`,
     description: DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${TITLE} | ${SITE.name}`,
     description: DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
 };
 

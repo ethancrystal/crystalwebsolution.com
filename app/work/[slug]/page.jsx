@@ -8,7 +8,7 @@ import SectionReveal from '../../../components/SectionReveal';
 import BreadcrumbSchema from '../../../components/marketing/BreadcrumbSchema';
 import { PROJECTS, getProject } from '../../../lib/projects';
 import { SITE } from '../../../lib/site';
-import { absoluteUrl } from '../../../lib/seo.mjs';
+import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../../lib/seo.mjs';
 
 // Splits a project's body[] into the narrative beats the case-study layout
 // reads: THE PROBLEM (opening paragraph), OUR APPROACH (the middle of the
@@ -47,11 +47,14 @@ export async function generateMetadata({ params }) {
       type: 'article',
       title: `${project.title} — ${project.category} | ${SITE.name}`,
       description,
+      url: absoluteUrl(`/work/${project.slug}`),
+      images: [{ url: SOCIAL_IMAGE_PATH }],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${project.title} — ${project.category} | ${SITE.name}`,
       description,
+      images: [{ url: SOCIAL_IMAGE_PATH }],
     },
   };
 }

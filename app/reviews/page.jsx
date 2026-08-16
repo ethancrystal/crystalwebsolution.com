@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
 import { SITE } from '../../lib/site';
-import { absoluteUrl } from '../../lib/seo.mjs';
+import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
@@ -25,13 +25,16 @@ export const metadata = {
   alternates: { canonical: '/reviews' },
   openGraph: {
     type: 'website',
+    url: absoluteUrl('/reviews'),
     title: `${REVIEWS_TITLE} | ${SITE.name}`,
     description: REVIEWS_DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${REVIEWS_TITLE} | ${SITE.name}`,
     description: REVIEWS_DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
 };
 

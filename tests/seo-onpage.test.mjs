@@ -69,3 +69,50 @@ test('public metadata routes retain unique titles, descriptions, canonicals, and
     assert.match(code, /twitter\s*:/, `${file} must define Twitter metadata`);
   }
 });
+
+test('public metadata routes publish route-aware Open Graph and Twitter images', () => {
+  const routes = [
+    'app/about/page.jsx',
+    'app/process/page.jsx',
+    'app/contact/page.jsx',
+    'app/services/page.jsx',
+    'app/work/page.jsx',
+    'app/reviews/page.jsx',
+    'app/embroidery-screen-printing-web-design/page.jsx',
+    'app/services/[slug]/page.jsx',
+    'app/work/[slug]/page.jsx',
+  ];
+  for (const file of routes) {
+    const code = source(file);
+    assert.match(code, /openGraph\s*:\s*\{[\s\S]*?images\s*:/, `${file} must define an Open Graph image`);
+    assert.match(code, /twitter\s*:\s*\{[\s\S]*?images\s*:/, `${file} must define a Twitter image`);
+  }
+});
+
+test('static public metadata routes publish canonical Open Graph URLs', () => {
+  const routes = {
+    'app/about/page.jsx': '/about',
+    'app/process/page.jsx': '/process',
+    'app/contact/page.jsx': '/contact',
+    'app/services/page.jsx': '/services',
+    'app/work/page.jsx': '/work',
+    'app/reviews/page.jsx': '/reviews',
+    'app/embroidery-screen-printing-web-design/page.jsx': '/embroidery-screen-printing-web-design',
+  };
+  for (const [file, route] of Object.entries(routes)) {
+    const code = source(file);
+    assert.match(code, new RegExp(`openGraph\\s*:\\s*\\{[\\s\\S]*?url\\s*:\\s*absoluteUrl\\(['"]${route.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}['"]\\)`), `${file} must define og:url from the canonical origin`);
+  }
+});
+
+test('auth callback and reset segments explicitly disable indexing', () => {
+  const code = source('app/auth/layout.jsx');
+  assert.match(code, /export const metadata/, 'auth segment must define metadata');
+  assert.match(code, /robots\s*:\s*\{[\s\S]*?index\s*:\s*false/, 'auth segment must set index=false');
+  assert.match(code, /follow\s*:\s*false/, 'auth segment must set follow=false');
+});
+
+test('robots policy excludes the private employee route', () => {
+  const code = source('app/robots.js');
+  assert.match(code, /['"]\/team['"]/, 'robots policy must disallow /team');
+});

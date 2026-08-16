@@ -3,7 +3,7 @@ import { SITE } from '../../lib/site';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
-import { absoluteUrl } from '../../lib/seo.mjs';
+import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
 export const metadata = {
   title: 'Embroidery & Screen-Printing Web Design',
@@ -12,15 +12,18 @@ export const metadata = {
   alternates: { canonical: '/embroidery-screen-printing-web-design' },
   openGraph: {
     type: 'article',
+    url: absoluteUrl('/embroidery-screen-printing-web-design'),
     title: `Embroidery & Screen-Printing Web Design | ${SITE.name}`,
     description:
       'Custom websites for embroidery and screen-printing shops — built for wholesale reorders, multi-method catalogs, and B2B accounts.',
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `Embroidery & Screen-Printing Web Design | ${SITE.name}`,
     description:
       'Custom websites for embroidery and screen-printing shops — built for wholesale reorders, multi-method catalogs, and B2B accounts.',
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
 };
 
