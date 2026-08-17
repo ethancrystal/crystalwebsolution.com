@@ -32,12 +32,13 @@ export default function Experience() {
         <Hero />
         <SectionHandoff from="top" tone="cyan" label="about"><About /></SectionHandoff>
         <SectionHandoff from="left" tone="cyan" label="services"><Services /></SectionHandoff>
-        <Approach />
+                <SectionHandoff from="right" tone="ink" label="approach"><Approach /></SectionHandoff>
         <SectionHandoff from="right" tone="ink" label="stories"><Stories /></SectionHandoff>
         <Mark />
-        <Lab />
-        <Motion />
-        <Contact />
+        <SectionHandoff from="left" tone="cyan" label="lab"><Lab /></SectionHandoff>
+        <SectionHandoff from="left" tone="violet" label="motion"><Motion /></SectionHandoff>
+        <SectionHandoff from="bottom" tone="ink" label="contact"><Contact /></SectionHandoff>
+
       </main>
     </SmoothScroll>
   );
