@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SITE } from '../../lib/site';
 import { blast } from '../../lib/pulse';
+import { trackEvent } from '../../lib/analytics';
 import {
   CONTACT_BUDGETS,
   CONTACT_FIELD_LIMITS,
@@ -95,6 +96,11 @@ export default function ContactForm({ variant = 'marketing' }) {
         });
         return;
       }
+
+      // Fires only after the API accepts the brief, so the GA4 conversion
+      // counts delivered leads rather than submit clicks. No PII is sent —
+      // budget is a fixed enum from CONTACT_BUDGETS, not free text.
+      trackEvent('generate_lead', { form_location: variant, budget: validation.data.budget });
 
       setValues(createEmptyContactForm());
       setErrors({});
