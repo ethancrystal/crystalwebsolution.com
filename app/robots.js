@@ -23,6 +23,8 @@ export default function robots() {
           '/dashboard/',
           '/admin',
           '/admin/',
+          '/team',
+          '/team/',
           '/api/',
         ],
       },

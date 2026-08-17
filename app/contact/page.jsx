@@ -5,6 +5,8 @@ import ContentSection from '../../components/marketing/ContentSection';
 import ContactForm from '../../components/marketing/ContactForm';
 import ContactPulseLinks from '../../components/marketing/ContactPulseLinks';
 import { SITE } from '../../lib/site';
+import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
+import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'Contact';
 const DESCRIPTION =
@@ -16,13 +18,16 @@ export const metadata = {
   alternates: { canonical: '/contact' },
   openGraph: {
     type: 'website',
+    url: absoluteUrl('/contact'),
     title: `${TITLE} | ${SITE.name}`,
     description: DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${TITLE} | ${SITE.name}`,
     description: DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
 };
 
@@ -45,6 +50,7 @@ export default function ContactPage() {
         </p>
         <ContactPulseLinks />
       </ContentSection>
+      <BreadcrumbSchema trail={[{ name: 'Contact', path: '/contact' }]} />
     </MarketingShell>
   );
 }

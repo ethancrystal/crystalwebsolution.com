@@ -154,6 +154,7 @@ function baseTables(overrides = {}) {
       { id: THREAD_ID, project_id: PROJECT_ID, created_at: '2026-01-01T00:00:00.000Z' },
     ],
     project_messages: [],
+    project_attachments: [],
     profiles: [{ id: PM_ID, full_name: 'PM Person', avatar_url: null }],
     ...overrides,
   };
@@ -378,6 +379,56 @@ test('messages are returned oldest-first for rendering', async () => {
   assert.deepStrictEqual(
     page.messages.map((message) => message.created_at),
     ['2026-02-01T00:00:00.000Z', '2026-02-03T00:00:00.000Z'],
+  );
+});
+
+test('message attachments stay inside the project and viewer visibility boundary', async () => {
+  const message = messageRow('01', 'shared', '2026-02-01T00:00:00.000Z');
+  const sharedAttachmentId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const internalAttachmentId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const otherProjectAttachmentId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+  const supabase = createFakeSupabase(
+    baseTables({
+      project_messages: [message],
+      project_attachments: [
+        {
+          id: sharedAttachmentId,
+          project_id: PROJECT_ID,
+          message_id: message.id,
+          uploaded_by: PM_ID,
+          visibility: 'shared',
+          status: 'ready',
+          file_name: 'shared.pdf',
+          storage_path: `${PROJECT_ID}/${sharedAttachmentId}`,
+        },
+        {
+          id: internalAttachmentId,
+          project_id: PROJECT_ID,
+          message_id: message.id,
+          uploaded_by: PM_ID,
+          visibility: 'internal',
+          status: 'ready',
+          file_name: 'internal.pdf',
+          storage_path: `${PROJECT_ID}/${internalAttachmentId}`,
+        },
+        {
+          id: otherProjectAttachmentId,
+          project_id: OTHER_PROJECT_ID,
+          message_id: message.id,
+          uploaded_by: PM_ID,
+          visibility: 'shared',
+          status: 'ready',
+          file_name: 'other-project.pdf',
+          storage_path: `${OTHER_PROJECT_ID}/${otherProjectAttachmentId}`,
+        },
+      ],
+    }),
+  );
+
+  const page = await listProjectMessages(supabase, clientViewer, PROJECT_ID, null, 50);
+  assert.deepStrictEqual(
+    page.messages[0].attachments.map((attachment) => attachment.id),
+    [sharedAttachmentId],
   );
 });
 

@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { SITE } from '../../lib/site';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import SectionReveal from '../../components/SectionReveal';
+import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
+import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
 export const metadata = {
   title: 'Embroidery & Screen-Printing Web Design',
@@ -10,15 +12,18 @@ export const metadata = {
   alternates: { canonical: '/embroidery-screen-printing-web-design' },
   openGraph: {
     type: 'article',
+    url: absoluteUrl('/embroidery-screen-printing-web-design'),
     title: `Embroidery & Screen-Printing Web Design | ${SITE.name}`,
     description:
       'Custom websites for embroidery and screen-printing shops — built for wholesale reorders, multi-method catalogs, and B2B accounts.',
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `Embroidery & Screen-Printing Web Design | ${SITE.name}`,
     description:
       'Custom websites for embroidery and screen-printing shops — built for wholesale reorders, multi-method catalogs, and B2B accounts.',
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
 };
 
@@ -134,6 +139,23 @@ export default function EmbroideryScreenPrintingWebDesign() {
           <span className="eyebrow">See our work</span>
           <span className="case-next-title">Every project, one standard →</span>
         </Link>
+        <BreadcrumbSchema trail={[{ name: 'Embroidery & Screen-Printing Web Design', path: '/embroidery-screen-printing-web-design' }]} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Article',
+              headline: 'Website Design for Embroidery & Screen-Printing Shops',
+              description: metadata.description,
+              articleSection: 'Web Design for the Trade',
+              inLanguage: 'en',
+              mainEntityOfPage: absoluteUrl('/embroidery-screen-printing-web-design'),
+              author: { '@id': absoluteUrl('/#organization') },
+              publisher: { '@id': absoluteUrl('/#organization') },
+            }),
+          }}
+        />
       </main>
     </MarketingShell>
   );

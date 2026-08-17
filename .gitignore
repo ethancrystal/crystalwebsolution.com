@@ -28,3 +28,9 @@ node_modules/
 
 .copilot-tracking/
 *.docx
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials

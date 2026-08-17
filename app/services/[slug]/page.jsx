@@ -7,7 +7,7 @@ import BreadcrumbSchema from '../../../components/marketing/BreadcrumbSchema';
 import FaqSchema from '../../../components/marketing/FaqSchema';
 import { SERVICE_PAGES, getServicePageBySlug } from '../../../lib/servicePages.mjs';
 import { SITE } from '../../../lib/site';
-import { SITE_ORIGIN } from '../../../lib/seo.mjs';
+import { SITE_ORIGIN, SOCIAL_IMAGE_PATH } from '../../../lib/seo.mjs';
 
 const SITE_URL = SITE_ORIGIN;
 
@@ -32,11 +32,13 @@ export async function generateMetadata({ params }) {
       title: `${page.seoTitle} | ${SITE.name}`,
       description,
       url,
+      images: [{ url: SOCIAL_IMAGE_PATH }],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${page.seoTitle} | ${SITE.name}`,
       description,
+      images: [{ url: SOCIAL_IMAGE_PATH }],
     },
   };
 }

@@ -12,6 +12,7 @@
     "test:db": "supabase test db",
     "test:e2e": "playwright test tests/e2e",
     "crm:verify": "pnpm test:crm && pnpm test:db",
+    "crm:verify:preview": "CRM_PREVIEW_ENVIRONMENT=preview node scripts/verify-crm-preview-authorization.mjs",
     "crm:provision-test-users": "node scripts/provision-crm-test-users.mjs",
     "livecheck": "node scripts/livecheck.mjs"
   },

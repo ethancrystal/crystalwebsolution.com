@@ -2,7 +2,7 @@ import './globals.css';
 import { Space_Grotesk, Inter, Space_Mono } from 'next/font/google';
 import { SITE } from '../lib/site';
 import { REVIEW_STATS } from '../lib/reviews';
-import { SITE_ORIGIN } from '../lib/seo.mjs';
+import { SITE_ORIGIN, SOCIAL_IMAGE_PATH } from '../lib/seo.mjs';
 
 const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
@@ -30,12 +30,14 @@ export const metadata = {
     title: `Custom Web Design & AI Automation | ${SITE.name}`,
     description:
       'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `Custom Web Design & AI Automation | ${SITE.name}`,
     description:
       'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   robots: { index: true, follow: true },
 };

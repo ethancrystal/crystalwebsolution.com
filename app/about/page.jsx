@@ -4,6 +4,8 @@ import PageHero from '../../components/marketing/PageHero';
 import ContentSection from '../../components/marketing/ContentSection';
 import FoundingRail from '../../components/marketing/FoundingRail';
 import { SITE } from '../../lib/site';
+import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
+import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'About';
 const DESCRIPTION =
@@ -15,13 +17,16 @@ export const metadata = {
   alternates: { canonical: '/about' },
   openGraph: {
     type: 'website',
+    url: absoluteUrl('/about'),
     title: `${TITLE} | ${SITE.name}`,
     description: DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${TITLE} | ${SITE.name}`,
     description: DESCRIPTION,
+    images: [{ url: SOCIAL_IMAGE_PATH }],
   },
 };
 
@@ -82,6 +87,7 @@ export default function AboutPage() {
         </p>
         <Link href="/#contact" className="btn btn-solid" data-cursor="Say hi">Start a project</Link>
       </ContentSection>
+      <BreadcrumbSchema trail={[{ name: 'About', path: '/about' }]} />
     </MarketingShell>
   );
 }
