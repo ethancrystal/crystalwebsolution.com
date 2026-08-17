@@ -1,4 +1,5 @@
 import { absoluteUrl } from '../../lib/seo.mjs';
+import { safeJsonLd } from '../../lib/jsonLd.mjs';
 
 // BreadcrumbList JSON-LD. Screaming Frog found 0 structured data types across
 // the crawl; breadcrumbs are the one rich result every /work/* and /services/*
@@ -24,8 +25,12 @@ export default function BreadcrumbSchema({ trail = [] }) {
   return (
     <script
       type="application/ld+json"
-      // JSON.stringify output is controlled (no user input), safe to inject.
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      // Crumb names were hardcoded site copy when this component was written,
+      // but /blog/[slug] now passes an author-authored post title through
+      // `trail`. JSON.stringify does not escape `<`, so a title containing
+      // `</script>` would close this element early — safeJsonLd escapes the
+      // angle brackets. No-op for the fixed-string callers.
+      dangerouslySetInnerHTML={{ __html: safeJsonLd(data) }}
     />
   );
 }
