@@ -28,7 +28,16 @@ const GA_CONNECT_ORIGINS = [
   'https://*.google-analytics.com',
   'https://analytics.google.com',
   'https://*.analytics.google.com',
+  // Google Signals / Ads linking sends extra hits here. Omitting them is the
+  // same silent partial failure as above: demographics, remarketing audiences
+  // and Ads conversion import stop working with nothing logged on the page.
+  'https://stats.g.doubleclick.net',
+  'https://*.g.doubleclick.net',
+  'https://www.google.com',
 ];
+
+// The conversion linker uses an iframe; default-src 'self' would block it.
+const GA_FRAME_ORIGINS = ['https://td.doubleclick.net'];
 
 const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS]
   .filter(Boolean)
@@ -47,6 +56,7 @@ const CSP = [
   "font-src 'self' data:",
   `connect-src ${connectSrc}`,
   "media-src 'self' data: blob:",
+  `frame-src 'self' ${GA_FRAME_ORIGINS.join(' ')}`,
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",

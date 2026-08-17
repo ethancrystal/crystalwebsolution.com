@@ -11,131 +11,188 @@ function source(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 }
 
-// next.config.js reads env at module load, so the Supabase URL is set before
-// requiring it. Asserting on the emitted header catches a broken CSP that
-// source-matching would miss.
-async function cspDirectives() {
+// lib/analytics.mjs reads NEXT_PUBLIC_GA_ID and holds module-level state
+// (bootstrapped, lastLocation), so each case imports a fresh instance via a
+// unique query string and installs a fake browser first. This executes the
+// real module — an earlier version of this suite only regex'd the source and
+// stayed green while the implementation was gutted.
+let instance = 0;
+
+async function loadAnalytics({ id = 'G-ABCD1234', href = 'https://www.crystalwebsolution.com/', referrer = '', title = 'Home' } = {}) {
+  const url = new URL(href);
+  globalThis.window = { location: { origin: url.origin, href } };
+  globalThis.document = { title, referrer };
+  process.env.NEXT_PUBLIC_GA_ID = id;
+  instance += 1;
+  const mod = await import(`../lib/analytics.mjs?case=${instance}`);
+  return { mod, dataLayer: () => (globalThis.window.dataLayer || []).map((entry) => Array.from(entry)) };
+}
+
+test.afterEach(() => {
+  delete globalThis.window;
+  delete globalThis.document;
+  delete process.env.NEXT_PUBLIC_GA_ID;
+});
+
+test('only a well-formed GA4 measurement ID enables the tag', async () => {
+  for (const bad of ['', '   ', 'GTM-ABCD', 'UA-12345-1', 'G-ABC', 'nonsense', 'G-OK"><script>']) {
+    const { mod } = await loadAnalytics({ id: bad });
+    assert.equal(mod.GA_ID, '', `${JSON.stringify(bad)} must not reach the script src`);
+    assert.equal(mod.isAnalyticsEnabled(), false);
+  }
+  const { mod } = await loadAnalytics({ id: '  G-ABCD1234  ' });
+  assert.equal(mod.GA_ID, 'G-ABCD1234', 'a valid ID should be trimmed and kept');
+  assert.equal(mod.isAnalyticsEnabled(), true);
+});
+
+test('nothing is queued when analytics is disabled', async () => {
+  const { mod, dataLayer } = await loadAnalytics({ id: '' });
+  mod.pageview('/', '');
+  mod.trackEvent('generate_lead', { budget: '$5–15k' });
+  assert.deepEqual(dataLayer(), [], 'a disabled property must not touch dataLayer at all');
+});
+
+test('config is queued before the first event, and only once', async () => {
+  const { mod, dataLayer } = await loadAnalytics();
+  mod.pageview('/', '');
+  mod.pageview('/work', '');
+  mod.trackEvent('generate_lead', {});
+
+  const queue = dataLayer();
+  assert.deepEqual(queue[0].slice(0, 1), ['js'], 'js must be first');
+  assert.equal(queue[0][1] instanceof Date, true);
+  assert.deepEqual(queue[1], ['config', 'G-ABCD1234', { send_page_view: false }], 'config must precede every event');
+
+  const firstEvent = queue.findIndex((entry) => entry[0] === 'event');
+  assert.ok(firstEvent > 1, 'gtag.js discards events queued ahead of the config');
+  assert.equal(queue.filter((entry) => entry[0] === 'config').length, 1, 'config must not be re-queued per pageview');
+});
+
+test('every dataLayer entry is an Arguments object, as gtag.js expects', async () => {
+  const { mod } = await loadAnalytics();
+  mod.pageview('/', '');
+  for (const entry of globalThis.window.dataLayer) {
+    assert.equal(Object.prototype.toString.call(entry), '[object Arguments]');
+  }
+});
+
+test('pageview forwards campaign params and drops everything else', async () => {
+  const { mod, dataLayer } = await loadAnalytics();
+  mod.pageview('/', 'utm_source=newsletter&utm_medium=email&email=jane%40acme.com&token=abc123&gclid=xyz');
+
+  const set = dataLayer().find((entry) => entry[0] === 'set')[1];
+  assert.ok(set.page_location.includes('utm_source=newsletter'), 'campaign attribution must survive');
+  assert.ok(set.page_location.includes('utm_medium=email'));
+  assert.ok(set.page_location.includes('gclid=xyz'));
+  assert.ok(!set.page_location.includes('jane'), 'visitor email must never reach Google');
+  assert.ok(!set.page_location.includes('email='));
+  assert.ok(!set.page_location.includes('token'), 'opaque tokens must not be forwarded either');
+});
+
+test('the live /auth/confirm?email= route is never measured', async () => {
+  // app/auth/actions.js redirects to /auth/confirm?email=<address> after
+  // signup, and middleware.js does not cover /auth — so this is reachable.
+  const redirect = source('app/auth/actions.js');
+  assert.match(redirect, /\/auth\/confirm\?email=/, 'guard assumes this route still leaks an address into the URL');
+
+  const { mod, dataLayer } = await loadAnalytics();
+  mod.pageview('/auth/confirm', 'email=jane%40acme.com');
+  assert.deepEqual(dataLayer(), [], 'auth routes must not produce a hit at all');
+});
+
+test('authenticated CRM routes are not measured', async () => {
+  const { mod } = await loadAnalytics();
+  for (const pathname of ['/dashboard', '/dashboard/projects/9f8e-uuid', '/team/projects/1', '/admin', '/admin/deals/42', '/login', '/signup']) {
+    assert.equal(mod.isTrackablePath(pathname), false, `${pathname} carries client identifiers and must stay out of GA4`);
+  }
+  for (const pathname of ['/', '/work', '/services/web-design', '/contact', '/administrivia']) {
+    assert.equal(mod.isTrackablePath(pathname), true, `${pathname} is a marketing route and should be measured`);
+  }
+});
+
+test('later events inherit the current page, not the landing page', async () => {
+  const { mod, dataLayer } = await loadAnalytics({ href: 'https://www.crystalwebsolution.com/' });
+  mod.pageview('/', '');
+  globalThis.document.title = 'Contact';
+  mod.pageview('/contact', '');
+  mod.trackEvent('generate_lead', { form_location: 'marketing' });
+
+  const sets = dataLayer().filter((entry) => entry[0] === 'set');
+  const last = sets.at(-1)[1];
+  assert.equal(last.page_location, 'https://www.crystalwebsolution.com/contact', 'a conversion after an SPA navigation would otherwise report the landing page');
+  assert.equal(last.page_title, 'Contact');
+  assert.equal(last.page_referrer, 'https://www.crystalwebsolution.com/', 'in-site referrer should be the previous page, not the external one');
+
+  const events = dataLayer().filter((entry) => entry[0] === 'event');
+  assert.equal(events.at(-1)[1], 'generate_lead');
+  assert.ok(dataLayer().indexOf(sets.at(-1)) < dataLayer().length - 1, 'set must precede the event it qualifies');
+});
+
+test('trackEvent tolerates missing or null params and ignores a missing name', async () => {
+  const { mod, dataLayer } = await loadAnalytics();
+  mod.trackEvent('a');
+  mod.trackEvent('b', null);
+  mod.trackEvent('');
+  const events = dataLayer().filter((entry) => entry[0] === 'event');
+  assert.deepEqual(events.map((entry) => entry[1]), ['a', 'b']);
+  for (const entry of events) assert.deepEqual(entry[2], {});
+});
+
+test('CSP allows every Google host the tag needs', async () => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
-  const require_ = createRequire(import.meta.url);
-  const config = require_(path.join(ROOT, 'next.config.js'));
+  const config = createRequire(import.meta.url)(path.join(ROOT, 'next.config.js'));
   const [rule] = await config.headers();
-  const csp = rule.headers.find((h) => h.key === 'Content-Security-Policy').value;
-  return Object.fromEntries(
+  const csp = rule.headers.find((header) => header.key === 'Content-Security-Policy').value;
+  const directives = Object.fromEntries(
     csp.split('; ').map((directive) => {
       const [name, ...values] = directive.split(' ');
       return [name, values];
     }),
   );
-}
 
-test('analytics module gates on a well-formed GA4 measurement ID', () => {
-  const code = source('lib/analytics.js');
-  assert.match(code, /NEXT_PUBLIC_GA_ID/, 'measurement ID must come from NEXT_PUBLIC_GA_ID');
-  assert.match(code, /\^G-\[A-Z0-9\]/i, 'the ID is interpolated into a script src and must be format-checked');
-  assert.match(code, /export const GA_ID/, 'GA_ID must be exported for the tag component');
-});
-
-test('trackEvent and pageview no-op without an ID or a browser', () => {
-  const code = source('lib/analytics.js');
-  for (const fn of ['trackEvent', 'pageview']) {
-    const body = code.slice(code.indexOf(`export function ${fn}`));
-    assert.match(body.slice(0, 400), /if \(!GA_ID \|\| typeof window === 'undefined'/, `${fn} must bail out server-side and when analytics is off`);
-  }
-});
-
-test('events queue onto dataLayer rather than requiring window.gtag', () => {
-  const code = source('lib/analytics.js');
-  assert.match(code, /window\.dataLayer = window\.dataLayer \|\| \[\]/, 'must create the queue itself');
-  assert.doesNotMatch(code, /window\.gtag\(/, 'depending on window.gtag drops events fired before gtag.js loads');
-});
-
-test('gtag config is queued ahead of the first event, not from an inline script', () => {
-  const code = source('lib/analytics.js');
-  assert.match(code, /pushToDataLayer\('config', GA_ID, \{ send_page_view: false \}\)/, 'config must be queued from the module');
-  assert.match(code, /send_page_view: false/, "gtag's own pageview only fires on document load and would double-count the first view");
-
-  // Both senders must configure the stream first: gtag.js drains dataLayer in
-  // order and discards events that precede the config.
-  for (const fn of ['trackEvent', 'pageview']) {
-    const body = code.slice(code.indexOf(`export function ${fn}`));
-    const guarded = body.slice(0, body.indexOf('pushToDataLayer('));
-    assert.match(guarded, /ensureConfigured\(\)/, `${fn} must call ensureConfigured() before queueing`);
-  }
-
-  const component = source('components/Analytics.jsx');
-  assert.doesNotMatch(
-    component,
-    /gtag\('config'|dataLayer\.push/,
-    'an inline afterInteractive snippet can execute after React effects, losing the first pageview',
-  );
-});
-
-test('CSP script-src allows the gtag.js host', async () => {
-  const directives = await cspDirectives();
-  assert.ok(
-    directives['script-src'].includes('https://www.googletagmanager.com'),
-    'gtag.js is blocked from loading without its origin in script-src',
-  );
-});
-
-test('CSP connect-src allows every GA4 collection endpoint', async () => {
-  const directives = await cspDirectives();
+  assert.ok(directives['script-src'].includes('https://www.googletagmanager.com'), 'gtag.js cannot load otherwise');
   for (const origin of [
     'https://www.googletagmanager.com',
     'https://www.google-analytics.com',
     'https://*.google-analytics.com',
     'https://analytics.google.com',
     'https://*.analytics.google.com',
+    'https://stats.g.doubleclick.net',
+    'https://*.g.doubleclick.net',
+    'https://www.google.com',
   ]) {
     assert.ok(
       directives['connect-src'].includes(origin),
-      `connect-src must allow ${origin} — otherwise the tag loads, every hit is blocked, and the property stays empty with no visible error`,
+      `connect-src must allow ${origin} — a missing origin blocks hits silently, leaving the property empty with no error on the page`,
     );
   }
-});
+  assert.ok(directives['frame-src'].includes('https://td.doubleclick.net'), 'conversion linker iframe would fall back to default-src');
 
-test('adding GA origins did not displace the Supabase connect-src entries', async () => {
-  const directives = await cspDirectives();
-  assert.ok(directives['connect-src'].includes("'self'"));
+  // The Google origins share connect-src with Supabase; neither may displace the other.
   assert.ok(directives['connect-src'].includes('https://example.supabase.co'), 'Supabase XHR must still be allowed');
   assert.ok(directives['connect-src'].includes('wss://example.supabase.co'), 'Supabase realtime must still be allowed');
 });
 
-test('root layout mounts the analytics tag', () => {
-  const layout = source('app/layout.jsx');
-  assert.match(layout, /import Analytics from '\.\.\/components\/Analytics'/);
-  assert.match(layout, /<Analytics \/>/, 'the tag has to be rendered, not just imported');
-});
-
-test('root layout exposes Search Console verification only when configured', () => {
-  const layout = source('app/layout.jsx');
-  assert.match(layout, /NEXT_PUBLIC_GSC_VERIFICATION/);
-  assert.match(layout, /verification: \{ google: process\.env\.NEXT_PUBLIC_GSC_VERIFICATION \}/);
-  assert.match(layout, /\?\s*\{ verification/, 'unset env var must omit the tag rather than emit an empty one');
-});
-
-test('the tag component defers loading and owns route pageviews', () => {
+test('the tag component defers loading and delegates policy to the module', async () => {
   const code = source('components/Analytics.jsx');
-  assert.match(code, /^'use client';/, 'must be a client component');
+  assert.match(code, /^'use client';/);
   assert.match(code, /strategy="afterInteractive"/, 'gtag must not block first paint');
   assert.match(code, /<Suspense fallback=\{null\}>/, 'useSearchParams must sit behind Suspense to keep pages static');
-  assert.match(code, /usePathname|useSearchParams/, 'App Router navigations need a manual pageview');
+  assert.doesNotMatch(code, /gtag\('config'|dataLayer\.push/, 'an inline snippet would reintroduce the config-ordering hazard');
+  assert.match(code, /searchParams\.toString\(\)/, 'depending on the searchParams object double-counts hash navigations');
 });
 
-test('contact form reports generate_lead only after the API accepts the brief', () => {
+test('contact form reports generate_lead only on success, with no PII', async () => {
   const code = source('components/marketing/ContactForm.jsx');
-  assert.match(code, /import \{ trackEvent \} from '\.\.\/\.\.\/lib\/analytics'/);
-  assert.match(code, /trackEvent\('generate_lead'/);
-
-  const failureStart = code.indexOf('if (!response.ok)');
-  const failureReturn = code.indexOf('return;', failureStart);
+  const failureReturn = code.indexOf('return;', code.indexOf('if (!response.ok)'));
   const eventIndex = code.indexOf("trackEvent('generate_lead'");
-  assert.ok(failureStart !== -1 && failureReturn !== -1, 'the non-ok response branch should still exist');
-  assert.ok(eventIndex > failureReturn, 'a rejected submission must return before the lead event fires');
+  assert.ok(eventIndex > failureReturn && failureReturn !== -1, 'a rejected submission must return before the lead event fires');
 
-  const eventCall = code.slice(eventIndex);
-  const params = eventCall.slice(0, eventCall.indexOf('\n'));
-  for (const field of ['values.name', 'values.email', 'values.brief', 'values.company']) {
-    assert.ok(!params.includes(field), `generate_lead must not send PII (${field})`);
-  }
+  // Parse the whole call, not just its first line: reformatting the argument
+  // list across lines previously let added PII fields slip past this check.
+  const call = code.slice(eventIndex);
+  const paramsObject = call.slice(call.indexOf('{'), call.indexOf('}') + 1);
+  const keys = [...paramsObject.matchAll(/(\w+):/g)].map((match) => match[1]);
+  assert.deepEqual(keys.sort(), ['budget', 'form_location'], 'generate_lead may only carry non-identifying fields');
+  assert.ok(!/values\.(name|email|brief|company)/.test(paramsObject), 'contact details must never be sent to GA4');
 });

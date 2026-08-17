@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SITE } from '../../lib/site';
 import { blast } from '../../lib/pulse';
-import { trackEvent } from '../../lib/analytics';
+import { trackEvent } from '../../lib/analytics.mjs';
 import {
   CONTACT_BUDGETS,
   CONTACT_FIELD_LIMITS,
