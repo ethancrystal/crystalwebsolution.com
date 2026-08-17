@@ -126,7 +126,7 @@ are behind Vercel Authentication/SSO, which this session couldn't get past
 without the owner's Vercel login — running locally against the same live
 database was the practical substitute). Created two real test accounts
 (`phase1-client-test@crystalwebsolution.com`, `phase1-pm-test@crystalwebsolution.com`,
-both password `Phase1Test!2026`) plus a company and a test project
+credentials kept outside the repository) plus a company and a test project
 ("Phase1 Verification Project") to exercise messaging. **Left in place
 deliberately** — see "Test data left in place" below.
 
