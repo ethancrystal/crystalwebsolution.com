@@ -15,9 +15,9 @@ async function readRoute() {
 
 test('createLeadBestEffort never throws -- wrapped in its own try/catch', async () => {
   const source = await readRoute();
-  const fn = source.split('async function createLeadBestEffort')[1];
+  const fn = source.match(/async function createLeadBestEffort[\s\S]*?\n}\n/);
   assert.ok(fn, 'createLeadBestEffort must be defined');
-  assert.match(fn.split('\n\n')[0] ?? fn, /try \{[\s\S]*catch \(error\)/);
+  assert.match(fn[0], /try \{[\s\S]*catch \(error\)/);
 });
 
 test('the CRM write is called after the spam/validation-error early returns, never before', async () => {
