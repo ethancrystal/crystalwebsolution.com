@@ -14,6 +14,11 @@ import {
   isProjectCategory,
   normalizeProjectTitle,
 } from '@/lib/crm/project-contract.mjs';
+import {
+  QUESTIONNAIRES,
+  serializeQuestionnaireResponses,
+  validateQuestionnaireResponses,
+} from '@/lib/crm/questionnaires.mjs';
 import { createClient } from '@/lib/supabase/server';
 
 const CANONICAL_UUID_PATTERN =
@@ -143,6 +148,26 @@ function reservationData(row) {
   };
 }
 
+function questionnaireResponsesFrom(formData, category) {
+  const questionnaire = QUESTIONNAIRES[category];
+  if (!questionnaire) return { ok: true, questionnaire: null, responses: {} };
+
+  const raw = formString(formData, 'questionnaireResponses');
+  let responses;
+  try {
+    responses = raw ? JSON.parse(raw) : {};
+  } catch {
+    return { ok: false, error: 'Brief responses must be valid JSON.' };
+  }
+
+  const result = validateQuestionnaireResponses(questionnaire, responses);
+  if (!result.ok) {
+    return { ok: false, error: result.errors[0]?.message || 'Complete the required brief fields.' };
+  }
+
+  return { ok: true, questionnaire, responses };
+}
+
 function attachmentIdsFrom(formData) {
   const values =
     typeof formData?.getAll === 'function' ? formData.getAll('attachmentIds') : [];
@@ -180,7 +205,19 @@ export async function createProject(formData) {
   if (!isProjectCategory(category)) {
     return invalid(requestId, 'Choose a valid project category.');
   }
-  if (!validBoundedText(brief, 1, MAX_BRIEF_LENGTH)) {
+
+  const questionnairePayload = questionnaireResponsesFrom(formData, category);
+  if (!questionnairePayload.ok) {
+    return invalid(requestId, questionnairePayload.error);
+  }
+
+  const structuredBrief = questionnairePayload.questionnaire
+    ? [brief, serializeQuestionnaireResponses(questionnairePayload.questionnaire, questionnairePayload.responses)]
+      .filter(Boolean)
+      .join('\n\n')
+    : brief;
+
+  if (!validBoundedText(structuredBrief, 1, MAX_BRIEF_LENGTH)) {
     return invalid(requestId, 'Project brief must be 1 to 5000 characters.');
   }
   if (!validDateOnly(targetDate)) {
@@ -195,9 +232,10 @@ export async function createProject(formData) {
       p_company_id: profile.company_id,
       p_category: category,
       p_title: title,
-      p_brief: brief,
+      p_brief: structuredBrief,
       p_target_date: targetDate,
       p_source_deal_id: null,
+      p_brief_responses: questionnairePayload.responses,
     }),
   );
 
