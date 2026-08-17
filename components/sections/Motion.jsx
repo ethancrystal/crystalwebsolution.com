@@ -53,9 +53,7 @@ export default function Motion() {
         </div>
         <div className="motion-header-actions">
           <p className="motion-rail-progress" aria-label={`${RAIL_STATE.countLabel} named client records`}>
-            <span aria-hidden="true">{RAIL_STATE.indexLabel}</span>
-            <span className="motion-rail-progress-slash" aria-hidden="true">/</span>
-            <span>{RAIL_STATE.countLabel}</span>
+            <span>{RAIL_STATE.countLabel} records</span>
           </p>
           <Link href="/work" className="motion-link" data-cursor="All projects">
             View all work <span aria-hidden="true">→</span>

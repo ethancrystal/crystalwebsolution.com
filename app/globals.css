@@ -3763,3 +3763,37 @@ html[data-cws-intro-seen='1'] .loader {
   .motion-card:hover .motion-card-line,
   .motion-card:focus-visible .motion-card-line { transform: none; }
 }
+
+/* ---------- section handoff contract ---------- */
+.section-handoff {
+  --handoff-accent: var(--cyan);
+  position: relative;
+  isolation: isolate;
+}
+.section-handoff--violet { --handoff-accent: var(--violet); }
+.section-handoff--ink { --handoff-accent: var(--ink); }
+.section-handoff__mask {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(116deg, color-mix(in srgb, var(--handoff-accent) 14%, transparent), transparent 52%),
+    linear-gradient(180deg, rgba(7, 12, 20, 0.92), rgba(17, 37, 52, 0.74));
+  opacity: 0.9;
+  will-change: clip-path;
+}
+.section-handoff__content {
+  position: relative;
+  z-index: 1;
+}
+.section-handoff[data-motion-fallback='true'] .section-handoff__mask {
+  clip-path: inset(0);
+  opacity: 0.72;
+}
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .section-handoff__mask {
+    transition: none;
+    will-change: auto;
+  }
+}

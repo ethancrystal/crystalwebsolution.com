@@ -18,6 +18,19 @@ test('motion rail exposes a stable readable index and progress state', () => {
   );
 });
 
+test('SectionHandoff has a positioned mask and content layering contract', () => {
+  const css = fs.readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+  assert.match(css, /\.section-handoff\s*\{[\s\S]*?position:\s*relative/);
+  assert.match(css, /\.section-handoff__mask\s*\{[\s\S]*?position:\s*absolute/);
+  assert.match(css, /\.section-handoff__content\s*\{[\s\S]*?position:\s*relative/);
+});
+
+test('Motion progress communicates a truthful total instead of a static active index', () => {
+  const source = fs.readFileSync(new URL('../components/sections/Motion.jsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /<span aria-hidden="true">\{RAIL_STATE\.indexLabel\}<\/span>/);
+  assert.match(source, /\{RAIL_STATE\.countLabel\} records/);
+});
+
 test('homepage composes Motion through the existing SectionHandoff primitive', () => {
   const source = fs.readFileSync(new URL('../components/Experience.jsx', import.meta.url), 'utf8');
   assert.match(source, /<SectionHandoff from="left" tone="violet" label="motion"><Motion \/><\/SectionHandoff>/);
