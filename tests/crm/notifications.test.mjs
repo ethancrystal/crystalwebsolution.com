@@ -51,25 +51,21 @@ test('vercel.json schedules the drain against the real route path', async () => 
   assert.equal(cron.schedule.trim().split(/\s+/).length, 5);
 });
 
-test('the route drains notifications_outbox instead of stubbing a zero count', async () => {
+test('the route drains notifications_outbox through the atomic claim RPC', async () => {
   const route = await readFile(ROUTE_PATH, 'utf8');
 
   assert.match(route, /notifications_outbox/);
   assert.doesNotMatch(route, /queued:\s*0\s*\}\s*\)\s*;?\s*$/m);
-  // Claims only rows that are due, pending, and addressed to email.
-  assert.match(route, /\.eq\(\s*['"]channel['"],\s*['"]email['"]\s*\)/);
-  assert.match(route, /\.eq\(\s*['"]status['"],\s*['"]pending['"]\s*\)/);
-  assert.match(route, /\.lte\(\s*['"]available_at['"]/);
+  assert.match(route, /rpc\(\s*['"]claim_notification_email_batch['"]/);
+  assert.match(route, /p_limit:\s*BATCH_SIZE/);
 });
 
-test('delivery outcomes are recorded on the row', async () => {
+test('delivery outcomes use lease-owned completion RPCs', async () => {
   const route = await readFile(ROUTE_PATH, 'utf8');
 
-  assert.match(route, /status:\s*['"]sent['"]/);
-  assert.match(route, /sent_at:/);
-  assert.match(route, /attempts:/);
-  assert.match(route, /last_error:/);
-  assert.match(route, /available_at:/);
+  assert.match(route, /rpc\(\s*['"]mark_notification_email_sent['"]/);
+  assert.match(route, /rpc\(\s*['"]mark_notification_email_failed['"]/);
+  assert.match(route, /lease_id/);
 });
 
 test('non-retryable failures stop consuming the attempt budget', async () => {
@@ -77,8 +73,9 @@ test('non-retryable failures stop consuming the attempt budget', async () => {
 
   assert.match(route, /MAX_ATTEMPTS/);
   assert.match(route, /retryable/);
-  // A terminal failure must be marked 'failed' rather than left pending.
-  assert.match(route, /status:\s*canRetry\s*\?\s*['"]pending['"]\s*:\s*['"]failed['"]/);
+  assert.match(route, /retryable:\s*canRetry/);
+  assert.match(route, /p_retryable:\s*retryable/);
+  assert.match(route, /failureCode/);
 });
 
 test('sends are idempotent so a retry cannot duplicate a notification', async () => {
@@ -96,7 +93,7 @@ test('in_app and realtime rows are left for the dashboard to read', async () => 
 test('the batch is bounded so one tick cannot run unbounded', async () => {
   const route = await readFile(ROUTE_PATH, 'utf8');
   assert.match(route, /BATCH_SIZE/);
-  assert.match(route, /\.limit\(\s*BATCH_SIZE\s*\)/);
+  assert.match(route, /p_limit:\s*BATCH_SIZE/);
 });
 
 test('the route responds with counts only, never recipient data', async () => {

@@ -9,26 +9,25 @@ export const dynamic = 'force-dynamic';
 // Delivery worker for public.notifications_outbox.
 //
 // 0010 created the outbox; 0011 turned it into a retryable queue
-// (status / attempts / available_at / last_error). Until now nothing drained
-// it, so rows accumulated as 'pending' forever. This route claims a bounded
-// batch of due email rows, renders the matching branded template, sends via
-// Resend, and records the outcome.
+// (status / attempts / available_at / last_error). 0033 adds database-owned
+// leases so overlapping cron invocations cannot process the same email row.
 //
 // Contract:
 //   POST with header  x-cron-secret: $CRM_CRON_SECRET
-//   -> 200 { ok, claimed, sent, failed, skipped, retrying }
+//   -> 200 { ok, claimed, sent, failed, skipped, retrying, leaseConflicts }
 //
 // Only channel = 'email' rows are delivered here. 'in_app' and 'realtime'
 // rows are read directly by the dashboard and must be left untouched.
 
 const BATCH_SIZE = 25;
+const LEASE_SECONDS = 300;
 const MAX_ATTEMPTS = 5;
 // Exponential backoff between retries, capped so a stuck row still gets its
 // remaining attempts within a reasonable window.
 const BACKOFF_MINUTES = [1, 5, 15, 60, 180];
 
 function backoffFor(attempts) {
-  return BACKOFF_MINUTES[Math.min(attempts, BACKOFF_MINUTES.length - 1)];
+  return BACKOFF_MINUTES[Math.min(Math.max(attempts - 1, 0), BACKOFF_MINUTES.length - 1)];
 }
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
@@ -86,8 +85,8 @@ function templateContextFor(row, { recipient, project }) {
 //                                      external scheduler.
 //
 // Either CRM_CRON_SECRET or CRON_SECRET may hold the value, so a Vercel
-// deployment can use Vercel's expected name while other environments keep
-// the project-specific one. Comparison is constant-time.
+// deployment can use Vercel's expected name while other environments keep the
+// project-specific one. Comparison is constant-time.
 function timingSafeEquals(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string') return false;
   if (a.length !== b.length) return false;
@@ -145,20 +144,14 @@ async function drain(request) {
     return json({ ok: false, error: 'Email delivery is not configured.', cleanedAttachments }, 503);
   }
 
-  const nowIso = new Date().toISOString();
-
-  const { data: rows, error: claimError } = await supabase
-    .from('notifications_outbox')
-    .select('id, project_id, user_id, event_type, payload, attempts')
-    .eq('channel', 'email')
-    .eq('status', 'pending')
-    .lte('available_at', nowIso)
-    .order('created_at', { ascending: true })
-    .limit(BATCH_SIZE);
+  const { data: rows, error: claimError } = await supabase.rpc('claim_notification_email_batch', {
+    p_limit: BATCH_SIZE,
+    p_lease_seconds: LEASE_SECONDS,
+  });
 
   if (claimError) {
     console.error('Outbox claim failed:', claimError.message);
-    return json({ ok: false, error: 'Unable to read the notification outbox.' }, 500);
+    return json({ ok: false, error: 'Unable to claim the notification outbox.' }, 500);
   }
 
   if (!rows?.length) {
@@ -169,6 +162,7 @@ async function drain(request) {
       failed: 0,
       skipped: 0,
       retrying: 0,
+      leaseConflicts: 0,
       cleanedAttachments,
     });
   }
@@ -180,6 +174,7 @@ async function drain(request) {
   let failed = 0;
   let skipped = 0;
   let retrying = 0;
+  let leaseConflicts = 0;
 
   for (const row of rows) {
     const recipient = recipients.get(row.user_id);
@@ -187,8 +182,13 @@ async function drain(request) {
 
     // Unroutable or unknown event type: terminal, not worth a retry.
     if (!recipient?.email) {
-      await markFailed(supabase, row, 'No email address for the recipient profile.');
-      skipped += 1;
+      const outcome = await markLeaseFailed(supabase, row, {
+        retryable: false,
+        failureCode: 'missing_recipient',
+        message: 'No email address for the recipient profile.',
+      });
+      if (outcome.conflict) leaseConflicts += 1;
+      else skipped += 1;
       continue;
     }
 
@@ -198,8 +198,13 @@ async function drain(request) {
     );
 
     if (!template) {
-      await markFailed(supabase, row, `No email template for event ${row.event_type}.`);
-      skipped += 1;
+      const outcome = await markLeaseFailed(supabase, row, {
+        retryable: false,
+        failureCode: 'missing_template',
+        message: `No email template for event ${row.event_type}.`,
+      });
+      if (outcome.conflict) leaseConflicts += 1;
+      else skipped += 1;
       continue;
     }
 
@@ -212,49 +217,54 @@ async function drain(request) {
         idempotencyKey: `outbox-${row.id}`,
       });
 
-      const { error: updateError } = await supabase
-        .from('notifications_outbox')
-        .update({
-          status: 'sent',
-          sent_at: new Date().toISOString(),
-          attempts: (row.attempts ?? 0) + 1,
-          last_error: null,
-        })
-        .eq('id', row.id);
+      const { data: marked, error: updateError } = await supabase.rpc(
+        'mark_notification_email_sent',
+        {
+          p_notification_id: row.id,
+          p_lease_id: row.lease_id,
+        },
+      );
 
       if (updateError) {
-        // The mail went out; losing the status write would resend it next
-        // tick, but the idempotency key above makes that harmless.
-        console.error(`Outbox row ${row.id} sent but not marked:`, updateError.message);
+        // The mail went out; a future reclaim may call Resend again, but the
+        // stable idempotency key above makes that provider retry harmless.
+        console.error(`Outbox row ${row.id} sent completion failed:`, updateError.message);
       }
-      sent += 1;
+
+      if (updateError || Number(marked) !== 1) {
+        leaseConflicts += 1;
+      } else {
+        sent += 1;
+      }
     } catch (error) {
-      const attempts = (row.attempts ?? 0) + 1;
+      const attempts = row.attempts ?? 0;
       const retryable = error instanceof EmailError ? error.retryable : true;
       const canRetry = retryable && attempts < MAX_ATTEMPTS;
+      const outcome = await markLeaseFailed(supabase, row, {
+        retryable: canRetry,
+        failureCode: retryable ? 'provider_retryable' : 'provider_terminal',
+        message: safeFailureMessage(error),
+        availableAt: canRetry
+          ? new Date(Date.now() + backoffFor(attempts) * 60_000).toISOString()
+          : null,
+      });
 
-      const { error: updateError } = await supabase
-        .from('notifications_outbox')
-        .update({
-          status: canRetry ? 'pending' : 'failed',
-          attempts,
-          last_error: String(error.message).slice(0, 500),
-          available_at: canRetry
-            ? new Date(Date.now() + backoffFor(attempts) * 60_000).toISOString()
-            : undefined,
-        })
-        .eq('id', row.id);
-
-      if (updateError) {
-        console.error(`Outbox row ${row.id} failure not recorded:`, updateError.message);
-      }
-
-      if (canRetry) retrying += 1;
+      if (outcome.conflict) leaseConflicts += 1;
+      else if (canRetry) retrying += 1;
       else failed += 1;
     }
   }
 
-  return json({ ok: true, claimed: rows.length, sent, failed, skipped, retrying, cleanedAttachments });
+  return json({
+    ok: true,
+    claimed: rows.length,
+    sent,
+    failed,
+    skipped,
+    retrying,
+    leaseConflicts,
+    cleanedAttachments,
+  });
 }
 
 async function cleanupStaleAttachments(supabase) {
@@ -270,6 +280,38 @@ async function cleanupStaleAttachments(supabase) {
 
   const count = Number(data);
   return Number.isSafeInteger(count) && count >= 0 ? count : 0;
+}
+
+function safeFailureMessage(error) {
+  if (error instanceof EmailError) {
+    return error.statusCode
+      ? `Email provider response status ${error.statusCode}.`
+      : 'Email delivery failed.';
+  }
+  return 'Unexpected notification delivery error.';
+}
+
+async function markLeaseFailed(supabase, row, {
+  retryable,
+  failureCode,
+  message,
+  availableAt = null,
+}) {
+  const { data, error } = await supabase.rpc('mark_notification_email_failed', {
+    p_notification_id: row.id,
+    p_lease_id: row.lease_id,
+    p_retryable: retryable,
+    p_failure_code: failureCode,
+    p_error: message?.slice(0, 500) ?? null,
+    p_available_at: availableAt,
+  });
+
+  if (error) {
+    console.error(`Outbox row ${row.id} failure completion failed:`, error.message);
+    return { conflict: true };
+  }
+
+  return { conflict: Number(data) !== 1 };
 }
 
 // profiles has no email column - addresses live in auth.users, reachable
@@ -314,17 +356,6 @@ async function resolveProjects(supabase, rows) {
     map.set(project.id, project);
   }
   return map;
-}
-
-async function markFailed(supabase, row, reason) {
-  await supabase
-    .from('notifications_outbox')
-    .update({
-      status: 'failed',
-      attempts: (row.attempts ?? 0) + 1,
-      last_error: reason.slice(0, 500),
-    })
-    .eq('id', row.id);
 }
 
 // Counts only - never echo recipients, payloads, or the cron secret.
