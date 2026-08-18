@@ -18,15 +18,33 @@ function source(relativePath) {
 // stayed green while the implementation was gutted.
 let instance = 0;
 
-async function loadAnalytics({ id = 'G-ABCD1234', href = 'https://www.crystalwebsolution.com/', referrer = '', title = 'Home' } = {}) {
+function fakeStorage(initial = null, { throws = false } = {}) {
+  let value = initial;
+  return {
+    getItem() {
+      if (throws) throw new Error('storage blocked');
+      return value;
+    },
+    setItem(_key, next) {
+      if (throws) throw new Error('storage blocked');
+      value = next;
+    },
+    read: () => value,
+  };
+}
+
+async function loadAnalytics({ id = 'G-ABCD1234', href = 'https://www.crystalwebsolution.com/', referrer = '', title = 'Home', storage = fakeStorage() } = {}) {
   const url = new URL(href);
-  globalThis.window = { location: { origin: url.origin, href } };
+  globalThis.window = { location: { origin: url.origin, href }, localStorage: storage };
   globalThis.document = { title, referrer };
   process.env.NEXT_PUBLIC_GA_ID = id;
   instance += 1;
   const mod = await import(`../lib/analytics.mjs?case=${instance}`);
-  return { mod, dataLayer: () => (globalThis.window.dataLayer || []).map((entry) => Array.from(entry)) };
+  return { mod, storage, dataLayer: () => (globalThis.window.dataLayer || []).map((entry) => Array.from(entry)) };
 }
+
+const DENIED = { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' };
+const GRANTED = { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted' };
 
 test.afterEach(() => {
   delete globalThis.window;
@@ -59,12 +77,14 @@ test('config is queued before the first event, and only once', async () => {
   mod.trackEvent('generate_lead', {});
 
   const queue = dataLayer();
-  assert.deepEqual(queue[0].slice(0, 1), ['js'], 'js must be first');
-  assert.equal(queue[0][1] instanceof Date, true);
-  assert.deepEqual(queue[1], ['config', 'G-ABCD1234', { send_page_view: false }], 'config must precede every event');
+  const js = queue.findIndex((entry) => entry[0] === 'js');
+  const configIndex = queue.findIndex((entry) => entry[0] === 'config');
+  assert.equal(queue[js][1] instanceof Date, true);
+  assert.deepEqual(queue[configIndex], ['config', 'G-ABCD1234', { send_page_view: false }]);
+  assert.ok(js < configIndex, 'js must precede config');
 
   const firstEvent = queue.findIndex((entry) => entry[0] === 'event');
-  assert.ok(firstEvent > 1, 'gtag.js discards events queued ahead of the config');
+  assert.ok(firstEvent > configIndex, 'gtag.js discards events queued ahead of the config');
   assert.equal(queue.filter((entry) => entry[0] === 'config').length, 1, 'config must not be re-queued per pageview');
 });
 
@@ -136,6 +156,121 @@ test('trackEvent tolerates missing or null params and ignores a missing name', a
   const events = dataLayer().filter((entry) => entry[0] === 'event');
   assert.deepEqual(events.map((entry) => entry[1]), ['a', 'b']);
   for (const entry of events) assert.deepEqual(entry[2], {});
+});
+
+test('consent defaults to denied and is queued ahead of config', async () => {
+  const { mod, dataLayer } = await loadAnalytics();
+  mod.pageview('/', '');
+
+  const queue = dataLayer();
+  assert.deepEqual(queue[0].slice(0, 2), ['consent', 'default'], 'defaults arriving after config are too late to matter');
+  assert.deepEqual({ ...queue[0][2], wait_for_update: undefined }, { ...DENIED, wait_for_update: undefined });
+  assert.equal(queue[0][2].wait_for_update, 500, 'without a wait, first hits outrun a returning visitor’s stored grant');
+
+  const configIndex = queue.findIndex((entry) => entry[0] === 'config');
+  assert.ok(configIndex > 0, 'config must follow the consent default');
+  assert.equal(queue.filter((entry) => entry[0] === 'consent').length, 1, 'an unchosen visitor gets defaults only, no update');
+});
+
+test('a stored grant is replayed on the next visit, before config', async () => {
+  const { mod, dataLayer } = await loadAnalytics({ storage: fakeStorage('granted') });
+  mod.pageview('/', '');
+
+  const queue = dataLayer();
+  const update = queue.findIndex((entry) => entry[0] === 'consent' && entry[1] === 'update');
+  const config = queue.findIndex((entry) => entry[0] === 'config');
+  assert.ok(update !== -1, 'a returning visitor should not be asked again');
+  assert.deepEqual(queue[update][2], GRANTED);
+  assert.ok(update < config, 'the grant must reach the tag before it decides what to store');
+});
+
+test('a stored denial is replayed too, and never silently upgrades', async () => {
+  const { mod, dataLayer } = await loadAnalytics({ storage: fakeStorage('denied') });
+  mod.pageview('/', '');
+  const updates = dataLayer().filter((entry) => entry[0] === 'consent' && entry[1] === 'update');
+  assert.equal(updates.length, 1);
+  assert.deepEqual(updates[0][2], DENIED);
+});
+
+test('setConsent stores the choice and tells the tag exactly once', async () => {
+  const { mod, storage, dataLayer } = await loadAnalytics();
+  mod.pageview('/', '');
+  assert.equal(mod.setConsent('granted'), 'granted');
+
+  assert.equal(storage.read(), 'granted', 'the choice must survive a reload');
+  const updates = dataLayer().filter((entry) => entry[0] === 'consent' && entry[1] === 'update');
+  assert.equal(updates.length, 1, 'writing storage before configuring would replay the same choice twice');
+  assert.deepEqual(updates[0][2], GRANTED);
+});
+
+test('a grant given before the first pageview still overrides the defaults', async () => {
+  const { mod, dataLayer } = await loadAnalytics();
+  mod.setConsent('granted');
+  mod.pageview('/', '');
+
+  const queue = dataLayer();
+  assert.deepEqual(queue[0].slice(0, 2), ['consent', 'default'], 'defaults still come first');
+  const updates = queue.filter((entry) => entry[0] === 'consent' && entry[1] === 'update');
+  assert.equal(updates.length, 1, 'accepting before the first pageview must not double-push');
+  assert.deepEqual(updates[0][2], GRANTED);
+  // The update lands after config here, which is the normal live-choice path —
+  // what matters is that the denied defaults were seen first.
+  assert.ok(
+    queue.findIndex((entry) => entry[0] === 'consent' && entry[1] === 'update') > queue.findIndex((entry) => entry[0] === 'consent' && entry[1] === 'default'),
+  );
+});
+
+test('unknown or hostile consent values fall back to denied', async () => {
+  const { mod, storage, dataLayer } = await loadAnalytics();
+  mod.pageview('/', '');
+  for (const value of ['yes', '', null, undefined, 'GRANTED', { toString: () => 'granted' }]) {
+    assert.equal(mod.setConsent(value), 'denied', `${String(value)} must not be read as consent`);
+  }
+  assert.equal(storage.read(), 'denied');
+  const updates = dataLayer().filter((entry) => entry[0] === 'consent' && entry[1] === 'update');
+  for (const update of updates) assert.deepEqual(update[2], DENIED);
+});
+
+test('a corrupt or unwritable store degrades to asking again, not to consent', async () => {
+  const { mod: corrupt } = await loadAnalytics({ storage: fakeStorage('totally-granted') });
+  assert.equal(corrupt.readStoredConsent(), null, 'a junk value must not count as a choice');
+
+  const { mod: blocked, dataLayer } = await loadAnalytics({ storage: fakeStorage(null, { throws: true }) });
+  assert.equal(blocked.readStoredConsent(), null, 'Safari private mode throws rather than returning null');
+  assert.equal(blocked.setConsent('granted'), 'granted', 'a throwing store must not break the choice');
+  const updates = dataLayer().filter((entry) => entry[0] === 'consent' && entry[1] === 'update');
+  assert.deepEqual(updates.at(-1)[2], GRANTED, 'the tag should still hear the grant even if it cannot be persisted');
+});
+
+test('consent is inert when analytics is disabled', async () => {
+  const { mod, storage, dataLayer } = await loadAnalytics({ id: '' });
+  mod.setConsent('granted');
+  assert.deepEqual(dataLayer(), [], 'no tag means nothing to consent to');
+  assert.equal(storage.read(), 'granted', 'the choice is still remembered for when the tag is switched on');
+});
+
+test('the banner is the only path to consent, and defers to the module', async () => {
+  const code = source('components/ConsentBanner.jsx');
+  assert.match(code, /^'use client';/);
+  assert.match(code, /readStoredConsent\(\)/, 'a returning visitor must not be re-prompted');
+  assert.match(code, /isTrackablePath\(pathname\)/, 'CRM routes measure nothing, so they should not prompt');
+  assert.match(code, /setConsent\(/, 'the choice must go through the module that talks to the tag');
+  assert.match(code, /'granted'/, 'accepting must be offered');
+  assert.match(code, /'denied'/, 'declining must be as easy as accepting');
+  assert.equal(
+    (code.match(/<button/g) || []).length,
+    2,
+    'exactly two choices — an accept-only banner is not consent',
+  );
+  assert.doesNotMatch(code, /useState\(true\)/, 'rendering before the stored choice is read is a hydration mismatch');
+
+  const css = source('app/globals.css');
+  assert.match(css, /\.consent \{/, 'the banner needs styles or it lands unstyled over the scene');
+  const reducedMotionBlocks = css.match(/@media \(prefers-reduced-motion: reduce\)[^@]*/g) || [];
+  assert.ok(
+    reducedMotionBlocks.some((block) => /\.consent\b[\s\S]*animation: none/.test(block)),
+    'the entrance animation must be disabled under reduced motion',
+  );
 });
 
 test('CSP allows every Google host the tag needs', async () => {

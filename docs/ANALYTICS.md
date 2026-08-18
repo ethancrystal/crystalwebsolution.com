@@ -11,6 +11,7 @@ GA4 measurement for crystalwebsolution.com, plus Search Console verification.
 | CSP allowlist for Google's hosts | `next.config.js` |
 | Tag mount + GSC verification meta | `app/layout.jsx` |
 | `generate_lead` conversion | `components/marketing/ContactForm.jsx` |
+| Consent Mode v2 banner | `components/ConsentBanner.jsx` |
 | Executable tests | `tests/analytics.test.mjs` |
 
 ## Setup
@@ -133,15 +134,42 @@ To add an event, import `trackEvent` from `lib/analytics.mjs`. It is safe to
 call anywhere client-side at any time: hits fired before `gtag.js` finishes
 loading queue on `window.dataLayer` and flush when it does.
 
+## Consent
+
+Consent Mode v2, denied by default, with a banner as the only way to grant it.
+
+`ensureConfigured()` pushes `consent default` with all four signals
+(`ad_storage`, `ad_user_data`, `ad_personalization`, `analytics_storage`) set
+to `denied`, **before** `js` and `config` — after `config` the tag has already
+decided what to store, so ordering is the whole ballgame. `wait_for_update:
+500` holds the first hits briefly so a returning visitor's stored grant is
+applied to them rather than landing a moment too late.
+
+There is no region carve-out. Google supports region-scoped defaults, but
+deciding who counts as EEA from the client is guesswork, and the honest
+default is the strict one for everybody.
+
+Denied is not the same as off. Under Consent Mode the tag still sends
+cookieless pings, so GA4 keeps modelling conversions for visitors who decline
+or never choose — you lose user-level detail, not the whole signal.
+
+`components/ConsentBanner.jsx` renders the prompt. It shows nothing until
+after mount, because the stored choice lives in `localStorage` and reading it
+during render would be a hydration mismatch. It skips CRM/auth routes, which
+measure nothing and so have nothing to consent to. Accept and Decline are
+equally prominent and one click each; the choice persists under
+`cws:analytics-consent` and is replayed ahead of `config` on later visits.
+
+Unwritable or corrupt storage (Safari private mode throws rather than
+returning `null`) degrades to asking again next visit — never to assuming
+consent.
+
+To let someone change their mind later, call `setConsent('denied')` from a
+footer link; the module handles the `consent update` push. There is no such
+link today.
+
 ## Known gaps
 
-- **No consent gating.** There is no cookie banner and no Consent Mode v2
-  `default` push. `config` sets `_ga` cookies for every visitor including
-  EEA/UK traffic, where Consent Mode v2 has been required since March 2024.
-  Closing this needs a consent UI first — a product decision, not a code
-  change. When it lands, the `consent` push belongs in `ensureConfigured()`,
-  immediately before the `config` push, which is the one place ordering is
-  already guaranteed.
 - **`page_title` can lag on client-side navigation.** Next renders route
   metadata in a separate boundary from the root layout, so `document.title` is
   occasionally still the previous route's title when the pageview fires. This
@@ -152,7 +180,10 @@ loading queue on `window.dataLayer` and flush when it does.
 After a `main` deploy with `NEXT_PUBLIC_GA_ID` set:
 
 1. Load the site and open DevTools -> Network, filter `collect`. You should see
-   `POST https://*.google-analytics.com/g/collect` returning 204.
+   `POST https://*.google-analytics.com/g/collect` returning 204. Before you
+   accept the banner these carry `gcs=G100` (consent denied); after accepting,
+   `gcs=G111`. If you never see the banner, check
+   `localStorage['cws:analytics-consent']` — you probably already chose.
 2. Check the Console for `Refused to connect` / `Refused to load` — that's the
    CSP trap above, and the origin in the message is the one missing.
 3. GA4 -> Reports -> Realtime should show the session within ~30 seconds.

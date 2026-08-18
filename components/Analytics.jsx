@@ -4,6 +4,7 @@ import { Suspense, useEffect } from 'react';
 import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { GA_ID, isAnalyticsEnabled, pageview } from '../lib/analytics.mjs';
+import ConsentBanner from './ConsentBanner';
 
 // App Router navigations don't reload the document, so gtag's automatic
 // page_view would only ever fire once. lib/analytics.mjs disables it and this
@@ -42,6 +43,7 @@ export default function Analytics() {
       <Suspense fallback={null}>
         <RouteTracker />
       </Suspense>
+      <ConsentBanner />
     </>
   );
 }

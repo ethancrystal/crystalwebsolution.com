@@ -3686,3 +3686,65 @@ html[data-cws-intro-seen='1'] .loader {
     transition: none;
   }
 }
+
+/* ---------- analytics consent ---------- */
+.consent {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(1rem, 3vw, 2rem);
+  transform: translate(-50%, 0);
+  /* Under the menu (480), nav (500) and loader (900) so it never floats over
+     the intro or an open overlay; well clear of page content at 2. */
+  z-index: 470;
+  width: min(44rem, calc(100vw - 2rem));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(4, 7, 13, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 20px 64px rgba(2, 4, 8, 0.62);
+  animation: consent-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.consent-copy {
+  flex: 1 1 20rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.consent-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.consent-btn {
+  padding: 0.6rem 1.35rem;
+  font-size: 0.82rem;
+}
+
+@keyframes consent-rise {
+  from { opacity: 0; transform: translate(-50%, 16px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 560px) {
+  .consent { justify-content: stretch; }
+  .consent-actions { width: 100%; }
+  .consent-actions .consent-btn { flex: 1; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consent {
+    animation: none;
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
