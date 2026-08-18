@@ -15,14 +15,16 @@
 --
 -- 1. The public read policy is scoped `TO anon, authenticated` and the staff
 --    read policy `TO authenticated`, rather than a single policy OR-ing them
---    together. This is load-bearing, not style. 0008 revoked EXECUTE on
---    public.is_staff() from PUBLIC and granted it only to `authenticated`, so
---    an anonymous visitor evaluating a policy that calls is_staff() would hit
---    "permission denied for function is_staff" instead of reading the blog.
---    Postgres does not guarantee OR short-circuit order across permissive
---    policies, so the role scoping is what keeps anon off that code path
---    entirely. Permissive policies are OR'd within a role, so staff still read
---    everything via the second policy.
+--    together. This is load-bearing, not style. A policy calls its functions
+--    with the *querying* role's privileges, and 0008 revoked the role helpers
+--    from PUBLIC — so a single merged policy would make an anonymous visitor
+--    evaluate a staff-role check it has no EXECUTE on, and the blog would fail
+--    closed with "permission denied" instead of rendering. Postgres does not
+--    guarantee OR short-circuit order across permissive policies, so the role
+--    scoping is what keeps anon off that code path entirely. Permissive
+--    policies are OR'd within a role, so staff still read everything via the
+--    second policy. The same privilege trap is why that second policy spells
+--    out is_admin() OR is_pm() instead of is_staff() — see its own comment.
 --
 -- 2. published_at is the visibility gate, not just metadata. The public policy
 --    requires `published_at <= now()`, which makes a future timestamp a
@@ -157,9 +159,23 @@ CREATE POLICY "Anyone can read published posts" ON public.blog_posts
   );
 
 -- Staff additionally see drafts and scheduled posts (permissive policies OR).
+--
+-- Spelled out as is_admin() OR is_pm() rather than the equivalent is_staff(),
+-- because a policy calls its functions with the *querying* role's privileges
+-- and `authenticated` has no EXECUTE on is_staff(): 0008 revoked it from PUBLIC
+-- and granted back only current_profile_role(), is_admin(), is_pm() and
+-- is_company_member() — is_staff() was left out. Every other CRM policy avoids
+-- this by calling a SECURITY DEFINER wrapper (private.can_access_project),
+-- whose inner role lookup runs as the definer; this table has no such wrapper.
+-- Verified against the local stack: with is_staff() here, ANY authenticated
+-- read of blog_posts fails with "permission denied for function is_staff",
+-- which would have taken the blog down for every signed-in visitor.
+-- is_staff() is defined as exactly this disjunction, so behavior is identical,
+-- and this adds no new function grant — 0027 is actively narrowing which
+-- helpers the API roles may execute, so widening one here would cut against it.
 CREATE POLICY "Staff can read every post" ON public.blog_posts
   FOR SELECT TO authenticated
-  USING (public.is_staff());
+  USING (public.is_admin() OR public.is_pm());
 
 CREATE POLICY "Admin can create posts" ON public.blog_posts
   FOR INSERT TO authenticated

@@ -34,3 +34,8 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# Supabase CLI local state. .temp/start-secrets holds generated local TLS
+# private keys and container env files — never commit these.
+supabase/.branches
+supabase/.temp
