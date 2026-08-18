@@ -3,6 +3,7 @@ import { Space_Grotesk, Inter, Space_Mono } from 'next/font/google';
 import { SITE } from '../lib/site';
 import { REVIEW_STATS } from '../lib/reviews';
 import { SITE_ORIGIN, SOCIAL_IMAGE_PATH } from '../lib/seo.mjs';
+import Analytics from '../components/Analytics';
 
 const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
@@ -40,6 +41,11 @@ export const metadata = {
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   robots: { index: true, follow: true },
+  // Search Console's HTML-tag verification method. Omitted entirely when the
+  // env var is unset so preview deploys don't claim the property.
+  ...(process.env.NEXT_PUBLIC_GSC_VERIFICATION
+    ? { verification: { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION } }
+    : {}),
 };
 
 // Site-wide structured data graph. Screaming Frog reported 0 structured data
@@ -158,6 +164,7 @@ export default function RootLayout({ children }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
         {children}
+        <Analytics />
       </body>
     </html>
   );

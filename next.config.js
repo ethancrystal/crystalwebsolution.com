@@ -16,7 +16,32 @@ const supabaseOrigin = (() => {
 })();
 const supabaseWs = supabaseOrigin.replace(/^https:/, 'wss:');
 
-const connectSrc = ["'self'", supabaseOrigin, supabaseWs].filter(Boolean).join(' ');
+// GA4 loads gtag.js from googletagmanager.com and beacons hits to the
+// google-analytics.com collection endpoints — including regional subdomains
+// (region1.google-analytics.com and friends), which is why the wildcards are
+// needed. Without these the tag loads but every hit is blocked by CSP and the
+// property stays at zero with no visible error on the page.
+const GA_SCRIPT_ORIGIN = 'https://www.googletagmanager.com';
+const GA_CONNECT_ORIGINS = [
+  'https://www.googletagmanager.com',
+  'https://www.google-analytics.com',
+  'https://*.google-analytics.com',
+  'https://analytics.google.com',
+  'https://*.analytics.google.com',
+  // Google Signals / Ads linking sends extra hits here. Omitting them is the
+  // same silent partial failure as above: demographics, remarketing audiences
+  // and Ads conversion import stop working with nothing logged on the page.
+  'https://stats.g.doubleclick.net',
+  'https://*.g.doubleclick.net',
+  'https://www.google.com',
+];
+
+// The conversion linker uses an iframe; default-src 'self' would block it.
+const GA_FRAME_ORIGINS = ['https://td.doubleclick.net'];
+
+const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS]
+  .filter(Boolean)
+  .join(' ');
 
 // Content-Security-Policy. 'unsafe-inline'/'unsafe-eval' in script-src are
 // required by Next's inline bootstrap and by the R3F/GSAP runtime; tightening
@@ -24,13 +49,14 @@ const connectSrc = ["'self'", supabaseOrigin, supabaseWs].filter(Boolean).join('
 // script/worker because Three.js compiles shader workers from blob URLs.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
+  `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: ${GA_SCRIPT_ORIGIN}`,
   "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   `connect-src ${connectSrc}`,
   "media-src 'self' data: blob:",
+  `frame-src 'self' ${GA_FRAME_ORIGINS.join(' ')}`,
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",
