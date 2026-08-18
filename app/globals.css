@@ -721,6 +721,37 @@ html[data-cws-intro-seen='1'] .loader {
 .services-list:has(.service-row.is-active) .service-row:not(.is-active) .service-desc {
   opacity: 0.6;
 }
+/* Capability chips + the /services/[slug] link, stacked under .service-desc
+   in the row's second column. The chip pills are .case-services verbatim;
+   .service-chips is a layout-only modifier for this context (the case-study
+   page keeps .case-services' own 3rem trailing gap untouched). */
+.service-row-more {
+  grid-column: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 1.15rem;
+}
+.case-services.service-chips { margin-bottom: 0; gap: 0.5rem; max-width: 100%; }
+.service-more-link { display: inline-flex; align-items: center; gap: 0.45rem; }
+.service-more-arrow {
+  display: inline-block;
+  transition: transform 0.35s var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.service-more-link:hover .service-more-arrow,
+.service-more-link:focus-visible .service-more-arrow { transform: translateX(0.35rem); }
+.service-more-link:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-more-arrow { transition: none; }
+  .service-more-link:hover .service-more-arrow,
+  .service-more-link:focus-visible .service-more-arrow { transform: none; }
+}
 .services-marquee { margin-top: 5rem; }
 
 /* ---------- magnified bento (draggable capability-tag lens) ---------- */
@@ -2405,6 +2436,9 @@ html[data-cws-intro-seen='1'] .loader {
   .hero-cta { margin-top: 2rem; }
   .services { padding-block: 14vh; }
   .service-row { grid-template-columns: minmax(0, 1fr); }
+  /* Single-column row: keep the detail block in the only track that exists,
+     otherwise grid-column: 2 would open an implicit second column. */
+  .service-row-more { grid-column: 1; }
   .facts-grid { margin-bottom: 3.5rem; }
   .fact-card { grid-template-columns: 2.5rem 1fr; gap: 1rem 1.25rem; }
   .fact-num,
@@ -2468,151 +2502,154 @@ html[data-cws-intro-seen='1'] .loader {
   .about-smil [data-about-row] { clip-path: inset(0 0 0 0) !important; will-change: auto; }
   .story-card,
   .story-card-quote { animation: none; }
-  .motion-story-path { display: none; }
   .recognition-year-stack,
   .contact-email::before { transition: none; }
 }
 
-/* ---------- how it works motion cards ---------- */
-.motion-story-board {
-  position: relative;
-  margin-top: 4.5rem;
+/* ---------- how it works: numbered approach accordion ---------- */
+/* One step expanded at a time. Height is animated with the grid 0fr -> 1fr
+   trick so nothing is measured in JS and no per-frame work is created; the
+   collapsed panel is also visibility:hidden so its text leaves the
+   accessibility tree and cannot be selected or read while closed. */
+.approach-accordion {
+  width: min(100%, 62rem);
+  margin: 4rem auto 0;
+  border-top: 1px solid var(--line);
 }
-.motion-story-track {
-  position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.motion-story-card {
-  position: absolute;
-  width: clamp(280px, 34vw, 340px);
-}
-/* .motion-story-track's first child is .motion-story-path-wrap (also a
-   div), so the four .motion-story-card divs are the 2nd-5th div-of-type/
-   nth-child, not the 1st-4th -- these selectors are offset by one to match. */
-.motion-story-card:nth-of-type(2) { top: 0; left: 0; transform: rotate(-6deg); }
-.motion-story-card:nth-of-type(3) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
-.motion-story-card:nth-of-type(4) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
-.motion-story-card:nth-of-type(5) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
-
-.motion-story-card > div {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
-}
-.motion-story-card:nth-child(2) > div {
-  border-color: rgba(89, 243, 255, 0.24);
-  box-shadow: 0 20px 50px rgba(89, 243, 255, 0.08);
-}
-.motion-story-card:nth-child(3) > div {
-  border-color: rgba(192, 132, 252, 0.24);
-  box-shadow: 0 20px 50px rgba(192, 132, 252, 0.06);
-}
-.motion-story-card:nth-child(4) > div {
-  border-color: rgba(89, 243, 255, 0.24);
-}
-.motion-story-card:nth-child(5) > div {
-  border-color: rgba(192, 132, 252, 0.24);
-}
-.motion-story-pin {
-  display: block;
-  margin: 2rem auto 1.5rem;
-  color: rgba(89, 243, 255, 0.9);
-}
-.motion-story-card:nth-child(3) .motion-story-pin,
-.motion-story-card:nth-child(5) .motion-story-pin {
-  color: rgba(192, 132, 252, 0.95);
-}
-.motion-story-inner {
-  display: block;
-  border-radius: 22px;
-  padding: 1.35rem 1.45rem 1.4rem;
-}
-.motion-story-card:nth-child(2) .motion-story-inner,
-.motion-story-card:nth-child(4) .motion-story-inner {
-  background: rgba(89, 243, 255, 0.08);
-  border: 1px solid rgba(89, 243, 255, 0.22);
-}
-.motion-story-card:nth-child(3) .motion-story-inner,
-.motion-story-card:nth-child(5) .motion-story-inner {
-  background: rgba(192, 132, 252, 0.08);
-  border: 1px solid rgba(192, 132, 252, 0.22);
-}
-.motion-story-num {
-  display: block;
-  margin-bottom: 1.2rem;
-  color: rgba(89, 243, 255, 0.9);
-  font-family: var(--font-display);
-  font-size: clamp(1.75rem, 3.4vw, 2.6rem);
-  line-height: 1;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-.motion-story-card:nth-child(3) .motion-story-num,
-.motion-story-card:nth-child(5) .motion-story-num {
-  color: rgba(192, 132, 252, 0.95);
-}
-.motion-story-card {
+.approach-step {
   position: relative;
   overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  --approach-accent: var(--cyan);
 }
-.motion-story-card::before {
+.approach-step[data-theme='purple'] { --approach-accent: var(--violet); }
+
+/* Cursor-tracked sheen, driven by useCardMouseReveal's --mouse-x/--mouse-y. */
+.approach-step::before {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: inherit;
   background: radial-gradient(
     300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(255, 255, 255, 0.1),
+    color-mix(in srgb, var(--approach-accent) 9%, transparent),
     transparent 70%
   );
   opacity: 0;
   transition: opacity 0.35s ease;
   pointer-events: none;
-  z-index: 2;
+  z-index: 0;
 }
-.motion-story-card:hover::before {
-  opacity: 1;
+.approach-step:hover::before,
+.approach-step[data-open='true']::before { opacity: 1; }
+
+.approach-step-heading { margin: 0; font-weight: inherit; }
+.approach-step-trigger {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 4.5rem 1fr auto;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1.9rem 0.75rem;
+  text-align: left;
+  color: var(--muted);
+  transition: color 0.35s ease;
 }
-.motion-story-title {
-  color: #eaf2ff;
+.approach-step:hover .approach-step-trigger,
+.approach-step[data-open='true'] .approach-step-trigger { color: var(--ink); }
+
+.approach-step-num {
+  font-family: var(--font-mono);
+  font-size: clamp(0.8rem, 1.6vw, 0.95rem);
+  letter-spacing: 0.14em;
+  color: var(--approach-accent);
+  opacity: 0.6;
+  transition: opacity 0.35s ease;
+}
+.approach-step[data-open='true'] .approach-step-num { opacity: 1; }
+
+.approach-step-title {
   font-family: var(--font-display);
-  font-size: clamp(1.15rem, 2.3vw, 1.55rem);
+  font-size: clamp(1.25rem, 3vw, 2.1rem);
   font-weight: 600;
-  line-height: 1.15;
-  margin: 0 0 0.75rem;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: inherit;
 }
-.motion-story-desc {
-  color: #8b98b8;
+
+.approach-step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--approach-accent);
+  opacity: 0.65;
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.approach-step[data-open='true'] .approach-step-icon {
+  opacity: 1;
+  transform: rotate(180deg);
+}
+/* Plus becomes minus when the step is open. */
+.approach-step-icon-bar {
+  transform-origin: 50% 50%;
+  transition: opacity 0.3s ease;
+}
+.approach-step[data-open='true'] .approach-step-icon-bar { opacity: 0; }
+
+.approach-step-panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.approach-step[data-open='true'] .approach-step-panel { grid-template-rows: 1fr; }
+.approach-step-panel-inner {
+  overflow: hidden;
+  visibility: hidden;
+  transition: visibility 0s linear 0.5s;
+}
+.approach-step[data-open='true'] .approach-step-panel-inner {
+  visibility: visible;
+  transition: visibility 0s;
+}
+.approach-step-desc {
+  max-width: 46rem;
+  margin: 0 0 2rem;
+  padding: 0 0.75rem 0 6rem;
+  color: var(--muted);
   font-family: var(--font-body);
-  font-size: 0.95rem;
-  line-height: 1.65;
-  margin: 0;
+  font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+  line-height: 1.7;
 }
-.motion-story-count {
-  margin-bottom: 1rem;
+
+.approach-step-trigger:focus { outline: none; }
+.approach-step-trigger:focus-visible {
+  outline: 2px solid var(--approach-accent);
+  outline-offset: -4px;
 }
-.motion-story-count .text-sm {
-  color: #8b98b8;
-  line-height: 1.5;
-  font-family: var(--font-body);
-}
-@media (max-width: 900px) {
-  /* !important beats the unconditional .motion-story-card:nth-of-type(n)
-     rules above, which otherwise out-specificity this plain-class reset and
-     keep their desktop top/left/rotation offsets on mobile — pushing each
-     stacked card down by its old absolute "top" and into the next section. */
-  .motion-story-card {
-    position: relative !important;
-    left: auto !important;
-    right: auto !important;
-    top: auto !important;
-    transform: none !important;
-    width: auto !important;
+
+@media (max-width: 720px) {
+  .approach-step-trigger {
+    grid-template-columns: 3rem 1fr auto;
+    gap: 1rem;
+    padding: 1.4rem 0.5rem;
   }
-  .motion-story-board { height: auto !important; }
-  .motion-story-track { display: flex; flex-direction: column; gap: 1rem; }
+  .approach-step-desc { padding: 0 0.5rem 0 4rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The panel still opens and closes — only the easing is dropped, so the
+     copy is never gated behind an animation that never runs. */
+  .approach-step-panel,
+  .approach-step-panel-inner,
+  .approach-step-icon,
+  .approach-step-num,
+  .approach-step-trigger,
+  .approach-step::before { transition: none; }
+  .approach-step-icon { transform: none; }
+  .approach-step[data-open='true'] .approach-step-icon { transform: none; }
 }
 
 /* ---------- review cards homepage ---------- */
@@ -2737,137 +2774,6 @@ html[data-cws-intro-seen='1'] .loader {
   border-bottom: 1px solid var(--line);
   background: linear-gradient(90deg, rgba(89, 243, 255, 0), rgba(89, 243, 255, 0));
   transition: background 0.4s, border-color 0.4s;
-}
-.motion-story-track {
-  position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.motion-story-path-wrap {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  display: none;
-}
-@media (min-width: 768px) {
-  .motion-story-path-wrap { display: block; }
-  .motion-story-card {
-    position: absolute;
-    overflow: hidden;
-    width: clamp(280px, 34vw, 340px);
-  }
-  /* .motion-story-track's first child is .motion-story-path-wrap (also a
-     div), so the four .motion-story-card divs are the 2nd-5th div-of-type,
-     not the 1st-4th -- these selectors are offset by one to match. */
-  .motion-story-card:nth-of-type(2) { top: 0; left: 0; transform: rotate(-6deg); }
-  .motion-story-card:nth-of-type(3) { top: 130px; right: 0; left: auto; transform: rotate(6deg); }
-  .motion-story-card:nth-of-type(4) { top: 470px; left: 0; right: auto; transform: rotate(-6deg); }
-  .motion-story-card:nth-of-type(5) { top: 600px; right: 0; left: auto; transform: rotate(6deg); }
-}
-.motion-story-path { display: block; width: 100%; height: 100%; color: rgba(139, 152, 184, 0.4); }
-.motion-story-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.1), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.35s ease;
-  pointer-events: none;
-  z-index: 2;
-}
-.motion-story-card:hover::before { opacity: 1; }
-.motion-story-shell {
-  position: relative;
-  padding: 0.5rem;
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
-}
-.motion-story-card:nth-child(2) .motion-story-shell,
-.motion-story-card:nth-child(4) .motion-story-shell {
-  border-color: rgba(89, 243, 255, 0.24);
-  box-shadow: 0 20px 50px rgba(89, 243, 255, 0.08);
-}
-.motion-story-card:nth-child(3) .motion-story-shell,
-.motion-story-card:nth-child(5) .motion-story-shell {
-  border-color: rgba(192, 132, 252, 0.24);
-  box-shadow: 0 20px 50px rgba(192, 132, 252, 0.06);
-}
-.motion-story-pin {
-  display: block;
-  margin: 2rem auto 1.5rem;
-  text-align: center;
-  color: rgba(89, 243, 255, 0.9);
-}
-.motion-story-card:nth-child(3) .motion-story-pin,
-.motion-story-card:nth-child(5) .motion-story-pin {
-  color: rgba(192, 132, 252, 0.95);
-}
-.motion-story-inner {
-  display: block;
-  border-radius: 22px;
-  padding: 1.35rem 1.45rem 1.4rem;
-}
-.motion-story-card:nth-child(2) .motion-story-inner,
-.motion-story-card:nth-child(4) .motion-story-inner {
-  background: rgba(89, 243, 255, 0.08);
-  border: 1px solid rgba(89, 243, 255, 0.22);
-}
-.motion-story-card:nth-child(3) .motion-story-inner,
-.motion-story-card:nth-child(5) .motion-story-inner {
-  background: rgba(192, 132, 252, 0.08);
-  border: 1px solid rgba(192, 132, 252, 0.22);
-}
-.motion-story-num {
-  display: block;
-  margin-bottom: 1.2rem;
-  color: rgba(89, 243, 255, 0.9);
-  font-family: var(--font-display);
-  font-size: clamp(1.75rem, 3.4vw, 2.6rem);
-  line-height: 1;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-.motion-story-card:nth-child(3) .motion-story-num,
-.motion-story-card:nth-child(5) .motion-story-num {
-  color: rgba(192, 132, 252, 0.95);
-}
-.motion-story-title {
-  color: #eaf2ff;
-  font-family: var(--font-display);
-  font-size: clamp(1.15rem, 2.3vw, 1.55rem);
-  font-weight: 600;
-  line-height: 1.15;
-  margin: 0 0 0.75rem;
-}
-.motion-story-desc {
-  color: #8b98b8;
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  line-height: 1.65;
-  margin: 0;
-}
-@media (max-width: 900px) {
-  .motion-story-card {
-    position: relative;
-    left: auto;
-    right: auto;
-    top: auto;
-    transform: none;
-    width: auto;
-  }
-  .motion-story-board { height: auto !important; }
-  .motion-story-track {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    min-height: 0 !important;
-  }
 }
 
 /* ---------- recognition ---------- */
