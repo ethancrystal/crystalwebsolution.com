@@ -81,8 +81,11 @@ function ApproachStep({ step, index, isOpen, onToggle, onTriggerKeyDown, registe
 }
 
 export default function Approach() {
-  // One step expanded at a time; -1 once the open one is collapsed again.
-  const [openIndex, setOpenIndex] = useState(0);
+  // One step expanded at a time; -1 means none open. Starts collapsed so a
+  // fresh page load never pins the compass to step 0 via the beacon effect
+  // below — the scroll-derived choreography plays until the visitor opens a
+  // step themselves.
+  const [openIndex, setOpenIndex] = useState(-1);
   const triggersRef = useRef([]);
 
   // DOM -> canvas hand-off. No prop crosses the boundary: the expanded step is
