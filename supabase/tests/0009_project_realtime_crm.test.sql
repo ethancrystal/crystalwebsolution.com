@@ -22,7 +22,13 @@ values
   ('00000000-0000-0000-0000-000000000000', '10000000-0000-0000-0000-000000000002', 'authenticated', 'authenticated', 'client-b@example.test', '', now(), '{}', '{}', now(), now()),
   ('00000000-0000-0000-0000-000000000000', '10000000-0000-0000-0000-000000000003', 'authenticated', 'authenticated', 'assigned@example.test', '', now(), '{}', '{}', now(), now()),
   ('00000000-0000-0000-0000-000000000000', '10000000-0000-0000-0000-000000000004', 'authenticated', 'authenticated', 'unassigned@example.test', '', now(), '{}', '{}', now(), now()),
-  ('00000000-0000-0000-0000-000000000000', '10000000-0000-0000-0000-000000000005', 'authenticated', 'authenticated', 'admin@example.test', '', now(), '{}', '{}', now(), now());
+  -- Not an @example.test address like the others: 0014 pins the admin role to
+  -- a single address (enforce_pinned_admin() plus a one-row unique index), so
+  -- promoting any other account below raises "Only ... may hold the admin
+  -- role." and takes every assertion in this file down with it. Reading the
+  -- address from pinned_admin_email() rather than hardcoding it keeps this
+  -- fixture correct if the pinned account is ever moved.
+  ('00000000-0000-0000-0000-000000000000', '10000000-0000-0000-0000-000000000005', 'authenticated', 'authenticated', public.pinned_admin_email(), '', now(), '{}', '{}', now(), now());
 
 insert into public.companies (id, name, email, created_by)
 values
