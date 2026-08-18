@@ -130,6 +130,19 @@ test('authenticated CRM routes are not measured', async () => {
   }
 });
 
+test('blog posts are measured but blog authoring is not', async () => {
+  // The blog landed on main after this branch opened. Its public pages are the
+  // SEO surface and are the whole point of measuring; the authoring UI sits
+  // under /admin and must stay out, like the rest of the CRM.
+  const { mod } = await loadAnalytics();
+  for (const pathname of ['/blog', '/blog/why-scroll-driven-sites-convert']) {
+    assert.equal(mod.isTrackablePath(pathname), true, `${pathname} is public SEO content and should be measured`);
+  }
+  for (const pathname of ['/admin/blog', '/admin/blog/new', '/admin/blog/8f2c-uuid']) {
+    assert.equal(mod.isTrackablePath(pathname), false, `${pathname} is authoring UI behind auth and must stay out of GA4`);
+  }
+});
+
 test('later events inherit the current page, not the landing page', async () => {
   const { mod, dataLayer } = await loadAnalytics({ href: 'https://www.crystalwebsolution.com/' });
   mod.pageview('/', '');
