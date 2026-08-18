@@ -27,7 +27,7 @@ export default function Experience() {
       <Scene />
       <FocusVeil />
       <Nav />
-      <ScrollProgress />
+      <ScrollProgress sections />
       <main className="page">
         <Hero />
         <SectionHandoff from="top" tone="cyan" label="about"><About /></SectionHandoff>
