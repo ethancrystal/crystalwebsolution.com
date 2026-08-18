@@ -201,3 +201,37 @@ markup get updated in the same commit:
 New coverage is added only where a real contract appears: the Services→
 `/services/[slug]` link mapping is a route contract worth asserting, since a broken
 `signal`→slug join would silently produce dead links.
+
+---
+
+## F. §2.2 as built — section numbering
+
+The brief's §2.2 wording was not preserved anywhere on disk; section B above
+records only what it *consumes*. Reconstructed with the owner: a live beat
+readout beside the scroll bar, **not** static ordinals in each `.eyebrow`.
+That reading matches B's "existing singleton — no new counter" note and leaves
+all seven section components untouched.
+
+Decisions worth keeping:
+
+- **The rule matches `CameraRig`.** `currentBeatIndex()` walks the same
+  ascending `p >= beatProgress[id]` thresholds the rig uses for its segment
+  lookup, so the number flips on the frame the camera leaves for the next
+  stop. A midpoint or viewport-offset rule would have read one beat out of
+  step with the scene.
+- **The last beat needed an escape hatch.** `measureBeats` pins
+  `beatProgress.contact` to exactly `1`, so a plain threshold walk would show
+  `08/09` through the whole Contact section and reach `09/09` only on the
+  document's final pixel. `MOTION_WINDOW.end` — where Motion's sticky pin
+  releases — is the honest Contact boundary and is used instead.
+- **The readout is opt-in.** `ScrollProgress` is also mounted by
+  `SubpageExperience.jsx`, where none of the nine homepage ids resolve and
+  every breakpoint keeps its evenly-spaced default. Only `Experience.jsx`
+  passes `sections`; a subpage would otherwise render confident nonsense.
+- **`aria-hidden` is deliberate.** The count restates position that assistive
+  tech already gets from landmarks and headings, and an `aria-live` value
+  changing on every beat would announce over the content being read.
+
+Coverage: `tests/beatProgress.test.mjs` (5 tests) pins the threshold rule, the
+reachable last beat, overscroll/NaN clamping, monotonicity across a full
+sweep, and the homepage-only opt-in.
