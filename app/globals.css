@@ -610,6 +610,19 @@ html[data-cws-intro-seen='1'] .loader {
 .hero-sub { margin-top: 2.2rem; color: var(--muted); font-size: clamp(0.95rem, 1.6vw, 1.15rem); line-height: 1.7; max-width: 46rem; }
 .contact-sub { margin-top: 1.4rem; max-width: 34rem; color: var(--muted); font-size: clamp(0.95rem, 1.6vw, 1.12rem); line-height: 1.7; }
 .hero-cta { margin-top: 3rem; display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
+/* Inline proof line under the hero CTA. Mono/uppercase to read as instrument
+   labelling rather than body copy, and muted so it supports the CTA instead of
+   competing with it. Tokens only — no new colour values. */
+.hero-stat { margin-top: 1.6rem; }
+.hero-stat p {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hero-stat-figure { color: var(--cyan); }
+.hero-stat-sep { color: var(--line); }
 .hero-scroll {
   position: absolute;
   bottom: 4vh;

@@ -108,6 +108,18 @@ export default function Hero() {
             </a>
           </Magnetic>
         </Reveal>
+        {/* Inline proof line under the CTA. Reads from SITE rather than
+            restating the figure, so the homepage and /about (which already
+            renders SITE.projectsShipped) can never drift apart. Deliberately a
+            single mono line rather than a stat block — the deleted Facts.jsx
+            was the stat block, and this is not a reinstatement of it. */}
+        <Reveal className="hero-stat" delay={introDelay + 1.5}>
+          <p>
+            <span className="hero-stat-figure">{SITE.projectsShipped}</span>
+            <span className="hero-stat-sep" aria-hidden="true"> · </span>
+            <span>{SITE.experience} of practice</span>
+          </p>
+        </Reveal>
       </div>
       <div className="hero-scroll" aria-hidden="true">
         <span>scroll</span>
