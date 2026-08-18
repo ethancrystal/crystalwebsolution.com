@@ -185,7 +185,7 @@ test.describe('CRM Three-Role Hierarchy', () => {
     // Login as client
     await page.goto('/login/client');
     await page.fill('input[name="email"]', 'ethan+client@crystalwebsolution.com');
-    await page.fill('input[name="password"]', 'Phase1Test!2026');
+    await page.fill('input[name="password"]', process.env.E2E_CLIENT_PASSWORD);
     await page.click('button[type="submit"]');
     
     // Create project

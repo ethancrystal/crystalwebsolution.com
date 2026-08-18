@@ -76,8 +76,22 @@ revoke all on function private.shares_project_with(uuid)
   from public, anon, authenticated;
 revoke all on function public.pinned_admin_email()
   from public, anon, authenticated;
-revoke all on function public.rls_auto_enable()
-  from public, anon, authenticated;
+-- rls_auto_enable() exists only in the live database — it was created outside
+-- the migration chain and no migration in this repository defines it. The
+-- unconditional revoke therefore succeeded against production but aborts every
+-- fresh `supabase start` / `db reset` with SQLSTATE 42883, which has made
+-- `pnpm test:db` unrunnable from a clean environment since 0027 landed. The
+-- guard is a no-op against production (the function exists there, so the
+-- revoke still executes) and lets a migrations-only database bootstrap.
+-- Edited in place knowingly: the guarded statement is behaviorally identical
+-- on every database where the original ever ran successfully.
+do $$
+begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    execute 'revoke all on function public.rls_auto_enable() from public, anon, authenticated';
+  end if;
+end;
+$$;
 
 -- The live project contains a Stripe-backed foreign table that is not part of
 -- the repository schema. Remove direct API-role access if it exists, while
