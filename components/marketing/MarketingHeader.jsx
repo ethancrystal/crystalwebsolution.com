@@ -16,6 +16,7 @@ export default function MarketingHeader() {
         <Link href="/work" data-cursor="Work">Work</Link>
         <Link href="/services" data-cursor="Services">Services</Link>
         <Link href="/process" data-cursor="Process">Process</Link>
+        <Link href="/blog" data-cursor="Blog">Blog</Link>
         <Link href="/reviews" data-cursor="Reviews">Reviews</Link>
         <Link href="/about" data-cursor="About">About</Link>
         <Link href="/#contact" className="btn btn-ghost" data-cursor="Say hi">Start a project</Link>
