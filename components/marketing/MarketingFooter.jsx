@@ -16,6 +16,7 @@ export default function MarketingFooter() {
           <Link href="/work">Work</Link>
           <Link href="/services">Services</Link>
           <Link href="/process">Process</Link>
+          <Link href="/blog">Blog</Link>
           <Link href="/reviews">Reviews</Link>
           <Link href="/about">About</Link>
           <Link href="/contact">Contact</Link>
