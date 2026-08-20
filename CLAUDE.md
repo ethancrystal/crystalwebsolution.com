@@ -11,6 +11,20 @@ See `docs/PIXEL-POLISH-PLAN.md` for the phased execution plan tracking the remai
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues (`ethancrystal/crystalwebsolution.com`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five canonical roles, unchanged: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: no `CONTEXT.md` yet (created lazily by `/domain-modeling`); existing ADRs live as root-level `ADR-NNN-name.md` files rather than `docs/adr/`. See `docs/agents/domain.md`.
+
 ## Project overview
 
 Crystal Web Solution is a Next.js 15 / React 19 application containing a dark,
