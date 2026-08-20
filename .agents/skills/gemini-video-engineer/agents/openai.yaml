@@ -1,4 +1,0 @@
-interface:
-  display_name: "Gemini Video Engineer"
-  short_description: "Create, edit, and finish production-ready AI video"
-  default_prompt: "Use $gemini-video-engineer to create, edit, remake, or finish this video with scene, sound, caption, generation, and render-quality control."
