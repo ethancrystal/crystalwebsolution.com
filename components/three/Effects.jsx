@@ -55,7 +55,15 @@ function EffectPasses({ mode }) {
   );
 }
 
+// mode comes from lib/renderQuality.mjs's `postprocessing` field:
+// 'full' — mipmapped Bloom + DepthOfField (when in motion mode) + Vignette.
+// 'light' — same passes, minus the DepthOfField/mipmap cost (eco/balanced
+//           tiers still get the bloom glow the brand relies on, just cheaper).
+// 'off' — skip the EffectComposer entirely; low-end/eco devices render the
+//         raw scene, which is what actually moves Lighthouse's mobile TBT.
 export default function Effects({ mode = 'full' }) {
+  if (mode === 'off') return null;
+
   return (
     <EffectComposer multisampling={0}>
       <EffectPasses mode={mode} />

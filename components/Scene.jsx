@@ -22,7 +22,7 @@ export default function Scene() {
   return (
     <div className="scene-canvas" aria-hidden="true">
       <Canvas
-        dpr={[1, 1.75]}
+        dpr={[1, quality.maxDpr]}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
         camera={{ fov: 42, near: 0.1, far: 260, position: [0, 0.25, 7.5] }}
       >
@@ -48,9 +48,9 @@ export default function Scene() {
         {/* Approach beat — step-markers orbiting a small core */}
         <ApproachCompass position={[0, 0, CLUSTERS.approach]} animate={quality.animate} />
 
-        <Particles count={900} />
+        <Particles count={quality.particleCount} animate={quality.animate} />
         <BackdropMorph />
-        <Effects />
+        <Effects mode={quality.postprocessing} />
       </Canvas>
     </div>
   );

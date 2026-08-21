@@ -2,10 +2,36 @@
 
 import { useRef, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import gsap from 'gsap';
 import SectionReveal from '../SectionReveal';
 import Marquee from '../Marquee';
-import MagnifiedBento from '../MagnifiedBento';
+
+// MagnifiedBento is a self-contained, purely decorative bento grid — its own
+// 'use client' component with no server-rendered content dependency. It pulls
+// in motion/react (Motion One) and ~15 @hugeicons icons that no other part of
+// the homepage needs, so splitting it into its own chunk keeps that weight
+// out of the bundle every visitor's browser has to parse before the page is
+// interactive (the "reduce unused JavaScript" Lighthouse finding on CRY-26).
+// Loading fallback mirrors .magnifier-shell/.magnifier-stage/.magnifier-copy
+// dimensions so there is no layout shift while the chunk loads.
+const MagnifiedBento = dynamic(() => import('../MagnifiedBento'), {
+  loading: () => (
+    <div className="magnifier-wrap">
+      <div className="magnifier-shell">
+        <div className="magnifier-stage" />
+        <div className="magnifier-copy">
+          <h3 className="magnifier-title">One Studio, Every Discipline</h3>
+          <p className="magnifier-desc">
+            Web design and development, branding and logo, digital marketing,
+            and AI automation — built by one team, so nothing gets lost in a
+            hand-off.
+          </p>
+        </div>
+      </div>
+    </div>
+  ),
+});
 import { light, dim } from '../../lib/beacon';
 import { scrollState } from '../../lib/scrollState';
 import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
