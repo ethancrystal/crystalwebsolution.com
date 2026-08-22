@@ -1,4 +1,5 @@
 import './globals.css';
+import './tailwind.css';
 import { Space_Grotesk, Inter, Space_Mono } from 'next/font/google';
 import { SITE } from '../lib/site';
 import { REVIEW_STATS } from '../lib/reviews';
