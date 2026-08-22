@@ -226,7 +226,7 @@ $crystal-web-review
 | Extension | Purpose |
 |-----------|---------|
 | ES7+ React/Redux/React-Native snippets | Boilerplate reduction |
-| Tailwind CSS IntelliSense | (Not used — plain CSS) |
+| Tailwind CSS IntelliSense | CRM/admin surfaces only (`app/admin`, `app/dashboard`, `app/team`, `components/crm`) — set the extension prefix to `tw`; marketing pages stay plain CSS |
 | GraphQL | (Not used — Supabase) |
 | Prettier | Code formatting |
 | ESLint | Code quality |
