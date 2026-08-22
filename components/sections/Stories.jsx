@@ -44,6 +44,30 @@ export default function Stories() {
     tabRefs.current[index]?.focus();
   };
 
+  const onTabKeyDown = (event, index) => {
+    let nextIndex = null;
+
+    switch (event.key) {
+      case 'ArrowRight':
+        nextIndex = (index + 1) % STORIES.length;
+        break;
+      case 'ArrowLeft':
+        nextIndex = (index - 1 + STORIES.length) % STORIES.length;
+        break;
+      case 'Home':
+        nextIndex = 0;
+        break;
+      case 'End':
+        nextIndex = STORIES.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    activateTab(nextIndex);
+  };
+
   return (
     <section className="section stories" id="stories" data-quiet>
       <div className="text-plate">
@@ -136,32 +160,15 @@ function StoryCard({ story, selected, panelId, reviewCount }) {
 
       <div className="story-card-footer">
         <span>{reviewCount} review{reviewCount === 1 ? '' : 's'}</span>
-        <a className="story-card-link" href={`/reviews#${story.id}`}>Open record →</a>
+        <a
+          className="story-card-link"
+          href={`/reviews#${story.id}`}
+          tabIndex={selected ? 0 : -1}
+        >
+          Open record →
+        </a>
       </div>
     </article>
   );
 }
 
-const onTabKeyDown = (event, index) => {
-    let nextIndex = null;
-
-    switch (event.key) {
-      case 'ArrowRight':
-        nextIndex = (index + 1) % STORIES.length;
-        break;
-      case 'ArrowLeft':
-        nextIndex = (index - 1 + STORIES.length) % STORIES.length;
-        break;
-      case 'Home':
-        nextIndex = 0;
-        break;
-      case 'End':
-        nextIndex = STORIES.length - 1;
-        break;
-      default:
-        return;
-    }
-
-    event.preventDefault();
-    activateTab(nextIndex);
-  };
