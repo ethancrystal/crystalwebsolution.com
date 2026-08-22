@@ -411,10 +411,12 @@ rejected by GoTrue until at least one URL is added.
 
 ## 🗺️ Current shape of the app (2026-08-04)
 
-**Stack:** Next.js 15 / React 19, plain JSX + global CSS (no TypeScript, no
-Tailwind), Supabase (Postgres/Auth/Storage/RLS), Resend for transactional
-email, GSAP/Lenis-driven scroll animation on the marketing site. `pnpm`
-only; no lint script exists, don't add one.
+**Stack:** Next.js 15 / React 19, plain JSX + global CSS on marketing
+surfaces (no TypeScript), Supabase (Postgres/Auth/Storage/RLS), Resend for
+transactional email, GSAP/Lenis-driven scroll animation on the marketing
+site. Tailwind v4 is scoped to CRM/admin surfaces only (prefixed `tw:`, no
+Preflight reset — see `CLAUDE.md`). `pnpm` only; no lint script exists,
+don't add one.
 
 **Two halves of one app:**
 - **Marketing site** (`/`) — one fixed WebGL canvas (`components/Scene.jsx`)

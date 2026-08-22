@@ -82,6 +82,9 @@ export default function AdminDashboard() {
           <p>Welcome back, {user?.email}</p>
         </div>
         <div className="crm-header-actions">
+          <Link href="/admin/analytics" className="crm-link">
+            Analytics
+          </Link>
           {isAdmin && (
             <Link href="/admin/users" className="crm-link">
               Manage Users

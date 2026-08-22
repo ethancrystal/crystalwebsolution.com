@@ -1,0 +1,29 @@
+/*
+ * Scoped Tailwind v4 entry — CRM/admin surfaces ONLY.
+ *
+ * Deliberately imports theme + utilities and NOT "tailwindcss" (which would
+ * pull in Preflight). Preflight's global reset would ripple through the
+ * hand-tuned marketing CSS in globals.css, so it stays out.
+ *
+ * prefix(tw) namespaces every utility as tw:*, so Tailwind classes can never
+ * collide with existing global classes, and a bare utility string that slips
+ * in without the prefix simply does nothing (grep-able, reviewable).
+ */
+@import 'tailwindcss/theme.css' layer(theme) prefix(tw);
+@import 'tailwindcss/utilities.css' layer(utilities) prefix(tw);
+
+@theme {
+  /* CRM palette as first-class Tailwind tokens (usable as tw:bg-crm-panel etc.) */
+  --color-crm-bg: #0a0e27;
+  --color-crm-bg2: #1a1f3a;
+  --color-crm-panel: rgba(30, 35, 60, 0.6);
+  --color-crm-border: rgba(100, 200, 255, 0.15);
+  --color-crm-cyan: #64c8ff;
+  --color-crm-violet: #a78bfa;
+  --color-crm-amber: #fbbf24;
+  --color-crm-orange: #fb923c;
+  --color-crm-green: #4ade80;
+  --color-crm-red: #ff9999;
+  --color-crm-text: #e0e0e0;
+  --color-crm-muted: #8892b0;
+}
