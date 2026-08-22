@@ -204,3 +204,38 @@ with CWS's own brand voice and procedural marketing visuals, following the
 procedural-first rule and its intentional served brand/application-asset
 exception. Treat these files as a design reference when implementing the
 features they describe, not as already-built.
+
+## Mandatory: update the Notion system of record
+
+**Every agent that works on this repository must update Notion before ending its
+session. This is not optional, and it applies to read-only sessions too.**
+
+System of record: **Crystal Web Solution — Production Readiness**
+https://app.notion.com/p/3c2f9a2240128141a4b6c2905cb502d4
+
+Session log: the **Claude Sessions** database on that page.
+
+Before you finish, you must:
+
+1. **Log the session** as a row in Claude Sessions — what you did, what you
+   touched, and anything you left unfinished. A `SessionEnd` hook
+   (`~/.claude/hooks/notion-sync`) writes this row automatically once a Notion
+   integration token is present at `~/.claude/notion-token`. If the hook is not
+   configured on your machine, write the row yourself via the Notion connector.
+2. **Refresh *Live Repository Condition*** on the hub page if you changed the
+   branch, HEAD, working-tree state, or the relationship to origin.
+3. **Update *Blocking Go/No-Go Items*** if you resolved one or found a new one.
+4. **Record deployment-affecting changes** — migrations, env vars, cron
+   schedules, build config — in the matching section of the hub page.
+5. **Never silently narrow scope.** If you left something incomplete, say so in
+   the session row's *Incomplete Work* field.
+
+The strategic anchor is the production/SEO readiness plan at
+`C:\Users\moizjmj\OneDrive\Desktop\crystalwebsolution-production-seo-plan.md`.
+Read it before deployment work. Its §2 repository snapshot is **stale** — trust
+the hub page's *Live Repository Condition* over it.
+
+Why this exists: that plan's own conclusion is that the blocker to going live is
+**release governance**, not deployment mechanics. Governance needs one durable
+record that outlives any single session's context. Never record secret values in
+Notion — variable names only.
