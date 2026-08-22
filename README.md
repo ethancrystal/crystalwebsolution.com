@@ -16,7 +16,10 @@ Next.js 15 (App Router, JSX) and React 19 power both the public experience and
 the authenticated CRM. The marketing surface uses React Three Fiber + drei,
 @react-three/postprocessing, GSAP + ScrollTrigger, Lenis, and SplitType. The
 CRM uses Supabase Auth/Postgres/Storage/RLS through bounded server actions.
-Styling is plain global CSS with design tokens — no Tailwind and no TypeScript.
+Styling is plain global CSS with design tokens on the marketing site. No TypeScript
+anywhere; the CRM/admin surfaces additionally use a scoped Tailwind v4 setup
+(utilities only, prefixed `tw:`, no global reset) — see `CLAUDE.md` for the exact
+rules.
 Marketing scene and project visuals are procedural; tracked static files are
 limited to served brand/application assets and compatibility URLs.
 
