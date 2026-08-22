@@ -1,0 +1,20 @@
+{
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "github@claude-plugins-official": false,
+    "claude-md-management@claude-plugins-official": true,
+    "supabase@claude-plugins-official": true,
+    "humanizer@skills-curated": true,
+    "visual-documentation-skills@mhattingpete-claude-skills": true,
+    "engineering-workflow-skills@mhattingpete-claude-skills": true,
+    "productivity-skills@mhattingpete-claude-skills": true,
+    "aidd-context@aidd-framework": true,
+    "aidd-orchestrator@aidd-framework": true,
+    "aidd-pm@aidd-framework": true,
+    "aidd-refine@aidd-framework": true,
+    "aidd-vcs@aidd-framework": true
+  }
+}
