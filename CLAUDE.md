@@ -156,9 +156,18 @@ move together.
   procedural path is sufficient. Existing served brand/application assets and
   compatibility URLs are intentional and must not be removed without a URL and
   runtime audit.
-- No TypeScript, no Tailwind — plain JSX and global CSS with the design
-  tokens defined at the top of `app/globals.css` (`--bg`, `--ink`, `--cyan`,
-  `--blue`, `--violet`, etc.).
+- No TypeScript — plain JSX. Marketing surfaces use global CSS with the
+  design tokens defined at the top of `app/globals.css` (`--bg`, `--ink`,
+  `--cyan`, `--blue`, `--violet`, etc.).
+- Tailwind is SCOPED, not general-purpose. `app/tailwind.css` loads theme +
+  utilities only (NO Preflight — its global reset would break the hand-tuned
+  marketing CSS) with the `tw` prefix, so every utility is written `tw:flex`,
+  `tw:bg-crm-panel`, etc. Allowed ONLY on CRM/admin surfaces (`app/admin`,
+  `app/dashboard`, `app/team`, `components/crm`); marketing pages and the
+  3D experience never use it. CRM palette tokens (`tw:bg-crm-bg`,
+  `tw:text-crm-cyan`, …) are defined in `app/tailwind.css` `@theme` — use
+  them instead of arbitrary hex values where one exists. An unprefixed
+  Tailwind class does nothing by design; treat one in review as a bug.
 - Supabase is the live CRM boundary. Application clients live under
   `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL
   lives in `supabase/migrations/0001` through `0023`. `.mcp.json` configures a
