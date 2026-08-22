@@ -9,7 +9,7 @@ Crystal Web Solution is a Next.js 15 / React 19 application containing a dark, c
 1. **The Agency Experience**: The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM scrolls over it while a virtual camera flies through one continuous 3D space past a refracting crystal, service-signal instruments, an approach compass, procedural particles, and a morphing backdrop. Lab and Motion add DOM/CSS-3D card experiences over the same canvas. Marketing scene and project visuals are code-generated; `public/` serves standard brand assets.
 2. **The Client Collaboration CRM**: A secure portal system (`/login`, `/dashboard`, `/team`, and `/admin`) designed to **accommodate incoming and current clients and collaborate efficiently with them while their project is ongoing**.
 
-Stack: Next.js 15 (App Router, React 19, JSX, no TypeScript), React Three Fiber + drei, `@react-three/postprocessing`, GSAP + ScrollTrigger, Lenis (smooth scroll), SplitType, and Supabase. Plain global CSS with design tokens in `app/globals.css` — no Tailwind.
+Stack: Next.js 15 (App Router, React 19, JSX, no TypeScript), React Three Fiber + drei, `@react-three/postprocessing`, GSAP + ScrollTrigger, Lenis (smooth scroll), SplitType, and Supabase. Plain global CSS with design tokens in `app/globals.css` on marketing surfaces; Tailwind v4 is scoped to CRM/admin surfaces only — see Conventions below.
 
 ## Commands
 
@@ -138,9 +138,18 @@ move together.
   geometry/shaders). The intentionally served brand/application compatibility
   assets in `public/` are part of the runtime surface and must be preserved.
   Keep new marketing visuals consistent with the procedural rule.
-- No TypeScript, no Tailwind — plain JSX and global CSS with the design
-  tokens defined at the top of `app/globals.css` (`--bg`, `--ink`, `--cyan`,
-  `--blue`, `--violet`, etc.).
+- No TypeScript — plain JSX. Marketing surfaces use global CSS with the
+  design tokens defined at the top of `app/globals.css` (`--bg`, `--ink`,
+  `--cyan`, `--blue`, `--violet`, etc.).
+- Tailwind is SCOPED, not general-purpose. `app/tailwind.css` loads theme +
+  utilities only (NO Preflight — its global reset would break the hand-tuned
+  marketing CSS) with the `tw` prefix, so every utility is written `tw:flex`,
+  `tw:bg-crm-panel`, etc. Allowed ONLY on CRM/admin surfaces (`app/admin`,
+  `app/dashboard`, `app/team`, `components/crm`); marketing pages and the
+  3D experience never use it. CRM palette tokens (`tw:bg-crm-bg`,
+  `tw:text-crm-cyan`, …) are defined in `app/tailwind.css` `@theme` — use
+  them instead of arbitrary hex values where one exists. An unprefixed
+  Tailwind class does nothing by design; treat one in review as a bug.
 - Supabase is the live CRM boundary. Application clients live under `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL lives in `supabase/migrations/0001` through `0023`. `.mcp.json` configures a Supabase MCP server for queries.
 - Data-access paths coexist: Project delivery reads go through `lib/crm/projects.js` against the `lib/crm/project-contract.mjs` contract shape (Centralized `TASK_PRIORITIES`, `TASK_STATUSES`, etc.); writes use `'use server'` actions in `app/actions/project-actions.js`. Other tables (companies/contacts/deals/tasks/users) query tables directly via browser client, scoped by RLS.
 - Roles are database-enforced; `handle_new_user()` defaults accounts to `client`; `requested_staff_access` is resolved by admins; `admin` role is pinned by database trigger to prevent unauthorized signup/invite modification.
