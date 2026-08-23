@@ -56,6 +56,7 @@ test('wraps the existing Next.js configuration without replacing it', () => {
   assert.match(source, /sourcemaps:\s*\{\s*disable:\s*!shouldUploadSentrySourceMaps/);
   assert.match(source, /release:\s*\{\s*create:\s*shouldUploadSentrySourceMaps/);
   assert.match(source, /deploy:\s*shouldUploadSentrySourceMaps/);
+  assert.match(source, /unstable_sentryWebpackPluginOptions:\s*\{\s*release:\s*\{\s*create:\s*shouldUploadSentrySourceMaps,\s*finalize:\s*shouldUploadSentrySourceMaps,\s*deploy:\s*shouldUploadSentrySourceMaps/);
 });
 
 test('documents safe API-route and server-component error examples', () => {

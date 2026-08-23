@@ -108,5 +108,14 @@ module.exports = withSentryConfig(nextConfig, {
     finalize: shouldUploadSentrySourceMaps,
     deploy: shouldUploadSentrySourceMaps,
   },
+  webpack: {
+    unstable_sentryWebpackPluginOptions: {
+      release: {
+        create: shouldUploadSentrySourceMaps,
+        finalize: shouldUploadSentrySourceMaps,
+        deploy: shouldUploadSentrySourceMaps,
+      },
+    },
+  },
   silent: !process.env.CI,
 });
