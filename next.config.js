@@ -71,6 +71,15 @@ const nextConfig = {
   // needs into .next/standalone — required for the slim Docker runner stage.
   output: 'standalone',
   outputFileTracingRoot: __dirname,
+  async redirects() {
+    return [
+      { source: '/contact-us', destination: '/contact', permanent: true },
+      { source: '/about-us', destination: '/about', permanent: true },
+      { source: '/graphics-designing', destination: '/services/logo-design', permanent: true },
+      { source: '/category/branding', destination: '/services/branding', permanent: true },
+      { source: '/category/digital-marketing', destination: '/services/digital-marketing', permanent: true },
+    ];
+  },
   // Security + privacy response headers. Screaming Frog flagged all four as
   // missing on 38/47 URLs ("Security: Missing … Header", 80.85% of the crawl).
   // Applied to every route; the site is served behind Vercel, these are additive.
