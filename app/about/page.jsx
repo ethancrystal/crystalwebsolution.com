@@ -7,7 +7,7 @@ import { SITE } from '../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
-const TITLE = 'About';
+const TITLE = 'About the Studio';
 const DESCRIPTION =
   'Crystal Web Solution is a digital studio designing websites, brand systems, motion, and AI automation — clarity, craft, and impact since 2016.';
 

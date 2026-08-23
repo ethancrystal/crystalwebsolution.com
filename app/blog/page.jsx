@@ -8,9 +8,9 @@ import MarketingShell from '../../components/marketing/MarketingShell';
 import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
-const BLOG_TITLE = 'Blog';
+const BLOG_TITLE = 'Studio Notes';
 const BLOG_DESCRIPTION =
-  'Notes on web design, development and brand systems from the Crystal Web Solution studio — what we build, how we build it, and what it costs.';
+  'Notes from the work: web design, development, brand systems, and automation from the Crystal Web Solution studio. We use this space to explain what we build, how we approach difficult website and product decisions, and what teams should consider before asking for a new page, platform, or visual system. The writing is practical, direct, and grounded in the work.';
 
 export const metadata = {
   title: BLOG_TITLE,
@@ -109,6 +109,7 @@ export default async function BlogIndexPage() {
         {posts.length === 0 ? (
           <section className="blog-empty" aria-live="polite">
             <p>No posts published yet. Check back soon.</p>
+            <p>Until the notes are published, explore the service pages and project work to see how strategy, design, engineering, and motion connect in practice.</p>
             <Link className="blog-empty-link" href="/contact">
               Start a project instead
             </Link>

@@ -39,20 +39,22 @@ export async function generateMetadata({ params }) {
     ? `${project.summary.slice(0, 157).trimEnd()}…`
     : project.summary;
 
+  const pageTitle = project.seoTitle ?? `${project.title} — ${project.category} | ${SITE.name}`;
+
   return {
-    title: `${project.title} — ${project.category}`,
+    title: pageTitle,
     description,
     alternates: { canonical: `/work/${project.slug}` },
     openGraph: {
       type: 'article',
-      title: `${project.title} — ${project.category} | ${SITE.name}`,
+      title: pageTitle,
       description,
       url: absoluteUrl(`/work/${project.slug}`),
       images: [{ url: SOCIAL_IMAGE_PATH }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${project.title} — ${project.category} | ${SITE.name}`,
+      title: pageTitle,
       description,
       images: [{ url: SOCIAL_IMAGE_PATH }],
     },
@@ -72,6 +74,11 @@ export default async function CaseStudy({ params }) {
   return (
     <MarketingShell>
       <article className="case">
+        {project.seoDetail ? (
+          <SectionReveal as="p" className="case-summary" direction="up" delay={0.15}>
+            {project.seoDetail}
+          </SectionReveal>
+        ) : null}
         <Link href="/work" className="case-back" data-cursor="Work">← All projects</Link>
         <p className="eyebrow">
           <SectionReveal as="span" direction="left">Case study • {project.category}</SectionReveal>

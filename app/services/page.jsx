@@ -44,6 +44,12 @@ export default function ServicesIndex() {
         <ServiceThreadArc />
         <ServiceGrid pages={SERVICE_PAGES} />
       </ContentSection>
+
+      <ContentSection eyebrow="How we work" title="How the services connect">
+        <p>Most digital projects need more than one isolated deliverable. A clear website may depend on positioning, a usable interface, a reliable build, and a path for the team to maintain what ships.</p>
+        <p>We keep those decisions connected. Web design can lead into development, brand systems can guide motion, and AI or workflow automation can remove repetitive work where the business actually needs it.</p>
+        <p>The right starting point depends on the problem, audience, and constraints. The project brief helps us choose the smallest useful first step instead of selling a fixed bundle of services.</p>
+      </ContentSection>
       <BreadcrumbSchema trail={[{ name: 'Services', path: '/services' }]} />
       <script
         type="application/ld+json"

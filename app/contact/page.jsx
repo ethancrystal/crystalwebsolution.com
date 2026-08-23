@@ -39,6 +39,12 @@ export default function ContactPage() {
         title="Send us your brief."
         lede="Tell us what you are building and what success looks like. We’ll reply by email with a straight read."
       />
+      <ContentSection eyebrow="Start with context" title="What to include in your brief">
+        <p>Tell us what you are building, who it is for, and what is not working today. A useful brief can be short; the important part is giving us enough context to understand the decision behind the request.</p>
+        <p>Include the current website or product, the outcome you want, any timing or technical constraints, and the people who need to review the work. If you have references, existing brand assets, or a rough list of required pages and integrations, include those too.</p>
+        <p>We will read the brief, clarify the real scope, and respond with a direct next step. The form is not a commitment to begin a project.</p>
+      </ContentSection>
+
       <ContentSection eyebrow="Project brief" title="The form">
         <div className="mkt-contact-wrap">
           <ContactForm variant="marketing" />
