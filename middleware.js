@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import { getPortal, homeForRole, isRoleAllowed, portalForPath } from './lib/auth/roles.mjs';
 import { CRM_ENABLED } from './lib/crmFlag.js';
+import { hasSupabaseBrowserConfig } from './lib/supabase/config.mjs';
 
 function redirectWithCookies(url, response) {
   const redirectResponse = NextResponse.redirect(url);
@@ -37,7 +38,7 @@ export async function middleware(request) {
     },
   });
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!hasSupabaseBrowserConfig(supabaseUrl, supabaseAnonKey)) {
     if (protectedPortal) return portalLoginResponse(request, protectedPortal, response, 'configuration');
     return response;
   }
