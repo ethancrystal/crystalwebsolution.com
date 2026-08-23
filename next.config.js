@@ -101,6 +101,6 @@ module.exports = withSentryConfig(nextConfig, {
   project: 'crystal-web-solution-crm',
   // Source-map upload remains disabled unless Vercel/CI supplies a token.
   authToken: process.env.SENTRY_AUTH_TOKEN,
-  sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+  sourcemaps: { disable: process.env.SENTRY_UPLOAD_SOURCEMAPS !== 'true' },
   silent: !process.env.CI,
 });

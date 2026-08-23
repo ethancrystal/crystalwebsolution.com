@@ -52,7 +52,7 @@ test('wraps the existing Next.js configuration without replacing it', () => {
   const source = read('next.config.js');
   assert.match(source, /withSentryConfig/);
   assert.match(source, /module\.exports\s*=\s*withSentryConfig\(nextConfig/);
-  assert.match(source, /sourcemaps:\s*\{\s*disable:\s*!process\.env\.SENTRY_AUTH_TOKEN/);
+  assert.match(source, /sourcemaps:\s*\{\s*disable:\s*process\.env\.SENTRY_UPLOAD_SOURCEMAPS\s*!==\s*['\"]true['\"]/);
 });
 
 test('documents safe API-route and server-component error examples', () => {
