@@ -45,6 +45,12 @@ test('middleware copies refreshed auth cookies onto every redirect', async () =>
   assert.match(middleware, /redirectResponse\.cookies\.set\(cookie\)/);
 });
 
+test('invalid Supabase configuration redirects portal login routes to safe copy', async () => {
+  const middleware = await import('node:fs/promises').then((fs) => fs.readFile('middleware.js', 'utf8'));
+  assert.match(middleware, /portalName && getPortal\(portalName\)/);
+  assert.match(middleware, /portalLoginResponse\(request, portalName, response, ['"]configuration['"]\)/);
+});
+
 test('an authenticated profile with an unknown role does not redirect login to itself', async () => {
   const middleware = await import('node:fs/promises').then((fs) => fs.readFile('middleware.js', 'utf8'));
   assert.match(middleware, /if \(roleHome &&/);
@@ -56,6 +62,11 @@ test('configuration failures have distinct safe portal copy', async () => {
   assert.match(form, /CONFIGURATION_ERROR/);
   assert.match(form, /=== ['"]configuration['"]/);
   assert.match(form, /authentication is not configured/i);
+});
+
+test('sign-in converts Supabase configuration failures into a safe form error', async () => {
+  const actions = await import('node:fs/promises').then((fs) => fs.readFile('app/auth/actions.js', 'utf8'));
+  assert.match(actions, /let supabase;[\s\S]*try \{[\s\S]*supabase = await createClient\(\);[\s\S]*catch[\s\S]*configuration/i);
 });
 
 test('portal chooser keeps the brand mark bounded and styles Link-rendered controls', async () => {

@@ -95,7 +95,13 @@ export async function signIn(formData) {
     return { error: 'Missing email or password' };
   }
 
-  const supabase = await createClient();
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch (configError) {
+    console.error('Sign-in unavailable - Supabase client misconfigured:', configError?.message ?? 'configuration error');
+    return { error: 'configuration' };
+  }
 
   const {
     data: { user },
