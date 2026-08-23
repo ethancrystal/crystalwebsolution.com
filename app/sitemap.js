@@ -1,6 +1,6 @@
 import { PROJECTS } from '../lib/projects';
 import { SERVICE_PAGE_SLUGS } from '../lib/servicePages.mjs';
-import { SITE_ORIGIN } from '../lib/seo.mjs';
+import { absoluteUrl, SITE_ORIGIN } from '../lib/seo.mjs';
 import { listPublishedSlugs } from '../lib/crm/blog';
 
 // Must match the canonical host emitted by app/layout.jsx. Listing apex URLs
@@ -36,7 +36,7 @@ export default async function sitemap() {
   }));
 
   return [
-    { url: SITE_URL, lastModified: now, changeFrequency: 'weekly', priority: 1 },
+    { url: absoluteUrl('/'), lastModified: now, changeFrequency: 'weekly', priority: 1 },
     { url: `${SITE_URL}/work`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/services`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/about`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
