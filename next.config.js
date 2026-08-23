@@ -106,6 +106,7 @@ module.exports = withSentryConfig(nextConfig, {
   release: {
     create: shouldUploadSentrySourceMaps,
     finalize: shouldUploadSentrySourceMaps,
+    deploy: shouldUploadSentrySourceMaps,
   },
   silent: !process.env.CI,
 });

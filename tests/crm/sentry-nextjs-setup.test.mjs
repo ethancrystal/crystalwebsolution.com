@@ -55,6 +55,7 @@ test('wraps the existing Next.js configuration without replacing it', () => {
   assert.match(source, /const shouldUploadSentrySourceMaps = process\.env\.SENTRY_UPLOAD_SOURCEMAPS === ['\"]true['\"] && Boolean\(process\.env\.SENTRY_AUTH_TOKEN\)/);
   assert.match(source, /sourcemaps:\s*\{\s*disable:\s*!shouldUploadSentrySourceMaps/);
   assert.match(source, /release:\s*\{\s*create:\s*shouldUploadSentrySourceMaps/);
+  assert.match(source, /deploy:\s*shouldUploadSentrySourceMaps/);
 });
 
 test('documents safe API-route and server-component error examples', () => {
