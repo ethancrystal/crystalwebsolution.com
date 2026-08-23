@@ -68,7 +68,16 @@ pnpm test:db     # Supabase database tests; requires the local stack
 pnpm test:e2e    # planned gate; tests/e2e is not yet checked in
 pnpm build       # production build
 pnpm start       # serve the production build
+
+pnpm crm:verify                  # test:crm + test:db in one gate
+pnpm crm:verify:preview          # CRM_PREVIEW_ENVIRONMENT=preview scripts/verify-crm-preview-authorization.mjs
+pnpm crm:provision-test-users    # seed CRM role accounts for manual/e2e testing
+pnpm livecheck                   # scripts/livecheck.mjs — smoke-check a running deployment
 ```
+
+Run a single test file directly with Node's runner, e.g.
+`node --test tests/contactForm.test.mjs` or `node --test tests/crm/<file>.test.mjs`
+(glob a subset with `node --test tests/crm/*.test.mjs`, matching `test:crm`'s pattern).
 
 There is no lint script configured in `package.json`; do not invent one.
 Run the relevant Node tests, verify application changes in a real browser,
@@ -161,9 +170,10 @@ move together.
   `--blue`, `--violet`, etc.).
 - Supabase is the live CRM boundary. Application clients live under
   `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL
-  lives in `supabase/migrations/0001` through `0023`. `.mcp.json` configures a
-  Supabase MCP server for development-time queries. Two data-access shapes
-  coexist deliberately:
+  lives in `supabase/migrations/` (0001 through 0035 as of 2026-08-20 — check
+  the directory for the current head before assuming a number). `.mcp.json`
+  configures a Supabase MCP server for development-time queries. Two
+  data-access shapes coexist deliberately:
   - **Project delivery** — the newer, contract-tested path. Reads go through
     `lib/crm/projects.js` against the `lib/crm/project-contract.mjs` shape;
     writes go through the `'use server'` actions in
