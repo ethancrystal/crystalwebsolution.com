@@ -106,26 +106,41 @@ export default function Error({ error, reset }) {
 }
 ```
 
-## Privacy-safe initialization
+## Performance monitoring and session replay
 
-Use `NEXT_PUBLIC_SENTRY_DSN` for the browser and `SENTRY_DSN` for the server and Edge runtimes. Keep `sendDefaultPii` disabled and configure `dataCollection` to exclude user information and HTTP bodies. Never commit a DSN that contains a private credential, a Sentry auth token, or a real customer value.
+Use `NEXT_PUBLIC_SENTRY_DSN` for the browser and `SENTRY_DSN` for the server and Edge runtimes. Performance tracing is enabled at 100% in development and 10% in other environments. Health and notification-cron requests are excluded from browser tracing and server sampling to avoid noisy, low-value telemetry.
+
+Session Replay is browser-only. This project records 10% of ordinary production sessions and 100% of sessions that encounter an error. All text, input values, and media are masked or blocked, iframes are blocked, and network request/response bodies are disabled. `sendDefaultPii` remains disabled and `dataCollection` excludes user information and HTTP bodies. Never commit a DSN that contains a private credential, a Sentry auth token, or a real customer value.
 
 ```js
+// instrumentation-client.js
 import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
-  dsn: process.env.SENTRY_DSN,
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   sendDefaultPii: false,
-  dataCollection: {
-    userInfo: false,
-    httpBodies: [],
-  },
-  tracesSampleRate: 0,
+  dataCollection: { userInfo: false, httpBodies: [] },
+  tracesSampleRate: process.env.NODE_ENV === 'development' ? 1.0 : 0.1,
+  tracePropagationTargets: ['localhost', /^\\//],
+  integrations: [
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration({
+      maskAllText: true,
+      maskAllInputs: true,
+      blockAllMedia: true,
+      block: ['iframe'],
+      networkCaptureBodies: false,
+    }),
+  ],
+  replaysSessionSampleRate: process.env.NODE_ENV === 'development' ? 1.0 : 0.1,
+  replaysOnErrorSampleRate: 1.0,
 });
 ```
 
+Do not add Replay to `sentry.server.config.js`, `sentry.edge.config.js`, route handlers, or Server Components. If a page contains sensitive content that should be blocked beyond the global defaults, add `data-sentry-block` or `data-sentry-mask` to the relevant element.
+
 ## Verification
 
-Run the repository tests and production build first. For telemetry verification, use a local or disposable preview environment and a temporary test error that is removed before merge. Verify the event in the Sentry Issues dashboard and inspect Vercel runtime logs. Do not trigger a synthetic error on the production domain without explicit approval.
+Run the repository tests and production build first. For telemetry verification, use the temporary preview-only route `/api/sentry-verification?trigger=sentry-preview`; it is guarded by `VERCEL_ENV === 'preview'`, captures one fixed exception, flushes the event, and returns a generic response. Remove the route after verifying the event in the Sentry Issues dashboard and inspecting Vercel runtime logs. Do not trigger a synthetic error on the production domain.
 
-Do not attach request bodies, cookies, authorization headers, or Supabase credentials to Sentry events.
+Do not attach request bodies, cookies, authorization headers, Supabase credentials, or user emails to Sentry events or replay network data.

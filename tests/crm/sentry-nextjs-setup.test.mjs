@@ -59,11 +59,47 @@ test('wraps the existing Next.js configuration without replacing it', () => {
   assert.match(source, /unstable_sentryWebpackPluginOptions:\s*\{\s*release:\s*\{\s*create:\s*shouldUploadSentrySourceMaps,\s*finalize:\s*shouldUploadSentrySourceMaps,\s*deploy:\s*shouldUploadSentrySourceMaps/);
 });
 
+test('enables privacy-safe performance monitoring in all runtimes', () => {
+  const client = read('instrumentation-client.js');
+  const server = read('sentry.server.config.js');
+  const edge = read('sentry.edge.config.js');
+
+  assert.match(client, /tracesSampler|traceSampleRate|tracesSampleRate/);
+  assert.match(server, /tracesSampler|tracesSampleRate/);
+  assert.match(edge, /tracesSampler|tracesSampleRate/);
+  for (const source of [client, server, edge]) {
+    assert.doesNotMatch(source, /tracesSampleRate:\s*0\b/);
+  }
+  assert.match(client, /browserTracingIntegration/);
+  assert.match(client, /tracePropagationTargets/);
+});
+
+test('enables session replay with masking and no network bodies', () => {
+  const source = read('instrumentation-client.js');
+  assert.match(source, /replayIntegration\(\{/);
+  assert.match(source, /maskAllText:\s*true/);
+  assert.match(source, /maskAllInputs:\s*true/);
+  assert.match(source, /blockAllMedia:\s*true/);
+  assert.match(source, /networkCaptureBodies:\s*false/);
+  assert.match(source, /replaysOnErrorSampleRate/);
+  assert.doesNotMatch(source, /sendDefaultPii:\s*true/);
+});
+
+test('keeps the Sentry verification route preview-only and privacy-safe', () => {
+  assert.equal(exists('app/api/sentry-verification/route.js'), true);
+  const source = read('app/api/sentry-verification/route.js');
+  assert.match(source, /process\.env\.VERCEL_ENV\s*!==\s*['\"]preview['\"]/);
+  assert.match(source, /sentry-verification/);
+  assert.match(source, /Sentry\.captureException/);
+  assert.match(source, /Sentry\.flush/);
+  assert.doesNotMatch(source, /request\.json|request\.formData|cookies\(|authorization/i);
+});
+
 test('documents safe API-route and server-component error examples', () => {
   const source = read('docs/SENTRY-NEXTJS.md');
   assert.match(source, /app\/api\/contact\/route\.js/);
   assert.match(source, /Sentry\.captureException\(error/);
   assert.match(source, /Server Components/);
   assert.match(source, /sendDefaultPii:\s*false/);
-  assert.match(source, /Do not attach request bodies, cookies, authorization headers, or Supabase credentials/);
+  assert.match(source, /Do not attach request bodies, cookies, authorization headers, Supabase credentials, or user emails/);
 });
