@@ -39,3 +39,8 @@ The work is accepted only when `pnpm test:crm`, `pnpm test`, `pnpm build`, `git 
 ## Documentation
 
 Every implementation checkpoint must update focused documentation or this plan when behavior, operations, or verification requirements change.
+
+
+## Branch Checkpoint
+
+This document is the first branch-only checkpoint for the CRM completion pull request. The implementation branch is intentionally based on the merged `main` state and will accumulate only CRM changes.
