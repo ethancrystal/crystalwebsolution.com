@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 
+const { withSentryConfig } = require('@sentry/nextjs');
+
 // Supabase is the live CRM backend: the browser client opens XHR + websocket
 // connections straight to the project host, so connect-src must allow it or
 // login/CRM breaks at runtime under CSP. Derived from the same public env var
@@ -94,4 +96,11 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withSentryConfig(nextConfig, {
+  org: 'crystal-web-solution',
+  project: 'crystal-web-solution-crm',
+  // Source-map upload remains disabled unless Vercel/CI supplies a token.
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+  silent: !process.env.CI,
+});
