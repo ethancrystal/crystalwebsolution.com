@@ -1,4 +1,0 @@
-interface:
-  display_name: "Trionn-Style SVG"
-  short_description: "Craft studio-grade SVG icons and micro-animations"
-  default_prompt: "Create a Trionn-style SVG icon set (crosshair ticks, spread arrow, scroll circle) for my site."
