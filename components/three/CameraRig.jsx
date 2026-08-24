@@ -23,7 +23,7 @@ function smootherstep(t) {
 
 const FOV_BASE = 42;
 const FOV_SURGE_MAX = 4.5;
-const MOTION_INDEX = BEAT_IDS.indexOf('motion');
+const PORTFOLIO_INDEX = BEAT_IDS.indexOf('portfolio');
 
 export default function CameraRig() {
   const fov = useRef(FOV_BASE);
@@ -51,10 +51,10 @@ export default function CameraRig() {
     // (beatProgress), not a uniform index/(N-1) share of the page — beats
     // vary in scroll length.
     if (motionLocked) {
-      // The Motion section owns 400% of pinned scroll. Hold its declarative
+      // The Portfolio section owns 400% of pinned scroll. Hold its declarative
       // camera stop for the whole pin instead of drifting toward Contact.
-      tmpPos.copy(POS[MOTION_INDEX]);
-      tmpLook.copy(LOOK[MOTION_INDEX]);
+      tmpPos.copy(POS[PORTFOLIO_INDEX]);
+      tmpLook.copy(LOOK[PORTFOLIO_INDEX]);
     } else {
       let seg = 0;
       for (let i = 0; i < segCount; i++) {
@@ -69,7 +69,7 @@ export default function CameraRig() {
       tmpLook.copy(LOOK[seg]).lerp(LOOK[seg + 1], local);
     }
 
-    // The Motion stage uses a locked camera; its depth comes
+    // The Portfolio stage uses a locked camera; its depth comes
     // entirely from the cards' elliptical path. Other beats keep the site's
     // established pointer parallax.
     if (!motionLocked) {

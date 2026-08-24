@@ -43,7 +43,7 @@ test('homepage keeps one selected-work beat and one merged trust beat', () => {
   assert.doesNotMatch(lightsSource, /CLUSTERS\.showcase/);
   assert.doesNotMatch(lightsSource, /CLUSTERS\.recognition/);
   assert.equal(BEAT_IDS.includes('work'), false);
-  assert.deepEqual(BEAT_IDS, ['hero', 'about', 'services', 'approach', 'stories', 'mark', 'lab', 'motion', 'contact']);
+  assert.deepEqual(BEAT_IDS, ['hero', 'about', 'services', 'approach', 'stories', 'mark', 'lab', 'portfolio', 'contact']);
   assert.equal(Object.hasOwn(CLUSTERS, 'showcase'), false);
   assert.equal(Object.hasOwn(CLUSTERS, 'facts'), false);
   assert.equal(Object.hasOwn(CLUSTERS, 'recognition'), false);
@@ -60,7 +60,7 @@ test('the flight windows end when their sticky stages finish travelling', () => 
     getElementById(id) {
       if (!tops.has(id)) return null;
       return {
-        offsetHeight: id === 'motion' ? 2800 : 1000,
+        offsetHeight: id === 'portfolio' ? 2800 : 1000,
         getBoundingClientRect: () => ({ top: tops.get(id) }),
       };
     },

@@ -23,7 +23,7 @@ const CWS_CYAN = '#59f3ff';
 const CWS_BLUE = '#3c6cff';
 const FRAME = '#ccd2d8';
 const FACE_OFFSET = 0.0185;
-const MOTION_STOP = STOPS.find((stop) => stop.look[2] === CLUSTERS.motion);
+const MOTION_STOP = STOPS.find((stop) => stop.look[2] === CLUSTERS.portfolio);
 const MOTION_DISTANCE = Math.hypot(
   MOTION_STOP.pos[0] - MOTION_STOP.look[0],
   MOTION_STOP.pos[1] - MOTION_STOP.look[1],
