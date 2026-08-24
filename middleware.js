@@ -106,6 +106,7 @@ export const config = {
   matcher: [
     '/admin/:path*',
     '/dashboard/:path*',
+    '/onboarding',
     '/team/:path*',
     '/login',
     '/login/client',
