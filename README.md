@@ -32,6 +32,34 @@ pnpm test:e2e   # planned Playwright gate; tests/e2e is not yet checked in
 pnpm build      # production build
 ```
 
+## Docker
+
+Self-host or run a production-parity build locally without touching the
+Vercel deployment - Vercel builds straight from source and never reads the
+Dockerfile, so these are independent, parallel ways to run the same code.
+
+Copy `.env.example` to `.env.local` and fill in your Supabase project
+keys first (see that file for which vars are required vs. optional).
+
+```bash
+docker compose --env-file .env.local up --build   # http://localhost:3000
+```
+
+This builds the multi-stage `Dockerfile` (deps to builder to runner) with
+`NEXT_PUBLIC_*` values baked in at build time, and reads
+`SUPABASE_SERVICE_ROLE_KEY` / `RESEND_API_KEY` etc. at container runtime
+from `.env.local`. The container exposes a dependency-free health check at
+`/api/health`.
+
+Every push to `main` also builds and publishes an image via
+`.github/workflows/docker-ci.yml` to
+`ghcr.io/ethancrystal/crystalwebsolution.com`, so a prebuilt image is
+available without building locally:
+
+```bash
+docker run -p 3000:3000 --env-file .env.local ghcr.io/ethancrystal/crystalwebsolution.com:latest
+```
+
 ## Canonical checkout
 
 Use `C:\Users\moizjmj\Crystal Web Solution` on `main` as the authoritative
