@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "owner": "ethancrystal",
+    "repo": "crystalwebsolution",
+    "branch": "main",
+    "analyzedAt": "2026-08-24T12:32:40.152Z"
+  },
+  "router": {
+    "hasAppRouter": true,
+    "hasPagesRouter": false,
+    "routeMap": "### App Router\n```\n├── work/\n│   ├── [slug]/\n│   │   └── page.jsx\n│   └── page.jsx\n├── globals.css\n├── layout.jsx\n└── page.jsx\n```"
+  },
+  "api": {
+    "endpoints": []
+  },
+  "database": {
+    "tables": [],
+    "rlsPolicies": [],
+    "functions": []
+  },
+  "edgeFunctions": [],
+  "auth": {
+    "provider": null,
+    "clientFiles": [],
+    "middleware": [],
+    "strategies": []
+  },
+  "techStack": {
+    "Next.js": "^14.2.15",
+    "React": "^18.3.1",
+    "React DOM": "^18.3.1"
+  },
+  "supabaseClients": [],
+  "trpcRouters": [],
+  "backendServices": [],
+  "middlewareRoutes": [],
+  "todos": [],
+  "fixmes": [],
+  "envVars": [],
+  "structure": "├── Dockerfile\n├── next.config.js\n├── package.json\n├── README.md\n├── app/\n│   ├── work/\n│   │   ├── [slug]/\n│   │   │   └── page.jsx\n│   │   └── page.jsx\n│   ├── globals.css\n│   ├── layout.jsx\n│   └── page.jsx\n├── components/\n│   ├── sections/\n│   │   ├── About.jsx\n│   │   ├── Approach.jsx\n│   │   ├── Contact.jsx\n│   │   ├── Facts.jsx\n│   │   ├── Hero.jsx\n│   │   ├── Mark.jsx\n│   │   ├── Motion.jsx\n│   │   ├── Recognition.jsx\n│   │   ├── Services.jsx\n│   │   ├── Showcase.jsx\n│   │   └── Stories.jsx\n│   ├── three/\n│   │   ├── ApproachCompass.jsx\n│   │   ├── BackdropMorph.jsx\n│   │   ├── CameraRig.jsx\n│   │   ├── Crystal.jsx\n│   │   ├── Effects.jsx\n│   │   ├── FocusDimmer.jsx\n│   │   ├── Lights.jsx\n│   │   ├── MarkAssembly.jsx\n│   │   ├── Particles.jsx\n│   │   ├── RecognitionRing.jsx\n│   │   ├── ServiceRail.jsx\n│   │   ├── ShowcaseBoxes.jsx\n│   │   └── Sparks.jsx\n│   ├── Cursor.jsx\n│   ├── DecodeText.jsx\n│   ├── Experience.jsx\n│   ├── FocusVeil.jsx\n│   ├── Loader.jsx\n│   ├── Magnetic.jsx\n│   ├── Marquee.jsx\n│   ├── Menu.jsx\n│   ├── Nav.jsx\n│   ├── ProjectVisual.jsx\n│   ├── Reveal.jsx\n│   ├── RevealPop.jsx\n│   ├── Scene.jsx\n│   ├── ScrollProgress.jsx\n│   └── SmoothScroll.jsx\n├── docs/\n│   └── HIVE-AUDIT.md\n├── lib/\n│   ├── beacon.js\n│   ├── beatProgress.js\n│   ├── chime.js\n│   ├── easing.js\n│   ├── focusBeacon.js\n│   ├── journey.js\n│   ├── motionScale.js\n│   ├── projects.js\n│   ├── pulse.js\n│   ├── scrollState.js\n│   └── site.js\n├── package-lock.json\n└── skills-lock.json",
+  "packageInfo": {
+    "name": "crystal-web-solution",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+      "dev": "next dev",
+      "build": "next build",
+      "start": "next start"
+    },
+    "dependencies": {
+      "@react-three/drei": "^9.114.0",
+      "@react-three/fiber": "^8.17.10",
+      "@react-three/postprocessing": "^2.16.3",
+      "gsap": "^3.12.5",
+      "lenis": "^1.1.14",
+      "next": "^14.2.15",
+      "react": "^18.3.1",
+      "react-dom": "^18.3.1",
+      "split-type": "^0.3.4",
+      "three": "^0.169.0"
+    }
+  },
+  "maturity": "frontend-only",
+  "dataFlowDiagram": ""
+}

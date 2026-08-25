@@ -159,11 +159,16 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
-        {children}
+        <main id="main-content" tabIndex={-1}>
+          {children}
+        </main>
         <Analytics />
       </body>
     </html>
