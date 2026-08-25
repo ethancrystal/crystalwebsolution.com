@@ -1,11 +1,10 @@
 'use client';
 
 import SectionReveal from '../SectionReveal';
-import HeroCarousel from '../ui/hero-carousel';
+import StoriesStage from '../StoriesStage';
 import { REVIEWS } from '../../lib/reviews';
-import { paletteArt } from '../../lib/proceduralArt';
 
-// Same curated set as before the carousel redesign: real, named, five-star
+// Same curated set as before the stage redesign: real, named, five-star
 // reviews. The full record (including every other review) stays on /reviews.
 const HOME_REVIEW_IDS = [
   'ahmed-jeffrey',
@@ -15,20 +14,26 @@ const HOME_REVIEW_IDS = [
 ];
 const REVIEWS_BY_ID = new Map(REVIEWS.map((review) => [review.id, review]));
 
-// Brand accents the backdrop grades to as each review takes focus.
+// Brand accents the stage grades to as each review takes focus.
 const ACCENTS = ['#3c6cff', '#59f3ff', '#c084fc'];
+
+// The stage sets quotes large, so long reviews hand off to /reviews at a
+// word boundary instead of overflowing the fixed-height beat.
+function excerpt(text, max = 200) {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  return `${cut.slice(0, cut.lastIndexOf(' '))}…`;
+}
 
 const SLIDES = HOME_REVIEW_IDS.map((id) => REVIEWS_BY_ID.get(id)).map(
   (review, i) => ({
     id: review.id,
-    // Reviewer name broken across lines so each word gets its own wipe.
-    title: review.reviewer.split(' ').join('\n'),
-    credit: (review.company || 'Verified client').toUpperCase(),
-    meta: [`${review.rating}/5`, review.date.toUpperCase()],
+    name: review.reviewer,
+    company: (review.company || 'Verified client').toUpperCase(),
+    date: review.date.toUpperCase(),
+    rating: review.rating,
     accent: ACCENTS[i % ACCENTS.length],
-    image: paletteArt([ACCENTS[i % ACCENTS.length], '#04060c'], review.id),
-    quote: review.body[0],
-    reviewCount: review.reviewCount ?? 1,
+    quote: excerpt(review.body[0]),
   }),
 );
 
@@ -47,28 +52,7 @@ export default function Stories() {
         </SectionReveal>
       </div>
 
-      <SectionReveal delay={0.15} direction="up">
-        <div className="stories-carousel">
-          <HeroCarousel
-            items={SLIDES}
-            autoplay
-            autoplayDelay={6000}
-            ariaLabel="Client reviews"
-            renderDetail={(slide) => (
-              <div className="stories-carousel-detail">
-                <p className="stories-carousel-quote">&ldquo;{slide.quote}&rdquo;</p>
-                <a
-                  className="story-card-link"
-                  href={`/reviews#${slide.id}`}
-                  data-cursor="Read"
-                >
-Read full review →
-                </a>
-              </div>
-            )}
-          />
-        </div>
-      </SectionReveal>
+      <StoriesStage slides={SLIDES} ariaLabel="Client reviews" />
 
       <SectionReveal className="stories-cta" delay={0.1} direction="up">
         <a href="/reviews" className="link-underline" data-cursor="Read">
