@@ -1,4 +1,4 @@
--- Add the project_manager role for Crystal Web Solution's CRM
+-- Add the project_manager role for CD Sportswear USA's CRM
 -- Additive to 0001-0003 - never edit those files in place once applied.
 --
 -- This is its own migration, separate from 0005_pm_scoping_and_project_type.sql,

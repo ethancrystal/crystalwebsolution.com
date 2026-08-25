@@ -1,4 +1,4 @@
--- CRM security hardening for Crystal Web Solution
+-- CRM security hardening for CD Sportswear USA
 -- Additive to 0001_crm_schema.sql - never edit that file in place once applied.
 --
 -- Fixes three gaps found reviewing 0001 against RLS/authz best practice:

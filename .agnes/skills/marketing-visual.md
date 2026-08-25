@@ -1,6 +1,6 @@
 # Marketing Visual Skill
 
-Use this skill to create procedural 3D visuals and animations for the Crystal Web Solution marketing site.
+Use this skill to create procedural 3D visuals and animations for the CD Sportswear USA marketing site.
 
 ## When to Use
 - New service emblem designs

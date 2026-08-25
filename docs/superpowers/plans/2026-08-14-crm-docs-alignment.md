@@ -18,14 +18,14 @@
 ### Task 1: Create `GEMINI.md`
 
 **Files:**
-- Create: `c:/Users/moizjmj/Crystal Web Solution/GEMINI.md`
+- Create: `c:/Users/moizjmj/CD Sportswear USA/GEMINI.md`
 
 **Interfaces:**
 - Consumes: Aligned definitions from specs and project docs.
 - Produces: Root-level guide for Gemini models.
 
 - [ ] **Step 1: Write GEMINI.md containing the aligned guidelines**
-  Write code content to `c:/Users/moizjmj/Crystal Web Solution/GEMINI.md`.
+  Write code content to `c:/Users/moizjmj/CD Sportswear USA/GEMINI.md`.
 
 - [ ] **Step 2: Verify GEMINI.md exists and is readable**
   Run: `git status` to ensure it is untracked, and view the file to check readability.
@@ -42,7 +42,7 @@
 ### Task 2: Modify `CLAUDE.md`
 
 **Files:**
-- Modify: `c:/Users/moizjmj/Crystal Web Solution/CLAUDE.md`
+- Modify: `c:/Users/moizjmj/CD Sportswear USA/CLAUDE.md`
 
 **Interfaces:**
 - Consumes: Aligned definitions from specs.
@@ -66,7 +66,7 @@
 ### Task 3: Modify `AGENTS.md`
 
 **Files:**
-- Modify: `c:/Users/moizjmj/Crystal Web Solution/AGENTS.md`
+- Modify: `c:/Users/moizjmj/CD Sportswear USA/AGENTS.md`
 
 **Interfaces:**
 - Consumes: Aligned definitions from specs.

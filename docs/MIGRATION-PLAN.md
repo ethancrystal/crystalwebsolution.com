@@ -1,4 +1,4 @@
-# Crystal Web Solution — Migration Plan
+# CD Sportswear USA — Migration Plan
 
 **Date:** 2026-08-14  
 **Status:** Ready for implementation

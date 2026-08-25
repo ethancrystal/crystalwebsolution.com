@@ -1,6 +1,6 @@
-# Crystal Web Solution: Remote Access and Recovery
+# CD Sportswear USA: Remote Access and Recovery
 
-This repository is the portable source of truth for the Crystal Web Solution application. The current `main` branch is hosted on GitHub, while the CRM’s application data and database schema are held in the configured Supabase project. Linear and the related Manus task conversations remain available through the same authenticated accounts.
+This repository is the portable source of truth for the CD Sportswear USA application. The current `main` branch is hosted on GitHub, while the CRM’s application data and database schema are held in the configured Supabase project. Linear and the related Manus task conversations remain available through the same authenticated accounts.
 
 ## What is available from another PC
 
@@ -43,7 +43,7 @@ Store the bundle in a private, encrypted location. Do not commit `.env.local`, p
 
 ## Current verified state
 
-The audited checkout is clean, has one authoritative worktree, and its local `main` commit matches `origin/main`. The authoritative local checkout documented by the prior audit was `C:\Users\moizjmj\Crystal Web Solution`.
+The audited checkout is clean, has one authoritative worktree, and its local `main` commit matches `origin/main`. The authoritative local checkout documented by the prior audit was `C:\Users\moizjmj\CD Sportswear USA`.
 
 Verify a checkout with:
 

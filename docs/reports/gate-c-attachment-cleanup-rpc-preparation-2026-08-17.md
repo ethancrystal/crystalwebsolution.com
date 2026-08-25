@@ -77,4 +77,4 @@ After approved application, verify that the migration ledger records the new mig
 
 ## Knowledge boundary
 
-This change is grounded only in Crystal Web Solution repository migrations, the canonical CRM plan, the current scheduler route, and live Supabase catalog/log evidence. No unrelated legal-CRM, Clio, matter-management, or generic knowledgebase material was used to design the migration.
+This change is grounded only in CD Sportswear USA repository migrations, the canonical CRM plan, the current scheduler route, and live Supabase catalog/log evidence. No unrelated legal-CRM, Clio, matter-management, or generic knowledgebase material was used to design the migration.

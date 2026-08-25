@@ -1,5 +1,5 @@
 # Motion & Bundle Performance Audit
-## Crystal Web Solution — Frontend Systems Review
+## CD Sportswear USA — Frontend Systems Review
 
 **Date:** 2026-07-21
 **Scope:** immersive homepage + scene graph, from a systems/bundle/motion perspective.

@@ -79,7 +79,7 @@ export default function Hero() {
       </div>
       <div className="text-plate">
         <p className="eyebrow hero-eyebrow">
-          <Reveal as="span" delay={introDelay}>Crystal Web Solution • Independent digital studio</Reveal>
+          <Reveal as="span" delay={introDelay}>CD Sportswear USA • Independent digital studio</Reveal>
         </p>
         <h1 className="hero-title">
           <DecodeText as="span" text="Built to be" speed={0.045} delay={introDelay + 0.1} className="hero-line" />

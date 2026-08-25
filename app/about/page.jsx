@@ -9,7 +9,7 @@ import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'About';
 const DESCRIPTION =
-  'Crystal Web Solution is a digital studio designing websites, brand systems, motion, and AI automation — clarity, craft, and impact since 2016.';
+  'CD Sportswear USA is a digital studio designing websites, brand systems, motion, and AI automation — clarity, craft, and impact since 2016.';
 
 export const metadata = {
   title: TITLE,

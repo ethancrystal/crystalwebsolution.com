@@ -13,7 +13,7 @@ pkgs.mkShell {
 
   shellHook = ''
     echo ""
-    echo "⚡ Crystal Web Solution - Nix Shell Active ⚡"
+    echo "⚡ CD Sportswear USA - Nix Shell Active ⚡"
     echo "Node.js: $(node --version)"
     echo "pnpm:    $(pnpm --version)"
     echo ""

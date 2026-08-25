@@ -1,6 +1,6 @@
 # Accessibility Audit Skill
 
-Use this skill to audit Crystal Web Solution for WCAG 2.1 AA compliance.
+Use this skill to audit CD Sportswear USA for WCAG 2.1 AA compliance.
 
 ## When to Use
 - Before public launch

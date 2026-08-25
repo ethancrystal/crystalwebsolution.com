@@ -6,6 +6,7 @@ import BrandLogo from './BrandLogo';
 import Magnetic from './Magnetic';
 import Menu from './Menu';
 import { CRM_ENABLED } from '../lib/crmFlag';
+import { SITE } from '../lib/site';
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
@@ -43,7 +44,7 @@ export default function Nav() {
   return (
     <>
       <header className={`nav ${scrolled && !open ? 'nav-glass' : ''} ${onLightSurface && !open ? 'nav-on-light' : ''}`}>
-        <Link href="/" className="nav-logo" data-cursor="Home" aria-label="Crystal Web Solution home">
+        <Link href="/" className="nav-logo" data-cursor="Home" aria-label={`${SITE.name} home`}>
           <BrandLogo />
         </Link>
         <div className="nav-right">

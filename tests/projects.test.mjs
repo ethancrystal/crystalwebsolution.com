@@ -22,6 +22,6 @@ test('selected work uses the five authorized clients plus the CWS self-study', (
     'Style',
     'Zeus Towing Services',
     'Prestige Online Learning',
-    'Crystal Web Solution',
+    'CD Sportswear USA',
   ]);
 });

@@ -14,6 +14,7 @@ import { LAB_WINDOW } from '../../lib/journey';
 import { DEFAULT_MOTION_LAYOUT, shouldUseStaticMotionLayout } from '../../lib/motionLayout.mjs';
 import { scrollState } from '../../lib/scrollState';
 import { useExperienceFeatures } from '../../lib/useExperienceFeatures';
+import { SITE } from '../../lib/site';
 
 // "CWS in motion" — the selected-work beat. Six real project images fly a
 // short orbital lap over the statement, then settle into a clickable grid.
@@ -117,7 +118,7 @@ function CardArt({ card, index }) {
         <rect x="0.75" y="0.75" width={CARD_DOM_WIDTH - 1.5} height={CARD_DOM_HEIGHT - 1.5} rx="8" fill="#f4f3ef" stroke="#11130f" strokeWidth="1.5" />
       )}
       <rect x="0" y="0" width={CARD_DOM_WIDTH} height={CARD_DOM_HEIGHT} fill="rgba(4,6,12,0.18)" />
-      <text x="12" y="17" className="im-card-kicker">CWS / SELECTED WORK</text>
+      <text x="12" y="17" className="im-card-kicker">{SITE.name.toUpperCase()} / SELECTED WORK</text>
       <text x={CARD_DOM_WIDTH - 12} y="18" textAnchor="end" className="im-card-num">{num}</text>
       {!card.image && <rect x={ART_X} y={ART_Y} width={ART_W} height={ART_H} rx="4" fill="#f4f3ef" />}
       {Array.from({ length: 7 }, (_, gridIndex) => {
@@ -296,14 +297,14 @@ export default function Lab() {
     >
       <div className="lab-sticky">
         <div className="lab-copy" ref={headlineRef} aria-hidden="true">
-          <span>CWS IN</span>
-          <span>MOTION</span>
+          <span>CD SPORTSWEAR</span>
+          <span>IN MOTION</span>
         </div>
-        <h2 className="sr-only">CWS in motion</h2>
+        <h2 className="sr-only">{SITE.name} in motion</h2>
         <p className="lab-caption" ref={captionRef}>
           This site is the proof: one continuous 3D scene, scroll-linked
           motion, responsive fallbacks, and accessible content — built by
-          Crystal Web Solution.
+          CD Sportswear USA.
         </p>
         <a href="/work" className="lab-link">View selected work <span aria-hidden="true">→</span></a>
         <div className="lab-stage" ref={stageRef}>

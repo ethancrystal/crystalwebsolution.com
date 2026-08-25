@@ -1,4 +1,4 @@
-# Crystal Web Solution — Content & Copy Bible
+# CD Sportswear USA — Content & Copy Bible
 
 **Branch:** `Content` · **Voice profile:** Agency (Expert, Battle-tested, Direct, Warm, No-nonsense)
 **Framework map (per prior session decision):**
@@ -57,7 +57,7 @@
 
 **Framework read:** Before = *clear strategy* (scattered thoughts) · After = *brands people remember* · Bridge = *we build*. This is already textbook BAB. **Leave as-is** — it's a design element, not editable prose.
 
-**Supporting line (live):** `Crystal Web Solution / Independent digital studio`
+**Supporting line (live):** `CD Sportswear USA / Independent digital studio`
 **Hint (live):** `Pointer and touch responsive`
 
 ---

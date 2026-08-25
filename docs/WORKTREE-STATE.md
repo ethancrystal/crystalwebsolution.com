@@ -4,7 +4,7 @@ Last audited: 2026-08-02
 
 ## Canonical checkout
 
-- Path: `C:\Users\moizjmj\Crystal Web Solution`
+- Path: `C:\Users\moizjmj\CD Sportswear USA`
 - Branch: `main`
 - Cleanup base: `c5a922f91b460f1a4aa73db2839d08c0cfc9a728`
 - Remote check at cleanup start: `origin/main` resolved to the same commit
@@ -102,7 +102,7 @@ but each exact HEAD remains reachable through a local branch ref.
 | `.claude/worktrees/file-directory-replacement-e48863` | `a80319c` | unrelated/obsolete replacement history; 5 unique commits |
 | `.claude/worktrees/wonderful-lewin-831eb3` | `3688114` | detached old snapshot; 205 behind, 3 unique commits |
 | `.worktrees/new-changes` | `67d1032` | 104 behind, 1 unique commit |
-| `C:\c\Users\moizjmj\Crystal Web Solution\.claude\worktrees\contentful-merge` | `844eb41` | 88 behind, 3 unique commits |
+| `C:\c\Users\moizjmj\CD Sportswear USA\.claude\worktrees\contentful-merge` | `844eb41` | 88 behind, 3 unique commits |
 
 The removed `newchanges` checkout had the same HEAD and byte-identical Hermes
 attachments as `new-changes`. Its branch ref and named recovery stash remain.

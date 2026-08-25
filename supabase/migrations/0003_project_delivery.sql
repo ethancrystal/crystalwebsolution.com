@@ -1,4 +1,4 @@
--- Project delivery lifecycle for Crystal Web Solution's CRM
+-- Project delivery lifecycle for CD Sportswear USA's CRM
 -- Additive to 0001_crm_schema.sql and 0002_crm_security_hardening.sql -
 -- never edit those files in place once applied.
 --

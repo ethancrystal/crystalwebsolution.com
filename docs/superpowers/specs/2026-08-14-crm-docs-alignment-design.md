@@ -4,7 +4,7 @@
 **Topic**: CRM & Platform Instruction Alignment
 
 ## Goal
-Align the instructions in `GEMINI.md`, `CLAUDE.md`, and `AGENTS.md` to ensure they present a coherent, non-divergent overview of the entire Crystal Web Solution platform. Specifically, this alignment balances the WebGL/Three.js animation showcase with the Supabase-backed CRM, whose primary purpose is to **accommodate incoming and current clients and collaborate efficiently with them while their project is ongoing**.
+Align the instructions in `GEMINI.md`, `CLAUDE.md`, and `AGENTS.md` to ensure they present a coherent, non-divergent overview of the entire CD Sportswear USA platform. Specifically, this alignment balances the WebGL/Three.js animation showcase with the Supabase-backed CRM, whose primary purpose is to **accommodate incoming and current clients and collaborate efficiently with them while their project is ongoing**.
 
 ---
 
