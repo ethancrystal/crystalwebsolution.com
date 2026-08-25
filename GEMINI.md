@@ -12,7 +12,7 @@ See `docs/PIXEL-POLISH-PLAN.md` for the phased execution plan tracking the remai
 
 ## Project Overview
 
-Crystal Web Solution is a Next.js 15 / React 19 application containing a dark, cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM. 
+CD Sportswear USA is a Next.js 15 / React 19 application containing a dark, cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
 1. **The Agency Experience**: The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM scrolls over it while a virtual camera flies through one continuous 3D space past a refracting crystal, service-signal instruments, an approach compass, procedural particles, and a morphing backdrop. Lab and Motion add DOM/CSS-3D card experiences over the same canvas.
 2. **The Client Collaboration CRM**: A secure, multi-portal workspace (`/login`, `/dashboard`, `/team`, and `/admin`) designed to onboarding leads and let ongoing clients review milestones, approve deliverables, and securely upload/access project attachments.
 

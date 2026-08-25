@@ -1,4 +1,4 @@
-# Trionn.com Layout Breakdown → Crystal Web Solution Adaptation
+# Trionn.com Layout Breakdown → CD Sportswear USA Adaptation
 
 Verified live (browser pass, 2026-07-11) against prior TRIONN-SPEC.md / TRIONN-FINDINGS.md
 research found in the `crystalwebsolution` sibling repo. One correction noted below (Services).

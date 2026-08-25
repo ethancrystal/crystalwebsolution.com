@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SITE } from '../../lib/site';
+import BrandLogo from '../BrandLogo';
 import { CRM_ENABLED } from '../../lib/crmFlag';
 
 // Lightweight marketing header used by inner pages. Reuses the brand identity
@@ -9,8 +10,7 @@ export default function MarketingHeader() {
   return (
     <header className="mkt-header">
       <Link href="/" className="mkt-logo" aria-label={`${SITE.name} home`}>
-        <span className="mkt-logo-monogram" aria-hidden="true">CWS</span>
-        <span className="mkt-logo-name">{SITE.name}</span>
+        <BrandLogo />
       </Link>
       <nav className="mkt-header-nav" aria-label="Marketing">
         <Link href="/work" data-cursor="Work">Work</Link>

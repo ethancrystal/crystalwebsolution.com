@@ -1,6 +1,6 @@
 # Design System Audit Skill
 
-Use this skill to audit and improve the Crystal Web Solution design system and CSS tokens.
+Use this skill to audit and improve the CD Sportswear USA design system and CSS tokens.
 
 ## When to Use
 - Adding new components

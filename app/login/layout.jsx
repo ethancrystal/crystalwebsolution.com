@@ -5,7 +5,7 @@
 // Nested /login/{admin,client,employee} inherit this unless they override it.
 export const metadata = {
   title: 'Log in',
-  description: 'Sign in to the Crystal Web Solution client, employee, or admin portal.',
+  description: 'Sign in to the CD Sportswear USA client, employee, or admin portal.',
   alternates: { canonical: '/login' },
   robots: { index: false, follow: false },
 };

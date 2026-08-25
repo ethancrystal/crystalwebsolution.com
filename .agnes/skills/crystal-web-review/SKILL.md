@@ -1,13 +1,13 @@
 ---
 name: crystal-web-review
-description: 'Run a comprehensive audit of Crystal Web Solution codebase. Use when the user asks to review, critique, analyze, or audit the app for refactoring opportunities, design issues, testing gaps, or migration planning.'
+description: 'Run a comprehensive audit of CD Sportswear USA codebase. Use when the user asks to review, critique, analyze, or audit the app for refactoring opportunities, design issues, testing gaps, or migration planning.'
 metadata:
   argument-hint: '[audit-scope] [output-path]'
 ---
 
-# Crystal Web Solution — Full App Audit Skill
+# CD Sportswear USA — Full App Audit Skill
 
-Use this skill when the user asks to review, audit, critique, or analyze the Crystal Web Solution codebase. This skill documents the complete audit workflow used to produce the design critique, migration plan, and skills compilation.
+Use this skill when the user asks to review, audit, critique, or analyze the CD Sportswear USA codebase. This skill documents the complete audit workflow used to produce the design critique, migration plan, and skills compilation.
 
 ## When to Use
 - User asks to "review the app", "audit the codebase", "find refactoring opportunities", "design critique", "testing strategy"

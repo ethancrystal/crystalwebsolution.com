@@ -1,16 +1,16 @@
+import { SITE } from '../lib/site';
+
 export default function BrandLogo() {
   return (
-    // No aria-hidden here: the logo <img> carries the alt text that Screaming
-    // Frog counts as anchor text for the wrapping home link ("Links: Internal
-    // Outlinks With No Anchor Text"). The parent <Link aria-label> still wins
-    // the accessible-name computation, so screen readers announce it once.
+    // The logo <img> carries the brand name for assistive technology while the
+    // wrapping home link provides the navigation context.
     <span className="nav-logo-art">
       <img
         className="nav-logo-art-full"
-        src="/crystal-web-solution-logo.svg"
-        alt="Crystal Web Solution"
-        width="1616"
-        height="243"
+        src={SITE.logoPath}
+        alt={SITE.name}
+        width="500"
+        height="500"
       />
     </span>
   );

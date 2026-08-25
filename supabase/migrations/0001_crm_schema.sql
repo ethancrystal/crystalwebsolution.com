@@ -1,4 +1,4 @@
--- CRM Schema for Crystal Web Solution
+-- CRM Schema for CD Sportswear USA
 -- Security: Uses raw_app_meta_data (service-role only) instead of raw_user_meta_data for role assignment
 -- All tables have comprehensive RLS policies
 

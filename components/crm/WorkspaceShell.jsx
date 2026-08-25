@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { homeForRole } from '@/lib/auth/roles.mjs';
+import { SITE } from '@/lib/site';
 
 const SECTION_CLASSES = 'crm-workspace-section';
 
@@ -13,8 +14,13 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
     <div className="crm-workspace">
       <header className="crm-workspace-header">
         <div className="crm-workspace-header-main">
-          <h1>{title}</h1>
-          <span className="crm-workspace-role">{role}</span>
+          <a className="crm-workspace-brand" href="/" aria-label={`${SITE.name} home`}>
+            <img src={SITE.logoPath} alt={SITE.name} width="500" height="500" />
+          </a>
+          <div>
+            <h1>{title}</h1>
+            <span className="crm-workspace-role">{role}</span>
+          </div>
         </div>
         <button
           type="button"
@@ -66,6 +72,25 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
           display: flex;
           align-items: center;
           gap: 1rem;
+          min-width: 0;
+        }
+
+        .crm-workspace-brand {
+          display: inline-flex;
+          width: 4.5rem;
+          height: 4.5rem;
+          flex: 0 0 auto;
+          align-items: center;
+          justify-content: center;
+          border-radius: 0.75rem;
+          overflow: hidden;
+        }
+
+        .crm-workspace-brand img {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
         }
 
         .crm-workspace-header h1 {

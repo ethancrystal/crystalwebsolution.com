@@ -10,7 +10,7 @@ import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const BLOG_TITLE = 'Blog';
 const BLOG_DESCRIPTION =
-  'Notes on web design, development and brand systems from the Crystal Web Solution studio — what we build, how we build it, and what it costs.';
+  'Notes on web design, development and brand systems from the CD Sportswear USA studio — what we build, how we build it, and what it costs.';
 
 export const metadata = {
   title: BLOG_TITLE,

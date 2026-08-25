@@ -263,7 +263,7 @@ otp_expiry = 3600
 # user = "resend"
 # pass = "env(RESEND_API_KEY)"
 # admin_email = "info@crystalwebsolution.com"
-# sender_name = "Crystal Web Solution"
+# sender_name = "CD Sportswear USA"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

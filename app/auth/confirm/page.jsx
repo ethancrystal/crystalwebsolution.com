@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { resendConfirmationEmail } from '@/app/auth/actions';
+import DarkPageBackground from '@/components/ui/dark-page-background';
 
 export default function ConfirmPage() {
   return (
@@ -32,6 +33,7 @@ function ConfirmContent() {
 
   return (
     <div className="crm-confirm-container">
+      <DarkPageBackground />
       <div className="crm-confirm-card">
         <h1>Check Your Email</h1>
         <p>
@@ -70,7 +72,8 @@ function ConfirmContent() {
           align-items: center;
           justify-content: center;
           min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+          position: relative;
+          z-index: 1;
           font-family: inherit;
         }
 

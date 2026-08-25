@@ -12,7 +12,7 @@ tags: [feature, crm, notifications, auth, website, animation]
 
 ![Status: In progress](https://img.shields.io/badge/status-In%20progress-yellow)
 
-Crystal Web Solution is a Next.js 15 marketing site with an attached
+CD Sportswear USA is a Next.js 15 marketing site with an attached
 three-role Supabase CRM (client / project_manager / admin). This plan
 closes the gap between the CRM's actual current state — verified via a
 live-code audit and a live-database audit (Supabase MCP:

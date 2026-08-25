@@ -1,4 +1,4 @@
-# Crystal Web Solution — Frontend Enhancement & "Bold / Enigmatic" Homepage Synthesis (v2)
+# CD Sportswear USA — Frontend Enhancement & "Bold / Enigmatic" Homepage Synthesis (v2)
 
 **Date:** June 2026
 **Status:** Proposed for approval

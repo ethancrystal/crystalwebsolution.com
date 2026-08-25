@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { signUp } from '@/app/auth/actions';
+import { SITE } from '@/lib/site';
+import DarkPageBackground from '@/components/ui/dark-page-background';
 
 // Mirrors SIGNUP_ACCOUNT_TYPES in lib/auth/roles.mjs, which the server action
 // re-validates against. Admin is absent by design and is not self-service.
@@ -47,13 +49,14 @@ export default function SignupPage() {
 
   return (
     <div className="crm-auth-container">
+      <DarkPageBackground />
       <div className="crm-auth-card">
-        <Link href="/" className="crm-auth-mark" aria-label="Crystal Web Solution home">
-          <img className="crm-auth-logo" src="/crystal-web-solution-icon.svg" alt="Crystal Web Solution" width="160" height="63" />
+        <Link href="/" className="crm-auth-mark" aria-label={`${SITE.name} home`}>
+          <img className="crm-auth-logo" src={SITE.logoPath} alt={SITE.name} width="160" height="63" />
         </Link>
 
         <h1>Create your account</h1>
-        <p>Join Crystal Web Solution and start managing your projects.</p>
+        <p>Join CD Sportswear USA and start managing your projects.</p>
 
         <form action={handleSubmit} className="crm-form">
           {error && <div className="crm-error">{error}</div>}
@@ -82,7 +85,7 @@ export default function SignupPage() {
             {accountType === 'employee' && (
               <p className="crm-account-note">
                 Employee accounts need admin approval. You&apos;ll sign in with client
-                access until Crystal Web Solution approves the request.
+                access until CD Sportswear USA approves the request.
               </p>
             )}
           </fieldset>
@@ -156,12 +159,8 @@ export default function SignupPage() {
           justify-content: center;
           min-height: 100vh;
           padding: 2rem 1.5rem;
-          background: var(--bg);
-          background-image: radial-gradient(
-            80% 60% at 50% 0%,
-            rgba(60, 108, 255, 0.14) 0%,
-            rgba(4, 6, 12, 0) 60%
-          );
+          position: relative;
+          z-index: 1;
         }
 
         .crm-auth-card {

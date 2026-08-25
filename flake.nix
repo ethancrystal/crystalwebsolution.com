@@ -1,5 +1,5 @@
 {
-  description = "Crystal Web Solution - Dark, cinematic scroll-driven agency homepage";
+  description = "CD Sportswear USA - Dark, cinematic scroll-driven agency homepage";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -27,7 +27,7 @@
 
           shellHook = ''
             echo ""
-            echo "⚡ Crystal Web Solution - Nix Dev Environment ⚡"
+            echo "⚡ CD Sportswear USA - Nix Dev Environment ⚡"
             echo "Node.js: $(node --version)"
             echo "pnpm:    $(pnpm --version)"
             echo ""

@@ -10,7 +10,7 @@ import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'Process';
 const DESCRIPTION =
-  'How Crystal Web Solution works — a clear path from discovery to a product your team owns, measured against real behavior.';
+  'How CD Sportswear USA works — a clear path from discovery to a product your team owns, measured against real behavior.';
 
 export const metadata = {
   title: TITLE,
