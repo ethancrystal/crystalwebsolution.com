@@ -4,17 +4,19 @@ import Link from 'next/link';
 import ProjectHandoffLink from '../ProjectHandoffLink';
 import ImageStreamHero from '../ui/image-stream-hero';
 import { PROJECTS } from '../../lib/projects';
-import { paletteArt } from '../../lib/proceduralArt';
-
 const DEEP_LINK_PROGRESS = 0.32;
 
 // The corridor is decorative (aria-hidden inside the component), so all real
-// navigation lives in the overlay list below. Each stream card is procedural
-// art generated from the matching project's palette — no binary media.
-const STREAM_IMAGES = PROJECTS.flatMap((project) => [
-  { src: paletteArt(project.palette, project.slug) },
-  { src: paletteArt([...project.palette].reverse(), `${project.slug}-alt`) },
-]);
+// navigation lives in the overlay list below. Each stream card uses a supplied
+// project image; the text list remains the accessible source of navigation.
+const STREAM_IMAGES = [
+  { src: '/projects/cws-live-izanami.webp' },
+  { src: '/projects/cws-live-oimachi.webp' },
+  { src: '/projects/cws-live-ciao-energy.webp' },
+  { src: '/projects/cws-live-inspiring.webp' },
+  { src: '/projects/cws-innovation-studio.webp' },
+  { src: '/projects/cws-izanami.webp' },
+];
 
 export default function Motion() {
   return (

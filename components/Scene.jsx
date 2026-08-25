@@ -38,7 +38,7 @@ export default function Scene() {
         <FocusDimmer />
 
         {/* Hero beat */}
-        <Crystal position={[0, 0, CLUSTERS.crystal]} />
+        <Crystal position={[0, 0, CLUSTERS.crystal]} quality={quality} />
         <Sparks position={[0, 0, CLUSTERS.crystal]} />
 
         {/* Services beat — eight signal instruments, one per service row, hover-linked
