@@ -33,7 +33,7 @@ function ConfirmContent() {
 
   return (
     <div className="crm-confirm-container">
-      <DarkPageBackground />
+      <DarkPageBackground interactive="liquid-ether" />
       <div className="crm-confirm-card">
         <h1>Check Your Email</h1>
         <p>
