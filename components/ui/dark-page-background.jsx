@@ -1,11 +1,21 @@
 'use client';
 
-import UnicornStudioBackground from './unicorn-studio-background';
+import PrismBackground from './prism-background';
+import RippleGridBackground from './ripple-grid-background';
+import LiquidEtherBackground from './liquid-ether-background';
 
-export default function DarkPageBackground() {
+const INTERACTIVE_BACKGROUNDS = {
+  prism: PrismBackground,
+  'ripple-grid': RippleGridBackground,
+  'liquid-ether': LiquidEtherBackground
+};
+
+export default function DarkPageBackground({ interactive = 'prism' }) {
+  const Interactive = INTERACTIVE_BACKGROUNDS[interactive] ?? PrismBackground;
+
   return (
     <>
-      <UnicornStudioBackground />
+      <Interactive />
       <div className="alive-overlay" aria-hidden="true">
         {/* Subtle floating ambient orbs */}
         <div className="alive-orb alive-orb-1" />

@@ -40,7 +40,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="crm-login-container">
-      <DarkPageBackground />
+      <DarkPageBackground interactive="liquid-ether" />
       <div className="crm-login-card">
         <h1>Set New Password</h1>
         <p>Choose a new password for your account</p>

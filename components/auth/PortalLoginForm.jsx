@@ -40,7 +40,7 @@ export default function PortalLoginForm({ portal }) {
 
   return (
     <div className="crm-login-container">
-      <DarkPageBackground />
+      <DarkPageBackground interactive="prism" />
       <div className="crm-login-card">
         <Link href="/" className="crm-login-mark" aria-label={`${SITE.name} home`}>
           <img src={SITE.logoPath} alt={SITE.name} width="160" height="63" />

@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="crm-login-container">
-      <DarkPageBackground />
+      <DarkPageBackground interactive="liquid-ether" />
       <div className="crm-login-card">
         <h1>Reset Password</h1>
         <p>Enter your email and we'll send you a reset link</p>
