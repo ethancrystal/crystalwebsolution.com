@@ -16,10 +16,14 @@ import { scrollState } from '../../lib/scrollState';
 import { useExperienceFeatures } from '../../lib/useExperienceFeatures';
 import { SITE } from '../../lib/site';
 
-// "CWS in motion" — the selected-work beat. Six real project images fly a
-// short orbital lap over the statement, then settle into a clickable grid.
-// This stage remains pure DOM/CSS-3D and keeps every card interactive in the
-// DOM from the start; only transform, opacity, and pointer-events are mutated.
+// "CWS in motion" — the services beat. Eight cards fly a full orbital lap
+// over the giant statement, then settle into a real, clickable grid. Unlike
+// Motion.jsx's Selected Work beat (which drives a WebGL scene + camera lock),
+// this stage is pure DOM/CSS-3D — closer kin to .about-smil than to Motion:
+// a self-contained scene sitting on the fixed Canvas, not a mascot inside it.
+// Every card is one real <a> from the start; only transform/opacity/
+// pointer-events are ever mutated, so nothing swaps a decorative stand-in
+// for an interactive one.
 const STATIC_QUERY = '(prefers-reduced-motion: reduce)';
 const ANCHOR_PROGRESS = 0.3;
 const GRID_COLUMNS = 4;
@@ -105,22 +109,10 @@ function CardArt({ card, index }) {
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
       </defs>
-      {card.image ? (
-        <image
-          href={card.image}
-          x="0"
-          y="0"
-          width={CARD_DOM_WIDTH}
-          height={CARD_DOM_HEIGHT}
-          preserveAspectRatio="xMidYMid slice"
-        />
-      ) : (
-        <rect x="0.75" y="0.75" width={CARD_DOM_WIDTH - 1.5} height={CARD_DOM_HEIGHT - 1.5} rx="8" fill="#f4f3ef" stroke="#11130f" strokeWidth="1.5" />
-      )}
-      <rect x="0" y="0" width={CARD_DOM_WIDTH} height={CARD_DOM_HEIGHT} fill="rgba(4,6,12,0.18)" />
-      <text x="12" y="17" className="im-card-kicker">{SITE.name.toUpperCase()} / SELECTED WORK</text>
+      <rect x="0.75" y="0.75" width={CARD_DOM_WIDTH - 1.5} height={CARD_DOM_HEIGHT - 1.5} rx="8" fill="#f4f3ef" stroke="#11130f" strokeWidth="1.5" />
+      <text x="12" y="17" className="im-card-kicker">{SITE.name.toUpperCase()} / SERVICE</text>
       <text x={CARD_DOM_WIDTH - 12} y="18" textAnchor="end" className="im-card-num">{num}</text>
-      {!card.image && <rect x={ART_X} y={ART_Y} width={ART_W} height={ART_H} rx="4" fill="#f4f3ef" />}
+      <rect x={ART_X} y={ART_Y} width={ART_W} height={ART_H} rx="4" fill={`url(#${gradId})`} />
       {Array.from({ length: 7 }, (_, gridIndex) => {
         const gx = ART_X + (gridIndex + 1) * (ART_W / 8);
         return <line key={`v${gridIndex}`} x1={gx} y1={ART_Y} x2={gx} y2={ART_Y + ART_H} stroke="rgba(20,26,33,0.1)" />;
@@ -129,15 +121,11 @@ function CardArt({ card, index }) {
         const gy = ART_Y + (gridIndex + 1) * (ART_H / 4);
         return <line key={`h${gridIndex}`} x1={ART_X} y1={gy} x2={ART_X + ART_W} y2={gy} stroke="rgba(20,26,33,0.1)" />;
       })}
-      {!card.image && (
-        <>
-          <rect x={ART_X + ART_W * 0.6} y={ART_Y} width={ART_W * 0.4} height={ART_H * 0.55} fill={`url(#${sheenId})`} />
-          <svg x={ART_X} y={ART_Y} width={ART_W} height={ART_H} viewBox="0 0 296 132" preserveAspectRatio="none">
-            <path d={inMotionCurve(index)} fill="none" stroke="#0b0d0b" strokeWidth="5" strokeLinecap="round" />
-          </svg>
-          {card.shapes.map((shape, shapeIndex) => <CardShape key={shapeIndex} shape={shape} />)}
-        </>
-      )}
+      <rect x={ART_X + ART_W * 0.6} y={ART_Y} width={ART_W * 0.4} height={ART_H * 0.55} fill={`url(#${sheenId})`} />
+      <svg x={ART_X} y={ART_Y} width={ART_W} height={ART_H} viewBox="0 0 296 132" preserveAspectRatio="none">
+        <path d={inMotionCurve(index)} fill="none" stroke="#0b0d0b" strokeWidth="5" strokeLinecap="round" />
+      </svg>
+      {card.shapes.map((shape, shapeIndex) => <CardShape key={shapeIndex} shape={shape} />)}
       <text x="12" y="196" className="im-card-title">{card.title}</text>
       <text x="12" y="212" className="im-card-sub">{card.sub}</text>
       <text x={CARD_DOM_WIDTH - 12} y="216" textAnchor="end" className="im-card-num-ghost">{num}</text>
@@ -149,9 +137,9 @@ function InMotionCard({ card, index, register }) {
   return (
     <a
       ref={register}
-      href="/work"
+      href="#services"
       className="im-card"
-      aria-label={`${card.title} — open selected work`}
+      aria-label={`${card.title} — jump to services`}
       tabIndex={-1}
     >
       <CardArt card={card} index={index} />
@@ -306,7 +294,7 @@ export default function Lab() {
           motion, responsive fallbacks, and accessible content — built by
           CD Sportswear USA.
         </p>
-        <a href="/work" className="lab-link">View selected work <span aria-hidden="true">→</span></a>
+        <a href="#services" className="lab-link">All services <span aria-hidden="true">→</span></a>
         <div className="lab-stage" ref={stageRef}>
           {IN_MOTION_CARDS.map((card, index) => (
             <InMotionCard
@@ -319,7 +307,7 @@ export default function Lab() {
         </div>
         <div className="lab-grid">
           {IN_MOTION_CARDS.map((card, index) => (
-            <a key={card.id} href="/work" className="im-card" aria-label={`${card.title} — open selected work`}>
+            <a key={card.id} href="#services" className="im-card" aria-label={`${card.title} — jump to services`}>
               <CardArt card={card} index={index} />
             </a>
           ))}

@@ -1384,7 +1384,7 @@ html[data-cws-intro-seen='1'] .loader {
    never swaps a decorative layer for an interactive one. */
 .lab {
   display: block;
-  height: 210svh;
+  height: 340svh;
   min-height: 0;
   padding: 0;
   overflow: visible;
