@@ -1358,7 +1358,7 @@ html[data-cws-intro-seen='1'] .loader {
    never swaps a decorative layer for an interactive one. */
 .lab {
   display: block;
-  height: 340svh;
+  height: 210svh;
   min-height: 0;
   padding: 0;
   overflow: visible;
@@ -3897,11 +3897,20 @@ html[data-cws-intro-seen='1'] .loader {
 }
 
 /* ---------- stories: editorial review carousel ---------- */
+.stories {
+  align-items: center;
+  gap: clamp(2rem, 5vh, 4rem);
+  padding-top: clamp(8rem, 15vh, 11rem);
+  padding-bottom: clamp(5rem, 10vh, 8rem);
+}
+.stories .text-plate {
+  width: min(100%, 58rem);
+  align-self: flex-start;
+}
 .stories-carousel {
-  /* vw-based, not %: the SectionReveal wrapper shrink-wraps under the
-     section's align-items:center, so a % width would resolve to 0. */
+  /* Keep the editorial heading and review stage legible on one viewport. */
   width: min(88vw, 78rem);
-  height: clamp(30rem, 82vh, 50rem);
+  height: clamp(26rem, 60vh, 40rem);
   border: 1px solid var(--line);
   border-radius: 1.2rem;
   overflow: hidden;
@@ -3998,7 +4007,11 @@ html[data-cws-intro-seen='1'] .loader {
   color: var(--muted);
 }
 @media (max-width: 760px) {
-  .stories-carousel { height: clamp(26rem, 74vh, 34rem); }
+  .stories {
+    gap: 2rem;
+    padding-top: 7rem;
+  }
+  .stories-carousel { height: clamp(26rem, 58vh, 32rem); }
   .motion-stream-item-category { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
