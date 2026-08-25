@@ -12,6 +12,10 @@ const labSource = readFileSync(
   new URL('../components/sections/Lab.jsx', import.meta.url),
   'utf8',
 );
+const motionSource = readFileSync(
+  new URL('../components/sections/Motion.jsx', import.meta.url),
+  'utf8',
+);
 const globalCss = readFileSync(
   new URL('../app/globals.css', import.meta.url),
   'utf8',
@@ -37,6 +41,12 @@ test('Lab uses six approved project cards with uploaded image assets', () => {
     ],
   );
   assert.match(labSource, /View selected work/);
+});
+
+test('Motion stream uses supplied public project images in its zooming tiles', () => {
+  const imageRefs = motionSource.match(/src: ['\"]\/projects\/[^'\"]+['\"]/g) || [];
+  assert.ok(imageRefs.length >= 6);
+  assert.doesNotMatch(motionSource, /paletteArt\(/);
 });
 
 test('Stories and Lab use shorter editorial stages', () => {

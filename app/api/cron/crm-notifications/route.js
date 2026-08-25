@@ -141,7 +141,7 @@ async function drain(request) {
   const cleanedAttachments = await cleanupStaleAttachments(supabase);
 
   if (!isEmailConfigured()) {
-    return json({ ok: false, error: 'Email delivery is not configured.', cleanedAttachments }, 503);
+    return json({ ok: false, error: 'Email delivery is not configured.' }, 503);
   }
 
   const { data: rows, error: claimError } = await supabase.rpc('claim_notification_email_batch', {
