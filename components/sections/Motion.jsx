@@ -25,8 +25,12 @@ export default function Motion() {
       id="motion"
       data-anchor-progress={DEEP_LINK_PROGRESS}
     >
+      {/* cards must match images.length: ImageStreamHero cycles images via
+          i % images.length, so any cards count that isn't a multiple of the
+          image count puts two duplicate photos in the same visible pass. */}
       <ImageStreamHero
         images={STREAM_IMAGES}
+        cards={STREAM_IMAGES.length}
         speed={22}
         axis={52}
         className="motion-stream"
