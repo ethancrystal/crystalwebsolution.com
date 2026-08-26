@@ -1,13 +1,16 @@
 'use client';
 
 import Link from 'next/link';
+import { SITE } from '../../lib/site';
+import DarkPageBackground from '../../components/ui/dark-page-background';
 
 export default function LoginPage() {
   return (
     <div className="crm-auth-container">
+      <DarkPageBackground interactive="prism" />
       <div className="crm-auth-card">
-        <Link href="/" className="crm-auth-mark" aria-label="Crystal Web Solution home">
-          <img className="crm-auth-logo" src="/crystal-web-solution-icon.svg" alt="Crystal Web Solution" width="160" height="63" />
+        <Link href="/" className="crm-auth-mark" aria-label={`${SITE.name} home`}>
+          <img className="crm-auth-logo" src={SITE.logoPath} alt={SITE.name} width="160" height="63" />
         </Link>
 
         <h1>Choose your portal</h1>
@@ -29,20 +32,19 @@ export default function LoginPage() {
 
       <style jsx>{`
         .crm-auth-container {
+          position: relative;
+          isolation: isolate;
+          overflow: hidden;
           display: flex;
           align-items: center;
           justify-content: center;
           min-height: 100vh;
           padding: 2rem 1.5rem;
-          background: var(--bg);
-          background-image: radial-gradient(
-            80% 60% at 50% 0%,
-            rgba(60, 108, 255, 0.14) 0%,
-            rgba(4, 6, 12, 0) 60%
-          );
         }
 
         .crm-auth-card {
+          position: relative;
+          z-index: 1;
           background: rgba(234, 242, 255, 0.03);
           border: 1px solid var(--line);
           border-radius: 20px;

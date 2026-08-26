@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { updatePassword } from '@/app/auth/actions';
+import DarkPageBackground from '@/components/ui/dark-page-background';
 
 export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,6 +40,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="crm-login-container">
+      <DarkPageBackground interactive="liquid-ether" />
       <div className="crm-login-card">
         <h1>Set New Password</h1>
         <p>Choose a new password for your account</p>
@@ -84,7 +86,8 @@ export default function ResetPasswordPage() {
           align-items: center;
           justify-content: center;
           min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+          position: relative;
+          z-index: 1;
           font-family: inherit;
         }
 

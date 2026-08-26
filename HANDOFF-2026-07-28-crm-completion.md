@@ -8,9 +8,9 @@ branch, or deployment statements as current truth.
 
 ### Current checkout and branch
 
-- Repository: `C:\Users\moizjmj\Crystal Web Solution`
+- Repository: `C:\Users\moizjmj\CD Sportswear USA`
 - Isolated CRM worktree:
-  `C:\Users\moizjmj\Crystal Web Solution\.worktrees\crm-completion`
+  `C:\Users\moizjmj\CD Sportswear USA\.worktrees\crm-completion`
 - Branch: `codex/crm-completion`
 - Base before this pass: `ec586a5`
 - Remote: `https://github.com/ethancrystal/crystalwebsolution.com.git`

@@ -22,7 +22,7 @@ export const metadata = {
     template: `%s | ${SITE.name}`,
   },
   description:
-    'Crystal Web Solution designs and builds distinctive websites, brand systems, motion experiences, and AI automations for businesses ready to stand apart.',
+    'CD Sportswear USA designs and builds distinctive websites, brand systems, motion experiences, and AI automations for businesses ready to stand apart.',
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
@@ -73,8 +73,8 @@ const JSON_LD = {
       logo: {
         '@type': 'ImageObject',
         '@id': `${SITE_URL}/#logo`,
-        url: `${SITE_URL}/crystal-web-solution-logo.svg`,
-        contentUrl: `${SITE_URL}/crystal-web-solution-logo.svg`,
+        url: `${SITE_URL}${SITE.logoPath}`,
+        contentUrl: `${SITE_URL}${SITE.logoPath}`,
         caption: SITE.name,
       },
       image: { '@id': `${SITE_URL}/#logo` },
@@ -159,11 +159,16 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
         />
-        {children}
+        <main id="main-content" tabIndex={-1}>
+          {children}
+        </main>
         <Analytics />
       </body>
     </html>

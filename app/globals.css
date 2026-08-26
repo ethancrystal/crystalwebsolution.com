@@ -27,6 +27,30 @@
   );
 }
 
+/* ---------- skip link ---------- */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--cyan);
+  border-radius: 0 0 12px 12px;
+  transition: top 0.25s ease;
+  pointer-events: none;
+}
+.skip-link:focus {
+  top: 0;
+  pointer-events: auto;
+  outline: none;
+}
+
 /* ---------- base ---------- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -327,15 +351,17 @@ html[data-cws-intro-seen='1'] .loader {
 .nav-logo-art {
   position: relative;
   display: block;
-  width: clamp(12rem, 18vw, 17.5rem);
-  height: clamp(1.8rem, 2.7vw, 2.65rem);
+  width: clamp(4.75rem, 7vw, 6.75rem);
+  height: clamp(3.25rem, 5vw, 4.5rem);
 }
 .nav-logo-art img {
   position: absolute;
   left: 0;
   top: 50%;
   display: block;
-  width: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   transition: opacity 0.25s ease, transform 0.25s ease, filter 0.25s ease;
 }
 .nav-logo-art-full {
@@ -366,7 +392,7 @@ html[data-cws-intro-seen='1'] .loader {
 
 @media (max-width: 767.5px) {
   .nav-logo { gap: 0.65rem; }
-  .nav-logo-art { width: 12rem; height: 1.8rem; }
+  .nav-logo-art { width: 5rem; height: 3.5rem; }
   .nav-right .btn-ghost { display: none; }
   .nav-right .nav-login-link { display: none; }
 }
@@ -2903,7 +2929,8 @@ html[data-cws-intro-seen='1'] .loader {
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
-.mkt-logo { display: inline-flex; align-items: baseline; gap: 0.5rem; }
+.mkt-logo { display: inline-flex; align-items: center; gap: 0.5rem; }
+.mkt-logo .nav-logo-art { width: clamp(4.75rem, 9vw, 7rem); height: clamp(3.25rem, 6vw, 4.75rem); }
 .mkt-logo-monogram {
   font-family: var(--font-display);
   font-weight: 700;
@@ -3897,11 +3924,20 @@ html[data-cws-intro-seen='1'] .loader {
 }
 
 /* ---------- stories: editorial review carousel ---------- */
+.stories {
+  align-items: center;
+  gap: clamp(2rem, 5vh, 4rem);
+  padding-top: clamp(8rem, 15vh, 11rem);
+  padding-bottom: clamp(5rem, 10vh, 8rem);
+}
+.stories .text-plate {
+  width: min(100%, 58rem);
+  align-self: flex-start;
+}
 .stories-carousel {
-  /* vw-based, not %: the SectionReveal wrapper shrink-wraps under the
-     section's align-items:center, so a % width would resolve to 0. */
+  /* Keep the editorial heading and review stage legible on one viewport. */
   width: min(88vw, 78rem);
-  height: clamp(30rem, 82vh, 50rem);
+  height: clamp(26rem, 60vh, 40rem);
   border: 1px solid var(--line);
   border-radius: 1.2rem;
   overflow: hidden;
@@ -3998,7 +4034,11 @@ html[data-cws-intro-seen='1'] .loader {
   color: var(--muted);
 }
 @media (max-width: 760px) {
-  .stories-carousel { height: clamp(26rem, 74vh, 34rem); }
+  .stories {
+    gap: 2rem;
+    padding-top: 7rem;
+  }
+  .stories-carousel { height: clamp(26rem, 58vh, 32rem); }
   .motion-stream-item-category { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -4008,4 +4048,58 @@ html[data-cws-intro-seen='1'] .loader {
     transition: none;
     transform: none;
   }
+}
+
+
+/* ---------- auth interactive background ---------- */
+.crm-auth-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #000;
+}
+
+.crm-auth-background-interactive {
+  position: absolute;
+  inset: -5%;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.crm-auth-background-interactive[data-active='true'] { opacity: 1; }
+
+.crm-auth-background-interactive [data-us-project] {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+.crm-auth-background-interactive canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.crm-auth-stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0.34;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 76% 18%, rgba(89, 243, 255, 0.8) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 62% 72%, rgba(255, 255, 255, 0.75) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 28% 82%, rgba(60, 108, 255, 0.75) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 88% 64%, rgba(255, 255, 255, 0.65) 0 1px, transparent 1.5px);
+  background-size: 31rem 27rem, 37rem 33rem, 29rem 31rem, 41rem 35rem, 33rem 39rem;
+}
+
+@media (max-width: 767px) {
+  .crm-auth-background-interactive { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crm-auth-background-interactive { display: none; }
+  .crm-auth-background { transition: none; }
 }

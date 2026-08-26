@@ -110,49 +110,43 @@ export function ImageStreamHero({
         }}
       >
         <div style={{ position: 'absolute', inset: 0, transformStyle: 'preserve-3d' }}>
-          {[right, left].map((name) =>
-            Array.from({ length: cards }, (_, i) => {
-              // Both rails walk the same sequence, so the left side mirrors
-              // the right at every depth.
-              const img = images[i % Math.max(images.length, 1)];
-              return (
-                <div
-                  key={`${name}-${i}`}
-                  className={card}
-                  style={{
-                    position: 'absolute',
-                    overflow: 'hidden',
-                    left: '50%',
-                    top: `${axis}%`,
-                    width: `${p.cardWidth}cqw`,
-                    height: `${p.cardHeight}cqw`,
-                    marginLeft: `${-p.cardWidth / 2}cqw`,
-                    marginTop: `${-p.cardHeight / 2}cqw`,
-                    borderRadius: `${p.cardRadius}cqw`,
-                    animation: `${name} ${speed}s linear infinite`,
-                    // Negative delay drops each card mid-flight, so the
-                    // corridor is already full on the first frame.
-                    animationDelay: `${-(i * speed) / cards}s`,
-                    backfaceVisibility: 'hidden',
-                  }}
-                >
-                  {img ? (
-                    <img
-                      src={img.src}
-                      alt={img.alt ?? ''}
-                      // Eager on purpose: stream art is inline data-URI SVG
-                      // (no network cost), and lazy heuristics skip images
-                      // that sit deep in a preserve-3d transform.
-                      loading="eager"
-                      decoding="async"
-                      draggable={false}
-                      style={{ height: '100%', width: '100%', objectFit: 'cover' }}
-                    />
-                  ) : null}
-                </div>
-              );
-            }),
-          )}
+          {[right, left].map((name, railIndex) => {
+            const railImages = images.slice(railIndex * cards, (railIndex + 1) * cards);
+            return railImages.map((img, i) => (
+              <div
+                key={`${name}-${i}`}
+                className={card}
+                style={{
+                  position: 'absolute',
+                  overflow: 'hidden',
+                  left: '50%',
+                  top: `${axis}%`,
+                  width: `${p.cardWidth}cqw`,
+                  height: `${p.cardHeight}cqw`,
+                  marginLeft: `${-p.cardWidth / 2}cqw`,
+                  marginTop: `${-p.cardHeight / 2}cqw`,
+                  borderRadius: `${p.cardRadius}cqw`,
+                  animation: `${name} ${speed}s linear infinite`,
+                  // Negative delay drops each card mid-flight, so the
+                  // corridor is already full on the first frame.
+                  animationDelay: `${-(i * speed) / cards}s`,
+                  backfaceVisibility: 'hidden',
+                }}
+              >
+                <img
+                  src={img.src}
+                  alt={img.alt ?? ''}
+                  // Eager on purpose: stream art is inline data-URI SVG
+                  // (no network cost), and lazy heuristics skip images
+                  // that sit deep in a preserve-3d transform.
+                  loading="eager"
+                  decoding="async"
+                  draggable={false}
+                  style={{ height: '100%', width: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            ));
+          })}
         </div>
       </div>
 

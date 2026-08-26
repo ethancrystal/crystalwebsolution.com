@@ -9,7 +9,7 @@ export default function ServiceSchema({ n, title, description }) {
     description,
     provider: {
       '@type': 'Organization',
-      name: 'Crystal Web Solution',
+      name: 'CD Sportswear USA',
     },
   };
 

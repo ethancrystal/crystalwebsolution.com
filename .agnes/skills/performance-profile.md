@@ -1,6 +1,6 @@
 # Performance Profile Skill
 
-Use this skill to identify and fix performance issues in Crystal Web Solution.
+Use this skill to identify and fix performance issues in CD Sportswear USA.
 
 ## When to Use
 - Page load feels slow

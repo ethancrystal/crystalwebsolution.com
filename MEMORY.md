@@ -1,4 +1,4 @@
-# MEMORY.md — Crystal Web Solution, consolidated agent knowledge
+# MEMORY.md — CD Sportswear USA, consolidated agent knowledge
 
 Read this before `AGENTS.md`/`CLAUDE.md`. Those are living *instructions*;
 this is consolidated *memory* — history, gotchas, current state — pulled
@@ -12,8 +12,8 @@ full picture in one read instead of re-discovering it the expensive way.
   a Supabase-backed 3-role CRM (`client`/`project_manager`/`admin`) at
   `/dashboard`, `/team`, `/admin`. Next.js 15 App Router, React 19, plain
   JSX (no TS), no Tailwind, pnpm only.
-- **One canonical checkout:** `C:\Users\moizjmj\Crystal Web Solution`
-  (mirrored 1:1 in WSL at `/home/moizjmj/Crystal Web Solution` — same repo,
+- **One canonical checkout:** `C:\Users\moizjmj\CD Sportswear USA`
+  (mirrored 1:1 in WSL at `/home/moizjmj/CD Sportswear USA` — same repo,
   same commit). All other historical copies were duplicates and are gone
   as of 2026-08-16 (§2).
 - **`main` = production**, auto-deploys via Vercel on merge. `preview`/
@@ -57,11 +57,11 @@ No lint script — don't add one.
 
 | Location | Status |
 | --- | --- |
-| `C:\Users\moizjmj\Crystal Web Solution` | **Canonical.** `main` = production. |
-| `/home/moizjmj/Crystal Web Solution` (WSL) | Fresh clone of the same repo, same commit. Kept in sync deliberately (2026-08-16) — verify parity (`git rev-parse HEAD` both sides) before trusting either is still current. |
+| `C:\Users\moizjmj\CD Sportswear USA` | **Canonical.** `main` = production. |
+| `/home/moizjmj/CD Sportswear USA` (WSL) | Fresh clone of the same repo, same commit. Kept in sync deliberately (2026-08-16) — verify parity (`git rev-parse HEAD` both sides) before trusting either is still current. |
 
 Everything else that used to exist on this machine — `Crystal` (singular),
-`Crystal Web Solutions` (plural), an old WSL copy pointed at a *different*
+`CD Sportswear USAs` (plural), an old WSL copy pointed at a *different*
 GitHub repo (`Crystal-Web-Solution`, no `.com`, with stale/deprecated CRM
 code), an OneDrive clone, throwaway isolated task clones under
 `Documents\Codex\` — **was deleted 2026-08-16** after confirming none of

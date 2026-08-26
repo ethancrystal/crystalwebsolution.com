@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { signIn } from '@/app/auth/actions';
 import { safeNextForPortal } from '@/lib/auth/roles.mjs';
+import { SITE } from '@/lib/site';
+import DarkPageBackground from '@/components/ui/dark-page-background';
 
 const PORTAL_ERROR = 'This account cannot sign in to this portal.';
 const CONFIGURATION_ERROR = 'Sign-in is temporarily unavailable because authentication is not configured. Please contact support.';
@@ -38,7 +40,11 @@ export default function PortalLoginForm({ portal }) {
 
   return (
     <div className="crm-login-container">
+      <DarkPageBackground interactive="prism" />
       <div className="crm-login-card">
+        <Link href="/" className="crm-login-mark" aria-label={`${SITE.name} home`}>
+          <img src={SITE.logoPath} alt={SITE.name} width="160" height="63" />
+        </Link>
         <h1>{portal.label} Portal</h1>
         <p>Sign in to your account</p>
 
@@ -72,8 +78,11 @@ export default function PortalLoginForm({ portal }) {
       </div>
 
       <style jsx>{`
-        .crm-login-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); background-image: radial-gradient(80% 60% at 50% 0%, rgba(60, 108, 255, 0.14) 0%, rgba(4, 6, 12, 0) 60%); font-family: inherit; }
+        .crm-login-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; position: relative; z-index: 1; font-family: inherit; }
         .crm-login-card { background: rgba(234, 242, 255, 0.03); border: 1px solid var(--line); border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 400px; backdrop-filter: blur(16px); box-shadow: 0 30px 80px rgba(2, 4, 8, 0.55); }
+        .crm-login-mark { display: flex; align-items: center; justify-content: center; width: min(100%, 11rem); margin: 0 auto 1.5rem; }
+        .crm-login-mark img { display: block; width: 100%; height: auto; object-fit: contain; }
+        .crm-login-mark:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
         .crm-login-card h1 { font-family: var(--font-display); font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--ink); }
         .crm-login-card > p { color: var(--muted); margin-bottom: 1rem; font-size: 0.95rem; }
         .crm-form { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }

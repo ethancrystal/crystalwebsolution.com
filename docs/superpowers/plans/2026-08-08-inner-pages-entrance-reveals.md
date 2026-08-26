@@ -140,7 +140,7 @@ import { SITE } from '../../lib/site';
 
 const WORK_TITLE = 'Selected Work';
 const WORK_DESCRIPTION =
-  'Explore selected Crystal Web Solution projects across product, commerce, local service, learning, and immersive web design.';
+  'Explore selected CD Sportswear USA projects across product, commerce, local service, learning, and immersive web design.';
 
 export const metadata = {
   title: WORK_TITLE,
@@ -350,7 +350,7 @@ import SectionReveal from '../../components/SectionReveal';
 
 const REVIEWS_TITLE = 'Client Reviews';
 const REVIEWS_DESCRIPTION =
-  `Read all ${REVIEW_STATS.total} published client reviews for Crystal Web Solution, with ratings, dates, feedback, and company replies.`;
+  `Read all ${REVIEW_STATS.total} published client reviews for CD Sportswear USA, with ratings, dates, feedback, and company replies.`;
 
 export const metadata = {
   title: REVIEWS_TITLE,

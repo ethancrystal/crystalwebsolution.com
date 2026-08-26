@@ -113,7 +113,7 @@ export default function Menu({ open, onClose }) {
           </div>
         )}
         <div>
-          <p className="menu-meta-label">Crystal Web Solution</p>
+          <p className="menu-meta-label">{SITE.name}</p>
           <p className="menu-meta-note">Web, brand, motion<br />and automation.</p>
         </div>
         {CRM_ENABLED && (

@@ -21,7 +21,7 @@ describe('ServiceSchema', () => {
       description,
       provider: {
         '@type': 'Organization',
-        name: 'Crystal Web Solution',
+        name: 'CD Sportswear USA',
       },
     });
   });

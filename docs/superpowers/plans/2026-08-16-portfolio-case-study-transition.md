@@ -83,7 +83,7 @@
 ### Task 5: Merge and prepare deployment
 
 **Files:**
-- Git state: `feat/refraction-section-handoff` and `main` in `C:\Users\moizjmj\Crystal Web Solution`.
+- Git state: `feat/refraction-section-handoff` and `main` in `C:\Users\moizjmj\CD Sportswear USA`.
 - Do not modify or delete the pre-existing untracked `MEMORY.md`.
 
 - [ ] **Step 1: Confirm the feature worktree is clean except intended changes.** Review `git diff`, `git diff --check`, tests, audit, and build output.

@@ -9,7 +9,7 @@ import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
 const WORK_TITLE = 'Selected Work';
 const WORK_DESCRIPTION =
-  'Explore selected Crystal Web Solution projects across product, commerce, local service, learning, and immersive web design.';
+  'Explore selected CD Sportswear USA projects across product, commerce, local service, learning, and immersive web design.';
 
 export const metadata = {
   title: WORK_TITLE,

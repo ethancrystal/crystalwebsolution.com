@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Crystal Web Solution is a Next.js 15 / React 19 application containing a dark,
+CD Sportswear USA is a Next.js 15 / React 19 application containing a dark,
 cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
 The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM
 scrolls over it while a virtual camera flies through one continuous 3D space

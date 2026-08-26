@@ -1,7 +1,7 @@
 # User Journey: Client Collaboration lifecycle
 
 ## User Persona
-* **Who**: Active client coordinating a project with Crystal Web Solution.
+* **Who**: Active client coordinating a project with CD Sportswear USA.
 * **Goal**: Collaborate with the CWS team, view progress, and approve deliverables.
 * **Context**: Checked on both desktop and mobile throughout the week.
 

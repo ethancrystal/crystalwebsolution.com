@@ -15,11 +15,11 @@ const navSource = readFileSync(new URL('../components/Nav.jsx', import.meta.url)
 
 test('navigation uses the shared brand logo atom (full wordmark, never the icon)', () => {
   const brandLogoSource = readFileSync(new URL('../components/BrandLogo.jsx', import.meta.url), 'utf8');
-  assert.ok(existsSync(new URL('../public/crystal-web-solution-logo.svg', import.meta.url)));
+  assert.ok(existsSync(new URL('../public/cd-sportswear-usa-logo.png', import.meta.url)));
   assert.match(navSource, /<BrandLogo\s*\/>/);
-  assert.match(brandLogoSource, /crystal-web-solution-logo\.svg/);
-  assert.doesNotMatch(brandLogoSource, /crystal-web-solution-icon\.svg/);
-  assert.doesNotMatch(navSource, /crystal-web-solution-logo\.svg/);
+  assert.match(brandLogoSource, /SITE\.logoPath/);
+  assert.doesNotMatch(brandLogoSource, /crystal-web-solution-(logo|icon)\.svg/);
+  assert.doesNotMatch(navSource, /cd-sportswear-usa-logo\.png/);
 });
 
 test('open navigation keeps its first link below the fixed header on short viewports', () => {
@@ -377,7 +377,7 @@ test('carousel departure clears the frame without collapsing the flying cards', 
   }
 });
 
-test('shared motion studies name six Crystal Web Solution capabilities', () => {
+test('shared motion studies name six CD Sportswear USA capabilities', () => {
   assert.ok(Array.isArray(studiesModule.MOTION_STUDIES));
   if (!Array.isArray(studiesModule.MOTION_STUDIES)) return;
 

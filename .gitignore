@@ -3,6 +3,9 @@ node_modules/
 .env
 .env.local
 
+# Dev-server / tooling output logs, e.g. .crm-dev.stdout.log
+*.log
+
 # Local browser QA and editor state
 .playwright-mcp/
 .zcode/
@@ -46,3 +49,6 @@ credentials.json
 # private keys and container env files — never commit these.
 supabase/.branches
 supabase/.temp
+
+# Scratch repo-analysis clones (nested git repos, never commit)
+/.tmp-repo-analysis/

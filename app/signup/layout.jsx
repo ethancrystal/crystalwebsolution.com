@@ -2,7 +2,7 @@
 // form page that inherited the homepage title/description verbatim.
 export const metadata = {
   title: 'Create your account',
-  description: 'Create a Crystal Web Solution client or employee account.',
+  description: 'Create a CD Sportswear USA client or employee account.',
   alternates: { canonical: '/signup' },
   robots: { index: false, follow: false },
 };

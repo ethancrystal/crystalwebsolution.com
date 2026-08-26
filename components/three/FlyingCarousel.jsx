@@ -18,6 +18,7 @@ import {
 import { PROJECTS } from '../../lib/projects';
 import { scrollState } from '../../lib/scrollState';
 import { CLUSTERS, MOTION_WINDOW, STOPS } from '../../lib/journey';
+import { SITE } from '../../lib/site';
 
 const CWS_CYAN = '#59f3ff';
 const CWS_BLUE = '#3c6cff';
@@ -280,7 +281,7 @@ function createStudyTexture(project, index, anisotropy, textureWidth) {
   context.fillStyle = '#202832';
   context.font = `700 ${Math.round(height * 0.034)}px "Space Mono", Consolas, monospace`;
   context.textAlign = 'left';
-  context.fillText('CWS / SELECTED WORK', left, height * 0.095);
+  context.fillText(`${SITE.name.toUpperCase()} / SELECTED WORK`, left, height * 0.095);
   context.textAlign = 'right';
   context.fillStyle = CWS_BLUE;
   context.font = `700 ${Math.round(height * 0.056)}px "Space Mono", Consolas, monospace`;

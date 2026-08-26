@@ -4,7 +4,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Project overview
 
-Crystal Web Solution is a Next.js 15 / React 19 application containing a dark, cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
+CD Sportswear USA is a Next.js 15 / React 19 application containing a dark, cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
 
 1. **The Agency Experience**: The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM scrolls over it while a virtual camera flies through one continuous 3D space past a refracting crystal, service-signal instruments, an approach compass, procedural particles, and a morphing backdrop. Lab and Motion add DOM/CSS-3D card experiences over the same canvas. Marketing scene and project visuals are code-generated; `public/` serves standard brand assets.
 2. **The Client Collaboration CRM**: A secure portal system (`/login`, `/dashboard`, `/team`, and `/admin`) designed to **accommodate incoming and current clients and collaborate efficiently with them while their project is ongoing**.

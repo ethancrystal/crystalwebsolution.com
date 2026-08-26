@@ -2,7 +2,7 @@
 
 **Date:** June 2026
 **Status:** Proposed for approval
-**Repository:** Crystal Web Solution — Next.js 15 (App Router) + Supabase
+**Repository:** CD Sportswear USA — Next.js 15 (App Router) + Supabase
 **Execution branch:** `agent/messaging-asset-hardening`
 
 > This v2 replaces the earlier design. It is rewritten against the code that

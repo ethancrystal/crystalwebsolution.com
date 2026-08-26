@@ -1,4 +1,4 @@
--- PM role scoping + project_type taxonomy for Crystal Web Solution's CRM
+-- PM role scoping + project_type taxonomy for CD Sportswear USA's CRM
 -- Additive to 0001-0003 and 0004_project_manager_role.sql - never edit
 -- those files in place once applied.
 --

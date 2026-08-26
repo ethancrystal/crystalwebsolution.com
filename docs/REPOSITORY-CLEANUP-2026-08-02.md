@@ -9,7 +9,7 @@ checkpoint also includes the separately requested `/login` and linked
 `/signup` presentation repairs plus the reachable email-helper repair
 documented below.
 
-- Canonical checkout: `C:\Users\moizjmj\Crystal Web Solution` on `main`.
+- Canonical checkout: `C:\Users\moizjmj\CD Sportswear USA` on `main`.
 - Cleanup base: `c5a922f91b460f1a4aa73db2839d08c0cfc9a728`.
 - `origin/main` resolved to that same commit immediately before cleanup.
 - The exact removal/restoration manifest, including the late worktree addendum,

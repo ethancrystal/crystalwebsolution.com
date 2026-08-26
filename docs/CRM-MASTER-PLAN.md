@@ -1,10 +1,10 @@
-# Crystal Web Solution CRM Master Product, UX, Architecture, and Implementation Plan
+# CD Sportswear USA CRM Master Product, UX, Architecture, and Implementation Plan
 
-> **Status:** Planning source of truth — no further implementation should begin until this document is approved.  
-> **Prepared for:** Crystal Web Solution  
-> **Prepared by:** Manus AI  
-> **Planning date:** 16 August 2026  
-> **Repository:** `ethancrystal/crystalwebsolution.com`  
+> **Status:** Planning source of truth — no further implementation should begin until this document is approved.
+> **Prepared for:** CD Sportswear USA
+> **Prepared by:** Manus AI
+> **Planning date:** 16 August 2026
+> **Repository:** `ethancrystal/crystalwebsolution.com`
 > **Current implementation baseline:** `agent/client-onboarding-hardening` at commit `992e880`; the messaging/storage slice is planned but not implemented.
 
 ## 1. Purpose and planning rules
@@ -420,4 +420,4 @@ Future CRM work follows this sequence: **UX framing and state inventory → writ
 
 [11]: https://supabase.com/docs/guides/database/database-advisors "Supabase Database Security Advisors"
 
-[12]: https://www.crystalwebsolution.com/ "Crystal Web Solution production site"
+[12]: https://www.crystalwebsolution.com/ "CD Sportswear USA production site"

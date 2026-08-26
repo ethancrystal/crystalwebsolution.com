@@ -7,7 +7,12 @@ import { paletteArt } from '../../lib/proceduralArt';
 
 // Same curated set as before the carousel redesign: real, named, five-star
 // reviews. The full record (including every other review) stays on /reviews.
-const HOME_REVIEW_IDS = ['vaughn-hebron', 'porsha-patterson', 'style-loft'];
+const HOME_REVIEW_IDS = [
+  'ahmed-jeffrey',
+  'porsha-patterson',
+  'vaughn-hebron',
+  'style-loft',
+];
 const REVIEWS_BY_ID = new Map(REVIEWS.map((review) => [review.id, review]));
 
 // Brand accents the backdrop grades to as each review takes focus.
@@ -32,13 +37,13 @@ export default function Stories() {
     <section className="section stories" id="stories" data-quiet>
       <div className="text-plate">
         <p className="eyebrow">
-          <SectionReveal as="span" direction="left">Client reviews</SectionReveal>
+          <SectionReveal as="span" direction="left">Client proof</SectionReveal>
         </p>
         <SectionReveal as="h2" direction="left" className="section-title">
-          The work matters. So does what happens after launch.
+          Real clients. Real outcomes. No invented case studies.
         </SectionReveal>
         <SectionReveal className="stories-intro" direction="up" delay={0.08}>
-          <p>Every review here is from a real client, unedited, after the work shipped.</p>
+          <p>Unedited words from the people we have built for — before, during, and after launch.</p>
         </SectionReveal>
       </div>
 
@@ -55,10 +60,9 @@ export default function Stories() {
                 <a
                   className="story-card-link"
                   href={`/reviews#${slide.id}`}
-                  data-cursor="Open"
+                  data-cursor="Read"
                 >
-                  {slide.reviewCount} review{slide.reviewCount === 1 ? '' : 's'} — open
-                  record →
+Read full review →
                 </a>
               </div>
             )}
@@ -68,7 +72,7 @@ export default function Stories() {
 
       <SectionReveal className="stories-cta" delay={0.1} direction="up">
         <a href="/reviews" className="link-underline" data-cursor="Read">
-          Read all client reviews →
+          Read every client review →
         </a>
       </SectionReveal>
     </section>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { requestPasswordReset } from '@/app/auth/actions';
+import DarkPageBackground from '@/components/ui/dark-page-background';
 
 export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +30,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="crm-login-container">
+      <DarkPageBackground interactive="liquid-ether" />
       <div className="crm-login-card">
         <h1>Reset Password</h1>
         <p>Enter your email and we'll send you a reset link</p>
@@ -70,7 +72,8 @@ export default function ForgotPasswordPage() {
           align-items: center;
           justify-content: center;
           min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+          position: relative;
+          z-index: 1;
           font-family: inherit;
         }
 

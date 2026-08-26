@@ -63,7 +63,7 @@ test('every email-capable producer event has a renderable notification template'
   }
 });
 
-test('notification email CTAs stay on the allowlisted Crystal Web Solution origin', async () => {
+test('notification email CTAs stay on the allowlisted CD Sportswear USA origin', async () => {
   const { renderNotificationEmail } = await import('../../lib/email/templates.js');
 
   for (const eventType of EMAIL_EVENTS) {
