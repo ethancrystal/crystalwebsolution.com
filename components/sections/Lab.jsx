@@ -285,7 +285,7 @@ export default function Lab() {
     >
       <div className="lab-sticky">
         <div className="lab-copy" ref={headlineRef} aria-hidden="true">
-          <span>CD SPORTSWEAR</span>
+          <span>CDS</span>
           <span>IN MOTION</span>
         </div>
         <h2 className="sr-only">{SITE.name} in motion</h2>

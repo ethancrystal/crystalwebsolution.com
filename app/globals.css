@@ -4001,15 +4001,21 @@ html[data-cws-intro-seen='1'] .loader {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.review-carousel-byline {
+.review-carousel-footer {
   position: absolute;
-  left: clamp(28px, 4vw, 52px);
-  bottom: clamp(28px, 6%, 44px);
+  left: clamp(16px, 4vw, 52px);
+  right: clamp(120px, 26%, 320px);
+  bottom: clamp(16px, 5%, 40px);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+.review-carousel-byline {
   display: flex;
   align-items: baseline;
   gap: 1rem;
   flex-wrap: wrap;
-  max-width: 70%;
 }
 .review-carousel-name { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; color: var(--ink); }
 .review-carousel-credit {
@@ -4069,9 +4075,7 @@ html[data-cws-intro-seen='1'] .loader {
 }
 .review-carousel-count { font-family: var(--font-mono); font-size: 0.68rem; color: rgba(234, 242, 255, 0.4); }
 .review-carousel-nav {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
+  flex: none;
   display: flex;
   gap: 8px;
 }

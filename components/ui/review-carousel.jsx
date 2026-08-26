@@ -97,25 +97,6 @@ export function ReviewCarousel({
           </motion.div>
         </AnimatePresence>
 
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.div
-            key={`byline-${active.id ?? index}`}
-            className="review-carousel-byline"
-            initial={reduced ? { opacity: 1 } : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, transition: { duration: reduced ? 0 : 0.15 } }}
-            transition={{ duration: reduced ? 0 : 0.45, delay: reduced ? 0 : 0.05 }}
-          >
-            <span className="review-carousel-name">{active.reviewer}</span>
-            <span className="review-carousel-credit">{active.credit}</span>
-            {active.reviewHref ? (
-              <a className="review-carousel-link" href={active.reviewHref} data-cursor="Read">
-                Read full review →
-              </a>
-            ) : null}
-          </motion.div>
-        </AnimatePresence>
-
         <div className="review-carousel-rating">
           <span>{active.rating}/5</span>
           <span className="review-carousel-date">{active.date}</span>
@@ -129,23 +110,44 @@ export function ReviewCarousel({
           <span className="review-carousel-count">of {String(items.length).padStart(2, '0')}</span>
         </div>
 
-        <div className="review-carousel-nav">
-          <button
-            type="button"
-            aria-label="Previous review"
-            onClick={() => go(index - 1)}
-            className="review-carousel-btn"
-          >
-            ←
-          </button>
-          <button
-            type="button"
-            aria-label="Next review"
-            onClick={() => go(index + 1)}
-            className="review-carousel-btn"
-          >
-            →
-          </button>
+        <div className="review-carousel-footer">
+          <div className="review-carousel-nav">
+            <button
+              type="button"
+              aria-label="Previous review"
+              onClick={() => go(index - 1)}
+              className="review-carousel-btn"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              aria-label="Next review"
+              onClick={() => go(index + 1)}
+              className="review-carousel-btn"
+            >
+              →
+            </button>
+          </div>
+
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              key={`byline-${active.id ?? index}`}
+              className="review-carousel-byline"
+              initial={reduced ? { opacity: 1 } : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, transition: { duration: reduced ? 0 : 0.15 } }}
+              transition={{ duration: reduced ? 0 : 0.45, delay: reduced ? 0 : 0.05 }}
+            >
+              <span className="review-carousel-name">{active.reviewer}</span>
+              <span className="review-carousel-credit">{active.credit}</span>
+              {active.reviewHref ? (
+                <a className="review-carousel-link" href={active.reviewHref} data-cursor="Read">
+                  Read full review →
+                </a>
+              ) : null}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
