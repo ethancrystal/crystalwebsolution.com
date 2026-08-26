@@ -97,6 +97,19 @@ export function ReviewCarousel({
           </motion.div>
         </AnimatePresence>
 
+        <div className="review-carousel-rating">
+          <span>{active.rating}/5</span>
+          <span className="review-carousel-date">{active.date}</span>
+        </div>
+
+        <div className="review-carousel-rail">
+          <span className="review-carousel-index">{String(index + 1).padStart(2, '0')}</span>
+          <div className="review-carousel-track">
+            <span style={{ width: `${((index + 1) / items.length) * 100}%` }} />
+          </div>
+          <span className="review-carousel-count">of {String(items.length).padStart(2, '0')}</span>
+        </div>
+
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={`byline-${active.id ?? index}`}
@@ -115,19 +128,6 @@ export function ReviewCarousel({
             ) : null}
           </motion.div>
         </AnimatePresence>
-
-        <div className="review-carousel-rating">
-          <span>{active.rating}/5</span>
-          <span className="review-carousel-date">{active.date}</span>
-        </div>
-
-        <div className="review-carousel-rail">
-          <span className="review-carousel-index">{String(index + 1).padStart(2, '0')}</span>
-          <div className="review-carousel-track">
-            <span style={{ width: `${((index + 1) / items.length) * 100}%` }} />
-          </div>
-          <span className="review-carousel-count">of {String(items.length).padStart(2, '0')}</span>
-        </div>
 
         <div className="review-carousel-nav">
           <button

@@ -9,7 +9,7 @@ export function WorkMarquee({ images, rows = 3, className = '', style }) {
   const id = React.useId().replace(/[^a-zA-Z0-9]/g, '');
 
   const rails = React.useMemo(() => {
-    const durations = [64, 76, 70];
+    const durations = [70, 82, 76];
     const directions = ['left', 'right', 'left'];
     return Array.from({ length: rows }, (_, rowIndex) => {
       // Offset each row's starting point around the same image set so no
