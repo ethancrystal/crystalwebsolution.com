@@ -78,9 +78,6 @@ export default function Hero() {
         <span className="caustic-ray" />
       </div>
       <div className="text-plate">
-        <p className="eyebrow hero-eyebrow">
-          <Reveal as="span" delay={introDelay}>CD Sportswear USA • Independent digital studio</Reveal>
-        </p>
         <h1 className="hero-title">
           <DecodeText as="span" text="Built to be" speed={0.045} delay={introDelay + 0.1} className="hero-line" />
           {/* Whitespace text node between the two block-level .hero-line spans.
