@@ -4070,8 +4070,9 @@ html[data-cws-intro-seen='1'] .loader {
 .review-carousel-count { font-family: var(--font-mono); font-size: 0.68rem; color: rgba(234, 242, 255, 0.4); }
 .review-carousel-nav {
   position: absolute;
-  left: 16px;
-  bottom: 16px;
+  right: clamp(28px, 4vw, 52px);
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   gap: 8px;
 }
