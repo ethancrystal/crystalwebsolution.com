@@ -27,6 +27,7 @@ export default function Motion() {
     >
       <ImageStreamHero
         images={STREAM_IMAGES}
+        cards={3}
         speed={22}
         axis={52}
         className="motion-stream"

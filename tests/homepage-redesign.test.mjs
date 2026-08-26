@@ -16,6 +16,11 @@ const motionSource = readFileSync(
   new URL('../components/sections/Motion.jsx', import.meta.url),
   'utf8',
 );
+const imageStreamSource = readFileSync(
+  new URL('../components/ui/image-stream-hero.jsx', import.meta.url),
+  'utf8',
+);
+
 const globalCss = readFileSync(
   new URL('../app/globals.css', import.meta.url),
   'utf8',
@@ -41,6 +46,12 @@ test('Motion stream uses supplied public project images in its zooming tiles', (
   const imageRefs = motionSource.match(/src: ['\"]\/projects\/[^'\"]+['\"]/g) || [];
   assert.ok(imageRefs.length >= 6);
   assert.doesNotMatch(motionSource, /paletteArt\(/);
+});
+
+test('Motion corridor splits the six supplied images across two rails without repeats', () => {
+  assert.match(motionSource, /cards=\{3\}/);
+  assert.match(imageStreamSource, /images\.slice\(railIndex \* cards, \(railIndex \+ 1\) \* cards\)/);
+  assert.doesNotMatch(imageStreamSource, /images\[i %/);
 });
 
 test('Stories keeps its shorter editorial stage; Lab keeps its full flight', () => {
