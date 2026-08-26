@@ -220,7 +220,8 @@ export default function StoriesStage({ slides, ariaLabel = 'Client reviews' }) {
         .to(stage, { '--stage-accent': accent, duration: 0.9, ease: 'power2.out' }, inAt)
         .fromTo(
           parts.signal,
-          { scaleX: 0, transformOrigin: '0 50%', autoAlpha: 1 },
+          // y back to 0: the out-phase nudges the signal up with the meta row.
+          { scaleX: 0, y: 0, transformOrigin: '0 50%', autoAlpha: 1 },
           { scaleX: 1, duration: 0.7, ease: EASE_SNAP },
           inAt + 0.05,
         )

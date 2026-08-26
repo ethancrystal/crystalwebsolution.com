@@ -3956,7 +3956,10 @@ html[data-cws-intro-seen='1'] .loader {
 }
 .stage-glow {
   position: absolute;
-  inset: -18% -10%;
+  /* Vertical bleed only: a negative horizontal inset would widen the
+     document's scroll box past the viewport at some widths (nothing above
+     this clips overflow-x). */
+  inset: -18% 0;
   pointer-events: none;
   background: radial-gradient(
     ellipse 60% 55% at 28% 42%,
