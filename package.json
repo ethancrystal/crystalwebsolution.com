@@ -38,11 +38,11 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
-    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
-    "@vitejs/plugin-react": "^6.0.5",
+    "@vitejs/plugin-react": "^6.1.0",
     "jsdom": "^30.0.1",
-    "supabase": "^2.113.0",
-    "vitest": "^4.1.10"
+    "supabase": "^2.115.0",
+    "vitest": "^4.1.11"
   }
 }
