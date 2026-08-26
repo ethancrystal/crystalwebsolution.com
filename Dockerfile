@@ -1,8 +1,10 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22-alpine AS deps
+FROM node:26-alpine AS deps
 WORKDIR /app
-RUN corepack enable
+# Node dropped bundling Corepack by default starting with Node 25, so it must
+# be installed explicitly before it can be enabled on this base image.
+RUN npm install -g corepack@latest && corepack enable
 # pnpm-workspace.yaml carries overrides/onlyBuiltDependencies (moved out of
 # package.json), and .npmrc carries the matching onlyBuiltDependencies entry
 # and enable-pre-post-scripts. Without both, this stage's pnpm sees the
@@ -11,9 +13,9 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 
-FROM node:22-alpine AS builder
+FROM node:26-alpine AS builder
 WORKDIR /app
-RUN corepack enable
+RUN npm install -g corepack@latest && corepack enable
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -32,7 +34,7 @@ RUN pnpm run build
 
 # Minimal runtime: only the standalone server output + static assets, no
 # dev dependencies, no source — matches next.config.js's output:'standalone'.
-FROM node:22-alpine AS runner
+FROM node:26-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
