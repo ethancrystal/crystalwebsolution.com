@@ -1,11 +1,10 @@
 'use client';
 
 import SectionReveal from '../SectionReveal';
-import HeroCarousel from '../ui/hero-carousel';
+import ReviewCarousel from '../ui/review-carousel';
 import { REVIEWS } from '../../lib/reviews';
-import { paletteArt } from '../../lib/proceduralArt';
 
-// Same curated set as before the carousel redesign: real, named, five-star
+// Same curated set as before the visual redesign: real, named, five-star
 // reviews. The full record (including every other review) stays on /reviews.
 const HOME_REVIEW_IDS = [
   'ahmed-jeffrey',
@@ -15,20 +14,19 @@ const HOME_REVIEW_IDS = [
 ];
 const REVIEWS_BY_ID = new Map(REVIEWS.map((review) => [review.id, review]));
 
-// Brand accents the backdrop grades to as each review takes focus.
+// Brand accents the background wash grades to as each review takes focus.
 const ACCENTS = ['#3c6cff', '#59f3ff', '#c084fc'];
 
 const SLIDES = HOME_REVIEW_IDS.map((id) => REVIEWS_BY_ID.get(id)).map(
   (review, i) => ({
     id: review.id,
-    // Reviewer name broken across lines so each word gets its own wipe.
-    title: review.reviewer.split(' ').join('\n'),
+    reviewer: review.reviewer,
     credit: (review.company || 'Verified client').toUpperCase(),
-    meta: [`${review.rating}/5`, review.date.toUpperCase()],
+    rating: review.rating,
+    date: review.date.toUpperCase(),
     accent: ACCENTS[i % ACCENTS.length],
-    image: paletteArt([ACCENTS[i % ACCENTS.length], '#04060c'], review.id),
     quote: review.body[0],
-    reviewCount: review.reviewCount ?? 1,
+    reviewHref: `/reviews#${review.id}`,
   }),
 );
 
@@ -48,26 +46,12 @@ export default function Stories() {
       </div>
 
       <SectionReveal delay={0.15} direction="up">
-        <div className="stories-carousel">
-          <HeroCarousel
-            items={SLIDES}
-            autoplay
-            autoplayDelay={6000}
-            ariaLabel="Client reviews"
-            renderDetail={(slide) => (
-              <div className="stories-carousel-detail">
-                <p className="stories-carousel-quote">&ldquo;{slide.quote}&rdquo;</p>
-                <a
-                  className="story-card-link"
-                  href={`/reviews#${slide.id}`}
-                  data-cursor="Read"
-                >
-Read full review →
-                </a>
-              </div>
-            )}
-          />
-        </div>
+        <ReviewCarousel
+          items={SLIDES}
+          autoplay
+          autoplayDelay={6000}
+          ariaLabel="Client reviews"
+        />
       </SectionReveal>
 
       <SectionReveal className="stories-cta" delay={0.1} direction="up">
