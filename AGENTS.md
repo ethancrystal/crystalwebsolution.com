@@ -157,3 +157,16 @@ copy, client names, testimonials, logos, or media**; everything is rebuilt
 with CWS's own brand voice and procedural marketing visuals, per the
 project's procedural-visual rule. Treat these files as a design reference when
 implementing the features they describe, not as already-built.
+
+## Release versioning (mandatory)
+
+Every merge into `main` is a production deploy and must carry a version name
+in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
+`VERSIONING.md`. Non-negotiable for every PR targeting `main`:
+
+1. Bump the `VERSION` file and add the matching entry at the top of
+   `CHANGELOG.md` in the same PR.
+2. Title the PR (and its merge/squash commit) `vX.NN — <summary>` so the
+   deploy is identifiable in Vercel's deploy list.
+3. `package.json`'s `version` field is NOT part of this scheme — leave it.
+4. Never skip or reuse numbers; next = top of `CHANGELOG.md` + 0.01.
