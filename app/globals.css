@@ -4138,7 +4138,7 @@ html[data-cws-intro-seen='1'] .loader {
 .work-marquee-tile {
   flex: none;
   width: clamp(220px, 20vw, 340px);
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4 / 3;
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--line);
