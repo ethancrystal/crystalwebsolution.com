@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import { getPortal, homeForRole, isRoleAllowed, portalForPath } from './lib/auth/roles.mjs';
 import { CRM_ENABLED } from './lib/crmFlag.js';
+import { hasSupabaseBrowserConfig } from './lib/supabase/config.mjs';
 
 function redirectWithCookies(url, response) {
   const redirectResponse = NextResponse.redirect(url);
@@ -30,6 +31,7 @@ export async function middleware(request) {
 
   const pathname = request.nextUrl.pathname;
   const protectedPortal = portalForPath(pathname);
+  const portalName = pathname.startsWith('/login/') ? pathname.split('/')[2] : null;
 
   let response = NextResponse.next({
     request: {
@@ -37,8 +39,11 @@ export async function middleware(request) {
     },
   });
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!hasSupabaseBrowserConfig(supabaseUrl, supabaseAnonKey)) {
     if (protectedPortal) return portalLoginResponse(request, protectedPortal, response, 'configuration');
+    if (portalName && getPortal(portalName) && request.nextUrl.searchParams.get('error') !== 'configuration') {
+      return portalLoginResponse(request, portalName, response, 'configuration');
+    }
     return response;
   }
 
@@ -86,7 +91,6 @@ export async function middleware(request) {
     }
   }
 
-  const portalName = pathname.startsWith('/login/') ? pathname.split('/')[2] : null;
   if (roleHome && (pathname === '/login' || ['signup', 'forgot-password'].some((page) => pathname === `/${page}`))) {
     return redirectWithCookies(new URL(roleHome, request.url), response);
   }
@@ -102,6 +106,7 @@ export const config = {
   matcher: [
     '/admin/:path*',
     '/dashboard/:path*',
+    '/onboarding',
     '/team/:path*',
     '/login',
     '/login/client',

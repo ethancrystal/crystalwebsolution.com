@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 
+const { withSentryConfig } = require('@sentry/nextjs');
+const shouldUploadSentrySourceMaps = process.env.SENTRY_UPLOAD_SOURCEMAPS === 'true' && Boolean(process.env.SENTRY_AUTH_TOKEN);
+
 // Supabase is the live CRM backend: the browser client opens XHR + websocket
 // connections straight to the project host, so connect-src must allow it or
 // login/CRM breaks at runtime under CSP. Derived from the same public env var
@@ -101,4 +104,25 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withSentryConfig(nextConfig, {
+  org: 'crystal-web-solution',
+  project: 'crystal-web-solution-crm',
+  // Source-map upload remains disabled unless Vercel/CI supplies a token.
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  sourcemaps: { disable: !shouldUploadSentrySourceMaps },
+  release: {
+    create: shouldUploadSentrySourceMaps,
+    finalize: shouldUploadSentrySourceMaps,
+    deploy: shouldUploadSentrySourceMaps,
+  },
+  webpack: {
+    unstable_sentryWebpackPluginOptions: {
+      release: {
+        create: shouldUploadSentrySourceMaps,
+        finalize: shouldUploadSentrySourceMaps,
+        deploy: shouldUploadSentrySourceMaps,
+      },
+    },
+  },
+  silent: !process.env.CI,
+});

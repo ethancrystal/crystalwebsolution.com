@@ -6,6 +6,7 @@ import {
   listProjectTasks,
   listProjectMessages,
   listProjectsForViewer,
+  getProjectWorkspace,
 } from '../../lib/crm/projects.js';
 import {
   ALLOWED_TRANSITIONS,
@@ -242,6 +243,32 @@ test('listProjectsForViewer strips internal project columns for a client', async
   const [project] = await listProjectsForViewer(supabase, clientViewer);
   assert.ok(!('created_by' in project), 'created_by is staff-only');
   assert.ok(!('source_deal_id' in project), 'source_deal_id is staff-only');
+});
+
+test('admin project lists include company display context', async () => {
+  const supabase = createFakeSupabase(
+    baseTables({
+      companies: [
+        { id: COMPANY_ID, name: 'Crystal Web Solution' },
+        { id: OTHER_COMPANY_ID, name: 'Other Company' },
+      ],
+    }),
+  );
+
+  const projects = await listProjectsForViewer(supabase, adminViewer);
+  const project = projects.find((row) => row.id === PROJECT_ID);
+  assert.deepStrictEqual(project.company, { id: COMPANY_ID, name: 'Crystal Web Solution' });
+});
+
+test('staff project workspaces include company display context', async () => {
+  const supabase = createFakeSupabase(
+    baseTables({
+      companies: [{ id: COMPANY_ID, name: 'Crystal Web Solution' }],
+    }),
+  );
+
+  const workspace = await getProjectWorkspace(supabase, adminViewer, PROJECT_ID);
+  assert.deepStrictEqual(workspace.project.company, { id: COMPANY_ID, name: 'Crystal Web Solution' });
 });
 
 // ---------------------------------------------------------------------------

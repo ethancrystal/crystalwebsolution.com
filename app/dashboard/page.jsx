@@ -80,6 +80,11 @@ export default function DashboardPage() {
           return;
         }
 
+        if (!profileData.company_id) {
+          router.replace('/onboarding');
+          return;
+        }
+
         await loadClientProjects(user.id, profileData.company_id);
       } catch (err) {
         setError(err.message);
@@ -101,6 +106,14 @@ export default function DashboardPage() {
     return (
       <div className="crm-dashboard">
         <div className="crm-loading">Loading...</div>
+      </div>
+    );
+  }
+
+  if (profile && profile.role === 'client' && !profile.company_id) {
+    return (
+      <div className="crm-dashboard">
+        <div className="crm-loading">Opening onboarding…</div>
       </div>
     );
   }
