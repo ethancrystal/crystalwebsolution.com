@@ -16,8 +16,8 @@ const motionSource = readFileSync(
   new URL('../components/sections/Motion.jsx', import.meta.url),
   'utf8',
 );
-const imageStreamSource = readFileSync(
-  new URL('../components/ui/image-stream-hero.jsx', import.meta.url),
+const imageMarqueeSource = readFileSync(
+  new URL('../components/ui/image-marquee-rows.jsx', import.meta.url),
   'utf8',
 );
 
@@ -42,16 +42,27 @@ test('Lab keeps the eight procedural service cards (no bitmap project images)', 
   assert.doesNotMatch(labSource, /\/projects\//);
 });
 
-test('Motion stream uses supplied public project images in its zooming tiles', () => {
+test('Motion stream uses supplied public project images in its marquee tiles', () => {
   const imageRefs = motionSource.match(/src: ['\"]\/projects\/[^'\"]+['\"]/g) || [];
   assert.ok(imageRefs.length >= 6);
   assert.doesNotMatch(motionSource, /paletteArt\(/);
 });
 
-test('Motion corridor splits the six supplied images across two rails without repeats', () => {
-  assert.match(motionSource, /cards=\{3\}/);
-  assert.match(imageStreamSource, /images\.slice\(railIndex \* cards, \(railIndex \+ 1\) \* cards\)/);
-  assert.doesNotMatch(imageStreamSource, /images\[i %/);
+test('Motion corridor is a decorative, non-overlapping marquee that never scrolls the accessible list', () => {
+  assert.match(motionSource, /<ImageMarqueeRows\s+images=\{STREAM_IMAGES\}/);
+  // The list must be a sibling of the marquee, not a child rendered inside
+  // it as overlay content — otherwise the corridor could sit behind/under it.
+  assert.match(motionSource, /<\/ul>[\s\S]*<ImageMarqueeRows/);
+  assert.doesNotMatch(motionSource, /motion-stream-overlay/);
+});
+
+test('Marquee rows are aria-hidden decoration and vary each row instead of repeating the same order', () => {
+  assert.match(imageMarqueeSource, /aria-hidden=["']true["']/);
+  assert.match(imageMarqueeSource, /rotate\(/);
+  assert.match(imageMarqueeSource, /\.reverse\(\)/);
+  // Each row's sequence is duplicated exactly once, only to make the -50%
+  // translate loop seamless — not to pad out a thin image set.
+  assert.match(imageMarqueeSource, /\[\.\.\.sequence, \.\.\.sequence\]/);
 });
 
 test('Stories keeps its shorter editorial stage; Lab keeps its full flight', () => {
