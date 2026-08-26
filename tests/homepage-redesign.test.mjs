@@ -16,8 +16,12 @@ const motionSource = readFileSync(
   new URL('../components/sections/Motion.jsx', import.meta.url),
   'utf8',
 );
-const imageStreamSource = readFileSync(
-  new URL('../components/ui/image-stream-hero.jsx', import.meta.url),
+const reviewCarouselSource = readFileSync(
+  new URL('../components/ui/review-carousel.jsx', import.meta.url),
+  'utf8',
+);
+const workMarqueeSource = readFileSync(
+  new URL('../components/ui/work-marquee.jsx', import.meta.url),
   'utf8',
 );
 
@@ -28,7 +32,7 @@ const globalCss = readFileSync(
 
 test('Stories uses review-specific language and a grouped client-proof CTA', () => {
   assert.match(storiesSource, /Client proof/);
-  assert.match(storiesSource, /Read full review/);
+  assert.match(storiesSource + reviewCarouselSource, /Read full review/);
   assert.doesNotMatch(storiesSource, /VIEW ALL WORK/);
 });
 
@@ -42,19 +46,19 @@ test('Lab keeps the eight procedural service cards (no bitmap project images)', 
   assert.doesNotMatch(labSource, /\/projects\//);
 });
 
-test('Motion stream uses supplied public project images in its zooming tiles', () => {
-  const imageRefs = motionSource.match(/src: ['\"]\/projects\/[^'\"]+['\"]/g) || [];
+test('Motion marquee uses supplied public project images, not procedural art', () => {
+  const imageRefs = motionSource.match(/['"]\/projects\/[^'"]+['"]/g) || [];
   assert.ok(imageRefs.length >= 6);
   assert.doesNotMatch(motionSource, /paletteArt\(/);
 });
 
-test('Motion corridor splits the six supplied images across two rails without repeats', () => {
-  assert.match(motionSource, /cards=\{3\}/);
-  assert.match(imageStreamSource, /images\.slice\(railIndex \* cards, \(railIndex \+ 1\) \* cards\)/);
-  assert.doesNotMatch(imageStreamSource, /images\[i %/);
+test('Motion marquee offsets the six supplied images across three rails so no row opens on the same tile', () => {
+  assert.match(motionSource, /<WorkMarquee/);
+  assert.match(workMarqueeSource, /rows = 3/);
+  assert.match(workMarqueeSource, /offset/);
 });
 
 test('Stories keeps its shorter editorial stage; Lab keeps its full flight', () => {
-  assert.match(globalCss, /\.stories-carousel\s*\{[\s\S]*?height:\s*clamp\(26rem,\s*60vh,\s*40rem\)/);
+  assert.match(globalCss, /\.review-carousel-frame\s*\{[\s\S]*?height:\s*clamp\(26rem,\s*60vh,\s*40rem\)/);
   assert.match(globalCss, /\.lab\s*\{[\s\S]*?height:\s*340svh/);
 });
