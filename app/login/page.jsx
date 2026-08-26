@@ -10,7 +10,7 @@ export default function LoginPage() {
       <DarkPageBackground interactive="prism" />
       <div className="crm-auth-card">
         <Link href="/" className="crm-auth-mark" aria-label={`${SITE.name} home`}>
-          <img className="crm-auth-logo" src={SITE.logoPath} alt={SITE.name} width="160" height="63" />
+          <img className="crm-auth-logo" src={SITE.logoPath} alt={SITE.name} width="160" height="107" />
         </Link>
 
         <h1>Choose your portal</h1>
