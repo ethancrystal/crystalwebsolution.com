@@ -31,10 +31,10 @@ test('Stories uses review-specific language and a grouped client-proof CTA', () 
   assert.doesNotMatch(storiesSource, /VIEW ALL WORK/);
 });
 
-test('Stories stage respects reduced motion and cleans up its animations', () => {
-  assert.match(stageSource, /prefers-reduced-motion/);
-  assert.match(stageSource, /io\.disconnect\(\)/);
-  assert.match(stageSource, /tlRef\.current\?\.kill\(\)/);
+test('Stories stage respects reduced motion, disables autoplay under it, and cleans up its timer', () => {
+  assert.match(stageSource, /useReducedMotion/);
+  assert.match(stageSource, /if \(reduced \|\| paused \|\| slides\.length < 2\) return undefined;/);
+  assert.match(stageSource, /window\.clearTimeout\(id\)/);
 });
 
 test('Lab keeps the eight procedural service cards (no bitmap project images)', () => {
