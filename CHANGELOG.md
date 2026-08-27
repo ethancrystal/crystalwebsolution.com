@@ -5,6 +5,31 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.06 — 2026-08-27
+
+- Fix `cleanup_stale_project_attachments`: it was deleting rows directly
+  from `storage.objects`, which Supabase blocks — this had been failing on
+  nearly every `crm-notifications` cron run since 2026-08-17. Migration
+  `0038` changes the RPC to only claim/delete the metadata row and return
+  each `storage_path`; the cron route now removes the actual object via the
+  Storage API (`supabase.storage.from('project-files').remove(...)`).
+- Launch the CRM: it is now intentionally publicly reachable in Production
+  (previously gated pre-launch). `CLAUDE.md` updated to reflect launched
+  state and the production domain change (crystalwebsolution.com →
+  cdsportswearusa.com).
+- UI polish pass (8 fixes, all mechanical/no design changes): import
+  existing `lib/easing.js` tokens instead of duplicating raw GSAP ease
+  strings (Reveal.jsx, Menu.jsx, About.jsx); add missing `:focus-visible`
+  states to the nav login/burger controls and three marketing anchor types;
+  add missing hover/focus states to the CRM approval buttons and workspace
+  sidebar toggle; wire the unused `SkeletonDetail`/`SkeletonTable`
+  components into 11 CRM pages that previously showed bare "Loading..."
+  text; remove dead `.crm-loading` CSS left behind in 5 pages that already
+  migrated to `SkeletonTable`; fix `app/admin/projects` showing "no results
+  match filters" even with zero filters applied; strip inert Tailwind
+  utility classes from `MagnifiedBento.jsx` (this project has no Tailwind
+  build).
+
 ## v1.05 — 2026-08-27
 
 - Fix `useUserRole()` reading `user.app_metadata.role`, a claim this app
