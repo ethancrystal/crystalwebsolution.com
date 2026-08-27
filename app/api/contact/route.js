@@ -3,6 +3,7 @@ import { validateContactForm } from '../../../lib/contactForm.mjs';
 import { sendTemplate, isEmailConfigured, getOperationsAddress } from '@/lib/email/resend';
 import { contactSubmissionEmail, contactAckEmail } from '@/lib/email/templates';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit.mjs';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
 
@@ -40,6 +41,21 @@ export const runtime = 'nodejs';
 const json = (body, status) => NextResponse.json(body, { status });
 
 export async function POST(request) {
+  // Keyed by IP, checked before any parsing/validation so a scripted flood
+  // can't burn CPU on this route either, not just the outbound sends below.
+  // See ADR-002-contact-form-rate-limiting.md for the "why Upstash" reasoning.
+  const allowed = await checkRateLimit('contact', getClientIp(request.headers), {
+    limit: 5,
+    windowSeconds: 600,
+  });
+
+  if (!allowed) {
+    return json({
+      ok: false,
+      message: 'Too many submissions from this connection. Please wait a few minutes and try again.',
+    }, 429);
+  }
+
   let body;
   try {
     body = await request.json();
