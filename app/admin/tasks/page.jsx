@@ -312,14 +312,6 @@ export default function TasksPage() {
           margin-right: auto;
         }
 
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
       `}</style>
     </div>
   );

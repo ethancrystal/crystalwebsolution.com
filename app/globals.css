@@ -377,10 +377,10 @@ html[data-cws-intro-seen='1'] .loader {
   border-bottom: 1px solid transparent;
   transition: border-color 0.3s, color 0.3s;
 }
-.nav-login-link:hover { border-color: var(--cyan); }
+.nav-login-link:hover, .nav-login-link:focus-visible { border-color: var(--cyan); }
 .nav-on-light .nav-logo-art img { filter: invert(1); }
 .nav-on-light .nav-login-link { color: #151612; }
-.nav-on-light .nav-login-link:hover { border-color: #151612; }
+.nav-on-light .nav-login-link:hover, .nav-on-light .nav-login-link:focus-visible { border-color: #151612; }
 .nav-on-light .btn-ghost {
   color: #151612;
   border-color: rgba(21, 22, 18, 0.32);
@@ -414,7 +414,7 @@ html[data-cws-intro-seen='1'] .loader {
   background: var(--ink);
   transition: transform 0.35s;
 }
-.nav-burger:hover { border-color: var(--cyan); }
+.nav-burger:hover, .nav-burger:focus-visible { border-color: var(--cyan); }
 .nav-burger.is-open span:first-child { transform: translateY(3.75px) rotate(45deg); }
 .nav-burger.is-open span:last-child { transform: translateY(-3.75px) rotate(-45deg); }
 
@@ -3334,7 +3334,10 @@ html[data-cws-intro-seen='1'] .loader {
 .contact-form input:focus-visible,
 .contact-form textarea:focus-visible,
 .contact-form select:focus-visible,
-.mkt-em-tooltip-toggle:focus-visible {
+.mkt-em-tooltip-toggle:focus-visible,
+.mkt-breadcrumb a:focus-visible,
+.mkt-service-card-link:focus-visible,
+.mkt-related-link:focus-visible {
   outline: 2px solid var(--cyan, #3cc6ff);
   outline-offset: 2px;
 }

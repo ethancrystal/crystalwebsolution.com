@@ -21,10 +21,6 @@ import {
 } from '@hugeicons/core-free-icons';
 import { motion, useMotionValue, useMotionTemplate } from 'motion/react';
 
-function cn(...classes) {
-  return classes.filter(Boolean).join(' ');
-}
-
 const TAG_ROWS = [
   [
     { id: 'discovery', icon: Search01Icon, label: 'Discovery' },
@@ -53,7 +49,6 @@ const CONFIG = {
   title: 'One Studio, Every Discipline',
   description:
     'Web design and development, branding and logo, digital marketing, and AI automation — built by one team, so nothing gets lost in a hand-off.',
-  containerHeight: 'h-[200px] sm:h-[240px]',
   lensSize: 92,
 };
 
@@ -88,8 +83,8 @@ export default function MagnifiedBento() {
   return (
     <div className="magnifier-wrap">
       <div className="magnifier-shell group">
-        <div ref={containerRef} className={cn('magnifier-stage', CONFIG.containerHeight)}>
-          <div className="magnifier-relative h-full w-full flex flex-col items-center justify-center">
+        <div ref={containerRef} className="magnifier-stage">
+          <div className="magnifier-relative">
             <motion.div
               style={{ WebkitMaskImage: inverseMask, maskImage: inverseMask }}
               className="magnifier-base"

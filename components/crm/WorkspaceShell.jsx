@@ -119,6 +119,12 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
           font-weight: 600;
         }
 
+        .crm-workspace-sidebar-toggle:hover,
+        .crm-workspace-sidebar-toggle:focus-visible {
+          background: rgba(100, 200, 255, 0.14);
+          border-color: rgba(100, 200, 255, 0.55);
+        }
+
         .crm-workspace-body {
           display: grid;
           grid-template-columns: 240px 1fr;
