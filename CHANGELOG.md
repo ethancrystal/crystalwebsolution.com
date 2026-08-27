@@ -19,6 +19,13 @@ about to be, if the PR hasn't merged yet).
 - Wire the 8 existing `tests/marketing/*.test.jsx` vitest tests into a
   new `pnpm test:marketing` script and the `docker-ci.yml` test job —
   they had a working `vitest.config.js` but nothing ever ran them.
+- Fix `docker-ci.yml`'s CI test gate itself: it pinned Node 20, but
+  `pnpm@11.21.0` (this repo's pinned package manager) requires Node
+  >=22.13 and crashes immediately on Node 20 with
+  `ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite` — the gate v1.04 just added
+  has been failing on every PR since it merged, for this reason alone,
+  regardless of the PR's actual content. Bumped to Node 24, matching
+  local dev.
 
 ## v1.04 — 2026-08-27
 
