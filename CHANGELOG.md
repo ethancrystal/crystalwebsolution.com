@@ -16,6 +16,9 @@ about to be, if the PR hasn't merged yet).
   (`app/admin`, `app/dashboard`, `app/team`), which were bare
   pass-throughs relying entirely on middleware. Allowed roles mirror
   `lib/auth/roles.mjs`'s existing portal mapping exactly.
+- Wire the 8 existing `tests/marketing/*.test.jsx` vitest tests into a
+  new `pnpm test:marketing` script and the `docker-ci.yml` test job —
+  they had a working `vitest.config.js` but nothing ever ran them.
 
 ## v1.04 — 2026-08-27
 

@@ -37,6 +37,9 @@ jobs:
       - name: Run test suite
         run: pnpm test
 
+      - name: Run marketing component suite
+        run: pnpm test:marketing
+
       - name: Build
         run: pnpm build
         env:
