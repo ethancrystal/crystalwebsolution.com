@@ -3,7 +3,6 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import {
   buildAuthRateLimitKeys,
-  checkAuthRateLimit,
   normalizeRateLimitEmail,
 } from '../../lib/rateLimit.mjs';
 
@@ -30,6 +29,7 @@ test('builds independent IP and normalized-email buckets for each auth action', 
 test('allows auth requests when shared rate limiting is not configured', async () => {
   delete process.env.UPSTASH_REDIS_REST_URL;
   delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  const { checkAuthRateLimit } = await import('../../lib/rateLimit.mjs?unconfigured-test');
 
   assert.equal(
     await checkAuthRateLimit('auth:signup', 'client@example.com', new Headers()),
