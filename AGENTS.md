@@ -18,6 +18,7 @@ pnpm install --frozen-lockfile
 pnpm dev         # http://localhost:3000
 pnpm test        # full Node test suite
 pnpm test:crm    # CRM-focused contracts
+pnpm test:unit   # vitest/jsdom component tests (tests/marketing/*.test.jsx)
 pnpm build       # production build (standalone output)
 pnpm start       # serve the production build
 ```

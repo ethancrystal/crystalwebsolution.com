@@ -5,6 +5,22 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.04 — 2026-08-27
+
+- Fix `updateProjectTask`'s revalidation bug: it passed the RPC-returned task
+  id to `revalidateAllProjectPaths` instead of the project id, so a task
+  update would never revalidate the right `/dashboard`, `/team`, or
+  `/admin/projects` pages. No UI calls this server action yet, so this was a
+  latent bug (tracked in `docs/DESIGN-CRITIQUE.md` K7); fixed now, before any
+  task-edit UI ships, matching the sibling actions' established
+  form-supplied-`projectId` pattern. Added a regression test.
+- Fix `vitest.config.js`'s test `include` glob, which matched every
+  `*.test.mjs` file and crashed on their `node:test` imports — vitest was
+  never wired into any `pnpm` script, so this had gone unnoticed. Scoped
+  `include` to `*.test.jsx` (the 8 real component tests it's meant to run,
+  all passing) and added a `pnpm test:unit` script so the suite is
+  discoverable and runnable.
+
 ## v1.03 — 2026-08-27
 
 - Remove `flake.nix`, `shell.nix`, and `.envrc` — the Nix dev-environment

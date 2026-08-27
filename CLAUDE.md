@@ -64,6 +64,7 @@ pnpm install --frozen-lockfile
 pnpm dev         # http://localhost:3000
 pnpm test        # full Node test suite
 pnpm test:crm    # CRM-focused contracts
+pnpm test:unit   # vitest/jsdom component tests (tests/marketing/*.test.jsx)
 pnpm test:db     # Supabase database tests; requires the local stack
 pnpm test:e2e    # planned gate; tests/e2e is not yet checked in
 pnpm build       # production build
