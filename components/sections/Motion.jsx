@@ -4,21 +4,13 @@ import Link from 'next/link';
 import ProjectHandoffLink from '../ProjectHandoffLink';
 import WorkMarquee from '../ui/work-marquee';
 import { PROJECTS } from '../../lib/projects';
+import { CLIENT_TILE_IMAGES } from '../../lib/clientTileImages.mjs';
 const DEEP_LINK_PROGRESS = 0.32;
 
 // The marquee is decorative (aria-hidden inside WorkMarquee), so all real
 // navigation lives in the list below. These are real CD Sportswear USA
 // client deployments, not stock screenshots — matching the section's own
 // claim that nothing here is an invented case study.
-const STREAM_IMAGES = [
-  '/projects/cws-live-izanami.webp',
-  '/projects/cws-live-oimachi.webp',
-  '/projects/cws-live-ciao-energy.webp',
-  '/projects/cws-live-inspiring.webp',
-  '/projects/cws-innovation-studio.webp',
-  '/projects/cws-izanami.webp',
-];
-
 export default function Motion() {
   return (
     <section
@@ -36,7 +28,7 @@ export default function Motion() {
         </Link>
       </header>
 
-      <WorkMarquee images={STREAM_IMAGES} className="motion-marquee" />
+      <WorkMarquee images={CLIENT_TILE_IMAGES} className="motion-marquee" />
 
       <ul className="motion-stream-index">
         {PROJECTS.map((project, index) => (
