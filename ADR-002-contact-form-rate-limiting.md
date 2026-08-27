@@ -51,11 +51,12 @@ are a standard scraping/bot target and this one has no cost to attempt.
 
 ## Decision
 
-**Proposed, not yet implemented.** Add request-rate limiting in front of
-`/api/contact`, keyed by client IP (and optionally by submitted email), before
-any outbound side effect runs. Recommend **Option A** below given this
-project's current scale and budget (Vercel + Supabase, no existing Redis/KV
-dependency, one contact-adjacent endpoint to protect).
+**Option C is selected and implemented.** Add request-rate limiting in front
+of `/api/contact` and the unauthenticated auth actions, before any outbound
+side effect runs. The shared Upstash implementation uses per-IP limiting for
+the contact endpoint and independent per-IP plus normalized-email limiting
+for the auth actions. Option A remains a possible defense-in-depth layer for
+`/api/contact`, but it is not the application’s source of truth.
 
 ## Options Considered
 
@@ -118,13 +119,14 @@ revisiting then, not now.
 
 - **Easier:** abuse of the contact form stops costing Resend sends / ops
   inbox noise before it reaches application code.
-- **Easier:** no new dependency or env var to manage for this fix.
-- **Harder:** tuning lives in the Vercel dashboard, not version control —
-  document the configured rule (window/threshold) here or in
-  `docs/CRM-OPERATIONS.md` once set, so it isn't tribal knowledge.
-- **Revisit:** if/when CRM write endpoints (task/message creation via Server
-  Actions) need rate limiting too, re-evaluate Option C — Server Actions
-  aren't reachable by simple edge path rules the same way a REST route is.
+- **Easier:** the shared helper covers the contact route and Server Actions
+  without duplicating an in-memory limiter across deployment instances.
+- **Harder:** Upstash credentials are an additional deployment dependency and
+  tuning remains application configuration rather than a Vercel dashboard
+  rule. Operational details are documented in `docs/CRM-OPERATIONS.md`.
+- **Revisit:** if authenticated CRM write endpoints need different budgets,
+  add explicit action buckets and tests rather than weakening the existing
+  unauthenticated limits.
 
 ## Action Items
 
@@ -140,5 +142,5 @@ revisiting then, not now.
 4. [x] ~~If Vercel Firewall isn't available on the current plan, fall back to
    Option C (Upstash) rather than Option B (in-memory)~~ — done; Option C
    was implemented directly
-5. [ ] Document the configured limit in `docs/CRM-OPERATIONS.md` once the
-   Upstash database is live
+5. [x] Document the configured limit in `docs/CRM-OPERATIONS.md`; provisioning
+   the Upstash database remains a separate deployment action
