@@ -40,6 +40,22 @@ Supabase `pg_cron` is the primary scheduler. The live `drain-crm-outbox` job run
 
 The owner-controlled secret must be synchronized between Supabase Vault `crm_cron_secret` and the Vercel `CRON_SECRET`/`CRM_CRON_SECRET` environment value. Keep secret values out of git, logs, issue comments, test fixtures, and audit exports. Rotate by updating the receiving environment and then the scheduler source, verifying an authorized smoke request and an unauthorized request without printing the secret.
 
+## Auth Action Rate Limiting
+
+`signUp`, `resendConfirmationEmail`, and `requestPasswordReset` are
+unauthenticated Server Actions that can trigger a Resend email. They use the
+shared [`lib/rateLimit.mjs`](../lib/rateLimit.mjs) helper with a sliding window
+of 5 requests per 10 minutes. Each action checks both the client IP and the
+normalized submitted email, so rotating addresses from one IP and rotating
+IPs for one address are independently constrained.
+
+The limiter uses `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` when
+configured. It fails open when credentials are absent or Redis is unavailable
+to avoid turning authentication into an outage; production deployments must
+therefore provision and monitor Upstash before treating this as an active
+abuse-control boundary. The first `x-forwarded-for` value is used as the
+client IP, so the deployment edge must overwrite or sanitize that header.
+
 ## Safe Smoke Test
 
 Use only a controlled preview recipient and a verified Resend sender. Never use a client or personal inbox for a queue smoke test. A safe smoke test has these steps:

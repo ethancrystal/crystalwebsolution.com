@@ -114,5 +114,6 @@ export const config = {
     '/login/admin',
     '/signup',
     '/forgot-password',
+    '/auth/:path*',
   ],
 };

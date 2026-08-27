@@ -16,7 +16,7 @@ import {
   homeForRole,
   SIGNUP_ACCOUNT_TYPES,
 } from '@/lib/auth/roles.mjs';
-import { checkRateLimit, getClientIp } from '@/lib/rateLimit.mjs';
+import { checkAuthRateLimit } from '@/lib/rateLimit.mjs';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 
@@ -33,9 +33,9 @@ export async function signUp(formData) {
   }
 
   // Server Actions are unauthenticated POST endpoints reachable directly, so
-  // this needs the same throttle as /api/contact. See lib/rateLimit.mjs and
+  // this uses the shared IP + email throttle. See lib/rateLimit.mjs and
   // ADR-002-contact-form-rate-limiting.md.
-  const allowed = await checkRateLimit('auth:signup', getClientIp(await headers()), {
+  const allowed = await checkAuthRateLimit('auth:signup', email, await headers(), {
     limit: 5,
     windowSeconds: 600,
   });
@@ -195,7 +195,7 @@ export async function resendConfirmationEmail(formData) {
   // observable "you're being rate limited" response would itself leak
   // information, breaking the anti-enumeration property this function
   // already relies on for the "no such account" case.
-  const allowed = await checkRateLimit('auth:resend', getClientIp(await headers()), {
+  const allowed = await checkAuthRateLimit('auth:resend', email, await headers(), {
     limit: 5,
     windowSeconds: 600,
   });
@@ -248,7 +248,7 @@ export async function requestPasswordReset(formData) {
   // Same rate-limit + anti-enumeration reasoning as resendConfirmationEmail()
   // above: a throttled attempt still returns { success: true } rather than a
   // distinguishable response.
-  const allowed = await checkRateLimit('auth:reset', getClientIp(await headers()), {
+  const allowed = await checkAuthRateLimit('auth:reset', email, await headers(), {
     limit: 5,
     windowSeconds: 600,
   });
