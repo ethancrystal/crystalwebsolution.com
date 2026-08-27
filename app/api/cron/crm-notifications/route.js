@@ -278,8 +278,24 @@ async function cleanupStaleAttachments(supabase) {
     return 0;
   }
 
-  const count = Number(data);
-  return Number.isSafeInteger(count) && count >= 0 ? count : 0;
+  // The RPC only claims and deletes the metadata rows (it cannot delete
+  // storage.objects directly -- Supabase requires the Storage API for that).
+  // It returns each removed row's storage_path so we can remove the actual
+  // object here.
+  const paths = Array.isArray(data)
+    ? data.map((row) => row.storage_path).filter(Boolean)
+    : [];
+
+  if (paths.length > 0) {
+    const { error: storageError } = await supabase.storage.from('project-files').remove(paths);
+    if (storageError) {
+      // The metadata rows are already gone; a failed object removal just
+      // leaves an orphaned file in storage, not a dangling reference.
+      console.error('Stale attachment storage removal failed:', storageError.message);
+    }
+  }
+
+  return paths.length;
 }
 
 function safeFailureMessage(error) {
