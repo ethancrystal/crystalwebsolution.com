@@ -5,6 +5,27 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.04 — 2026-08-27
+
+- Add a CI test gate: `docker-ci.yml` now runs `pnpm test` and `pnpm build`
+  before the Docker image build, and the image build depends on that job
+  succeeding — previously nothing blocked a failing test suite from merging
+  to `main`.
+- Consolidate `docker-ci.yml` and `docker-publish.yml` into one workflow
+  (kept cosign image signing) and fix the missing `NEXT_PUBLIC_*` build args
+  on the published `ghcr.io` image, so `docker run` per `README.md` produces
+  a working image once the corresponding repo Variables are set.
+- Add Upstash Redis-backed rate limiting (`lib/rateLimit.mjs`) to
+  `POST /api/contact` and the `signUp`/`resendConfirmationEmail`/
+  `requestPasswordReset` auth actions, implementing ADR-002 as Option C.
+  Fails open until `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` are
+  configured.
+- Reconcile the migration ledger against the live database read-only via the
+  Supabase MCP connection: of the previously-undifferentiated `0025`-`0034`
+  range, only `0031` and `0032` are genuinely unapplied (see
+  `docs/reports/migration-ledger-reconciliation-2026-08-27.md`); no `db push`
+  was run.
+
 ## v1.03 — 2026-08-27
 
 - Remove `flake.nix`, `shell.nix`, and `.envrc` — the Nix dev-environment
