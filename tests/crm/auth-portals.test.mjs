@@ -72,7 +72,7 @@ test('sign-in converts Supabase configuration failures into a safe form error', 
 test('portal chooser keeps the brand mark bounded and styles Link-rendered controls', async () => {
   const page = await import('node:fs/promises').then((fs) => fs.readFile('app/login/page.jsx', 'utf8'));
 
-  assert.match(page, /width="160" height="63"/);
+  assert.match(page, /width="160" height="107"/);
   assert.doesNotMatch(page, /width="647" height="255"/);
   assert.match(page, /className="crm-auth-logo"/);
   assert.match(page, /:global\(\.crm-auth-mark\)\s*\{[\s\S]*?width:\s*min\(100%,\s*11rem\)/);
@@ -85,7 +85,7 @@ test('signup keeps the shared brand mark bounded without changing its form flow'
   const page = await import('node:fs/promises').then((fs) => fs.readFile('app/signup/page.jsx', 'utf8'));
 
   assert.match(page, /className="crm-auth-logo"/);
-  assert.match(page, /width="160" height="63"/);
+  assert.match(page, /width="160" height="107"/);
   assert.doesNotMatch(page, /width="647" height="255"/);
   assert.match(page, /:global\(\.crm-auth-mark\)\s*\{[\s\S]*?width:\s*min\(100%,\s*11rem\)/);
   assert.match(page, /\.crm-auth-logo\s*\{[\s\S]*?max-width:\s*100%[\s\S]*?height:\s*auto/);

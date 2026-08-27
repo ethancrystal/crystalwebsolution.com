@@ -10,7 +10,7 @@ export default function BrandLogo() {
         src={SITE.logoPath}
         alt={SITE.name}
         width="456"
-        height="254"
+        height="304"
       />
     </span>
   );
