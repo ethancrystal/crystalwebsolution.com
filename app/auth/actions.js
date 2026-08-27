@@ -16,7 +16,9 @@ import {
   homeForRole,
   SIGNUP_ACCOUNT_TYPES,
 } from '@/lib/auth/roles.mjs';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit.mjs';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 
@@ -28,6 +30,18 @@ export async function signUp(formData) {
 
   if (!email || !password || !fullName) {
     return { error: 'Missing required fields' };
+  }
+
+  // Server Actions are unauthenticated POST endpoints reachable directly, so
+  // this needs the same throttle as /api/contact. See lib/rateLimit.mjs and
+  // ADR-002-contact-form-rate-limiting.md.
+  const allowed = await checkRateLimit('auth:signup', getClientIp(await headers()), {
+    limit: 5,
+    windowSeconds: 600,
+  });
+
+  if (!allowed) {
+    return { error: 'Too many signup attempts from this connection. Please wait a few minutes and try again.' };
   }
 
   // Only the two self-service choices are accepted. account_type never
@@ -176,6 +190,20 @@ export async function resendConfirmationEmail(formData) {
     return { error: 'Email is required' };
   }
 
+  // Rate-limited the same as signUp(), but a throttled attempt still returns
+  // the generic { success: true } below instead of a visible error - an
+  // observable "you're being rate limited" response would itself leak
+  // information, breaking the anti-enumeration property this function
+  // already relies on for the "no such account" case.
+  const allowed = await checkRateLimit('auth:resend', getClientIp(await headers()), {
+    limit: 5,
+    windowSeconds: 600,
+  });
+
+  if (!allowed) {
+    return { success: true };
+  }
+
   // Mirrors signUp()'s guard. Reports the same generic success as every other
   // outcome here so a misconfiguration cannot be used to probe for accounts.
   let adminClient;
@@ -215,6 +243,18 @@ export async function requestPasswordReset(formData) {
 
   if (!email) {
     return { error: 'Email is required' };
+  }
+
+  // Same rate-limit + anti-enumeration reasoning as resendConfirmationEmail()
+  // above: a throttled attempt still returns { success: true } rather than a
+  // distinguishable response.
+  const allowed = await checkRateLimit('auth:reset', getClientIp(await headers()), {
+    limit: 5,
+    windowSeconds: 600,
+  });
+
+  if (!allowed) {
+    return { success: true };
   }
 
   // Uses generateLink() + Resend instead of resetPasswordForEmail(), same

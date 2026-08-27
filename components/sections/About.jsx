@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { blastVector } from '../../lib/smilTimeline.mjs';
+import { EASE_MASK } from '../../lib/easing';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -97,7 +98,7 @@ export default function About() {
         clipPath: 'inset(0 0% 0 0)',
         duration: 1,
         stagger: 0.08,
-        ease: 'power4.out',
+        ease: EASE_MASK,
         scrollTrigger: {
           trigger: root,
           start: 'top 100%',

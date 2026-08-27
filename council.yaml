@@ -1,0 +1,71 @@
+# Agent Council config for crystalwebsolution.com.
+#
+# The council reviews TEXT ARTIFACTS (specs, memos, docs) via 5 role-
+# conditioned deliberators — it does not review source code. watch.paths is
+# scoped to this repo's prose docs accordingly, not to app/components/lib.
+#
+# Runtime shells out to the `claude` CLI (a separate, metered process from
+# whatever session invokes this config) — every `review`/`sweep` run spawns
+# real Claude Code invocations. `validate-config` and `health` are free.
+
+version: "1.0"
+
+runtime:
+  type: claude_cli
+  binary: claude
+  model: claude-opus-4-7
+  flags: []
+  invocation_pattern: stdin
+  timeout_seconds: 120
+
+deliberators:
+  - id: skeptic
+    prompt: council/prompts/skeptic.md
+    weight: 1.0
+  - id: voice_identity
+    prompt: council/prompts/voice_identity.md
+    weight: 1.0
+  - id: evidence
+    prompt: council/prompts/evidence.md
+    weight: 1.0
+  - id: strategy
+    prompt: council/prompts/strategy.md
+    weight: 1.0
+
+adjudicator:
+  prompt: council/prompts/adjudicator.md
+  verdict_policy:
+    ship: "0 deliberators set would_block:true after R2"
+    revise: "1-2 would_block AND no 'irreducible' flag"
+    hold: "3+ would_block OR any 'irreducible' flag"
+
+protocol:
+  rounds: 2
+  cross_read: true
+  fail_fast_on_runtime_error: false
+  min_deliberators_for_verdict: 3
+
+tier_classifier:
+  type: rules
+  default_tier: 1
+
+tier_rules:
+  tier_1:
+    docs:
+      - "docs/*"
+      - "*.md"
+
+watch:
+  paths:
+    - docs/
+    - README.md
+    - CLAUDE.md
+    - AGENTS.md
+    - CHANGELOG.md
+    - VERSIONING.md
+
+logging:
+  log_path: ./council_log.jsonl
+  archive_dir: ./council_archive
+  log_format: rule_35_v2
+  redact_patterns: []
