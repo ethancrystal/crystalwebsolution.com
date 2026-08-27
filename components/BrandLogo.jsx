@@ -9,8 +9,8 @@ export default function BrandLogo() {
         className="nav-logo-art-full"
         src={SITE.logoPath}
         alt={SITE.name}
-        width="456"
-        height="254"
+        width="1400"
+        height="218"
       />
     </span>
   );

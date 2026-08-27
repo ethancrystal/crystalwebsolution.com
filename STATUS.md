@@ -1,7 +1,7 @@
 # CD Sportswear USA CRM - Implementation Status
 
-## 📅 Last Updated: 2026-08-26
-## 👤 Last Agent: Frontend finishing-touches pass (4 parallel audit subagents + implementation)
+## 📅 Last Updated: 2026-08-27
+## 👤 Last Agent: Frontend finishing-touches pass (4 parallel audit subagents + implementation), then a brand logo/favicon swap
 ## 🔗 Current Branch: `main` (confirmed at `e992809` locally and on `origin/main`)
 ## 🔑 Source of Truth
 - Checked-in migrations: canonical `supabase/migrations/0001` … `0023`;
@@ -12,6 +12,33 @@
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
 - Supabase project ref: `wmnjosiikehsuaqucvja`
+
+## 📌 Session update (2026-08-27, brand logo + favicon swap — same v1.02 PR)
+
+Replaced the site logo (`public/cd-sportswear-usa-logo.png`) and favicon
+(`app/icon.png`) with owner-supplied artwork (a wide icon+wordmark lockup
+for the logo, a standalone icon-only mark for the favicon) — see
+`CHANGELOG.md`'s `v1.02` entry for exact crop parameters. The new logo's
+~6.4:1 aspect ratio is much wider than the old ~1.8:1 stacked mark, so
+`.nav-logo-art` and `.crm-workspace-brand` were widened (owner confirmed via
+in-chat question) rather than letting `object-fit: contain` shrink it down
+to an illegible sliver; verified live in a browser (nav, portal chooser,
+client-portal login form all render the new logo crisp and properly sized).
+`Organization.logo` in the homepage JSON-LD now points at the square icon
+instead of the wide wordmark (`SITE.iconPath`, new field in `lib/site.js`),
+since Google's Knowledge Panel wants a near-square image. `pnpm build`
+clean, `pnpm test` 420/420 (2 hardcoded-dimension assertions updated in
+`tests/crm/auth-portals.test.mjs` and `tests/site-brand.test.mjs` to match).
+
+**Not done / left for the owner:** `public/cws-header-logo.png` (an
+unreferenced duplicate of an old favicon source, flagged as orphaned in the
+prior session entry) was left untouched — still orphaned, now also stale
+relative to the new brand art. CRM auth pages (`/login`, `/dashboard`, etc.)
+couldn't be checked signed-in this session (Supabase isn't configured in
+this dev environment — "authentication is not configured" error, unrelated
+to this change), so `WorkspaceShell.jsx`'s widened header logo box is
+verified by CSS math (`object-fit: contain` in a fixed box, same pattern as
+the nav) but not by an actual screenshot.
 
 ## 📌 Session update (2026-08-26, frontend finishing-touches pass — v1.02)
 

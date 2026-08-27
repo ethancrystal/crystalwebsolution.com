@@ -349,10 +349,14 @@ html[data-cws-intro-seen='1'] .loader {
   line-height: 1;
 }
 .nav-logo-art {
+  /* Sized for the wide icon+wordmark lockup (~6.4:1) rather than the old
+     stacked mark (~1.8:1) - width and height clamps scale together at
+     that ratio (18vw / 2.8vw = 6.4) so the logo fills the box edge to
+     edge at any viewport instead of shrinking inside empty letterboxing. */
   position: relative;
   display: block;
-  width: clamp(4.75rem, 7vw, 6.75rem);
-  height: clamp(3.25rem, 5vw, 4.5rem);
+  width: clamp(12.8rem, 18vw, 17.7rem);
+  height: clamp(2rem, 2.8vw, 2.75rem);
 }
 .nav-logo-art img {
   position: absolute;

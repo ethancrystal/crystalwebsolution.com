@@ -15,7 +15,7 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
       <header className="crm-workspace-header">
         <div className="crm-workspace-header-main">
           <a className="crm-workspace-brand" href="/" aria-label={`${SITE.name} home`}>
-            <img src={SITE.logoPath} alt={SITE.name} width="500" height="500" />
+            <img src={SITE.logoPath} alt={SITE.name} width="500" height="78" />
           </a>
           <div>
             <h1>{title}</h1>
@@ -76,9 +76,12 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
         }
 
         .crm-workspace-brand {
+          /* Sized for the wide icon+wordmark lockup (~6.4:1) rather than
+             the old stacked mark - a square box would letterbox it down
+             to a sliver. */
           display: inline-flex;
-          width: 4.5rem;
-          height: 4.5rem;
+          width: 12.5rem;
+          height: 2rem;
           flex: 0 0 auto;
           align-items: center;
           justify-content: center;
@@ -177,6 +180,11 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
         }
 
         @media (max-width: 768px) {
+          .crm-workspace-brand {
+            width: 8rem;
+            height: 1.28rem;
+          }
+
           .crm-workspace-sidebar-toggle {
             display: inline-flex;
           }

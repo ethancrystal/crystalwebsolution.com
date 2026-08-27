@@ -73,8 +73,8 @@ const JSON_LD = {
       logo: {
         '@type': 'ImageObject',
         '@id': `${SITE_URL}/#logo`,
-        url: `${SITE_URL}${SITE.logoPath}`,
-        contentUrl: `${SITE_URL}${SITE.logoPath}`,
+        url: `${SITE_URL}${SITE.iconPath}`,
+        contentUrl: `${SITE_URL}${SITE.iconPath}`,
         caption: SITE.name,
       },
       image: { '@id': `${SITE_URL}/#logo` },

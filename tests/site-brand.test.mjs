@@ -52,7 +52,7 @@ test('the app icon and root metadata use the new brand asset and name', () => {
   assert.ok(existsSync(new URL('../app/icon.png', import.meta.url)));
   const layout = read('app/layout.jsx');
   assert.doesNotMatch(layout, new RegExp(['Crystal', 'Web', 'Solution'].join('\\s+')));
-  assert.match(layout, /SITE\.logoPath/);
+  assert.match(layout, /SITE\.iconPath/);
   assert.match(layout, /CD Sportswear USA/);
 });
 
