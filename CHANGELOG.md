@@ -5,6 +5,28 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.05 — 2026-08-27
+
+- Fix `useUserRole()` reading `user.app_metadata.role`, a claim this app
+  never sets — `isAdmin`/`isPm` were always `false`, silently redirecting
+  real admins off `/admin/users` and hiding admin-only controls on the
+  companies/contacts/deals pages. It now reads `role` from the `profiles`
+  table, matching `middleware.js`.
+- Add a `requireRole()` backstop to the three portal layouts
+  (`app/admin`, `app/dashboard`, `app/team`), which were bare
+  pass-throughs relying entirely on middleware. Allowed roles mirror
+  `lib/auth/roles.mjs`'s existing portal mapping exactly.
+- Wire the 8 existing `tests/marketing/*.test.jsx` vitest tests into a
+  new `pnpm test:marketing` script and the `docker-ci.yml` test job —
+  they had a working `vitest.config.js` but nothing ever ran them.
+- Fix `docker-ci.yml`'s CI test gate itself: it pinned Node 20, but
+  `pnpm@11.21.0` (this repo's pinned package manager) requires Node
+  >=22.13 and crashes immediately on Node 20 with
+  `ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite` — the gate v1.04 just added
+  has been failing on every PR since it merged, for this reason alone,
+  regardless of the PR's actual content. Bumped to Node 24, matching
+  local dev.
+
 ## v1.04 — 2026-08-27
 
 - Add a CI test gate: `docker-ci.yml` now runs `pnpm test` and `pnpm build`
