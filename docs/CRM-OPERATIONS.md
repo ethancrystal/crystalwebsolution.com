@@ -40,6 +40,23 @@ Supabase `pg_cron` is the primary scheduler. The live `drain-crm-outbox` job run
 
 The owner-controlled secret must be synchronized between Supabase Vault `crm_cron_secret` and the Vercel `CRON_SECRET`/`CRM_CRON_SECRET` environment value. Keep secret values out of git, logs, issue comments, test fixtures, and audit exports. Rotate by updating the receiving environment and then the scheduler source, verifying an authorized smoke request and an unauthorized request without printing the secret.
 
+## Auth Action Rate Limiting
+
+`signUp`, `resendConfirmationEmail`, and `requestPasswordReset`
+(`app/auth/actions.js`) are unauthenticated Server Actions that each can
+trigger a Resend send. `lib/rateLimit.js` throttles them with Upstash Redis
+(sliding window, 5 requests / 10 min, keyed separately by client IP and by
+the submitted email) — see `ADR-002-contact-form-rate-limiting.md` for why an
+in-memory limiter doesn't work here and why these need Upstash rather than a
+Vercel Firewall path rule.
+
+Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in Vercel Project
+Settings → Environment Variables (from an Upstash Redis database's REST
+credentials) to activate it. Without those two variables the limiter is
+inert — `checkAuthRateLimit` fails open and every request is allowed, so
+local dev and any environment without the credentials behave exactly as
+before this was added.
+
 ## Safe Smoke Test
 
 Use only a controlled preview recipient and a verified Resend sender. Never use a client or personal inbox for a queue smoke test. A safe smoke test has these steps:

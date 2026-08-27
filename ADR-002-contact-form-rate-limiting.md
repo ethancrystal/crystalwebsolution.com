@@ -4,6 +4,16 @@
 **Date:** 2026-08-14
 **Deciders:** Moiz Jamil (pending)
 
+**2026-08-26 update:** the "Revisit" item below — Server Actions needing
+Option C because a Vercel Firewall path rule can't isolate one action from
+others on the same page POST — has happened, for a different set of
+endpoints than this ADR's original scope. `signUp`, `resendConfirmationEmail`,
+and `requestPasswordReset` (`app/auth/actions.js`) are now rate limited via
+Upstash Redis; see `lib/rateLimit.js` and the "Auth Action Rate Limiting"
+section of `docs/CRM-OPERATIONS.md`. `POST /api/contact` itself is unchanged
+and this ADR's Option A recommendation for it still stands as proposed,
+not yet implemented.
+
 ## Context
 
 `POST /api/contact` ([app/api/contact/route.js](app/api/contact/route.js)) is unauthenticated by

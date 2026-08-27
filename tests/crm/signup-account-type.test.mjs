@@ -77,6 +77,48 @@ test('signup rejects an unrecognised account type instead of coercing it', async
   assert.match(actions, /account_type: accountType/);
 });
 
+test('signup does not reveal whether an email is already registered', async () => {
+  const actions = await readFile('app/auth/actions.js', 'utf8');
+
+  // On an "already registered" error from generateLink, signUp must redirect
+  // to the same /auth/confirm outcome as a real signup instead of returning
+  // the error to the caller - otherwise this form is the one place in the
+  // auth flow that leaks account existence (resendConfirmationEmail and
+  // requestPasswordReset both deliberately avoid this).
+  const signUpBody = actions.slice(actions.indexOf('export async function signUp'), actions.indexOf('export async function signIn'));
+  assert.match(signUpBody, /already registered/);
+  assert.match(signUpBody, /already been registered/);
+  assert.match(signUpBody, /redirect\(`\/auth\/confirm\?email=\$\{encodeURIComponent\(email\)\}`\)/);
+});
+
+test('signup, resend-confirmation, and password-reset are rate limited before any Resend/admin call', async () => {
+  const actions = await readFile('app/auth/actions.js', 'utf8');
+
+  assert.match(actions, /import \{ checkAuthRateLimit \} from '@\/lib\/rateLimit'/);
+
+  const bodies = {
+    signUp: actions.slice(actions.indexOf('export async function signUp'), actions.indexOf('export async function signIn')),
+    resendConfirmationEmail: actions.slice(
+      actions.indexOf('export async function resendConfirmationEmail'),
+      actions.indexOf('export async function requestPasswordReset'),
+    ),
+    requestPasswordReset: actions.slice(
+      actions.indexOf('export async function requestPasswordReset'),
+      actions.indexOf('export async function updatePassword'),
+    ),
+  };
+
+  for (const [name, body] of Object.entries(bodies)) {
+    assert.match(body, /checkAuthRateLimit\(/, `${name} does not call checkAuthRateLimit`);
+    // The rate-limit check must run before the action's first admin/generateLink
+    // call, not after - otherwise a throttled request has already done the
+    // expensive/abusable work by the time it's rejected.
+    const rateLimitIndex = body.indexOf('checkAuthRateLimit(');
+    const adminCallIndex = body.indexOf('generateLink(');
+    assert.ok(rateLimitIndex >= 0 && adminCallIndex > rateLimitIndex, `${name} checks the rate limit after its admin call`);
+  }
+});
+
 test('a missing service-role key degrades to a message, not a server-render error', async () => {
   const [authActions, adminActions] = await Promise.all([
     readFile('app/auth/actions.js', 'utf8'),

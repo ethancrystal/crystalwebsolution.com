@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient, buildVerifyUrl } from '@/lib/supabase/admin';
+import { checkAuthRateLimit } from '@/lib/rateLimit';
 import { friendlyAuthError } from '@/lib/auth-errors';
 import { sendTemplate } from '@/lib/email/resend';
 import {
@@ -39,6 +40,11 @@ export async function signUp(formData) {
     return { error: 'Choose whether this is a client or employee account.' };
   }
 
+  const { allowed } = await checkAuthRateLimit('signup', email);
+  if (!allowed) {
+    return { error: "Too many attempts. Please wait a few minutes and try again." };
+  }
+
   // Uses generateLink() + Resend instead of the anon client's signUp(),
   // which would send Supabase's own confirmation email - see
   // lib/email/resend.js for why every auth-flow email goes through here.
@@ -64,6 +70,15 @@ export async function signUp(formData) {
   });
 
   if (error) {
+    // Anti-enumeration: an "already registered" error would otherwise be the
+    // one signal on this form that reveals whether an email has an account
+    // (resendConfirmationEmail/requestPasswordReset below deliberately avoid
+    // this). Report the same generic "check your email" outcome as a real
+    // signup instead - no email goes out, since we return before sendTemplate.
+    const message = error.message?.toLowerCase() ?? '';
+    if (message.includes('already registered') || message.includes('already been registered')) {
+      redirect(`/auth/confirm?email=${encodeURIComponent(email)}`);
+    }
     return { error: friendlyAuthError(error.message) };
   }
 
@@ -176,6 +191,15 @@ export async function resendConfirmationEmail(formData) {
     return { error: 'Email is required' };
   }
 
+  // Same generic success as every other outcome here, including the
+  // misconfiguration guard below - a distinct "too many attempts" response
+  // would be the one signal on this form that reveals a request was even
+  // evaluated differently from a normal one.
+  const { allowed } = await checkAuthRateLimit('resend-confirmation', email);
+  if (!allowed) {
+    return { success: true };
+  }
+
   // Mirrors signUp()'s guard. Reports the same generic success as every other
   // outcome here so a misconfiguration cannot be used to probe for accounts.
   let adminClient;
@@ -215,6 +239,14 @@ export async function requestPasswordReset(formData) {
 
   if (!email) {
     return { error: 'Email is required' };
+  }
+
+  // Same anti-enumeration reasoning as resendConfirmationEmail() above: a
+  // distinct rate-limited response would itself be a signal, so this stays
+  // indistinguishable from a normal success.
+  const { allowed } = await checkAuthRateLimit('password-reset', email);
+  if (!allowed) {
+    return { success: true };
   }
 
   // Uses generateLink() + Resend instead of resetPasswordForEmail(), same
