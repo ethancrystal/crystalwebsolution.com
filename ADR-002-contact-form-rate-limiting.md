@@ -11,8 +11,11 @@ also covers `signUp`/`resendConfirmationEmail`/`requestPasswordReset` in
 cannot reach at all (see the original "Revisit" note below). Implementation:
 [`lib/rateLimit.mjs`](lib/rateLimit.mjs), wired into
 [`app/api/contact/route.js`](app/api/contact/route.js) and
-[`app/auth/actions.js`](app/auth/actions.js). Sliding window, 5 requests per
-10 minutes per IP per endpoint, matching the starting point suggested below.
+[`app/auth/actions.js`](app/auth/actions.js). The contact endpoint uses a
+sliding window of 5 requests per 10 minutes per IP. The three auth actions use
+the same window independently for both client IP and normalized submitted
+email, preventing address rotation from one IP and IP rotation for one
+address.
 Fails open (no throttling) until `UPSTASH_REDIS_REST_URL` and
 `UPSTASH_REDIS_REST_TOKEN` are set — create a free Upstash Redis database and
 add both as environment variables in Vercel to activate it. A Vercel
