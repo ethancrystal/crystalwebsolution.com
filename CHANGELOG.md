@@ -5,6 +5,24 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.11 — 2026-08-29
+
+- Fix `updateProjectTask`'s revalidation bug: it passed the RPC-returned task
+  id to `revalidateAllProjectPaths` instead of the project id, so a task
+  update would never revalidate the right `/dashboard`, `/team`, or
+  `/admin/projects` pages. No UI calls this server action yet, so this was a
+  latent bug; fixed now, before any task-edit UI ships, matching every
+  sibling action's established form-supplied-`projectId` pattern. Added a
+  regression test.
+- The vitest wiring fix originally paired with this bug fix (scoping
+  `vitest.config.js`'s `include` glob off the `node:test`-based `.test.mjs`
+  files) turned out to already be live on `main` via the separate
+  `test:marketing` script, added independently while this branch was open —
+  same fix, different script name. Dropped the redundant `test:unit` script
+  this PR would have added and documented the existing `test:marketing`
+  command in `AGENTS.md`/`CLAUDE.md` instead, rather than ship two
+  differently-named commands that do the same thing.
+
 ## v1.09 — 2026-08-29
 
 - Phase 3 of the architecture-cleanup refactor plan: JSDoc-based type safety,
