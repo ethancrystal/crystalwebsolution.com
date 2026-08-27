@@ -5,6 +5,18 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.05 — 2026-08-27
+
+- Fix `useUserRole()` reading `user.app_metadata.role`, a claim this app
+  never sets — `isAdmin`/`isPm` were always `false`, silently redirecting
+  real admins off `/admin/users` and hiding admin-only controls on the
+  companies/contacts/deals pages. It now reads `role` from the `profiles`
+  table, matching `middleware.js`.
+- Add a `requireRole()` backstop to the three portal layouts
+  (`app/admin`, `app/dashboard`, `app/team`), which were bare
+  pass-throughs relying entirely on middleware. Allowed roles mirror
+  `lib/auth/roles.mjs`'s existing portal mapping exactly.
+
 ## v1.04 — 2026-08-27
 
 - Add a CI test gate: `docker-ci.yml` now runs `pnpm test` and `pnpm build`
