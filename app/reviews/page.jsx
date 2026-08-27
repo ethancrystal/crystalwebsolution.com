@@ -91,8 +91,15 @@ export default function ReviewsPage() {
           </SectionReveal>
 
           <div className="review-list">
-            {REVIEWS.map((review) => (
-              <article key={review.id} id={review.id} className={`review-card review-card-${review.rating}`}>
+            {REVIEWS.map((review, reviewIndex) => (
+              <SectionReveal
+                as="article"
+                key={review.id}
+                id={review.id}
+                className={`review-card review-card-${review.rating}`}
+                direction="up"
+                delay={Math.min(reviewIndex * 0.05, 0.3)}
+              >
                 <header className="review-card-header">
                   <div>
                     <h3>{review.reviewer}</h3>
@@ -113,7 +120,7 @@ export default function ReviewsPage() {
                     <p>{review.reply.body}</p>
                   </aside>
                 )}
-              </article>
+              </SectionReveal>
             ))}
           </div>
         </section>

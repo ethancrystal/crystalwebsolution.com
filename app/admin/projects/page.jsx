@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { listProjectsForViewer } from '@/lib/crm/projects';
+import { SkeletonTable } from '@/components/crm/Skeleton';
 
 const STATUS_FILTERS = [
   { value: '', label: 'All statuses' },
@@ -94,7 +95,7 @@ export default function AdminProjectsPage() {
       </div>
 
       {isLoading ? (
-        <div className="crm-loading">Loading projects...</div>
+        <SkeletonTable columns={5} />
       ) : filtered.length === 0 ? (
         <div className="crm-empty">No projects match the current filters.</div>
       ) : (

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import EntityNotes from '@/components/crm/EntityNotes';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 function formatDate(value) {
   if (!value) return '-';
@@ -75,7 +76,7 @@ export default function ContactDetailPage() {
   if (isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonDetail fields={8} />
       </div>
     );
   }

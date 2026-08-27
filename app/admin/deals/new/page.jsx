@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
 import { PROJECT_TYPE_OPTIONS } from '@/lib/projectTypes';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 const STAGE_OPTIONS = [
   { value: 'prospecting', label: 'Prospecting' },
@@ -142,7 +143,7 @@ export default function NewDealPage() {
   if (isLoading || isRoleLoading || !isAdmin) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonDetail fields={9} />
       </div>
     );
   }

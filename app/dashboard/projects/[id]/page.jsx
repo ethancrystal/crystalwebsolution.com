@@ -19,6 +19,7 @@ import ProjectTasks from '@/components/crm/ProjectTasks';
 import ProjectFiles from '@/components/crm/ProjectFiles';
 import ProjectApprovals from '@/components/crm/ProjectApprovals';
 import ProjectThread from '@/components/crm/ProjectThread';
+import { LoadingState } from '@/components/crm/Spinner';
 import NotesPanel from '@/components/crm/NotesPanel';
 import NotificationsPanel from '@/components/crm/NotificationsPanel';
 
@@ -92,7 +93,7 @@ export default function ClientProjectPage() {
   if (isLoading) {
     return (
       <div className="crm-project-page">
-        <div className="crm-loading">Loading project...</div>
+        <LoadingState label="Loading project..." />
       </div>
     );
   }

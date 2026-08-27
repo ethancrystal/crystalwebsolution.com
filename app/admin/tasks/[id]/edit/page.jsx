@@ -8,6 +8,7 @@ import {
   TASK_PRIORITIES,
   TASK_STATUSES,
 } from '@/lib/crm/project-contract.mjs';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 const STATUS_OPTIONS = TASK_STATUSES;
 const PRIORITY_OPTIONS = TASK_PRIORITIES;
@@ -146,7 +147,7 @@ export default function EditTaskPage() {
   if (isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonDetail fields={8} />
       </div>
     );
   }

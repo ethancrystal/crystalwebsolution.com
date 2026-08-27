@@ -8,6 +8,7 @@ import { homeForRole } from '@/lib/auth/roles.mjs';
 import { listProjectsForViewer } from '@/lib/crm/projects';
 import BriefSubmissionForm from '@/components/crm/BriefSubmissionForm';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
+import { LoadingState } from '@/components/crm/Spinner';
 
 const PROJECT_STATUS_LABELS = {
   brief_submitted: 'Brief Submitted',
@@ -105,7 +106,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="crm-dashboard">
-        <div className="crm-loading">Loading...</div>
+        <LoadingState label="Loading..." />
       </div>
     );
   }
@@ -113,7 +114,7 @@ export default function DashboardPage() {
   if (profile && profile.role === 'client' && !profile.company_id) {
     return (
       <div className="crm-dashboard">
-        <div className="crm-loading">Opening onboarding…</div>
+        <LoadingState label="Opening onboarding…" />
       </div>
     );
   }

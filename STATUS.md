@@ -1,7 +1,7 @@
 # CD Sportswear USA CRM - Implementation Status
 
-## 📅 Last Updated: 2026-08-13
-## 👤 Last Agent: Parallel audit subagents (3-way)
+## 📅 Last Updated: 2026-08-26
+## 👤 Last Agent: Frontend finishing-touches pass (4 parallel audit subagents + implementation)
 ## 🔗 Current Branch: `main` (confirmed at `e992809` locally and on `origin/main`)
 ## 🔑 Source of Truth
 - Checked-in migrations: canonical `supabase/migrations/0001` … `0023`;
@@ -12,6 +12,107 @@
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
 - Supabase project ref: `wmnjosiikehsuaqucvja`
+
+## 📌 Session update (2026-08-26, frontend finishing-touches pass — v1.02)
+
+Ran 4 parallel read-only audit subagents (globals.css token drift,
+inner-marketing-page consistency, orphaned-file scan, CRM loading-state
+coverage) against current `main`, then implemented the confirmed low-risk
+findings directly (worktree `worktree-tender-scribbling-panda`). `pnpm build`
+clean, `pnpm test` 420/420 (2 new assertions added, see below). Full detail
+in `CHANGELOG.md`'s `v1.02` entry.
+
+**Corrections to prior claims in this file:**
+- **Reviews page was NOT fully revealed as claimed above** (see the
+  2026-08-08 entry's plan table, item 4: "Reviews — IMPLEMENTED … all
+  revealed"). Only the archive section's *heading* had a `SectionReveal`;
+  the actual review-card list (`app/reviews/page.jsx`) had zero entrance
+  animation since it was written. Fixed: each card now gets the same
+  staggered reveal blog/work list items already use.
+- **List-page loading-state coverage was overstated.** `app/admin/projects/page.jsx`
+  was still on plain `"Loading projects..."` text — the "list pages done,
+  detail/edit/new/workspace pages still plain text" framing (2026-08-04
+  entry, "In progress" note) missed this one list page. Fixed along with
+  the rest of Tier 1 below.
+
+**What shipped this session:**
+1. **CRM loading-state pass — Tier 1 (full-page/section) now complete.**
+   `components/crm/Spinner.jsx`'s `LoadingState` and
+   `components/crm/Skeleton.jsx`'s `SkeletonDetail`/`SkeletonTable` (built
+   in PR #52, documented as unfinished ever since) are now wired into all
+   ~20 remaining plain-text `"Loading..."` blocks: 12 record detail/edit/new
+   forms (`SkeletonDetail`, fields count matched to each entity's real form
+   field count), 7 dashboard/workspace/kanban/gate pages plus the one missed
+   list page (`LoadingState`/`SkeletonTable`), and 2 sub-section spots inside
+   `EntityNotes.jsx`/`NotesPanel.jsx` (inline `Spinner`).
+   **Still open, deliberately not done this session:** Tier 2 — ~11 inline
+   button-loading texts (`'Saving...'`, `'Submitting...'`, `'Uploading...'`,
+   `'Sending...'` across companies/contacts/deals/tasks forms and
+   `ProjectThread.jsx`/`ProjectFiles.jsx`) never adopted `<Spinner inline />`
+   either. Same fix shape, smaller/lower-priority, left for a follow-up pass.
+2. **`components/marketing/ServiceEmblem.jsx`'s default SVG variant now
+   gates its SMIL `<animate>`/`<animateTransform>`/`<animateMotion>`
+   elements on `prefers-reduced-motion`** (new `useReducedMotion` hook,
+   mirrors `ServiceEmblem3D.jsx`'s existing `matchMedia` + change-listener
+   pattern). These elements run outside CSS, so `globals.css`'s existing
+   `prefers-reduced-motion` rule for the (unused) `--static` variant never
+   reached the real animated glyphs `/services` actually renders. New
+   test coverage in `tests/marketing/serviceEmblemReducedMotion.test.jsx`.
+3. **`app/work/[slug]/page.jsx` was missing the shared `.mkt-inner` class**
+   every other detail/index page (`work` index, `reviews`, `blog`,
+   embroidery) gets, so case-study pages rendered at `max-width: 1200px`
+   instead of the site-wide `1248px`. Verified safe before fixing: git
+   history shows the class was never present (not a regression), and every
+   CSS rule scoped under `.case`/`.case-gallery`/`.case-nav-rail`/`.case-beats`
+   uses fluid units (`fr`, `ch`, percentage) with no fixed-pixel or
+   absolute/sticky-positioned children that a 48px width change could break.
+
+**Findings surfaced but NOT acted on this session (need owner input, per
+this repo's "confirm before deleting" rule):**
+- **Orphaned files** (zero references anywhere in `app/`/`components/`/`lib/`/`tests/`):
+  `components/ui/unicorn-studio-background.jsx` and
+  `components/auth/UnicornBackground.jsx` (superseded by the React-Bits
+  background swap, commit `ee7c264` — high-confidence dead code).
+  `components/three/FlyingCarousel.jsx` is already documented elsewhere
+  (`docs/REPOSITORY-CLEANUP-2026-08-02.md`) as intentionally retained
+  dormant code — left alone. `components/BorderGlow.jsx`,
+  `components/GlyphMask.jsx`, `components/ui/hero-carousel.jsx`,
+  `components/ui/image-stream-hero.jsx`, `lib/proceduralArt.js` read as one
+  unfinished, never-wired visual-effects feature set. Test-only (no
+  production import): `components/marketing/ImageBlock.jsx` (+ its
+  `.module.css`), `components/marketing/Layout.jsx`,
+  `components/marketing/MarketingHeader.jsx` (superseded by
+  `SubpageNav.jsx`), `lib/motionStudies.mjs`.
+- **`app/globals.css` design-token drift** (documented as a finding in the
+  historical `docs/PIXEL-POLISH-PLAN.md`, re-verified current and worse):
+  14 distinct one-off font-size values (0.58rem–0.88rem) doing the same
+  eyebrow/label/caption job with no shared token; no `--text-eyebrow`/
+  `--text-caption`/`--text-meta` tokens exist yet (safe to add, no
+  collision); large-headline scale (3–12rem) has no documented hierarchy;
+  `var(--cyan)` outnumbers `var(--blue)`/`var(--violet)` roughly 8:1
+  (117/15/12), concentrated almost entirely in three places (`--accent-grad`
+  token defs, the `.mkt-emblem` glow component, a few standalone accents).
+  **Deliberately not touched this session** — this needs either a dedicated
+  token-introduction pass folded into files already being edited (per the
+  plan doc's own "don't do a single giant CSS rewrite in one shot"
+  guidance) or a live-browser verification pass across every affected
+  section, neither of which fits a same-session "finishing touches" scope
+  safely.
+- **Heading-hierarchy inconsistency**: `WorkLibrary.jsx`/`blog/page.jsx`
+  card titles use `<h2>` sibling-level with their section's own `<h2>`;
+  `reviews/page.jsx` correctly nests review-card titles as `<h3>`. Reviews
+  is the outlier that got it right — worth a decision on which two pages
+  to correct, not fixed here (low risk but touches semantic markup other
+  code/tests don't currently assert on).
+- **Inconsistent inner-page navigation idiom**: `/services/[slug]` shows a
+  persistent visible breadcrumb nav, `/work/[slug]` shows a back-link above
+  content, `/blog/[slug]` shows one below content — three templates, three
+  patterns, no canonical choice documented.
+- **`sceneVariant` coverage gap**: only `about`/`services` (index)/`process`/
+  `contact` pass a themed `IdleScene` variant to `MarketingShell`; `/work`,
+  `/work/[slug]`, `/reviews`, `/blog`, `/blog/[slug]`, and the embroidery
+  page all fall back to the generic default background. May be intentional
+  (four bespoke variants by design), not confirmed either way.
 
 ## 📌 Session update (2026-08-10, multi-agent code review + fixes)
 

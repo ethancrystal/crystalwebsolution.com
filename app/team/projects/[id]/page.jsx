@@ -8,6 +8,7 @@ import { ALLOWED_TRANSITIONS, canTransition } from '@/lib/crm/project-contract.m
 import { getProjectWorkspace } from '@/lib/crm/projects';
 import { transitionProject, createProjectTask } from '@/app/actions/project-actions';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
+import { LoadingState } from '@/components/crm/Spinner';
 import ProjectOverview from '@/components/crm/ProjectOverview';
 import ProjectTimeline from '@/components/crm/ProjectTimeline';
 import ProjectTasks from '@/components/crm/ProjectTasks';
@@ -128,7 +129,7 @@ export default function TeamProjectPage() {
   if (isLoading) {
     return (
       <div className="crm-project-page">
-        <div className="crm-loading">Loading project...</div>
+        <LoadingState label="Loading project..." />
       </div>
     );
   }

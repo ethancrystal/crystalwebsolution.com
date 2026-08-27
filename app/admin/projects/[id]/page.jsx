@@ -15,6 +15,7 @@ import ProjectFiles from '@/components/crm/ProjectFiles';
 import ProjectApprovals from '@/components/crm/ProjectApprovals';
 import ProjectThread from '@/components/crm/ProjectThread';
 import NotesPanel from '@/components/crm/NotesPanel';
+import { LoadingState } from '@/components/crm/Spinner';
 
 export default function AdminProjectPage() {
   const params = useParams();
@@ -148,7 +149,7 @@ export default function AdminProjectPage() {
   if (isLoading) {
     return (
       <div className="crm-project-page">
-        <div className="crm-loading">Loading project...</div>
+        <LoadingState label="Loading project..." />
       </div>
     );
   }

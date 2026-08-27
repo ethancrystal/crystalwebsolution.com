@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 const INITIAL_FORM = {
   name: '',
@@ -71,7 +72,7 @@ export default function NewCompanyPage() {
   if (isRoleLoading || !isAdmin) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonDetail fields={6} />
       </div>
     );
   }

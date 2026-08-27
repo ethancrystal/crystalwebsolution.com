@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 const INITIAL_FORM = {
   name: '',
@@ -94,7 +95,7 @@ export default function EditCompanyPage() {
   if (isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonDetail fields={6} />
       </div>
     );
   }

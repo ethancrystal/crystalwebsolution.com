@@ -8,6 +8,7 @@ import ProjectThread from '@/components/crm/ProjectThread';
 import NotesPanel from '@/components/crm/NotesPanel';
 import { useUserRole } from '@/lib/useUserRole';
 import { projectTypeLabel } from '@/lib/projectTypes';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 const STAGE_LABELS = {
   prospecting: 'Prospecting',
@@ -125,7 +126,7 @@ export default function DealDetailPage() {
   if (isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonDetail fields={9} />
       </div>
     );
   }
