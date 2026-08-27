@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import Link from 'next/link';
 import gsap from 'gsap';
 import SectionReveal from '../SectionReveal';
 import Marquee from '../Marquee';
@@ -10,7 +11,22 @@ import { scrollState } from '../../lib/scrollState';
 import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
 import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
 import { SERVICES } from '../../lib/services.mjs';
+import { SERVICE_PAGES, SERVICE_SLUG_BY_SIGNAL } from '../../lib/servicePages.mjs';
 import { STAGGER_ROW, DURATION_FAST, DURATION_NORMAL, EASE_SETTLE } from '../../lib/easing';
+
+// Per-row detail resolved once at module scope: the first three capabilities
+// from the service's own page record, and its /services/[slug] href derived
+// through the existing signal→slug join (never by munging the title). Both
+// halves are static data, so there is nothing to recompute per render.
+const SERVICE_DETAIL = SERVICES.map((service) => {
+  const page = SERVICE_PAGES.find((entry) => entry.signal === service.signal) || null;
+  const slug = SERVICE_SLUG_BY_SIGNAL[service.signal] || null;
+  return {
+    slug,
+    href: slug ? `/services/${slug}` : null,
+    capabilities: (page?.capabilities || []).slice(0, 3),
+  };
+});
 
 export default function Services() {
   const listRef = useRef(null);
@@ -150,29 +166,55 @@ export default function Services() {
           <div className="service-marker" ref={markerRef} aria-hidden="true">
             <span className="service-marker-num" ref={markerNumRef} />
           </div>
-          {SERVICES.map((s, i) => (
-            <SectionReveal
-              key={s.n}
-              className="service-row"
-              delay={i * STAGGER_ROW}
-              direction="left"
-              as="div"
-              onPointerEnter={() => focusRow(i)}
-              onFocus={() => focusRow(i)}
-              onPointerLeave={dim}
-              onBlur={() => {
-                isHoveringRef.current = false;
-                dim();
-              }}
-              data-service-index={i}
-              data-active="false"
-            >
-              <h3 className="service-title" data-hover data-cursor="✦">
-                <span className="service-title-inner">{s.title}</span>
-              </h3>
-              <p className="service-desc">{s.desc}</p>
-            </SectionReveal>
-          ))}
+          {SERVICES.map((s, i) => {
+            const detail = SERVICE_DETAIL[i];
+            return (
+              <SectionReveal
+                key={s.n}
+                className="service-row"
+                delay={i * STAGGER_ROW}
+                direction="left"
+                as="div"
+                onPointerEnter={() => focusRow(i)}
+                onFocus={() => focusRow(i)}
+                onPointerLeave={dim}
+                onBlur={() => {
+                  isHoveringRef.current = false;
+                  dim();
+                }}
+                data-service-index={i}
+                data-active="false"
+              >
+                <h3 className="service-title" data-hover data-cursor="✦">
+                  <span className="service-title-inner">{s.title}</span>
+                </h3>
+                <p className="service-desc">{s.desc}</p>
+                {/* Second-column detail block. React's onFocus/onBlur are
+                    focusin/focusout, so the link below drives the row's
+                    existing focusRow/dim handlers by bubbling — one focus
+                    stop per row, so there is no focus thrash. */}
+                <div className="service-row-more">
+                  {detail.capabilities.length > 0 && (
+                    <ul className="case-services service-chips" aria-label={`${s.title} capabilities`}>
+                      {detail.capabilities.map((capability) => (
+                        <li key={capability}>{capability}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {detail.href && (
+                    <Link
+                      className="link-underline service-more-link"
+                      href={detail.href}
+                      aria-label={`More info about ${s.title}`}
+                    >
+                      More info
+                      <span className="service-more-arrow" aria-hidden="true">→</span>
+                    </Link>
+                  )}
+                </div>
+              </SectionReveal>
+            );
+          })}
         </div>
       </div>
       <Marquee text="Strategy · Brand · Immersive 3D · Development · Motion" className="services-marquee" />

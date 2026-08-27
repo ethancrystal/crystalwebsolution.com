@@ -6,11 +6,18 @@ import * as THREE from 'three';
 import { scrollState } from '../../lib/scrollState';
 import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
 import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
+import { approachBeacon } from '../../lib/beacon';
 
 // The approach beat: four step-markers ("Discover / Design / Build /
 // Launch") orbit a small core, dark until Approach's own measured scroll
 // span opens (beatProgress.approach -> beatProgress.stories). Four equal
 // sub-ranges of one ease value light up in turn.
+//
+// The DOM accordion in components/sections/Approach.jsx overrides that
+// scroll-derived step by writing its expanded index into the
+// `approachBeacon` singleton (lib/beacon.js) — the same DOM->canvas channel
+// Services/ServiceRail use. -1 means "nothing expanded", and the scroll math
+// below takes over again. No prop crosses the DOM/canvas boundary.
 //
 // Each marker's glow is a tiny mass-spring-damper (critically-underdamped,
 // so it overshoots slightly and settles) rather than a flat exponential
@@ -22,6 +29,9 @@ const ANGLES = Array.from({ length: COUNT }, (_, i) => (i / COUNT) * Math.PI * 2
 const RADIUS = 1.9;
 const STIFFNESS = 90;
 const DAMPING = 9;
+const LEVEL_UNLIT = 0.18;
+const LEVEL_LIT = 1;
+const LEVEL_SELECTED = 1.6;
 
 export default function ApproachCompass({ position = [0, 0, 0], animate = true }) {
   const group = useRef();
@@ -45,13 +55,17 @@ export default function ApproachCompass({ position = [0, 0, 0], animate = true }
     const b = beatProgress.stories;
     const span = Math.max(b - a, 0.0001);
     const ease = THREE.MathUtils.clamp((scrollState.progress - a) / span, 0, 1);
-    const activeStep = Math.min(COUNT - 1, Math.floor(ease * COUNT));
+    const scrollStep = Math.min(COUNT - 1, Math.floor(ease * COUNT));
+    // The expanded accordion step wins; -1 falls back to the scroll step.
+    const selected = approachBeacon.step;
+    const activeStep = selected >= 0 && selected < COUNT ? selected : scrollStep;
 
     group.current.rotation.y += dt * 0.12;
 
     for (let i = 0; i < group.current.children.length; i++) {
       const m = group.current.children[i];
-      const target = i <= activeStep ? 1 : 0.18;
+      const target =
+        selected === i ? LEVEL_SELECTED : i <= activeStep ? LEVEL_LIT : LEVEL_UNLIT;
       const s = springs.current[i];
       const force = (target - s.value) * STIFFNESS - s.velocity * DAMPING;
       s.velocity += force * dt;
