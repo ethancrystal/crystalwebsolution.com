@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 function formatDate(value) {
   if (!value) return '-';
@@ -86,7 +87,7 @@ export default function TaskDetailPage() {
   if (isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonDetail />
       </div>
     );
   }
@@ -438,14 +439,6 @@ export default function TaskDetailPage() {
           margin-right: auto;
         }
 
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
       `}</style>
     </div>
   );

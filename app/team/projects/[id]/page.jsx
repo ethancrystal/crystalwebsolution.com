@@ -15,6 +15,7 @@ import ProjectFiles from '@/components/crm/ProjectFiles';
 import ProjectApprovals from '@/components/crm/ProjectApprovals';
 import ProjectThread from '@/components/crm/ProjectThread';
 import NotesPanel from '@/components/crm/NotesPanel';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 export default function TeamProjectPage() {
   const params = useParams();
@@ -128,7 +129,7 @@ export default function TeamProjectPage() {
   if (isLoading) {
     return (
       <div className="crm-project-page">
-        <div className="crm-loading">Loading project...</div>
+        <SkeletonDetail />
       </div>
     );
   }
@@ -213,7 +214,6 @@ export default function TeamProjectPage() {
           padding: 2rem;
         }
 
-        .crm-loading,
         .crm-error {
           display: flex;
           align-items: center;

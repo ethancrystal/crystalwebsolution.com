@@ -5,6 +5,7 @@ import Link from 'next/link';
 import gsap from 'gsap';
 import { SITE } from '../lib/site';
 import { CRM_ENABLED } from '../lib/crmFlag';
+import { EASE_SETTLE } from '../lib/easing';
 
 // Fullscreen overlay menu: big staggered links + contact block.
 export default function Menu({ open, onClose }) {
@@ -34,7 +35,7 @@ export default function Menu({ open, onClose }) {
       } else {
         tl = gsap.timeline();
         tl.to(el, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.7, ease: 'power4.inOut' })
-          .fromTo(links, { yPercent: 120 }, { yPercent: 0, duration: 0.6, stagger: 0.07, ease: 'power3.out' }, '-=0.25')
+          .fromTo(links, { yPercent: 120 }, { yPercent: 0, duration: 0.6, stagger: 0.07, ease: EASE_SETTLE }, '-=0.25')
           .fromTo(meta, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.05 }, '-=0.3');
       }
 
