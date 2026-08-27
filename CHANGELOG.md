@@ -5,6 +5,12 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.03 — 2026-08-27
+
+- Remove `flake.nix`, `shell.nix`, and `.envrc` — the Nix dev-environment
+  shims were unreferenced by docs, CI, or tooling and added no value over
+  the existing pnpm/Node workflow.
+
 ## v1.02 — 2026-08-26
 
 - Add `council.yaml` and `council/prompts/` — configures the Agent Council
