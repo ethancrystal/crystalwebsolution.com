@@ -18,9 +18,19 @@ test('each portal maps to one exact role and home', () => {
 });
 
 test('middleware and pages do not use app_metadata as role authority', async () => {
-  const middleware = await import('node:fs/promises').then((fs) => fs.readFile('middleware.js', 'utf8'));
+  const readFile = (path) => import('node:fs/promises').then((fs) => fs.readFile(path, 'utf8'));
+  const middleware = await readFile('middleware.js');
   assert.doesNotMatch(middleware, /app_metadata\??\.role|userMetadata\??\.role/);
   assert.match(middleware, /from\(['"]profiles['"]\)/);
+
+  const useUserRole = await readFile('lib/useUserRole.js');
+  assert.doesNotMatch(useUserRole, /\.role\s*=\s*.*app_metadata|app_metadata\??\.role|userMetadata\??\.role/);
+  assert.match(useUserRole, /from\(['"]profiles['"]\)/);
+});
+
+test('the CRM kill switch matcher covers the auth route surface', async () => {
+  const middleware = await import('node:fs/promises').then((fs) => fs.readFile('middleware.js', 'utf8'));
+  assert.match(middleware, /['"]\/auth\/:path\*['"]/);
 });
 
 test('the employee home is guarded and does not expose unscoped project data', async () => {
