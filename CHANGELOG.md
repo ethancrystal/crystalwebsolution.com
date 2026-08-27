@@ -7,28 +7,25 @@ about to be, if the PR hasn't merged yet).
 
 ## v1.05 — 2026-08-27
 
-- Fix `cleanup_stale_project_attachments`: it was deleting rows directly
-  from `storage.objects`, which Supabase blocks — this had been failing on
-  nearly every `crm-notifications` cron run since 2026-08-17. Migration
-  `0038` changes the RPC to only claim/delete the metadata row and return
-  each `storage_path`; the cron route now removes the actual object via the
-  Storage API (`supabase.storage.from('project-files').remove(...)`).
-- Launch the CRM: it is now intentionally publicly reachable in Production
-  (previously gated pre-launch). `CLAUDE.md` updated to reflect launched
-  state and the production domain change (crystalwebsolution.com →
-  cdsportswearusa.com).
-- UI polish pass (8 fixes, all mechanical/no design changes): import
-  existing `lib/easing.js` tokens instead of duplicating raw GSAP ease
-  strings (Reveal.jsx, Menu.jsx, About.jsx); add missing `:focus-visible`
-  states to the nav login/burger controls and three marketing anchor types;
-  add missing hover/focus states to the CRM approval buttons and workspace
-  sidebar toggle; wire the unused `SkeletonDetail`/`SkeletonTable`
-  components into 11 CRM pages that previously showed bare "Loading..."
-  text; remove dead `.crm-loading` CSS left behind in 5 pages that already
-  migrated to `SkeletonTable`; fix `app/admin/projects` showing "no results
-  match filters" even with zero filters applied; strip inert Tailwind
-  utility classes from `MagnifiedBento.jsx` (this project has no Tailwind
-  build).
+- Fix `useUserRole()` reading `user.app_metadata.role`, a claim this app
+  never sets — `isAdmin`/`isPm` were always `false`, silently redirecting
+  real admins off `/admin/users` and hiding admin-only controls on the
+  companies/contacts/deals pages. It now reads `role` from the `profiles`
+  table, matching `middleware.js`.
+- Add a `requireRole()` backstop to the three portal layouts
+  (`app/admin`, `app/dashboard`, `app/team`), which were bare
+  pass-throughs relying entirely on middleware. Allowed roles mirror
+  `lib/auth/roles.mjs`'s existing portal mapping exactly.
+- Wire the 8 existing `tests/marketing/*.test.jsx` vitest tests into a
+  new `pnpm test:marketing` script and the `docker-ci.yml` test job —
+  they had a working `vitest.config.js` but nothing ever ran them.
+- Fix `docker-ci.yml`'s CI test gate itself: it pinned Node 20, but
+  `pnpm@11.21.0` (this repo's pinned package manager) requires Node
+  >=22.13 and crashes immediately on Node 20 with
+  `ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite` — the gate v1.04 just added
+  has been failing on every PR since it merged, for this reason alone,
+  regardless of the PR's actual content. Bumped to Node 24, matching
+  local dev.
 
 ## v1.04 — 2026-08-27
 

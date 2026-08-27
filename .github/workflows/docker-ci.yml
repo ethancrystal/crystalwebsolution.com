@@ -28,7 +28,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
 
       - name: Install dependencies
@@ -36,6 +36,9 @@ jobs:
 
       - name: Run test suite
         run: pnpm test
+
+      - name: Run marketing component suite
+        run: pnpm test:marketing
 
       - name: Build
         run: pnpm build
