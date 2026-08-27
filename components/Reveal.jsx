@@ -3,6 +3,7 @@
 import { useRef, useEffect, createElement } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { EASE_SETTLE } from '../lib/easing';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -33,7 +34,7 @@ export default function Reveal({
       gsap.fromTo(
         el,
         { opacity: 0, y },
-        { opacity: 1, y: 0, duration, delay, ease: 'power3.out' }
+        { opacity: 1, y: 0, duration, delay, ease: EASE_SETTLE }
       );
     };
     const rect = el.getBoundingClientRect();

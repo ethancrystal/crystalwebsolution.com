@@ -1,8 +1,24 @@
 # ADR-002: Rate Limiting for the Public Contact Endpoint
 
-**Status:** Proposed
+**Status:** Implemented (Option C) — 2026-08-27
 **Date:** 2026-08-14
-**Deciders:** Moiz Jamil (pending)
+**Deciders:** Moiz Jamil
+
+**Update, 2026-08-27:** Implemented as Option C (Upstash Redis), not Option A.
+The owner did not confirm Vercel Plus/Pro Firewall availability, and Option C
+also covers `signUp`/`resendConfirmationEmail`/`requestPasswordReset` in
+`app/auth/actions.js` — those are Server Actions, which Option A's edge rule
+cannot reach at all (see the original "Revisit" note below). Implementation:
+[`lib/rateLimit.mjs`](lib/rateLimit.mjs), wired into
+[`app/api/contact/route.js`](app/api/contact/route.js) and
+[`app/auth/actions.js`](app/auth/actions.js). Sliding window, 5 requests per
+10 minutes per IP per endpoint, matching the starting point suggested below.
+Fails open (no throttling) until `UPSTASH_REDIS_REST_URL` and
+`UPSTASH_REDIS_REST_TOKEN` are set — create a free Upstash Redis database and
+add both as environment variables in Vercel to activate it. A Vercel
+Firewall rule (Option A) can still be added later as a defense-in-depth
+layer in front of `/api/contact` specifically; it isn't required now that
+Option C covers the endpoint.
 
 ## Context
 
@@ -109,10 +125,17 @@ revisiting then, not now.
 
 ## Action Items
 
-1. [ ] Confirm Vercel plan supports Firewall rate-limit rules (Pro or above)
-2. [ ] Add a rate-limit rule for `/api/contact` (suggest: 5 requests / 10 min
-   per IP as a starting point; tune after observing real traffic)
-3. [ ] Document the configured limit in `docs/CRM-OPERATIONS.md`
-4. [ ] If Vercel Firewall isn't available on the current plan, fall back to
-   Option C (Upstash) rather than Option B (in-memory) — Option B will not
-   work correctly on this deployment target
+1. [x] ~~Confirm Vercel plan supports Firewall rate-limit rules (Pro or
+   above)~~ — superseded; implemented Option C instead (see update above)
+2. [x] Add a rate-limit rule, 5 requests / 10 min per IP, per endpoint —
+   implemented in code (`lib/rateLimit.mjs`) rather than as a Vercel Firewall
+   rule; tune the `limit`/`windowSeconds` in each call site after observing
+   real traffic
+3. [ ] Create an Upstash Redis database and set `UPSTASH_REDIS_REST_URL` /
+   `UPSTASH_REDIS_REST_TOKEN` in Vercel's Production environment — without
+   these, the code fails open (no throttling), matching pre-fix behavior
+4. [x] ~~If Vercel Firewall isn't available on the current plan, fall back to
+   Option C (Upstash) rather than Option B (in-memory)~~ — done; Option C
+   was implemented directly
+5. [ ] Document the configured limit in `docs/CRM-OPERATIONS.md` once the
+   Upstash database is live

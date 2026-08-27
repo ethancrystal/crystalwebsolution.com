@@ -15,7 +15,7 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
       <header className="crm-workspace-header">
         <div className="crm-workspace-header-main">
           <a className="crm-workspace-brand" href="/" aria-label={`${SITE.name} home`}>
-            <img src={SITE.logoPath} alt={SITE.name} width="500" height="333" />
+            <img src={SITE.logoPath} alt={SITE.name} width="456" height="254" />
           </a>
           <div>
             <h1>{title}</h1>
@@ -117,6 +117,12 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
           border-radius: 6px;
           cursor: pointer;
           font-weight: 600;
+        }
+
+        .crm-workspace-sidebar-toggle:hover,
+        .crm-workspace-sidebar-toggle:focus-visible {
+          background: rgba(100, 200, 255, 0.14);
+          border-color: rgba(100, 200, 255, 0.55);
         }
 
         .crm-workspace-body {

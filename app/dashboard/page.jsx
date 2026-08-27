@@ -8,6 +8,7 @@ import { homeForRole } from '@/lib/auth/roles.mjs';
 import { listProjectsForViewer } from '@/lib/crm/projects';
 import BriefSubmissionForm from '@/components/crm/BriefSubmissionForm';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
+import { SkeletonTable } from '@/components/crm/Skeleton';
 
 const PROJECT_STATUS_LABELS = {
   brief_submitted: 'Brief Submitted',
@@ -105,7 +106,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="crm-dashboard">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonTable columns={2} />
       </div>
     );
   }

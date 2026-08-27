@@ -189,10 +189,22 @@ export default function ProjectApprovals({ approvals = [], canDecide = false, pr
           color: #86ffb2;
         }
 
+        .crm-approval-approve:hover:not(:disabled),
+        .crm-approval-approve:focus-visible {
+          border-color: rgba(100, 255, 150, 0.6);
+          box-shadow: 0 4px 16px rgba(100, 255, 150, 0.2);
+        }
+
         .crm-approval-reject {
           background: rgba(255, 100, 100, 0.1);
           border-color: rgba(255, 100, 100, 0.35);
           color: #ff9999;
+        }
+
+        .crm-approval-reject:hover:not(:disabled),
+        .crm-approval-reject:focus-visible {
+          border-color: rgba(255, 100, 100, 0.6);
+          box-shadow: 0 4px 16px rgba(255, 100, 100, 0.2);
         }
 
         .crm-approval-btn:disabled {

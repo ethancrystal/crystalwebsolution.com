@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
 import { PROJECT_TYPE_OPTIONS } from '@/lib/projectTypes';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 const STAGE_OPTIONS = [
   { value: 'prospecting', label: 'Prospecting' },
@@ -156,7 +157,7 @@ export default function EditDealPage() {
   if (isLoading) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonDetail />
       </div>
     );
   }
@@ -497,14 +498,6 @@ export default function EditDealPage() {
           margin-right: auto;
         }
 
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
       `}</style>
     </div>
   );
