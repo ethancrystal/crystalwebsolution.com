@@ -107,6 +107,17 @@ test('every auth template renders a subject, branded body and its CTA link', asy
   }
 });
 
+test('transactional templates render the canonical logo and accessible text fallback', async () => {
+  const { confirmSignupEmail } = await import('../lib/email/templates.js');
+  const rendered = confirmSignupEmail({
+    confirmUrl: 'https://www.crystalwebsolution.com/auth/verify?token_hash=abc&type=signup',
+    fullName: 'Ada',
+  });
+
+  assert.match(rendered.html, /https:\/\/www\.crystalwebsolution\.com\/cd-sportswear-usa-logo\.png/);
+  assert.match(rendered.html, /alt="CD Sportswear USA"/);
+});
+
 test('the password-changed notice carries no actionable auth link', async () => {
   const { passwordChangedEmail } = await import('../lib/email/templates.js');
   const rendered = passwordChangedEmail({ fullName: 'Ada' });

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import { IN_MOTION_CARDS } from '../lib/inMotionCards.mjs';
+import { CLIENT_TILE_IMAGES } from '../lib/clientTileImages.mjs';
 
 const storiesSource = readFileSync(
   new URL('../components/sections/Stories.jsx', import.meta.url),
@@ -47,12 +48,17 @@ test('Lab keeps the eight procedural service cards (no bitmap project images)', 
 });
 
 test('Motion marquee uses supplied public project images, not procedural art', () => {
-  const imageRefs = motionSource.match(/['"]\/projects\/[^'"]+['"]/g) || [];
-  assert.ok(imageRefs.length >= 6);
+  assert.match(motionSource, /CLIENT_TILE_IMAGES/);
+  assert.ok(CLIENT_TILE_IMAGES.length >= 6);
   assert.doesNotMatch(motionSource, /paletteArt\(/);
 });
 
-test('Motion marquee offsets the six supplied images across three rails so no row opens on the same tile', () => {
+test('Named Client registry provides unique authorized image sources', () => {
+  assert.equal(new Set(CLIENT_TILE_IMAGES).size, CLIENT_TILE_IMAGES.length);
+  assert.ok(CLIENT_TILE_IMAGES.every((imagePath) => imagePath.startsWith('/projects/clients/')));
+});
+
+test('Motion marquee offsets the supplied images across three rails so no row opens on the same tile', () => {
   assert.match(motionSource, /<WorkMarquee/);
   assert.match(workMarqueeSource, /rows = 3/);
   assert.match(workMarqueeSource, /offset/);

@@ -40,6 +40,11 @@ export const metadata = {
       'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
+  icons: {
+    icon: SITE.iconPath,
+    shortcut: SITE.iconPath,
+    apple: SITE.iconPath,
+  },
   robots: { index: true, follow: true },
   // Search Console's HTML-tag verification method. Omitted entirely when the
   // env var is unset so preview deploys don't claim the property.

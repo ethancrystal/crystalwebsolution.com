@@ -15,7 +15,7 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
       <header className="crm-workspace-header">
         <div className="crm-workspace-header-main">
           <a className="crm-workspace-brand" href="/" aria-label={`${SITE.name} home`}>
-            <img src={SITE.logoPath} alt={SITE.name} width="456" height="254" />
+            <img src={SITE.logoPath} alt={SITE.name} width={SITE.logoWidth} height={SITE.logoHeight} />
           </a>
           <div>
             <h1>{title}</h1>
