@@ -29,8 +29,12 @@ assets and compatibility URLs. CRM routes live under `/login`, `/dashboard`,
 **`main` is the production branch.** Vercel's Production Branch setting is
 `main` (verified against the Vercel API 2026-08-15): every merge into `main`
 auto-deploys to the Production environment and is aliased to
-crystalwebsolution.com. Work on a feature branch and land it in `main` via a
-reviewed PR — merging a PR into `main` IS deploying to production.
+cdsportswearusa.com — the production custom domain as of 2026-08-27.
+crystalwebsolution.com, the domain this repo is named for, no longer
+resolves; the change isn't recorded elsewhere in the repo, so treat this
+line as the source of truth until a fuller migration note exists. Work on a
+feature branch and land it in `main` via a reviewed PR — merging a PR into
+`main` IS deploying to production.
 
 - **Feature branches** — every push gets its own Vercel preview deployment
   (behind Vercel Authentication), so anything can be verified on a real
@@ -41,15 +45,17 @@ reviewed PR — merging a PR into `main` IS deploying to production.
   still exist but neither controls what's deployed; don't promote through
   them or base new work on them.
 
-**CRM visibility is an env var, not a branch.** The CRM is hidden on the
-live site via `NEXT_PUBLIC_CRM_ENABLED=false` set in Vercel's Project
-Settings -> Environment Variables for the Production environment only
-(`lib/crmFlag.js`): `middleware.js` redirects `/admin`, `/dashboard`,
-`/team`, `/login*`, `/signup`, `/forgot-password` straight home, and
-`components/Nav.jsx` / `Menu.jsx` hide the Log in / Client access links.
-To launch (or hide) the CRM, flip that one env var — and because
-`NEXT_PUBLIC_*` values are inlined at build time, a redeploy of `main` is
-required after changing it; editing the variable alone changes nothing.
+**CRM visibility is an env var, not a branch.** Whether the CRM is publicly
+reachable is controlled by `NEXT_PUBLIC_CRM_ENABLED`
+(`lib/crmFlag.js`), set in Vercel's Project Settings -> Environment
+Variables for the Production environment: it gates whether `middleware.js`
+redirects `/admin`, `/dashboard`, `/team`, `/login*`, `/signup`,
+`/forgot-password` straight home, and whether `components/Nav.jsx` /
+`Menu.jsx` show the Log in / Client access links. **As of 2026-08-27 the CRM
+is launched** — it is publicly reachable in Production, not pre-launch/
+hidden. To hide it again, set the flag to `false` and redeploy `main` —
+because `NEXT_PUBLIC_*` values are inlined at build time, editing the
+variable alone changes nothing until a rebuild ships.
 
 **Never run `vercel --prod` (or `vercel deploy --prod`) from a Claude Code
 session.** Vercel's CLI deploys straight to the production alias regardless
