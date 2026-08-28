@@ -81,6 +81,19 @@ test('portal chooser keeps the brand mark bounded and styles Link-rendered contr
   assert.doesNotMatch(page, /<style jsx global>/);
 });
 
+test('portal login form keeps the brand mark bounded and styles Link-rendered controls', async () => {
+  const form = await import('node:fs/promises').then((fs) => fs.readFile('components/auth/PortalLoginForm.jsx', 'utf8'));
+
+  assert.match(form, /width=\{SITE\.logoWidth\} height=\{SITE\.logoHeight\}/);
+  assert.match(form, /className="crm-login-logo"/);
+  assert.match(form, /:global\(\.crm-login-mark\)\s*\{[\s\S]*?width:\s*min\(100%,\s*11rem\)/);
+  assert.match(form, /\.crm-login-logo\s*\{[\s\S]*?width:\s*100%[\s\S]*?height:\s*auto/);
+  assert.match(form, /:global\(\.crm-login-mark:focus-visible\)/);
+  assert.match(form, /:global\(\.crm-signup-link a\)\s*\{[\s\S]*?color:\s*var\(--cyan\)/);
+  assert.match(form, /:global\(\.crm-signup-link a:hover\)/);
+  assert.doesNotMatch(form, /<style jsx global>/);
+});
+
 test('signup keeps the shared brand mark bounded without changing its form flow', async () => {
   const page = await import('node:fs/promises').then((fs) => fs.readFile('app/signup/page.jsx', 'utf8'));
 
