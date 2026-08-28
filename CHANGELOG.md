@@ -5,6 +5,17 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.07 — 2026-08-27
+
+- Fix two stale/miscalibrated claims in `CLAUDE.md` surfaced by an
+  evidence-calibration review: the "CRM is launched" line now says when it
+  was last directly HTTP-verified and prompts a re-check rather than
+  reading as a permanently-settled fact, since several merges to `main`
+  have deployed since that check ran. The migration-count line ("0001
+  through 0035 as of 2026-08-20") was stale (real head is now `0038`) and
+  is replaced with guidance to always check the directory instead of
+  citing a number that goes stale within days during active periods.
+
 ## v1.06 — 2026-08-27
 
 - Set the canonical contact email to `sales@cdsportswearusa.com` and the
