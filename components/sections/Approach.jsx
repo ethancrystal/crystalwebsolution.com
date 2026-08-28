@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SectionReveal from '../SectionReveal';
+import SectionHeader from '../shared/SectionHeader';
 import { useCardMouseReveal } from '../CardHoverReveal';
 import { lightApproach, dimApproach } from '../../lib/beacon';
 
@@ -125,12 +126,7 @@ export default function Approach() {
   return (
     <section className="section approach" id="approach" data-quiet>
       <div className="text-plate">
-        <p className="eyebrow">
-          <SectionReveal as="span" direction="left">How we work</SectionReveal>
-        </p>
-        <SectionReveal as="h2" direction="left" className="section-title">
-          Four steps. No shortcuts.
-        </SectionReveal>
+        <SectionHeader eyebrow="How we work" title="Four steps. No shortcuts." />
       </div>
 
       <div className="approach-accordion">

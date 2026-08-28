@@ -1,6 +1,7 @@
 'use client';
 
 import SectionReveal from '../SectionReveal';
+import SectionHeader from '../shared/SectionHeader';
 import ReviewCarousel from '../ui/review-carousel';
 import { REVIEWS } from '../../lib/reviews';
 
@@ -34,12 +35,7 @@ export default function Stories() {
   return (
     <section className="section stories" id="stories" data-quiet>
       <div className="text-plate">
-        <p className="eyebrow">
-          <SectionReveal as="span" direction="left">Client proof</SectionReveal>
-        </p>
-        <SectionReveal as="h2" direction="left" className="section-title">
-          Real clients. Real outcomes. No invented case studies.
-        </SectionReveal>
+        <SectionHeader eyebrow="Client proof" title="Real clients. Real outcomes. No invented case studies." />
         <SectionReveal className="stories-intro" direction="up" delay={0.08}>
           <p>Unedited words from the people we have built for — before, during, and after launch.</p>
         </SectionReveal>

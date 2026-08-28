@@ -4,9 +4,11 @@ import { useRef, useEffect } from 'react';
 import Link from 'next/link';
 import gsap from 'gsap';
 import SectionReveal from '../SectionReveal';
+import SectionHeader from '../shared/SectionHeader';
 import Marquee from '../Marquee';
 import MagnifiedBento from '../MagnifiedBento';
 import { light, dim } from '../../lib/beacon';
+import { skipsPointerAnimation } from '../../lib/interactionGuards.mjs';
 import { scrollState } from '../../lib/scrollState';
 import { beatProgress, BEAT_IDS } from '../../lib/beatProgress';
 import { isBeatProgressActive } from '../../lib/sceneActivity.mjs';
@@ -45,10 +47,7 @@ export default function Services() {
   // used elsewhere. It remains desktop-only and uses the same pointer and
   // reduced-motion guard as the rest of the Services interaction.
   useEffect(() => {
-    if (
-      window.matchMedia('(pointer: coarse)').matches
-      || window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) return undefined;
+    if (skipsPointerAnimation()) return undefined;
 
     const marker = markerRef.current;
     if (!marker) return undefined;
@@ -111,10 +110,7 @@ export default function Services() {
   // advance in lockstep. Bows out entirely while a row is genuinely
   // hovered — hover always wins, this only fills the gap when it's absent.
   useEffect(() => {
-    if (
-      window.matchMedia('(pointer: coarse)').matches
-      || window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) return undefined;
+    if (skipsPointerAnimation()) return undefined;
 
     rowElsRef.current = listRef.current
       ? Array.from(listRef.current.querySelectorAll('.service-row'))
@@ -145,10 +141,7 @@ export default function Services() {
     <section className="section services" id="services" data-quiet>
       <div className="services-catalogue">
         <div className="text-plate services-intro">
-          <p className="eyebrow"><SectionReveal as="span" direction="left">What we do</SectionReveal></p>
-          <SectionReveal as="h2" direction="left" className="section-title">
-            Focused vision. Measured execution.
-          </SectionReveal>
+          <SectionHeader eyebrow="What we do" title="Focused vision. Measured execution." />
         </div>
         <div
           className="services-list"
