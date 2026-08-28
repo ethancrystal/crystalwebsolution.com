@@ -8,12 +8,13 @@ import {
   SERVICE_PAGE_SLUGS,
   SERVICE_SLUG_BY_SIGNAL,
 } from '../lib/servicePages.mjs';
+import { readResolvedGlobalsCss } from './helpers/resolvedGlobalsCss.mjs';
 
 const servicesSource = readFileSync(
   new URL('../components/sections/Services.jsx', import.meta.url),
   'utf8',
 );
-const cssSource = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+const cssSource = readResolvedGlobalsCss();
 
 // A silently broken signal→slug join would render eight dead /services/
 // links with no build or render error, so assert the join end to end.

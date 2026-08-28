@@ -4,10 +4,11 @@ import { readFileSync } from 'node:fs';
 
 import { SERVICES } from '../lib/services.mjs';
 import { SERVICE_SIGNAL_META } from '../lib/serviceSignals.mjs';
+import { readResolvedGlobalsCss } from './helpers/resolvedGlobalsCss.mjs';
 
 const servicesSource = readFileSync(new URL('../components/sections/Services.jsx', import.meta.url), 'utf8');
 const railSource = readFileSync(new URL('../components/three/ServiceRail.jsx', import.meta.url), 'utf8');
-const globalsCss = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+const globalsCss = readResolvedGlobalsCss();
 
 const EXPECTED_TITLES = [
   'Web Design',

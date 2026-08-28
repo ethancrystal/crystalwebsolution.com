@@ -1,0 +1,137 @@
+/* ---------- hero ---------- */
+.hero { align-items: center; text-align: center; min-height: 100vh; }
+
+/* Off-axis composition (consensus item #1): text moves to a left column so
+   the crystal — framed via the matching look-target nudge in journey.js —
+   sits beside the copy instead of dead behind it. Falls back to the
+   original centered layout below 900px, where there's no room for two
+   focal points side by side. Delete this block to fully revert to the
+   original centered hero. */
+@media (min-width: 900px) {
+  .hero-off-axis {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .hero-off-axis .text-plate {
+    max-width: 58%;
+  }
+  .hero-off-axis .hero-cta {
+    align-items: flex-start;
+  }
+  .hero-off-axis .hero-scroll {
+    left: 6vw;
+    transform: none;
+  }
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5.2vw, 4.25rem);
+  line-height: 1.08;
+  font-weight: 600;
+}
+.hero-line { display: block; }
+/* --accent-grad is the source of truth DecodeText.jsx reads to re-paint the
+   gradient per split .char (background-clip:text can't survive SplitType
+   turning the line's text into child nodes — the parent has none left to
+   clip). The background/-webkit-background-clip pair below is a fallback
+   for the pre-hydration flash, when the line is still one plain text node. */
+.hero-line-accent {
+  --accent-grad: linear-gradient(100deg, var(--cyan), var(--blue) 55%, var(--violet));
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 22px rgba(89, 243, 255, 0.6)) drop-shadow(0 0 46px rgba(60, 108, 255, 0.35));
+}
+
+/* Underwater light: soft drifting blurred blobs, code-generated (no
+   assets), sitting behind the hero copy and above the WebGL canvas. First
+   child in the DOM so later siblings (.text-plate etc.) paint over it. */
+.hero-caustics {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-caustics::before,
+.hero-caustics::after,
+.hero-caustics .caustic-ray {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  mix-blend-mode: screen;
+}
+.hero-caustics::before {
+  width: 55vw; height: 55vw;
+  left: -10%; top: -15%;
+  background: radial-gradient(circle, rgba(89, 243, 255, 0.28), transparent 70%);
+  animation: causticDrift1 16s ease-in-out infinite;
+}
+.hero-caustics::after {
+  width: 60vw; height: 60vw;
+  right: -15%; bottom: -20%;
+  background: radial-gradient(circle, rgba(60, 108, 255, 0.22), transparent 70%);
+  animation: causticDrift2 20s ease-in-out infinite;
+}
+.hero-caustics .caustic-ray {
+  width: 40vw; height: 40vw;
+  left: 30%; top: 20%;
+  background: radial-gradient(circle, rgba(192, 132, 252, 0.16), transparent 70%);
+  animation: causticDrift3 24s ease-in-out infinite;
+}
+@keyframes causticDrift1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(6%, 8%) scale(1.12); }
+}
+@keyframes causticDrift2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-8%, -6%) scale(1.08); }
+}
+@keyframes causticDrift3 {
+  0%, 100% { transform: translate(-6%, 4%) scale(0.95); }
+  50% { transform: translate(4%, -6%) scale(1.1); }
+}
+
+.hero-sub { margin-top: 2.2rem; color: var(--muted); font-size: clamp(0.95rem, 1.6vw, 1.15rem); line-height: 1.7; max-width: 46rem; }
+.contact-sub { margin-top: 1.4rem; max-width: 34rem; color: var(--muted); font-size: clamp(0.95rem, 1.6vw, 1.12rem); line-height: 1.7; }
+.hero-cta { margin-top: 3rem; display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
+/* Inline proof line under the hero CTA. Mono/uppercase to read as instrument
+   labelling rather than body copy, and muted so it supports the CTA instead of
+   competing with it. Tokens only — no new colour values. */
+.hero-stat { margin-top: 1.6rem; }
+.hero-stat p {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hero-stat-figure { color: var(--cyan); }
+.hero-stat-sep { color: var(--line); }
+.hero-scroll {
+  position: absolute;
+  bottom: 4vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hero-scroll-line {
+  width: 1px; height: 46px;
+  background: linear-gradient(var(--cyan), transparent);
+  animation: scrollPulse 1.8s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.4; transform-origin: top; }
+  50% { transform: scaleY(1); opacity: 1; transform-origin: top; }
+}

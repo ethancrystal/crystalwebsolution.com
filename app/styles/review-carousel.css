@@ -1,0 +1,200 @@
+/* ---------- stories: editorial review carousel ---------- */
+.stories {
+  align-items: center;
+  gap: clamp(2rem, 5vh, 4rem);
+  padding-top: clamp(8rem, 15vh, 11rem);
+  padding-bottom: clamp(5rem, 10vh, 8rem);
+}
+.stories .text-plate {
+  width: min(100%, 58rem);
+  align-self: flex-start;
+}
+/* ---------- stories: review carousel (Client proof) ---------- */
+.review-carousel {
+  width: min(88vw, 78rem);
+  outline: none;
+}
+.review-carousel:focus-visible .review-carousel-frame {
+  outline: 2px solid var(--cyan);
+  outline-offset: -2px;
+}
+.review-carousel-frame {
+  position: relative;
+  height: clamp(26rem, 60vh, 40rem);
+  border: 1px solid var(--line);
+  border-radius: 1.2rem;
+  overflow: hidden;
+  background: var(--bg);
+}
+.review-carousel-wash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 78% 10%, var(--rc-accent) 0%, color-mix(in srgb, var(--rc-accent) 45%, #150826) 38%, #150826 70%, var(--bg) 100%);
+}
+.review-carousel-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  background-size: 180px 180px;
+}
+.review-carousel-legibility {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(4, 6, 12, 0.35), transparent 30%, rgba(4, 6, 12, 0.4));
+}
+.review-carousel-mark {
+  position: absolute;
+  left: clamp(28px, 4vw, 52px);
+  top: clamp(20px, 4%, 40px);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(140px, 20vw, 260px);
+  line-height: 1;
+  color: rgba(234, 242, 255, 0.05);
+  pointer-events: none;
+}
+.review-carousel-quote-wrap {
+  position: absolute;
+  left: clamp(28px, 4vw, 52px);
+  right: clamp(200px, 26%, 320px);
+  top: clamp(56px, 10%, 88px);
+}
+.review-carousel-quote {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-wrap: pretty;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.review-carousel-byline {
+  position: absolute;
+  left: clamp(28px, 4vw, 52px);
+  bottom: clamp(28px, 6%, 44px);
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  max-width: 70%;
+}
+.review-carousel-name { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; color: var(--ink); }
+.review-carousel-credit {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(234, 242, 255, 0.55);
+}
+.review-carousel-link {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  text-decoration: none;
+}
+.review-carousel-link:hover,
+.review-carousel-link:focus-visible { color: var(--ink); }
+.review-carousel-rating {
+  position: absolute;
+  right: clamp(28px, 4vw, 52px);
+  bottom: clamp(28px, 6%, 44px);
+  text-align: right;
+  font-family: var(--font-mono);
+}
+.review-carousel-rating span { display: block; font-size: 0.68rem; color: var(--ink); }
+.review-carousel-date { margin-top: 0.25rem; font-size: 0.62rem; color: rgba(234, 242, 255, 0.5); }
+.review-carousel-rail {
+  position: absolute;
+  right: clamp(28px, 4vw, 52px);
+  top: clamp(28px, 6%, 44px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+.review-carousel-index {
+  font-family: var(--font-mono);
+  font-size: clamp(1.35rem, 3vw, 2.1rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ink);
+}
+.review-carousel-track {
+  position: relative;
+  width: 60px;
+  height: 1px;
+  background: rgba(234, 242, 255, 0.3);
+}
+.review-carousel-track span {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  background: var(--cyan);
+  transition: width 0.5s ease;
+}
+.review-carousel-count { font-family: var(--font-mono); font-size: 0.68rem; color: rgba(234, 242, 255, 0.4); }
+.review-carousel-nav {
+  /* Was pinned to the same bottom-left corner as .review-carousel-byline
+     (the reviewer name/credit), so the two collided whenever the byline
+     wrapped to two lines. The frame's right edge, vertically centered
+     between .review-carousel-rail (top) and .review-carousel-rating
+     (bottom), is clear on every viewport size this component renders at. */
+  position: absolute;
+  left: auto;
+  right: clamp(28px, 4vw, 52px);
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.review-carousel-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(234, 242, 255, 0.25);
+  background: rgba(4, 6, 12, 0.4);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+.review-carousel-btn:hover,
+.review-carousel-btn:focus-visible { border-color: var(--cyan); color: var(--cyan); }
+.review-carousel-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.review-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+}
+.review-carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 0;
+  padding: 0;
+  background: var(--line);
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.review-carousel-dot:hover { background: rgba(89, 243, 255, 0.5); }
+.review-carousel-dot[data-active] { background: var(--cyan); transform: scale(1.3); }
+.review-carousel-dot:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .review-carousel-track span,
+  .review-carousel-dot { transition: none; }
+}
