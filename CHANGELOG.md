@@ -5,6 +5,30 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.11 — 2026-08-27
+
+- **Retroactive entry.** PR #129 (merged 2026-08-27) applied newly supplied
+  brand artwork site-wide: replaced the canonical logo and favicon,
+  rewired the new logo's dimensions across marketing, auth, and CRM
+  surfaces (`app/layout.jsx`, `/login`, `/signup`, `BrandLogo.jsx`,
+  `PortalLoginForm.jsx`, `WorkspaceShell.jsx`), removed the unused legacy
+  `cws-header-logo.png`, and added the logo to transactional email
+  headers with an accessible text fallback. Also adds a homepage feature:
+  a new `lib/clientTileImages.mjs` "Named Client tile registry" wiring 9
+  authorized client project images (Direct Design Agency, Peregrine,
+  Grounded, Tomoro Sugawara Design, Momento Legal, Infinity Signal, Shaky
+  Love, Rezonbio, Oimachi) into `components/sections/Motion.jsx`.
+
+## v1.10 — 2026-08-27
+
+- **Retroactive entry.** PR #126 (merged 2026-08-27) replaced the
+  conflicting PR #119 security slice with a clean integration: adds
+  shared IP + normalized-email rate limiting to the unauthenticated auth
+  actions (`signUp`, `resendConfirmationEmail`, `requestPasswordReset`),
+  normalizes the CRM feature flag (`lib/crmFlag.js`), adds auth-callback
+  middleware coverage, and adds focused security tests plus operational
+  documentation (`docs/CRM-OPERATIONS.md`).
+
 ## v1.09 — 2026-08-27
 
 - **Retroactive entry.** PR #116 (merged 2026-08-27, actually deployed
