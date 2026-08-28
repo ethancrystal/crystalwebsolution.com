@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 
 import { BEAT_IDS, measureBeats } from '../lib/beatProgress.js';
 import { CLUSTERS, LAB_WINDOW, MOTION_WINDOW, STOPS } from '../lib/journey.js';
+import { readResolvedGlobalsCss } from './helpers/resolvedGlobalsCss.mjs';
 
 const experienceSource = readFileSync(
   new URL('../components/Experience.jsx', import.meta.url),
@@ -29,10 +30,7 @@ const revealSource = readFileSync(
   new URL('../components/SectionReveal.jsx', import.meta.url),
   'utf8',
 );
-const globalCss = readFileSync(
-  new URL('../app/globals.css', import.meta.url),
-  'utf8',
-);
+const globalCss = readResolvedGlobalsCss();
 
 test('homepage keeps one selected-work beat and one merged trust beat', () => {
   assert.doesNotMatch(experienceSource, /Showcase/);

@@ -1,0 +1,93 @@
+/* ---------- layout primitives ---------- */
+.section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14vh 6vw;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 1.6rem;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1.05;
+  max-width: 16ch;
+  margin-bottom: 3.5rem;
+}
+
+.decode { display: inline-block; }
+.decode .char { display: inline-block; will-change: transform, opacity; }
+.eyebrow .section-reveal { display: inline-block; }
+
+/* ---------- assertive display type ---------- */
+/* Element-level rules; existing classes (.hero-title, .section-title, etc.)
+   are more specific and keep controlling size — this only adds separation
+   from the scene via a layered shadow (inherited by the split .char spans). */
+h1, h2 {
+  text-shadow: var(--text-lift);
+}
+.eyebrow {
+  text-shadow: 0 1px 2px rgba(2, 4, 8, 0.75);
+}
+
+/* ---------- buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  padding: 0.9rem 1.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  transition: color 0.35s, border-color 0.35s, background 0.35s, box-shadow 0.35s;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-solid {
+  background: linear-gradient(120deg, var(--cyan), var(--blue));
+  color: var(--bg);
+  border-color: transparent;
+  font-weight: 600;
+}
+.btn-solid:hover { box-shadow: 0 0 42px rgba(89, 243, 255, 0.45); }
+
+.btn-outline:hover, .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn-ghost {
+  border-color: rgba(89, 243, 255, 0.5);
+  box-shadow: 0 0 0 1px rgba(89, 243, 255, 0.12), 0 0 22px rgba(89, 243, 255, 0.22);
+}
+.btn-ghost:hover {
+  box-shadow: 0 0 0 1px rgba(89, 243, 255, 0.3), 0 0 32px rgba(89, 243, 255, 0.42);
+}
+
+.btn-arrow { transition: transform 0.35s; }
+.btn:hover .btn-arrow { transform: translateX(6px); }
+
+.btn-xl {
+  font-size: clamp(1rem, 2.4vw, 1.6rem);
+  padding: 1.3rem 2.6rem;
+}
+
+.link-underline {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--cyan);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s;
+}
+.link-underline:hover { border-color: var(--cyan); }
+
+.magnetic { display: inline-block; }

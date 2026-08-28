@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { readResolvedGlobalsCss } from './helpers/resolvedGlobalsCss.mjs';
 
 const root = new URL('../', import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), 'utf8');
@@ -22,7 +23,7 @@ test('login mounts the reusable interactive background behind the auth card', ()
 
 test('login background keeps mobile and reduced-motion fallbacks', () => {
   const backgroundSource = read('components/ui/unicorn-studio-background.jsx');
-  const css = read('app/globals.css');
+  const css = readResolvedGlobalsCss(ROOT);
 
   assert.match(backgroundSource, /prefers-reduced-motion/);
   assert.match(backgroundSource, /max-width:\s*767px/);

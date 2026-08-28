@@ -5,6 +5,19 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.07 — 2026-08-28
+
+- Split the 4,324-line `app/globals.css` into 27 ordered stylesheets under
+  `app/styles/`, reducing `globals.css` to an import-only manifest. The
+  imports are listed in the original source order, so the resolved stylesheet
+  is **byte-identical** to the pre-split file (verified by checksum) — the
+  cascade, every specificity tie, and therefore every pixel are unchanged.
+- Kept the class names global rather than moving to CSS Modules: `Menu.jsx`,
+  `Services.jsx` and `WorkLibrary.jsx` reach for `.menu-link`, `.menu-meta`,
+  `.service-row` and `.work-row` through `querySelectorAll`, and GSAP animates
+  those same names. Hashed module class names would have broken those
+  animations silently, with no build error to catch it.
+
 ## v1.06 — 2026-08-27
 
 - Set the canonical contact email to `sales@cdsportswearusa.com` and the

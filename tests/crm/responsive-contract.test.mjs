@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { readResolvedGlobalsCss } from '../helpers/resolvedGlobalsCss.mjs';
 
-const SOURCE_FILES = [
-  'app/globals.css',
+const CRM_SOURCE_FILES = [
   'components/crm/WorkspaceShell.jsx',
   'components/crm/ProjectOverview.jsx',
   'components/crm/ProjectTimeline.jsx',
@@ -14,7 +14,8 @@ const SOURCE_FILES = [
 ];
 
 test('responsive contract: CRM source includes mobile-first breakpoints and contained widths', async () => {
-  const sources = await Promise.all(SOURCE_FILES.map((file) => readFile(file, 'utf8')));
+  const sources = await Promise.all(CRM_SOURCE_FILES.map((file) => readFile(file, 'utf8')));
+  sources.push(readResolvedGlobalsCss());
 
   assert.ok(
     sources.some((source) => /768px/.test(source)),
@@ -24,7 +25,7 @@ test('responsive contract: CRM source includes mobile-first breakpoints and cont
 
 test('responsive contract: workspace shell uses bounded layout tokens and avoids fixed page widths', async () => {
   const workspace = await readFile('components/crm/WorkspaceShell.jsx', 'utf8');
-  const globals = await readFile('app/globals.css', 'utf8');
+  const globals = readResolvedGlobalsCss();
 
   assert.ok(/max-width|minmax\(/.test(workspace) || /max-width|minmax\(/.test(globals));
 });
