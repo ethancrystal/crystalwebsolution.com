@@ -7,6 +7,7 @@ import { SERVICE_SIGNAL_META } from '../lib/serviceSignals.mjs';
 
 const servicesSource = readFileSync(new URL('../components/sections/Services.jsx', import.meta.url), 'utf8');
 const railSource = readFileSync(new URL('../components/three/ServiceRail.jsx', import.meta.url), 'utf8');
+const globalsCss = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
 
 const EXPECTED_TITLES = [
   'Web Design',
@@ -79,4 +80,18 @@ test('each service uses one visitor-focused PAS sentence', () => {
     assert.ok(visitorWords >= studioWords, `${service.title} must center you and your`);
     assert.doesNotMatch(service.desc, BANNED_COPY);
   });
+});
+
+test('a sibling row dimmed by the active-row focus cue stays legible', () => {
+  // Reported bug: sibling .service-desc text at 0.6 opacity read as
+  // illegible/"shadowed" against the animated dark backdrop. Keep the dim
+  // cue (must stay < 1, or the active-row focus indicator loses meaning)
+  // but never let it regress back down toward the old washed-out floor.
+  const match = globalsCss.match(
+    /\.services-list:has\(\.service-row:hover\)[\s\S]*?\.service-row:not\(\.is-active\) \.service-desc \{\s*[\s\S]*?opacity:\s*([\d.]+);/,
+  );
+  assert.ok(match, 'sibling-row dim rule must exist in app/globals.css');
+  const opacity = Number(match[1]);
+  assert.ok(opacity >= 0.75, `dimmed sibling opacity ${opacity} is too low to read`);
+  assert.ok(opacity < 1, 'dimming must still visually distinguish the active row');
 });

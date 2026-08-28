@@ -5,6 +5,22 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.06 — 2026-08-27
+
+- Set the canonical contact email to `sales@cdsportswearusa.com` and the
+  transactional sender domain to `cdsportswearusa.com`, closing the gap left
+  when the site rebranded to CD Sportswear USA but `lib/site.js` and
+  `lib/email/resend.js` still pointed at `crystalwebsolution.com`.
+- Fix `/login/client`, `/login/employee`, and `/login/admin`: the brand-mark
+  `Link` and its child `img`, plus the footer text links, were unstyled
+  because styled-jsx never scopes classes onto `next/link`'s rendered `<a>`
+  — the logo rendered at its raw 2304px intrinsic width, blowing out the
+  page at every viewport, not just mobile. Wrapped the affected selectors in
+  `:global()`, matching the same fix already applied to `app/login/page.jsx`.
+- Raise the dimmed sibling-row description opacity in the Services section
+  from 0.6 to 0.82 — the lower value read as illegible "shadowed" text
+  against the animated 3D backdrop.
+
 ## v1.05 — 2026-08-27
 
 - Fix `useUserRole()` reading `user.app_metadata.role`, a claim this app

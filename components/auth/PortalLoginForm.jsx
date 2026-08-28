@@ -43,7 +43,7 @@ export default function PortalLoginForm({ portal }) {
       <DarkPageBackground interactive="prism" />
       <div className="crm-login-card">
         <Link href="/" className="crm-login-mark" aria-label={`${SITE.name} home`}>
-          <img src={SITE.logoPath} alt={SITE.name} width={SITE.logoWidth} height={SITE.logoHeight} />
+          <img className="crm-login-logo" src={SITE.logoPath} alt={SITE.name} width={SITE.logoWidth} height={SITE.logoHeight} />
         </Link>
         <h1>{portal.label} Portal</h1>
         <p>Sign in to your account</p>
@@ -78,24 +78,36 @@ export default function PortalLoginForm({ portal }) {
       </div>
 
       <style jsx>{`
-        .crm-login-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; position: relative; z-index: 1; font-family: inherit; }
+        .crm-login-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; position: relative; z-index: 1; font-family: inherit; padding: 2rem 1.25rem; }
         .crm-login-card { background: rgba(234, 242, 255, 0.03); border: 1px solid var(--line); border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 400px; backdrop-filter: blur(16px); box-shadow: 0 30px 80px rgba(2, 4, 8, 0.55); }
-        .crm-login-mark { display: flex; align-items: center; justify-content: center; width: min(100%, 11rem); margin: 0 auto 1.5rem; }
-        .crm-login-mark img { display: block; width: 100%; height: auto; object-fit: contain; }
-        .crm-login-mark:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+        /* next/link renders its own <a>, which styled-jsx's babel transform never
+           scopes (it only scopes literal host elements it sees in this file's
+           JSX) -- so any selector targeting that <a>, directly or as an
+           ancestor, must opt out via :global() or it silently never matches.
+           app/login/page.jsx's :global(.crm-auth-mark) is the same fix for the
+           same reason. */
+        :global(.crm-login-mark) { display: flex; align-items: center; justify-content: center; width: min(100%, 11rem); margin: 0 auto 1.5rem; }
+        .crm-login-logo { display: block; width: 100%; height: auto; object-fit: contain; }
+        :global(.crm-login-mark:focus-visible) { outline: 2px solid var(--cyan); outline-offset: 4px; }
         .crm-login-card h1 { font-family: var(--font-display); font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--ink); }
         .crm-login-card > p { color: var(--muted); margin-bottom: 1rem; font-size: 0.95rem; }
         .crm-form { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
         .crm-form-group { display: flex; flex-direction: column; gap: 0.5rem; }
         .crm-form-group label { color: var(--muted); font-size: 0.9rem; font-weight: 500; }
-        .crm-form-group input { padding: 0.75rem; border: 1px solid var(--line); border-radius: 6px; background: rgba(15, 20, 40, 0.6); color: var(--ink); font-size: 0.95rem; }
+        .crm-form-group input { padding: 0.75rem; border: 1px solid var(--line); border-radius: 6px; background: rgba(15, 20, 40, 0.6); color: var(--ink); font-size: 0.95rem; width: 100%; }
         .crm-form-group input:focus { outline: none; border-color: var(--cyan); }
-        .crm-error { background: rgba(255, 100, 100, 0.1); border: 1px solid rgba(255, 100, 100, 0.3); color: #ff9999; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; }
+        .crm-error { background: rgba(255, 100, 100, 0.1); border: 1px solid rgba(255, 100, 100, 0.3); color: #ff9999; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; overflow-wrap: break-word; }
         .crm-button { padding: 0.75rem; background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%); color: #0a0e27; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem; }
         .crm-button:disabled { opacity: 0.6; cursor: not-allowed; }
         .crm-signup-link { text-align: center; color: var(--muted); font-size: 0.9rem; margin-top: 1rem; }
-        .crm-signup-link a { color: var(--cyan); text-decoration: none; font-weight: 500; }
-        .crm-signup-link a:hover { color: #5bb8ff; text-decoration: underline; }
+        :global(.crm-signup-link a) { color: var(--cyan); text-decoration: none; font-weight: 500; }
+        :global(.crm-signup-link a:hover) { color: #5bb8ff; text-decoration: underline; }
+        @media (max-width: 480px) {
+          .crm-login-container { padding: 1.25rem 1rem; }
+          .crm-login-card { padding: 1.75rem 1.5rem; }
+          :global(.crm-login-mark) { width: min(100%, 9rem); margin-bottom: 1.25rem; }
+          .crm-login-card h1 { font-size: 1.4rem; }
+        }
       `}</style>
     </div>
   );

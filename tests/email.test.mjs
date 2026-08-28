@@ -54,6 +54,23 @@ test('sendEmail rejects incomplete messages without contacting the provider', as
   }
 });
 
+test('the canonical contact address is on the current brand domain', () => {
+  assert.equal(SITE.email, 'sales@cdsportswearusa.com');
+});
+
+test("the contact-form footer note names the site's own domain", async () => {
+  const { contactSubmissionEmail } = await import('../lib/email/templates.js');
+  const rendered = contactSubmissionEmail({
+    name: 'Ada',
+    email: 'ada@example.com',
+    company: 'Acme',
+    budget: '$5-15k',
+    brief: 'Hello',
+  });
+
+  assert.match(rendered.html, /Sent from the cdsportswearusa\.com contact form\./);
+});
+
 test('sender identity is overridable and defaults to the verified domain', async () => {
   const { getFromAddress, getReplyToAddress, getOperationsAddress } = await import(
     '../lib/email/resend.js'
@@ -62,7 +79,7 @@ test('sender identity is overridable and defaults to the verified domain', async
   delete process.env.RESEND_FROM_EMAIL;
 
   try {
-    assert.match(getFromAddress(), /@crystalwebsolution\.com>$/);
+    assert.match(getFromAddress(), /@cdsportswearusa\.com>$/);
     assert.equal(getReplyToAddress(), SITE.email);
     assert.equal(getOperationsAddress(), SITE.email);
 

@@ -742,7 +742,10 @@ html[data-cws-intro-seen='1'] .loader {
    border and the light()/dim() 3D beacon are untouched. */
 .services-list:has(.service-row:hover) .service-row:not(:hover) .service-desc,
 .services-list:has(.service-row.is-active) .service-row:not(.is-active) .service-desc {
-  opacity: 0.6;
+  /* 0.6 read as illegible "shadowed" text against the animated dark backdrop
+     (reported bug) -- raised so the sibling-row cue stays visible without
+     losing contrast. */
+  opacity: 0.82;
 }
 /* Capability chips + the /services/[slug] link, stacked under .service-desc
    in the row's second column. The chip pills are .case-services verbatim;
