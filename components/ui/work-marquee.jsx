@@ -5,7 +5,7 @@ import * as React from 'react';
 // Three parallel rails of real client-site screenshots drifting past at
 // different speeds/directions. Purely decorative (aria-hidden) — the
 // accessible project list sits beside it as the real navigation.
-export function WorkMarquee({ images, rows = 3, className = '', style }) {
+export function WorkMarquee({ images, replacementImages, rows = 3, className = '', style }) {
   const id = React.useId().replace(/[^a-zA-Z0-9]/g, '');
 
   const rails = React.useMemo(() => {
@@ -16,13 +16,25 @@ export function WorkMarquee({ images, rows = 3, className = '', style }) {
       // two rows open on the same tile, without needing more source assets.
       const offset = Math.floor((images.length / rows) * rowIndex) % images.length;
       const ordered = images.slice(offset).concat(images.slice(0, offset));
+
+      // Second half: use replacement (animated) media if provided, cycling
+      // through the available assets. Falls back to duplicating originals.
+      let secondHalf;
+      if (replacementImages && replacementImages.length > 0) {
+        const repOffset = Math.floor((replacementImages.length / rows) * rowIndex) % replacementImages.length;
+        const repOrdered = replacementImages.slice(repOffset).concat(replacementImages.slice(0, repOffset));
+        secondHalf = Array.from({ length: ordered.length }, (_, i) => repOrdered[i % repOrdered.length]);
+      } else {
+        secondHalf = ordered;
+      }
+
       return {
-        tiles: ordered.concat(ordered),
+        tiles: ordered.concat(secondHalf),
         direction: directions[rowIndex % directions.length],
         duration: durations[rowIndex % durations.length],
       };
     });
-  }, [images, rows]);
+  }, [images, replacementImages, rows]);
 
   return (
     <div className={`work-marquee ${className}`.trim()} style={style} aria-hidden="true">
@@ -32,17 +44,32 @@ export function WorkMarquee({ images, rows = 3, className = '', style }) {
             className={`work-marquee-track work-marquee-track--${rail.direction}`}
             style={{ animationDuration: `${rail.duration}s` }}
           >
-            {rail.tiles.map((src, i) => (
-              <div className="work-marquee-tile" key={`${id}-${rowIndex}-${i}`}>
-                <img
-                  src={src}
-                  alt=""
-                  loading={rowIndex === 0 && i < 4 ? 'eager' : 'lazy'}
-                  decoding="async"
-                  draggable={false}
-                />
-              </div>
-            ))}
+            {rail.tiles.map((src, i) => {
+              const isVideo = /\.(webm|mp4)$/i.test(src);
+              return (
+                <div className="work-marquee-tile" key={`${id}-${rowIndex}-${i}`}>
+                  {isVideo ? (
+                    <video
+                      src={src}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload={rowIndex === 0 && i < 4 ? 'auto' : 'metadata'}
+                      draggable={false}
+                    />
+                  ) : (
+                    <img
+                      src={src}
+                      alt=""
+                      loading={rowIndex === 0 && i < 4 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      draggable={false}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       ))}
