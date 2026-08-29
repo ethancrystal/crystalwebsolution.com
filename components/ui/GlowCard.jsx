@@ -1,4 +1,5 @@
 'use client';
+// @ts-check
 
 import { createElement, useCallback, useRef } from 'react';
 
@@ -41,6 +42,13 @@ function cursorAngle(el, x, y) {
   return degrees;
 }
 
+/**
+ * @param {Object} props
+ * @param {import('react').ElementType} [props.as] - Tag/component to render as.
+ * @param {string} [props.className]
+ * @param {import('react').ReactNode} [props.children]
+ * @returns {import('react').ReactElement}
+ */
 export default function GlowCard({ as = 'div', className = '', children, ...rest }) {
   const ref = useRef(null);
 
