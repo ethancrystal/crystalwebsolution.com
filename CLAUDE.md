@@ -53,9 +53,13 @@ redirects `/admin`, `/dashboard`, `/team`, `/login*`, `/signup`,
 `/forgot-password` straight home, and whether `components/Nav.jsx` /
 `Menu.jsx` show the Log in / Client access links. **As of 2026-08-27 the CRM
 is launched** — it is publicly reachable in Production, not pre-launch/
-hidden. To hide it again, set the flag to `false` and redeploy `main` —
-because `NEXT_PUBLIC_*` values are inlined at build time, editing the
-variable alone changes nothing until a rebuild ships.
+hidden. This was last directly verified by HTTP-checking the live site on
+2026-08-27; several merges to `main` have deployed since, so re-verify
+(`curl` the portal login routes, or check the flag's value in Vercel) rather
+than trusting this line indefinitely — it documents a decision, not a
+continuously-monitored state. To hide it again, set the flag to `false` and
+redeploy `main` — because `NEXT_PUBLIC_*` values are inlined at build time,
+editing the variable alone changes nothing until a rebuild ships.
 
 **Never run `vercel --prod` (or `vercel deploy --prod`) from a Claude Code
 session.** Vercel's CLI deploys straight to the production alias regardless
@@ -176,9 +180,12 @@ move together.
   `--blue`, `--violet`, etc.).
 - Supabase is the live CRM boundary. Application clients live under
   `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL
-  lives in `supabase/migrations/` (0001 through 0035 as of 2026-08-20 — check
-  the directory for the current head before assuming a number). `.mcp.json`
-  configures a Supabase MCP server for development-time queries. Two
+  lives in `supabase/migrations/`, numbered sequentially from `0001` —
+  always check the directory for the current head rather than trusting a
+  number written here; this repo has moved through several migrations a
+  week during active periods, so any hardcoded count goes stale fast.
+  `.mcp.json` configures a Supabase MCP server for development-time
+  queries. Two
   data-access shapes coexist deliberately:
   - **Project delivery** — the newer, contract-tested path. Reads go through
     `lib/crm/projects.js` against the `lib/crm/project-contract.mjs` shape;
