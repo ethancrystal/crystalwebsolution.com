@@ -82,7 +82,7 @@
 
 | # | File | Action |
 |----|------|--------|
-| R9 | `docs/superpowers/plans/*.md` | Archive completed plans (Tasks 1-8 from all 4 plans are implemented). |
+| R9 | `docs/plans/*.md` | Archive completed plans (Tasks 1-8 from all 4 plans are implemented). |
 | R10 | `supabase/migrations/0007_*.sql` | Document as intentionally skipped (already done in STATUS.md). |
 | R11 | `public/*.csv` | Gitignore untracked SEO audit exports (mentioned in STATUS.md known gaps). |
 | R12 | `tests/marketing/serviceEmblem3d.test.jsx` | One pre-existing vitest/jsdom harness quirk causing 1/18 test failure. |

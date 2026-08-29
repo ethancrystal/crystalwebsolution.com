@@ -65,9 +65,9 @@ docker run -p 3000:3000 --env-file .env.local ghcr.io/ethancrystal/crystalwebsol
 Use `C:\Users\moizjmj\CD Sportswear USA` on `main` as the authoritative
 local checkout. Do not assume a linked worktree is current. The audited
 worktree inventory, cleanup status, and recovery instructions live in
-[`docs/WORKTREE-STATE.md`](docs/WORKTREE-STATE.md).
+[`docs/archive/WORKTREE-STATE.md`](docs/archive/WORKTREE-STATE.md).
 The August 2026 lean-repository audit and exact keep/remove decisions are in
-[`docs/REPOSITORY-CLEANUP-2026-08-02.md`](docs/REPOSITORY-CLEANUP-2026-08-02.md).
+[`docs/archive/REPOSITORY-CLEANUP-2026-08-02.md`](docs/archive/REPOSITORY-CLEANUP-2026-08-02.md).
 
 ## Application surfaces
 

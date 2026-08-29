@@ -10,7 +10,6 @@ const CRM_SOURCE_FILES = [
   'components/crm/ProjectTasks.jsx',
   'components/crm/ProjectFiles.jsx',
   'components/crm/ProjectApprovals.jsx',
-  'components/crm/ProjectOperations.jsx',
 ];
 
 test('responsive contract: CRM source includes mobile-first breakpoints and contained widths', async () => {

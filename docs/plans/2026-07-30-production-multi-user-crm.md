@@ -10,7 +10,7 @@
 
 ## Relationship to Existing Work
 
-- This plan supersedes pending Tasks 3–7 in `docs/superpowers/plans/2026-07-30-crm-three-role-project-platform.md`.
+- This plan supersedes pending Tasks 3–7 in `docs/plans/2026-07-30-crm-three-role-project-platform.md`.
 - Preserve the completed role/portal and RBAC repair commits (`6c186db`, `2923502`, `c63a067`, `cc44a27`).
 - Keep `profiles.role` as the authorization source with exact values `client`, `project_manager`, and `admin`; the product label “Employee” maps to database role `project_manager`.
 - Keep sales `deals` intact. New delivery work is stored in `projects`; `projects.source_deal_id` may optionally reference one sales deal.

@@ -2,7 +2,7 @@
 
 **Status:** Accepted for the Server Action/password-flow decision; role and
 middleware details superseded on 2026-07-30 by
-`docs/superpowers/plans/2026-07-30-crm-three-role-project-platform.md`
+`docs/plans/2026-07-30-crm-three-role-project-platform.md`
 **Date:** 2026-07-23
 **Deciders:** Moiz Jamil
 

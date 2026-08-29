@@ -180,7 +180,7 @@ what this has already let slip through). Verify DB/RPC changes live.
 ## 7. Workflow conventions this repo has converged on
 
 - **Feature work:** `superpowers:brainstorming` → spec in `docs/superpowers/specs/`
-  → `superpowers:writing-plans` → task plan in `docs/superpowers/plans/`,
+  → `superpowers:writing-plans` → task plan in `docs/plans/`,
   both committed to git. Owner reads/critiques specs substantively —
   expect the same engagement, not rubber-stamping.
 - **`STATUS.md` (repo root) is the canonical running log.** Read it before
@@ -230,7 +230,7 @@ For anything more granular — commits, PR numbers, per-task verification —
 - `docs/CRM-OPERATIONS.md` — CRM portal/role/migration guidance.
 - `docs/ux/` — JTBD, user journeys, UX specs.
 - `docs/PIXEL-POLISH-PLAN.md` — animation/layout-coherence plan.
-- `docs/superpowers/specs/` + `docs/superpowers/plans/` — brainstorm/plan
+- `docs/superpowers/specs/` + `docs/plans/` — brainstorm/plan
   artifacts for past and in-flight feature work.
 - `TRIONN-ADAPTATION.md` / `TRIONN-SCREENSHOT-ANNOTATIONS.md` — design
   reference for *unbuilt* future work (§3).

@@ -139,7 +139,7 @@ The committed authentication/RBAC layer now provides:
 
 The authoritative seven-task plan is:
 
-`docs/superpowers/plans/2026-07-30-crm-three-role-project-platform.md`
+`docs/plans/2026-07-30-crm-three-role-project-platform.md`
 
 Tasks 1 and 2 are complete. Resume at **Task 3: Add the Project Delivery
 Aggregate and Command Boundary**, starting from commit `cc44a27`. Task 3
@@ -175,7 +175,7 @@ Removed:
 
 Preserved because they remain usable:
 
-- `AGENTS.md`, `CLAUDE.md`, `README.md`, and `ADR-001-auth-flow.md`;
+- `AGENTS.md`, `CLAUDE.md`, `README.md`, and `docs/adr/ADR-001-auth-flow.md`;
 - `.agents/skills/**` and `.claude/agents/furious-reviewer.md`;
 - this handoff and the current CRM implementation plan;
 - the unresolved HIVE/pixel-polish backlog, the retained motion risk audit

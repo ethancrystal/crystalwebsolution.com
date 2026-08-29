@@ -390,7 +390,7 @@ The updated project memory and repository instructions introduce several operati
 | The memory file records migration `0024` as unmerged, while `docs/CRM-OPERATIONS.md` describes an older `0001`–`0011` canonical chain and the prior live audit found production-only migration drift. | Migration status is unresolved until `list_migrations` and the local migration directory are rechecked together. No new production migration is approved before exact drift reconciliation. |
 | The ship loop is build → commit → push → reviewed PR into `main` → Vercel auto-deploy → authenticated browser spot-check. | Every implementation phase must include fresh build evidence, review, and preview/production verification appropriate to the risk. |
 | Vercel dashboard settings and owner-only environment mutations remain the owner’s responsibility. | Prepare exact settings instructions and verification steps, but do not mutate Vercel project configuration without explicit owner authorization. |
-| `docs/CRM-OPERATIONS.md`, `docs/ux/`, `STATUS.md`, `docs/superpowers/specs/`, and `docs/superpowers/plans/` are supporting records. | The master plan remains the product/architecture source of truth; supporting docs provide evidence and phase-specific execution detail. |
+| `docs/CRM-OPERATIONS.md`, `docs/ux/`, `STATUS.md`, `docs/superpowers/specs/`, and `docs/plans/` are supporting records. | The master plan remains the product/architecture source of truth; supporting docs provide evidence and phase-specific execution detail. |
 
 ### Skill-driven execution protocol
 

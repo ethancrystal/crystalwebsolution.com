@@ -1,0 +1,23 @@
+# Normalize line endings. Without this, a Windows/OneDrive tool touching the
+# working tree rewrites every file to CRLF and `git status` reports the whole
+# repo as modified (once seen: 109 files, 20,729 phantom insertions, zero real
+# changes). It also breaks source-reading tests whose regexes assume \n.
+* text=auto eol=lf
+
+# Shell scripts and SQL must stay LF regardless of platform.
+*.sh   text eol=lf
+*.mjs  text eol=lf
+*.sql  text eol=lf
+
+# Never touch binaries.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.gif  binary
+*.webm binary
+*.mp4  binary
+*.woff binary
+*.woff2 binary
+*.pdf  binary
+*.ico  binary

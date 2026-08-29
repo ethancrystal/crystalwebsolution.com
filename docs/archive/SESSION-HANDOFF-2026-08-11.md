@@ -17,7 +17,7 @@ Code Scanning check that only runs on PRs).
 **PR #68** (`fix/code-review-batch-2026-08-10` → `preview`): open, mergeable,
 Vercel deploy green. Contains the fixes for the 8 findings from the
 multi-agent review of `preview` vs `main` (documented in
-`docs/superpowers/plans/2026-08-10-code-review-fixes.md` and `STATUS.md`'s
+`docs/plans/2026-08-10-code-review-fixes.md` and `STATUS.md`'s
 "2026-08-10, multi-agent code review + fixes" section) — the notification
 visibility leak (migration 0023), ProjectThread/ServiceEmblem/ServiceEmblem3D/
 ImageBlock fixes, and `.hermes`/stray-file housekeeping. Not yet merged.

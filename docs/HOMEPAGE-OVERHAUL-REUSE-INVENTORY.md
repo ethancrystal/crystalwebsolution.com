@@ -74,7 +74,7 @@ BAB→PAS". The live steps do not match that document:
 | 03 Build | Development |
 | 04 Launch | Deployment |
 
-Live copy is preserved as-is (`plans/New Plan` §0.7 Content Preservation). The
+Live copy is preserved as-is (`docs/plans/homepage-overhaul-spec.md` §0.7 Content Preservation). The
 drift is recorded here, not silently resolved — reconciling the content bible with
 shipped copy is a content decision, not a layout one.
 
@@ -144,7 +144,7 @@ Per §5.4 and §6, this pass does not modify:
 
 - `lib/journey.js` (`CLUSTERS`, `STOPS`) or `lib/beatProgress.js` (`BEAT_IDS`)
 - homepage section order in `components/Experience.jsx`
-- `components/sections/Contact.jsx` behaviour — `plans/New Plan` §0.18 protects
+- `components/sections/Contact.jsx` behaviour — `docs/plans/homepage-overhaul-spec.md` §0.18 protects
   field names, honeypot, API payload, success/error behaviour
 - `Mark.jsx`, `Lab.jsx`, `Motion.jsx` (§1.8, lowest priority)
 - anything under `supabase/`, `app/api/`, `app/admin/`, `app/dashboard/`,
@@ -162,7 +162,7 @@ Best Agency Site (Webby 2024). Those strings exist **only** in `docs/CONTENT.md`
 §8. They appear nowhere in code: a repo-wide grep for `Awwwards`, `CSS Design
 Awards` and similar returns nothing outside that one document.
 
-`plans/New Plan` §0.7 lists **"Awards"** among the things the agent must not
+`docs/plans/homepage-overhaul-spec.md` §0.7 lists **"Awards"** among the things the agent must not
 invent — and the brief's own §4 repeats it. Since the component that once rendered
 them was deliberately deleted, re-adding them would put unverifiable award claims
 back onto the production homepage on the strength of a content draft. That is the

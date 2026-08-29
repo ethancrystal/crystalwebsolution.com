@@ -11,16 +11,16 @@
 
 | Skill Name | Description | Usage |
 |------------|-------------|-------|
-| `superpowers:subagent-driven-development` | SDD methodology for agentic implementation | Required by all plan docs in `docs/superpowers/plans/` |
+| `superpowers:subagent-driven-development` | SDD methodology for agentic implementation | Required by all plan docs in `docs/plans/` |
 | `superpowers:executing-plans` | Plan execution workflow | Alternative to SDD for linear task execution |
 
 **Plan Documents (All Implemented ✅):**
-- `docs/superpowers/plans/2026-07-30-crm-three-role-project-platform.md` — 7 tasks
-- `docs/superpowers/plans/2026-07-30-production-multi-user-crm.md` — 8 tasks
-- `docs/superpowers/plans/2026-08-06-marketing-inner-pages-enhancement-plan.md` — 6 tasks
-- `docs/superpowers/plans/2026-08-08-inner-pages-entrance-reveals.md` — 5 tasks
-- `docs/superpowers/plans/2026-08-09-crm-remaining-decisions.md` — 8 tasks
-- `docs/superpowers/plans/2026-08-10-code-review-fixes.md` — 8 tasks
+- `docs/plans/2026-07-30-crm-three-role-project-platform.md` — 7 tasks
+- `docs/plans/2026-07-30-production-multi-user-crm.md` — 8 tasks
+- `docs/plans/2026-08-06-marketing-inner-pages-enhancement-plan.md` — 6 tasks
+- `docs/plans/2026-08-08-inner-pages-entrance-reveals.md` — 5 tasks
+- `docs/plans/2026-08-09-crm-remaining-decisions.md` — 8 tasks
+- `docs/plans/2026-08-10-code-review-fixes.md` — 8 tasks
 
 **Spec Documents:**
 - `docs/superpowers/specs/2026-08-09-crm-remaining-decisions-design.md` — Design decisions
