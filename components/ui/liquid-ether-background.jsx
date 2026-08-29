@@ -1,4 +1,5 @@
 'use client';
+// @ts-check
 
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
@@ -1170,6 +1171,7 @@ function LiquidEther({
   return <div ref={mountRef} className={`liquid-ether-container ${className || ''}`} style={style} />;
 }
 
+/** @returns {import('react').ReactElement} */
 export default function LiquidEtherBackground() {
   return (
     <div className="liquid-ether-bg" aria-hidden="true">

@@ -4,7 +4,7 @@ version: 1.2
 date_created: 2026-08-28
 last_updated: 2026-08-28
 owner: Crystal Web Solution
-status: In Progress — Phase 1 done (PR #133), Phase 2 done (branch refactor/phase2-component-cleanup)
+status: In Progress — Phase 1 done (PR #133), Phase 2 done (PR #136), Phase 3 done (branch refactor+css-modularization-phase1, v1.09)
 tags: [refactor, architecture, css, typescript, cleanup]
 ---
 
@@ -108,12 +108,30 @@ This plan delivers a surgical, phased refactor of the crystalwebsolution.com Nex
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-016 | Upgrade `jsconfig.json` → `tsconfig.json` with `allowJs: true`, `checkJs: true`, `noEmit: true` | | |
-| TASK-017 | Add JSDoc `@typedef` blocks to `lib/projects.js`, `lib/services.mjs`, `lib/site.js` | | |
-| TASK-018 | Type the CRM contract in `lib/crm/project-contract.mjs` with JSDoc | | |
-| TASK-019 | Add JSDoc to all `components/ui/*.jsx` exports | | |
-| TASK-020 | Create `types/index.d.ts` for shared shapes (Project, Service, Review, etc.) | | |
-| TASK-021 | Run `tsc --noEmit` to validate types without blocking build | | |
+| TASK-016 | Upgrade `jsconfig.json` → `tsconfig.json` with `allowJs: true`, `checkJs: true`, `noEmit: true` | Done, with a deviation — see note below | 2026-08-29 |
+| TASK-017 | Add JSDoc `@typedef` blocks to `lib/projects.js`, `lib/services.mjs`, `lib/site.js` | Done — also typed `lib/reviews.js` (`Review`), which the plan's TASK-020 needed anyway | 2026-08-29 |
+| TASK-018 | Type the CRM contract in `lib/crm/project-contract.mjs` with JSDoc | Done — 9 `@typedef` union types plus `value is X` type-guard returns on every `is*` predicate | 2026-08-29 |
+| TASK-019 | Add JSDoc to all `components/ui/*.jsx` exports | Done — all 10 files | 2026-08-29 |
+| TASK-020 | Create `types/index.d.ts` for shared shapes (Project, Service, Review, etc.) | Done — re-exports by `import('../lib/x.js').Type` reference rather than duplicating shapes, so types can't drift from the data | 2026-08-29 |
+| TASK-021 | Run `tsc --noEmit` to validate types without blocking build | Done — clean (exit 0). Also caught and fixed a real `pnpm build` regression (see note below) | 2026-08-29 |
+
+> **Note (2026-08-29):** two deviations from this phase's literal wording,
+> both found empirically rather than assumed:
+> 1. **`checkJs: true` project-wide was reverted to `false`.** It surfaced
+>    277 errors, nearly all false positives from JSDoc-less `.jsx` files
+>    (TypeScript's prop-shape inference marks optional-with-default props as
+>    required when there's no JSDoc to tell it otherwise) — noise that would
+>    bury the real signal. Switched to the standard incremental-adoption
+>    pattern: `checkJs: false` globally, `// @ts-check` opted in on exactly
+>    the 15 files this phase actually typed. `tsc --noEmit` is clean.
+> 2. **`pnpm add -D typescript` (unpinned) pulled in `7.0.2`**, the new
+>    native/Go-rewrite major version, and it broke `pnpm build`:
+>    `app/api/contact/route.js` and `app/api/cron/crm-notifications/route.js`
+>    failed to resolve their `@/lib/*` imports the moment a `tsconfig.json`
+>    existed, while every other `@/`-aliased import in the app (60+ sites)
+>    kept working. Root-caused by testing the TypeScript version in
+>    isolation after tsconfig-option bisection ruled out `paths`/
+>    `moduleResolution`/`baseUrl`. Pinned to `^5.9.3`, which builds clean.
 
 ### Implementation Phase 4: Dead Code & Performance Audit
 

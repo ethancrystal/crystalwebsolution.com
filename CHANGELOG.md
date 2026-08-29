@@ -5,6 +5,44 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.09 — 2026-08-29
+
+- Phase 3 of the architecture-cleanup refactor plan: JSDoc-based type safety,
+  stacked on top of v1.08's component cleanup. No runtime TypeScript — this
+  repo stays plain JSX + JS per its own convention; `tsconfig.json` exists
+  purely to drive `tsc --noEmit` as a dev-time check.
+- `jsconfig.json` → `tsconfig.json` (`allowJs`, `noEmit`, path alias
+  preserved). `typescript`, `@types/react`, `@types/react-dom` added as
+  devDependencies.
+- Added `@typedef` blocks to `lib/projects.js`, `lib/services.mjs`,
+  `lib/site.js`, `lib/reviews.js`, and `lib/crm/project-contract.mjs`
+  (`ProjectCategoryValue`, `ProjectStatus`, `TaskStatus`, etc., plus
+  `value is X` type-guard returns on the `is*` predicate functions).
+- Added JSDoc `@param`/`@returns` to every exported component in
+  `components/ui/*.jsx` (10 files).
+- Added `types/index.d.ts` re-exporting the shapes above by reference
+  (`import('../lib/projects.js').Project`, etc.) rather than duplicating
+  them, so the type can't drift from the data it describes.
+- **Deviated from the plan's literal `checkJs: true`**: global `checkJs`
+  surfaced 277 pre-existing false-positive errors across untouched files (a
+  known JSDoc-less-JSX prop-inference artifact, not real bugs — e.g. optional
+  props with defaults getting inferred as required). Set `checkJs: false`
+  project-wide and opted in per-file with `// @ts-check` on exactly the 15
+  files this phase typed, which is the standard incremental-adoption pattern
+  for JSDoc typing in an existing JS codebase. `tsc --noEmit` is clean.
+- **Found and fixed a real build regression during this phase**:
+  `typescript@7.0.2` (the brand-new native/Go-rewrite major version, pulled
+  in by `pnpm add -D typescript` with no version pin) broke Next.js
+  15.5.23's route-handler resolution — `app/api/contact/route.js` and
+  `app/api/cron/crm-notifications/route.js` failed to resolve their `@/lib/*`
+  imports (`Module not found`) specifically because a `tsconfig.json` was
+  now present; every other `@/`-aliased import in the app (60+ call sites)
+  kept resolving fine. Isolated by bisecting tsconfig options down to the
+  bare minimum jsconfig-equivalent (still failed) and finally by testing the
+  TypeScript version in isolation. Pinned `typescript` to `^5.9.3` — build,
+  `tsc --noEmit`, `pnpm test` (448/448), and `pnpm test:marketing` (20/20)
+  are all clean on that pin.
+
 ## v1.08 — 2026-08-28
 
 - Phase 2 of the architecture-cleanup refactor plan: component-level
