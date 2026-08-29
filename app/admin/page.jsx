@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { signOut } from '@/app/auth/actions';
+import { LoadingState } from '@/components/crm/Spinner';
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
@@ -69,7 +70,7 @@ export default function AdminDashboard() {
   if (isLoading) {
     return (
       <div className="crm-admin-dashboard">
-        <div className="crm-loading">Loading...</div>
+        <LoadingState label="Loading..." />
       </div>
     );
   }
@@ -300,14 +301,6 @@ export default function AdminDashboard() {
           transform: translateY(-2px);
         }
 
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
       `}</style>
     </div>
   );

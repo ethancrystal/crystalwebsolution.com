@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 // Client-only: the R3F canvas must never render on the server.
@@ -115,12 +115,30 @@ function stripAnimations(children) {
   });
 }
 
+// SMIL <animate>/<animateTransform>/<animateMotion> elements run outside
+// CSS, so a `prefers-reduced-motion` media query in globals.css can't gate
+// them - they have to be stripped from the render tree itself, mirroring
+// how ServiceEmblem3D.jsx gates its useFrame rotation/glow.
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduced(mql.matches);
+    const onChange = (e) => setReduced(e.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+  return reduced;
+}
+
 function SvgMark({ signal, animate }) {
+  const reducedMotion = useReducedMotion();
   const glyph = GLYPHS[signal] || GLYPHS.web;
-  const content = animate ? glyph : stripAnimations(glyph);
+  const shouldAnimate = animate && !reducedMotion;
+  const content = shouldAnimate ? glyph : stripAnimations(glyph);
   return (
     <svg viewBox={VIEWBOX} width="100%" height="100%" role="presentation"
-      className={animate ? 'mkt-emblem-svg' : 'mkt-emblem-svg mkt-emblem-svg--static'}>
+      className={shouldAnimate ? 'mkt-emblem-svg' : 'mkt-emblem-svg mkt-emblem-svg--static'}>
       {content}
     </svg>
   );

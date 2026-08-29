@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUserRole } from '@/lib/useUserRole';
 import { inviteUser } from '../actions';
+import { LoadingState } from '@/components/crm/Spinner';
 
 export default function InviteUserPage() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default function InviteUserPage() {
   if (isRoleLoading || !isAdmin) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <LoadingState label="Loading..." />
       </div>
     );
   }
@@ -265,14 +266,6 @@ export default function InviteUserPage() {
           margin-right: auto;
         }
 
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
       `}</style>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/browser';
 import { postProjectNote } from '@/app/actions/project-actions';
+import Spinner from '@/components/crm/Spinner';
 
 function formatWhen(value) {
   if (!value) return '';
@@ -93,7 +94,7 @@ export default function NotesPanel({ projectId }) {
       </form>
 
       {isLoading ? (
-        <p className="notes-empty">Loading updates...</p>
+        <p className="notes-empty"><Spinner size="sm" inline label="Loading updates" />Loading updates...</p>
       ) : notes.length > 0 ? (
         <ul className="notes-list">
           {notes.map((note) => (

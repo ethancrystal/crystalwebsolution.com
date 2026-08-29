@@ -8,6 +8,7 @@ import {
   TASK_PRIORITIES,
   TASK_STATUSES,
 } from '@/lib/crm/project-contract.mjs';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 const STATUS_OPTIONS = TASK_STATUSES;
 const PRIORITY_OPTIONS = TASK_PRIORITIES;
@@ -137,7 +138,7 @@ export default function NewTaskPage() {
   if (isLoadingCompanies) {
     return (
       <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+        <SkeletonDetail fields={8} />
       </div>
     );
   }
@@ -453,14 +454,6 @@ export default function NewTaskPage() {
           margin-right: auto;
         }
 
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
       `}</style>
     </div>
   );
