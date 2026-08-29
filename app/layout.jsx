@@ -158,8 +158,12 @@ export default function RootLayout({ children }) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            // Safe: hardcoded string, no user input.
-            __html: "try{if(sessionStorage.getItem('cws:intro-seen')==='1')document.documentElement.dataset.cwsIntroSeen='1'}catch(e){}",
+            // Safe: hardcoded string, no user input. Mirrors Loader.jsx's own
+            // seen/reduced-motion skip so a returning or reduced-motion
+            // visitor's scroll unlocks before hydration, instead of sitting
+            // locked (see the html[data-scroll-unlocked] default in
+            // app/styles/cursor-loader.css) until React catches up.
+            __html: "try{var s=sessionStorage.getItem('cws:intro-seen')==='1';var r=window.matchMedia('(prefers-reduced-motion: reduce)').matches;if(s)document.documentElement.dataset.cwsIntroSeen='1';if(s||r)document.documentElement.dataset.scrollUnlocked='1'}catch(e){}",
           }}
         />
       </head>

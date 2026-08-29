@@ -2,17 +2,20 @@
 
 import { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
-import { SITE } from '../lib/site';
+import { lockScroll, unlockScroll } from '../lib/scrollLock';
 
-// Intro loader: three brand words cycle while a counter climbs,
-// then the curtain lifts to reveal the scene.
-const WORDS = SITE.tagline.split('. ').map((w) => w.replace('.', ''));
+// Intro loader: a spinning/breathing crystal-facet cube plays once per
+// session while scroll input is held (see lib/scrollLock.js — Lenis is
+// stopped and CSS locks native scroll from first paint), then the curtain
+// lifts and scroll releases together. Timing (0.65s count, lift starting at
+// 0.62s for 0.38s = 1.0s total) matches the previous word-cycle curtain
+// exactly, since Hero.jsx's own reveal choreography (introDelay) is tuned
+// against that total and isn't part of this change.
 const SESSION_KEY = 'cws:intro-seen';
 
 export default function Loader() {
   const root = useRef(null);
   const counter = useRef(null);
-  const wordRefs = useRef([]);
   const [gone, setGone] = useState(false);
 
   useEffect(() => {
@@ -23,13 +26,16 @@ export default function Loader() {
     } catch {
       // Storage may be unavailable in hardened/private browsing modes.
     }
-    if (seen) {
+    if (seen || reduced) {
       document.documentElement.dataset.cwsIntroSeen = '1';
     }
     if (reduced || seen) {
+      unlockScroll();
       setGone(true);
       return undefined;
     }
+
+    lockScroll();
 
     const tl = gsap.timeline({
       onComplete: () => {
@@ -39,6 +45,7 @@ export default function Loader() {
         } catch {
           // The intro remains non-blocking even if storage is unavailable.
         }
+        unlockScroll();
         setGone(true);
       },
     });
@@ -53,36 +60,48 @@ export default function Loader() {
       },
     }, 0);
 
-    WORDS.forEach((_, i) => {
-      const el = wordRefs.current[i];
-      if (!el) return;
-      tl.fromTo(el, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.18, ease: 'power2.out' }, i * 0.18);
-      if (i < WORDS.length - 1) {
-        tl.to(el, { opacity: 0, y: -16, duration: 0.16, ease: 'power2.in' }, i * 0.18 + 0.16);
-      }
-    });
-
     tl.to(root.current, {
       yPercent: -100,
       duration: 0.38,
       ease: 'power4.inOut',
     }, 0.62);
 
-    return () => tl.kill();
+    return () => {
+      tl.kill();
+      unlockScroll();
+    };
   }, []);
 
   if (gone) return null;
 
   return (
-    <div ref={root} className="loader">
-      <div className="loader-words">
-        {WORDS.map((w, i) => (
-          <span key={w} ref={(el) => (wordRefs.current[i] = el)} className="loader-word">
-            {w}
-          </span>
-        ))}
+    <div ref={root} className="loader" role="status" aria-live="polite">
+      <span className="sr-only">Loading</span>
+      <div className="loader-cube-scene" aria-hidden="true">
+        <div className="loader-cube">
+          <div className="loader-cube-core" />
+          <div className="loader-cube-face loader-cube-face--front">
+            <span className="loader-cube-face-inner loader-cube-face-inner--cyan" />
+          </div>
+          <div className="loader-cube-face loader-cube-face--back">
+            <span className="loader-cube-face-inner loader-cube-face-inner--cyan" />
+          </div>
+          <div className="loader-cube-face loader-cube-face--right">
+            <span className="loader-cube-face-inner loader-cube-face-inner--violet" />
+          </div>
+          <div className="loader-cube-face loader-cube-face--left">
+            <span className="loader-cube-face-inner loader-cube-face-inner--violet" />
+          </div>
+          <div className="loader-cube-face loader-cube-face--top">
+            <span className="loader-cube-face-inner loader-cube-face-inner--blue" />
+          </div>
+          <div className="loader-cube-face loader-cube-face--bottom">
+            <span className="loader-cube-face-inner loader-cube-face-inner--blue" />
+          </div>
+        </div>
+        <div className="loader-cube-shadow" />
       </div>
-      <div className="loader-counter">
+      <div className="loader-counter" aria-hidden="true">
         <span ref={counter}>000</span>
         <span className="loader-pct">%</span>
       </div>

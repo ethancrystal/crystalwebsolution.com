@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import SectionReveal from '../SectionReveal';
 import SectionHeader from '../shared/SectionHeader';
 import { useCardMouseReveal } from '../CardHoverReveal';
+import SectionSkeleton from '../ui/section-skeleton';
 import { lightApproach, dimApproach } from '../../lib/beacon';
 
 const STEPS = [
@@ -125,6 +126,7 @@ export default function Approach() {
 
   return (
     <section className="section approach" id="approach" data-quiet>
+      <SectionSkeleton />
       <div className="text-plate">
         <SectionHeader eyebrow="How we work" title="Four steps. No shortcuts." />
       </div>
