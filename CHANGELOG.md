@@ -5,6 +5,39 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.12 — 2026-08-29
+
+Re-does the still-needed part of PR #118 ("frontend finishing-touches pass")
+fresh against current `main` — that branch was 35 commits stale (including
+the `globals.css` → 27-file split) and unmergeable. Verified against current
+`main` file-by-file before reapplying anything; PR #118 closed as superseded.
+
+- Reviews page: review cards now get the same staggered `SectionReveal`
+  entrance every sibling list page (blog, work) already has — previously
+  only the archive heading was revealed, not the cards themselves.
+- `ServiceEmblem.jsx` (SVG variant): default service glyphs now gate their
+  SMIL `<animate>`/`<animateTransform>`/`<animateMotion>` elements on
+  `prefers-reduced-motion`, matching the gating its 3D sibling already had —
+  these run outside CSS, so the existing media query couldn't reach them.
+  Added the matching test coverage.
+- `/work/[slug]`: restores the shared `.mkt-inner` width class every sibling
+  detail/index page uses.
+- CRM loading states: most of this work (13 of 21 pages) had already landed
+  on `main` independently, with a better implementation than PR #118's
+  (real `Skeleton`/`LoadingState` variants, plus dead `.crm-loading` CSS
+  removed) — verified page-by-page rather than assumed. Finished the
+  remaining 7 gaps the same way: `admin/companies/new`,
+  `admin/contacts/new`, `admin/deals/new`, `admin/page.jsx`,
+  `admin/tasks/new`, `admin/users/invite`, and a second, previously-missed
+  "Opening onboarding…" block in `app/dashboard/page.jsx`. Also wired
+  `Spinner` into `EntityNotes.jsx`/`NotesPanel.jsx`'s inline "Loading
+  notes…"/"Loading updates…" text, and removed the now-orphaned
+  `.crm-loading` CSS block from each of the 7 page-level fixes.
+
+No look, feel, or functional changes beyond the above; `pnpm build` clean,
+`pnpm test` 449/449, `pnpm test:marketing` 22/22 (includes 2 new assertions
+for the SVG reduced-motion fix), `tsc --noEmit` clean.
+
 ## v1.10 — 2026-08-29
 
 - Fix two stale/miscalibrated claims in `CLAUDE.md` surfaced by an

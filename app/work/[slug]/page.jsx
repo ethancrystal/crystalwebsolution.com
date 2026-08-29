@@ -71,7 +71,7 @@ export default async function CaseStudy({ params }) {
 
   return (
     <MarketingShell>
-      <article className="case">
+      <article className="case mkt-inner">
         <Link href="/work" className="case-back" data-cursor="Work">← All projects</Link>
         <p className="eyebrow">
           <SectionReveal as="span" direction="left">Case study • {project.category}</SectionReveal>
