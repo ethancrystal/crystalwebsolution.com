@@ -29,6 +29,7 @@ tsconfig.tsbuildinfo
 
 # Local browser QA and editor state
 .playwright-mcp/
+.playwright-cli/
 .zcode/
 /.claude/settings.json
 /.claude/settings.local.json

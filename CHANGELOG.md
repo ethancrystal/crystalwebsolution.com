@@ -5,6 +5,62 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.14 — 2026-08-29
+
+Homepage loading treatment: per-section skeletons for the pre-hydration gap,
+and the intro curtain reworked into a 3D cube loader that actually holds
+scroll until it lifts.
+
+- **Section skeletons** (`components/ui/section-skeleton.jsx`,
+  `app/styles/section-skeleton.css`). A full-bleed shimmer placeholder now
+  server-renders inside About, Services, Approach, Stories, Mark and Contact.
+  It carries no size of its own — `.section` already establishes
+  `position: relative`, so pinning to `inset: 0` makes each skeleton match
+  its own section's box (wide sections stay wide, tall stay tall).
+  - The gap it fills is real but was easy to mis-target: `SectionReveal`
+    emits `opacity: 0` as a *server-rendered inline style*, so on a repeat
+    visit (curtain skipped) every wrapped block is invisible with its height
+    reserved until GSAP hydrates. Gating on the existing
+    `data-cws-intro-seen` flag would have been a no-op, since that attribute
+    is set pre-paint by the inline script in `layout.jsx` — the skeletons
+    would never have been visible in any case. They gate on hydration
+    instead: the component's mount effect sets `data-cws-hydrated` on
+    `<html>`, and CSS hides every skeleton on that one global signal.
+  - Hero, Lab and Motion are deliberately excluded. Hero owns its own
+    `introDelay` choreography; Lab's sticky flight stage and Motion's CSS-3D
+    card transforms are the highest-risk places to introduce a new
+    positioning context and the least likely to show a blank gap.
+  - The sweep is motion/react and is dropped entirely under
+    `useReducedMotion()`, leaving a static block.
+- **Intro loader is now a 3D cube** (`components/Loader.jsx`,
+  `app/styles/cursor-loader.css`). The three cycling brand words are replaced
+  by a spinning, breathing six-face cube built from plain CSS keyframes and
+  the existing `--cyan`/`--violet`/`--blue` tokens — no Tailwind, no new
+  dependency. Timing is unchanged (0.65s count, lift at 0.62s over 0.38s), so
+  Hero's `introDelay`, which is tuned against that 1.0s total, still lines up.
+  The counter and the once-per-session `cws:intro-seen` behaviour are kept.
+- **The curtain now actually blocks scroll** (`lib/scrollLock.js`). Previously
+  it only covered the viewport; a visitor could scroll the page underneath it.
+  Scroll is now locked from first paint — CSS `overflow: hidden` before any JS
+  runs, plus `lenis.stop()` once `SmoothScroll` registers its API — and
+  released when the curtain lifts.
+  - The CSS default is scoped `html:has(.loader):not([data-scroll-unlocked])`.
+    Only the homepage renders `.loader`; unscoped, every other route (login,
+    dashboard, admin, service pages) would have locked permanently, since
+    nothing there would ever set the unlock flag.
+  - `layout.jsx`'s pre-hydration inline script now mirrors Loader's own
+    seen/reduced-motion skip, so returning and reduced-motion visitors unlock
+    before hydration rather than sitting locked until React catches up.
+- `.playwright-cli/` added to `.gitignore` — local browser-QA scratch output,
+  same category as the already-ignored `.playwright-mcp/`.
+
+Verified: `pnpm build` clean, `pnpm test:marketing` 22/22. Skeleton behaviour
+confirmed in a real browser under CPU throttling (six skeletons present,
+hydration flag flips, placeholder visible in Services while neighbours have
+already hydrated). The cube loader and scroll lock are covered by the build
+and test run but their browser pass did not finish before this was opened —
+worth a look on the preview deploy.
+
 ## v1.13 — 2026-08-29
 
 Repository leanness pass. No behaviour change to any shipping page — the only

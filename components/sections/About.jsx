@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { blastVector } from '../../lib/smilTimeline.mjs';
 import { EASE_MASK } from '../../lib/easing';
+import SectionSkeleton from '../ui/section-skeleton';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -185,6 +186,7 @@ export default function About() {
       }}
       aria-label="About CD Sportswear USA"
     >
+      <SectionSkeleton />
       <p className="about-kicker" ref={kickerRef}>If your brand reads like everyone else's, your best work gets lost in the scroll — CD Sportswear USA is the independent studio that builds you to stand out instead.</p>
       <h2 className="sr-only">We build digital experiences that turn clear strategy into brands people remember.</h2>
       <svg ref={svgRef} className="about-smil-copy" viewBox="0 0 1440 900" aria-hidden="true">

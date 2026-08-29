@@ -1,0 +1,31 @@
+/* ---------- section loading skeleton ---------- */
+/* .section already establishes position: relative (primitives.css), so this
+   just pins to its box — no size of its own, so it matches whatever section
+   it sits in (wide sections stay wide, tall sections stay tall). It has no
+   explicit z-index, so it paints in DOM order among the section's other
+   z-index:auto children: placed first, it stays behind real content once
+   that content is visible, and disappears outright once hydration flips
+   data-cws-hydrated on <html>. */
+.section-skeleton {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(139, 152, 184, 0.08);
+  pointer-events: none;
+}
+
+html[data-cws-hydrated='1'] .section-skeleton {
+  display: none;
+}
+
+.section-skeleton-sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(234, 242, 255, 0.12),
+    transparent
+  );
+}
