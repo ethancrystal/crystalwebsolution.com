@@ -57,6 +57,12 @@ const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS]
 // required by Next's inline bootstrap and by the R3F/GSAP runtime; tightening
 // them needs a nonce refactor, tracked separately. blob: is allowed for
 // script/worker because Three.js compiles shader workers from blob URLs.
+//
+// This policy is pinned token-for-token by tests/csp-policy.test.mjs. Editing
+// any directive below fails that test by design: it is the review checkpoint
+// for a security header, not a stale assertion to update mechanically. Add the
+// token to the pinned table there too, and say in the PR what needs it and why
+// a narrower one will not do.
 const CSP = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: ${GA_SCRIPT_ORIGIN}`,
