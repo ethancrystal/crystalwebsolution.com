@@ -8,9 +8,12 @@ import { CLIENT_TILE_IMAGES } from '../../lib/clientTileImages.mjs';
 const DEEP_LINK_PROGRESS = 0.32;
 
 // The marquee is decorative (aria-hidden inside WorkMarquee), so all real
-// navigation lives in the list below. These are real CD Sportswear USA
-// client deployments, not stock screenshots — matching the section's own
-// claim that nothing here is an invented case study.
+// navigation — and the section's "real names, real businesses" claim —
+// lives in the accessible project list below, sourced from lib/projects.js.
+// The marquee tiles themselves are third-party Awwwards showcase
+// screenshots used only as visual texture (see
+// public/projects/clients/SOURCES.md); they are not CD Sportswear USA
+// client work and should never be presented as such.
 // Animated media for the duplicated (second-half) tiles in the marquee.
 // WebM is preferred for smaller file size and better quality; GIF is used
 // only where no WebM is available. These replace the repeated copies of
