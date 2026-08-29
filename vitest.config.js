@@ -13,7 +13,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './vitest.setup.js',
-    include: ['tests/**/*.test.{mjs,jsx}'],
-    exclude: ['tests/marketing.test.mjs'],
+    // Only .jsx component tests run under vitest/jsdom; every .test.mjs file
+    // uses Node's built-in `node:test` runner (see `pnpm test`) and cannot be
+    // bundled by vitest.
+    include: ['tests/**/*.test.jsx'],
   },
 })
