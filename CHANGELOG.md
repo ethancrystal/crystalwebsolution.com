@@ -5,6 +5,41 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.14 — 2026-08-29
+
+Turns the CSP into an enforced invariant. Test-only — no runtime code changed,
+so no shipping page behaves differently.
+
+v1.13 removed `https://cdn.jsdelivr.net` from `script-src` and added a test
+asserting it stays out. That guard turned out to be a denylist: it names one
+origin, so it only catches the one regression it was written for. Measured
+against v1.13's suite, both of these widenings left all 449 tests green:
+
+- adding a *different* CDN (`https://cdn.unpkg.com`) to `script-src`
+- collapsing `script-src` to a bare `https:`, which permits any https origin
+  to execute script and leaves the directive doing nothing
+
+- **`tests/csp-policy.test.mjs` added.** Pins the entire policy as an exact
+  directive→token map, compared order-insensitively, so *any* change fails
+  rather than only the ones someone thought to enumerate. The failure message
+  says what the test is for: a CSP edit is a security-header review
+  checkpoint, and landing one means deliberately updating the pinned table
+  and justifying the new token in the PR.
+- **Two companion assertions** for failure modes an exact match would report
+  confusingly: a directive deleted from the array (silently inherits
+  `default-src`) or present but empty (blocks the resource type outright),
+  and a bare scheme or wildcard host in `script-src` — named separately
+  because that one is the difference between a policy that constrains script
+  execution and one that only looks like it does.
+- **`img-src` left deliberately wide** (`https:`) and now documented as such
+  in the pinned table. Images cannot execute; enumerating every host the
+  marketing pages reference costs more than it buys.
+
+The existing origin-presence assertions in `tests/analytics.test.mjs` stay —
+the exact-match test subsumes them, but their per-origin failure messages
+explain *why* GA breaks without each host, which a diff of the whole policy
+would not.
+
 ## v1.13 — 2026-08-29
 
 Repository leanness pass. No behaviour change to any shipping page — the only
