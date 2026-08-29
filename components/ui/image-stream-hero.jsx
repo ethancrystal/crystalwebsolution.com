@@ -1,4 +1,5 @@
 'use client';
+// @ts-check
 
 import * as React from 'react';
 
@@ -58,6 +59,18 @@ function keyframes(dir, name, p) {
   return `@keyframes ${name}{${steps.join('')}}`;
 }
 
+/**
+ * @param {Object} props
+ * @param {string[]} props.images
+ * @param {number} [props.cards]
+ * @param {number} [props.speed]
+ * @param {number} [props.axis]
+ * @param {string} [props.path]
+ * @param {import('react').ReactNode} [props.children]
+ * @param {string} [props.className]
+ * @param {import('react').CSSProperties} [props.style]
+ * @returns {import('react').ReactElement}
+ */
 export function ImageStreamHero({
   images,
   cards = 9,

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import { readResolvedGlobalsCss } from './helpers/resolvedGlobalsCss.mjs';
 
 const featureModule = await import('../lib/experienceFeatures.mjs').catch(() => ({}));
 const layoutModule = await import('../lib/flyingCarouselLayout.mjs').catch(() => ({}));
@@ -9,7 +10,7 @@ const studiesModule = await import('../lib/motionStudies.mjs').catch(() => ({}))
 const qualityModule = await import('../lib/renderQuality.mjs').catch(() => ({}));
 const activityModule = await import('../lib/sceneActivity.mjs').catch(() => ({}));
 const motionLayoutModule = await import('../lib/motionLayout.mjs').catch(() => ({}));
-const globalCss = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+const globalCss = readResolvedGlobalsCss();
 const motionSource = readFileSync(new URL('../components/sections/Motion.jsx', import.meta.url), 'utf8');
 const navSource = readFileSync(new URL('../components/Nav.jsx', import.meta.url), 'utf8');
 

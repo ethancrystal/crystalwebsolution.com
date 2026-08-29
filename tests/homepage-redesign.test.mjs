@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 
 import { IN_MOTION_CARDS } from '../lib/inMotionCards.mjs';
 import { CLIENT_TILE_IMAGES } from '../lib/clientTileImages.mjs';
+import { readResolvedGlobalsCss } from './helpers/resolvedGlobalsCss.mjs';
 
 const storiesSource = readFileSync(
   new URL('../components/sections/Stories.jsx', import.meta.url),
@@ -26,10 +27,7 @@ const workMarqueeSource = readFileSync(
   'utf8',
 );
 
-const globalCss = readFileSync(
-  new URL('../app/globals.css', import.meta.url),
-  'utf8',
-);
+const globalCss = readResolvedGlobalsCss();
 
 test('Stories uses review-specific language and a grouped client-proof CTA', () => {
   assert.match(storiesSource, /Client proof/);

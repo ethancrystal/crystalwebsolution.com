@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
 import { render, screen } from '@testing-library/react';
 import ContactForm from '@/components/marketing/ContactForm';
+import { readResolvedGlobalsCss } from '../helpers/resolvedGlobalsCss.mjs';
 
 describe('marketing a11y', () => {
   it('gives every visible input a programmatically associated label', () => {
@@ -18,8 +18,7 @@ describe('marketing a11y', () => {
   });
 
   it('applies a visible focus outline for keyboard users (global CSS rule)', () => {
-    const path = require('node:path').resolve(process.cwd(), 'app/globals.css');
-    const css = readFileSync(path, 'utf8');
+    const css = readResolvedGlobalsCss();
     // A focus-visible outline rule must exist for marketing interactive elements.
     expect(css).toMatch(/\.mkt-focus-visible:focus-visible\s*\{[^}]*outline/);
   });

@@ -1,0 +1,171 @@
+/* ---------- contact / footer ---------- */
+.contact {
+  align-items: center;
+  text-align: center;
+  overflow: visible;
+  isolation: isolate;
+  background:
+    radial-gradient(50rem 32rem at 50% 45%, rgba(60, 108, 255, 0.12), transparent 72%),
+    linear-gradient(180deg, rgba(4, 6, 12, 0), rgba(2, 3, 8, 0.82));
+}
+.contact::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 44%, transparent 0 18%, rgba(2, 3, 8, 0.44) 74%, rgba(2, 3, 8, 0.9) 100%);
+}
+.contact-line { font-family: var(--font-display); font-size: clamp(2.6rem, 8vw, 6.4rem); line-height: 1.04; }
+.contact-line-accent {
+  --accent-grad: linear-gradient(100deg, var(--cyan), var(--violet));
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 1px 2px rgba(2, 4, 8, 0.5));
+}
+.contact-cta {
+  margin-top: 3.4rem;
+  padding: 1rem 0;
+  overflow: visible;
+}
+.contact-email {
+  isolation: isolate;
+  position: relative;
+  color: var(--ink);
+  border-color: rgba(89, 243, 255, 0.68);
+  background: rgba(4, 6, 12, 0.78);
+  box-shadow: none;
+  display: inline-block;
+  padding: 1rem 2rem;
+}
+.contact-email::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, var(--cyan), var(--blue));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.contact-email:hover,
+.contact-email:focus-visible { color: var(--bg); box-shadow: none; }
+.contact-email:hover::before,
+.contact-email:focus-visible::before { transform: scaleX(1); }
+
+.contact-form-wrap {
+  max-width: 46rem;
+  margin-inline: auto;
+  text-align: left;
+}
+.contact-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.4rem 1.6rem;
+}
+.contact-form-field--wide { grid-column: 1 / -1; }
+.contact-form-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+.contact-form input,
+.contact-form textarea,
+.contact-form select {
+  background: rgba(4, 6, 12, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  width: 100%;
+  font-family: inherit;
+  transition: border-color 0.3s ease;
+}
+.contact-form textarea { resize: vertical; min-height: 8rem; }
+.contact-form input:focus-visible,
+.contact-form textarea:focus-visible,
+.contact-form select:focus-visible {
+  outline: none;
+  border-color: var(--cyan);
+}
+.contact-form-required,
+.contact-form-optional {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+.contact-form-hint {
+  margin-top: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.contact-form-error {
+  margin-top: 0.4rem;
+  font-size: 0.82rem;
+  color: #ff6b6b;
+}
+.contact-form-honeypot { display: none; }
+.contact-form-actions {
+  margin-top: 0.6rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem 1.6rem;
+}
+.contact-form-privacy {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.contact-form-status {
+  width: 100%;
+  margin-top: 0.6rem;
+  font-size: 0.88rem;
+}
+.contact-form-status--error { color: #ff6b6b; }
+.contact-form-status--success { color: var(--cyan); }
+
+@media (max-width: 760px) {
+  .contact-form-grid { grid-template-columns: 1fr; }
+}
+
+.footer {
+  margin-top: 12vh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 3rem;
+  text-align: left;
+  border-top: 1px solid var(--line);
+  padding-top: 3.4rem;
+}
+.footer-col:not(:first-child) { padding-left: 2rem; border-left: 1px solid var(--line); }
+.footer-col a, .footer-col p { display: block; color: var(--muted); font-size: 0.9rem; line-height: 1.9; }
+.footer-col a:hover { color: var(--cyan); }
+.footer-email {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--ink) !important;
+  letter-spacing: 0.01em;
+}
+.footer-email:hover { color: var(--cyan) !important; }
+.footer-label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--cyan) !important;
+  margin-bottom: 0.5rem;
+}
+.footer-bottom {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  padding-top: 2rem;
+}

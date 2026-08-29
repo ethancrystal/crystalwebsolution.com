@@ -1,0 +1,430 @@
+/* ---------- border glow (pointer-tracked card highlight) ---------- */
+.glow-card {
+  --edge-proximity: 0;
+  --cursor-angle: 45deg;
+  --edge-sensitivity: 30;
+  --color-sensitivity: calc(var(--edge-sensitivity) + 20);
+  --glow-padding: 26px;
+  --cone-spread: 25;
+  position: relative;
+  isolation: isolate;
+}
+.glow-card::before,
+.glow-card::after,
+.glow-card > .glow-card-edge {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: opacity 0.75s ease-in-out;
+  z-index: -1;
+}
+.glow-card:hover::before,
+.glow-card:hover::after,
+.glow-card:hover > .glow-card-edge {
+  transition: opacity 0.25s ease-out;
+}
+/* colored mesh-gradient border, revealed in a cone facing the cursor */
+.glow-card::before {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--bg) 0 100%) padding-box,
+    radial-gradient(at 82% 18%, var(--cyan) 0px, transparent 60%) border-box,
+    radial-gradient(at 14% 78%, var(--violet) 0px, transparent 60%) border-box,
+    radial-gradient(at 68% 92%, var(--blue) 0px, transparent 60%) border-box,
+    linear-gradient(var(--blue) 0 100%) border-box;
+  opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  mask-image: conic-gradient(
+    from var(--cursor-angle) at center,
+    black calc(var(--cone-spread) * 1%),
+    transparent calc((var(--cone-spread) + 15) * 1%),
+    transparent calc((100 - var(--cone-spread) - 15) * 1%),
+    black calc((100 - var(--cone-spread)) * 1%)
+  );
+}
+/* soft colored fill bleeding in from the same edge */
+.glow-card::after {
+  background:
+    radial-gradient(at 82% 18%, var(--cyan) 0px, transparent 60%) padding-box,
+    radial-gradient(at 14% 78%, var(--violet) 0px, transparent 60%) padding-box,
+    radial-gradient(at 68% 92%, var(--blue) 0px, transparent 60%) padding-box;
+  mask-image: conic-gradient(
+    from var(--cursor-angle) at center, transparent 5%, black 15%, black 85%, transparent 95%
+  );
+  opacity: calc(0.45 * (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  mix-blend-mode: soft-light;
+}
+/* outer glow ring, bleeding past the card's own edge toward the cursor */
+.glow-card > .glow-card-edge {
+  inset: calc(var(--glow-padding) * -1);
+  z-index: 1;
+  mask-image: conic-gradient(
+    from var(--cursor-angle) at center, black 2.5%, transparent 10%, transparent 90%, black 97.5%
+  );
+  opacity: calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
+  mix-blend-mode: plus-lighter;
+}
+.glow-card > .glow-card-edge::before {
+  content: '';
+  position: absolute;
+  inset: var(--glow-padding);
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--cyan) 90%, transparent),
+    inset 0 0 6px 0 color-mix(in srgb, var(--cyan) 45%, transparent),
+    inset 0 0 20px 2px color-mix(in srgb, var(--blue) 30%, transparent),
+    0 0 6px 0 color-mix(in srgb, var(--cyan) 45%, transparent),
+    0 0 20px 2px color-mix(in srgb, var(--blue) 30%, transparent),
+    0 0 46px 4px color-mix(in srgb, var(--violet) 22%, transparent);
+}
+@media (pointer: coarse) {
+  /* No hover on touch; the plain border/lift from .mkt-service-card already
+     covers the affordance, so skip mounting an effect that can never fire. */
+  .glow-card::before,
+  .glow-card::after,
+  .glow-card > .glow-card-edge { display: none; }
+}
+
+/* Belt-and-braces guard for reduced motion; JS also gates the 3D rotation. */
+@media (prefers-reduced-motion: reduce) {
+  .mkt-emblem-svg--static * { animation: none !important; }
+}
+
+/* Keyboard focus visibility for marketing interactive elements. */
+.mkt-focus-visible:focus-visible {
+  outline: 2px solid var(--cyan, #3cc6ff);
+  outline-offset: 2px;
+}
+/* Apply the focus ring to the concrete marketing controls. */
+.mkt-header-nav a:focus-visible,
+.mkt-footer a:focus-visible,
+.btn:focus-visible,
+.contact-form input:focus-visible,
+.contact-form textarea:focus-visible,
+.contact-form select:focus-visible,
+.mkt-em-tooltip-toggle:focus-visible,
+.mkt-breadcrumb a:focus-visible,
+.mkt-service-card-link:focus-visible,
+.mkt-related-link:focus-visible {
+  outline: 2px solid var(--cyan, #3cc6ff);
+  outline-offset: 2px;
+}
+
+/* Phase 1-2 additions for the reconciled inner-page shell (IdleScene,
+   SubpageNav, WorkLibrary). Appended from the inner-pages reconciliation plan. */
+
+.subpage-shell {
+  background: transparent;
+}
+
+.subpage-scene-canvas,
+.subpage-scene-fallback {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.subpage-scene-fallback {
+  background:
+    radial-gradient(70% 55% at 68% 26%, rgba(89, 243, 255, 0.12), transparent 72%),
+    radial-gradient(55% 48% at 28% 66%, rgba(192, 132, 252, 0.09), transparent 74%),
+    var(--bg);
+}
+
+.subpage-page,
+.subpage-shell > .mkt-footer {
+  position: relative;
+  z-index: 2;
+}
+
+.subpage-nav {
+  grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr);
+}
+
+.subpage-nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.8rem, 1.8vw, 1.5rem);
+}
+
+.subpage-nav-links a {
+  position: relative;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.subpage-nav-links a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.42rem;
+  height: 1px;
+  background: var(--cyan);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s ease;
+}
+
+.subpage-nav-links a:hover,
+.subpage-nav-links a:focus-visible {
+  color: var(--cyan);
+}
+
+.subpage-nav-links a:hover::after,
+.subpage-nav-links a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.subpage-nav-burger {
+  display: none;
+}
+
+.work-library-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin: 0 0 2rem;
+  padding: 1.2rem 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.work-library-count {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.work-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.work-filter-chip {
+  appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(234, 242, 255, 0.02);
+  color: var(--muted);
+  padding: 0.55rem 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.work-filter-chip:hover,
+.work-filter-chip:focus-visible {
+  border-color: rgba(89, 243, 255, 0.55);
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+
+.work-filter-chip.is-active {
+  background: var(--cyan);
+  border-color: var(--cyan);
+  color: var(--bg);
+}
+
+.work-row-visual .project-visual {
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.work-row-visual:hover .project-visual,
+.work-row-visual:focus-visible .project-visual {
+  transform: scale(1.015);
+  border-color: rgba(89, 243, 255, 0.5);
+}
+
+.work-row-summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.work-row-summary.is-expanded {
+  display: block;
+  overflow: visible;
+}
+
+.work-summary-toggle {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.work-summary-toggle:hover,
+.work-summary-toggle:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
+.work-closing-plate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-top: clamp(4rem, 8vw, 7rem);
+  padding: clamp(1.5rem, 4vw, 2.5rem) 0;
+  padding-inline: 24px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.work-closing-plate h2 {
+  margin-top: 0.45rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+}
+
+@media (max-width: 900px) {
+  .subpage-nav {
+    grid-template-columns: 1fr auto;
+  }
+
+  .subpage-nav-links {
+    display: none;
+  }
+
+  .subpage-nav-burger {
+    display: inline-flex;
+  }
+
+  .work-library-controls,
+  .work-closing-plate {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .work-filter-chips {
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .work-filter-chip,
+  .work-row-visual .project-visual,
+  .subpage-nav-links a::after {
+    transition: none;
+  }
+}
+
+/* ===================================================================
+   PROCESS PAGE — scroll-scrubbed progress rail alongside the steps list
+   =================================================================== */
+
+.process-steps-rail {
+  display: grid;
+  grid-template-columns: 2px 1fr;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+  align-items: start;
+}
+
+.process-rail {
+  position: relative;
+  width: 2px;
+  height: 100%;
+  min-height: 100%;
+  align-self: stretch;
+}
+
+.process-rail-track {
+  position: absolute;
+  inset: 0;
+  width: 2px;
+  background: var(--line);
+}
+
+.process-rail-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--cyan), transparent);
+  transform-origin: top;
+  transform: scaleY(0);
+  box-shadow: 0 0 12px 0 color-mix(in srgb, var(--cyan) 60%, transparent);
+}
+
+.process-steps-rail .mkt-steps {
+  margin-top: 0;
+}
+
+@media (max-width: 720px) {
+  .process-steps-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .process-rail {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .process-rail-fill {
+    transform: scaleY(1);
+    transition: none;
+  }
+}
+
+/* ===================================================================
+   Case study narrative beats + gallery + nav rail
+   (app/work/[slug]/page.jsx, components/marketing/CaseGallery.jsx,
+   components/marketing/CaseNavRail.jsx). Case-study page only.
+   =================================================================== */
+.case-beats { display: grid; gap: 3.5rem; margin: 4rem 0; }
+.case-beat { max-width: 42ch; }
+.case-beat.is-offset { margin-left: auto; text-align: left; }
+.case-beat-eyebrow { margin-bottom: 0.9rem; }
+.case-beat p:not(.case-beat-eyebrow) { color: var(--muted); line-height: 1.9; margin-bottom: 1.4rem; font-size: 1.02rem; }
+.case-beat p:last-child { margin-bottom: 0; }
+
+.case-gallery-wrap { margin: 4rem 0; }
+.case-gallery-wrap > .eyebrow { margin-bottom: 1.25rem; }
+.case-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+.case-gallery-tile.is-offset { transform: translateY(4rem); }
+
+.case-nav-rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); margin-top: 3rem; }
+.case-nav-cell { display: flex; align-items: center; gap: 1rem; padding: 2rem 1.5rem; transition: background-color 0.25s; }
+.case-nav-prev { border-right: 1px solid var(--line); }
+.case-nav-next { justify-content: flex-end; text-align: right; }
+.case-nav-cell:hover,
+.case-nav-cell:focus-visible { background: rgba(89, 243, 255, 0.05); }
+.case-nav-text { display: flex; flex-direction: column; gap: 0.4rem; }
+.case-nav-title { font-family: var(--font-display); font-size: clamp(1.2rem, 2.6vw, 1.7rem); transition: color 0.3s; }
+.case-nav-arrow { font-size: 1.4rem; color: var(--cyan); transition: transform 0.25s; }
+.case-nav-cell:hover .case-nav-title,
+.case-nav-cell:focus-visible .case-nav-title { color: var(--cyan); }
+.case-nav-prev:hover .case-nav-arrow,
+.case-nav-prev:focus-visible .case-nav-arrow { transform: translateX(-4px); }
+.case-nav-next:hover .case-nav-arrow,
+.case-nav-next:focus-visible .case-nav-arrow { transform: translateX(4px); }
+
+@media (max-width: 720px) {
+  .case-beat.is-offset { margin-left: 0; }
+  .case-gallery { grid-template-columns: 1fr; }
+  .case-gallery-tile.is-offset { transform: none; }
+  .case-nav-rail { grid-template-columns: 1fr; }
+  .case-nav-prev { border-right: 0; border-bottom: 1px solid var(--line); }
+  .case-nav-next { justify-content: flex-start; text-align: left; }
+}
+/* --- end case study upgrade --- */
+

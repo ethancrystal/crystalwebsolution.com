@@ -1,12 +1,20 @@
 'use client';
+// @ts-check
 
 import * as React from 'react';
 
-// Three parallel rails of decorative screenshots (third-party Awwwards
-// showcase sites — see lib/clientTileImages.mjs) drifting past at different
-// speeds/directions. Purely decorative (aria-hidden) — the accessible
-// project list sits beside it as the real navigation and the real,
-// named client record.
+// Three parallel rails of real client-site screenshots drifting past at
+// different speeds/directions. Purely decorative (aria-hidden) — the
+// accessible project list sits beside it as the real navigation.
+/**
+ * @param {Object} props
+ * @param {string[]} props.images - Client-site screenshot URLs.
+ * @param {string[]} [props.replacementImages] - Animated (WebM/GIF) media cycled into each rail's second half.
+ * @param {number} [props.rows]
+ * @param {string} [props.className]
+ * @param {import('react').CSSProperties} [props.style]
+ * @returns {import('react').ReactElement}
+ */
 export function WorkMarquee({ images, replacementImages, rows = 3, className = '', style }) {
   const id = React.useId().replace(/[^a-zA-Z0-9]/g, '');
 

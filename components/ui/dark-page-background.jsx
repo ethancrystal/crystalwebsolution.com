@@ -1,4 +1,5 @@
 'use client';
+// @ts-check
 
 import PrismBackground from './prism-background';
 import RippleGridBackground from './ripple-grid-background';
@@ -10,6 +11,11 @@ const INTERACTIVE_BACKGROUNDS = {
   'liquid-ether': LiquidEtherBackground
 };
 
+/**
+ * @param {Object} props
+ * @param {'prism'|'ripple-grid'|'liquid-ether'} [props.interactive]
+ * @returns {import('react').ReactElement}
+ */
 export default function DarkPageBackground({ interactive = 'prism' }) {
   const Interactive = INTERACTIVE_BACKGROUNDS[interactive] ?? PrismBackground;
 

@@ -1,0 +1,86 @@
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  /* The desktop text glow extends 3rem past its host. On narrow viewports
+     that decorative pseudo-element was widening the document by 25px. */
+  .text-plate::before { inset: -1.25rem; }
+  /* Below 900px .hero-off-axis's desktop-only rules stop applying, so the
+     hero reverts to the original centered layout (align-items:center inside
+     min-height:100vh). On short/narrow phones the stacked eyebrow+title+sub
+     +CTA block can grow tall enough that the centered content pushes the
+     "Start a project" button down into .hero-scroll's fixed bottom:4vh
+     zone. Reserve space so centered content never grows into it, and trim
+     a bit of the inter-element spacing so there's slack either way. */
+  .hero { padding-bottom: 15vh; }
+  .hero-sub { margin-top: 1.6rem; }
+  .hero-cta { margin-top: 2rem; }
+  .services { padding-block: 14vh; }
+  .service-row { grid-template-columns: minmax(0, 1fr); }
+  /* Single-column row: keep the detail block in the only track that exists,
+     otherwise grid-column: 2 would open an implicit second column. */
+  .service-row-more { grid-column: 1; }
+  .facts-grid { margin-bottom: 3.5rem; }
+  .fact-card { grid-template-columns: 2.5rem 1fr; gap: 1rem 1.25rem; }
+  .fact-num,
+  .fact-label,
+  .fact-note { grid-column: 2; }
+  .fact-num { margin-top: -0.15rem; }
+  .showcase-grid { grid-template-columns: 1fr; gap: 3rem; }
+  .showcase-card.is-offset { transform: none; }
+  .about-cols { grid-template-columns: 1fr; gap: 2rem; }
+  .footer { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-col:not(:first-child) { padding-left: 0; border-left: none; padding-top: 2rem; border-top: 1px solid var(--line); }
+  .work-row { grid-template-columns: 1fr; }
+  .stories-tabs { gap: 0.75rem 1.35rem; }
+  .reviews-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reviews-summary > div:nth-child(3) { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+  .reviews-summary > div:nth-child(4) { border-top: 1px solid var(--line); }
+  .reviews-standard { grid-template-columns: 1fr; gap: 2.5rem; }
+  .reviews-standard .eyebrow { margin-bottom: -1rem; }
+  .review-card-header { flex-direction: column; gap: 1rem; }
+  .review-rating { align-items: flex-start; }
+  .client-record { grid-template-columns: 1fr; gap: 2.5rem; }
+  .client-record li { flex-direction: column; gap: 0.45rem; }
+  .client-record span { text-align: left; }
+  .recognition-row-inner { grid-template-columns: 3rem 1fr; }
+  .recognition-body { grid-column: 2; }
+}
+
+@media (max-width: 480px) {
+  .service-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.8rem 1rem;
+    padding-block: 1.8rem;
+  }
+  .services-intro .section-title { max-width: 12ch; }
+  .contact-email {
+    max-width: 100%;
+    padding-inline: 1rem;
+    font-size: clamp(0.72rem, 3.45vw, 0.9rem);
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .loader { display: none; }
+  .hero-scroll-line { animation: none; }
+  .hero-caustics::before,
+  .hero-caustics::after,
+  .hero-caustics .caustic-ray { animation: none; }
+  .section-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: inset(0 0 0 0) !important;
+    will-change: auto !important;
+  }
+  .marquee-track { transform: translate3d(0, 0, 0) !important; will-change: auto; }
+  .about-smil { cursor: default; }
+  .about-smil [data-about-row] { clip-path: inset(0 0 0 0) !important; will-change: auto; }
+  .story-card,
+  .story-card-quote { animation: none; }
+  .recognition-year-stack,
+  .contact-email::before { transition: none; }
+}
