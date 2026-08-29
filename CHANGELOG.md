@@ -5,6 +5,45 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.08 — 2026-08-28
+
+- Phase 2 of the architecture-cleanup refactor plan: component-level
+  de-duplication, stacked on top of v1.07's CSS split.
+- Added `components/shared/SectionHeader.jsx` and used it in `Services.jsx`,
+  `Approach.jsx`, and `Stories.jsx` — the three sections that shared
+  byte-identical eyebrow + `<h2>` markup, only the copy differed. Verified
+  against the built page's HTML that the rendered output (classes, reveal
+  wrapper, inline styles) is unchanged. `Mark.jsx` (imperative split-line
+  headline) and `Motion.jsx` (plain-text eyebrow, no heading) were left
+  alone — genuinely different markup, not a duplicate to collapse.
+- Added `lib/interactionGuards.mjs` (`skipsPointerAnimation()`) and used it
+  in `Services.jsx` to replace two identical inline
+  `matchMedia('(pointer: coarse)') || matchMedia('(prefers-reduced-motion:
+  reduce)')` checks. Kept as a plain function, not a hook: both call sites
+  check once at effect-mount time and don't need to react live to the query
+  changing, so a hook would add reactivity that didn't exist before.
+- Investigated and closed out the rest of the plan's Phase 2 list without
+  code changes, because the premise didn't hold up:
+  - `Contact.jsx` already delegates fully to `ContactForm`; nothing to do.
+  - The "redundant" comment in `app/signup/page.jsx` is a deliberate
+    visually-hidden-but-focusable radio pattern for keyboard/screen-reader
+    navigation, not dead CSS.
+  - No duplicated `ScrollTrigger` setup exists across `Mark.jsx`/`Hero.jsx`
+    (one unique inline config each) and `Lab.jsx` doesn't use ScrollTrigger
+    at all — nothing to extract into a shared hook.
+  - `ProjectHandoffLink.jsx` is a single-purpose stripe-wipe transition, not
+    a generic pattern — nothing to rename or extract.
+  - `components/three/` has no duplicated geometry/material setup; every
+    `new THREE.*Geometry`/`*Material` call is a distinct shape serving a
+    distinct visual purpose.
+  - `components/three/CanvasFeatureBoundary.jsx` already implements the
+    error-boundary task, and with better scoping (per-feature, not
+    whole-Canvas) than the plan proposed.
+- Flagged, but did not act on: 31 `data-cursor="..."` attributes across the
+  codebase have no reader anywhere (no JS, no CSS) — likely dead, possibly
+  reserved for an unbuilt custom-cursor feature. Left alone pending
+  confirmation, per this repo's "confirm before deleting" rule.
+
 ## v1.07 — 2026-08-28
 
 - Split the 4,324-line `app/globals.css` into 27 ordered stylesheets under
