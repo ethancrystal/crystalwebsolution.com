@@ -321,6 +321,7 @@
   color: var(--muted);
 }
 .work-library-heading .eyebrow { margin-bottom: 1rem; }
+/* GSAP target — components/marketing/WorkLibrary.jsx querySelectorAll('.work-row'). Renaming this class without updating that call site breaks the work-list scroll animation silently (no build error). */
 .work-row {
   display: grid;
   grid-template-columns: 1.3fr 1fr;

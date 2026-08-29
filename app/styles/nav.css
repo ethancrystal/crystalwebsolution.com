@@ -145,6 +145,7 @@
   margin-top: auto;
 }
 .menu-link-mask { overflow: hidden; }
+/* GSAP target — components/Menu.jsx querySelectorAll('.menu-link'). Renaming this class without updating that call site breaks the menu animation silently (no build error). */
 .menu-link {
   display: inline-flex;
   align-items: baseline;

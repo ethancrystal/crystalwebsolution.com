@@ -1,10 +1,10 @@
 ---
 goal: Full codebase refactor — modularize CSS, consolidate components, add type safety, and remove dead code
-version: 1.2
+version: 1.3
 date_created: 2026-08-28
-last_updated: 2026-08-28
+last_updated: 2026-08-29
 owner: Crystal Web Solution
-status: In Progress — Phase 1 done (PR #133), Phase 2 done (PR #136), Phase 3 done (branch refactor+css-modularization-phase1, v1.09)
+status: In Progress — Phase 1 done (PR #133), Phase 2 done (PR #136), Phase 3 done (branch refactor+css-modularization-phase1, v1.09); Agent Council REVISE applied 2026-08-29, Phase 4 gated on pre-flight premise check
 tags: [refactor, architecture, css, typescript, cleanup]
 ---
 
@@ -18,6 +18,18 @@ tags: [refactor, architecture, css, typescript, cleanup]
 > without a change rather than forced through — see the per-task notes in
 > the tables below and PR for `refactor/phase2-component-cleanup`.
 
+> **Council review (2026-08-29):** an Agent Council pass (`agent-council`,
+> tier 1) reviewed this plan and returned **REVISE** — Skeptic and Strategy
+> both blocked on REQ-001 being asserted as satisfied without the Phase 0
+> baseline that would prove it. The 6-item revision brief has been applied
+> below (REQ-001 rescope, GSAP-selector code comments, TypeScript
+> root-cause hedge, published MD5 pair, Phase 4 premise-check gate, Phase 0
+> retroactive note), each checked against this repo's actual code and git
+> history rather than re-asserted from the brief as written — see the
+> Phase 0 section for what was independently reproduced versus what
+> remains blocked on a working local `pnpm` environment. Full verdict:
+> `council_log.jsonl`, span `council-31a7b25b695e`.
+
 # Introduction
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
@@ -26,7 +38,7 @@ This plan delivers a surgical, phased refactor of the crystalwebsolution.com Nex
 
 ## 1. Requirements & Constraints
 
-- **REQ-001**: Zero visual regression — every pixel, animation timing, and interaction must remain identical
+- **REQ-001**: Zero visual regression — no diff detectable by a screenshot-based visual-regression check on the Phase-0-captured routes (`/`, `/work`, `/services`, `/contact`, `/about`), and no change to GSAP timeline durations or ScrollTrigger boundaries verified by re-reading their config values. `@playwright/test` is already a devDependency (`^1.62.1`) but is not yet wired up — no `playwright.config`, no `tests/e2e/` directory exists (`pnpm test:e2e` is a defined script with nothing for it to run). Standing up that harness is a prerequisite for this requirement being checkable, not an assumption to carry forward silently.
 - **REQ-002**: Zero functional regression — all routes, API endpoints, auth flows, and CRM behavior preserved
 - **REQ-003**: All existing tests must continue passing (`pnpm test`, `pnpm test:e2e`, `pnpm test:db`)
 - **REQ-004**: Next.js build (`pnpm build`) must complete without new warnings or errors
@@ -46,14 +58,42 @@ This plan delivers a surgical, phased refactor of the crystalwebsolution.com Nex
 
 - GOAL-000: Record build, test, visual, and performance baselines so every phase can prove "zero regression"
 
+> **Retroactive verification (2026-08-29):** Phase 0 was skipped by omission
+> when Phase 1 shipped (see Council review below); this note is a
+> post-hoc, honest accounting rather than a backfilled pretense that it ran
+> on schedule.
+>
+> **Independently reproduced, not just re-asserted** — TASK-008's
+> "byte-identical via checksum" claim for the Phase 1 split. Compared
+> `app/globals.css` at the pre-split commit (`620e1266`) against the
+> resolved concatenation of the 27 `app/styles/*.css` files at the
+> immediately-post-split commit (`ec9efa47`), joined the same way
+> `tests/helpers/resolvedGlobalsCss.mjs` does:
+> `620e1266:app/globals.css` MD5 = `8772ae78248b49f49dc4825f428b98c8`;
+> resolved `ec9efa47` stylesheet MD5 = `8772ae78248b49f49dc4825f428b98c8`.
+> Match — 0 diff lines. (Comparing against current `HEAD` instead of
+> `ec9efa47` produces a false mismatch, purely from the unrelated v1.08
+> logo-enlarge commit landing later — not a Phase 1 defect. Verify against
+> the commit immediately after a change, not against a moving `HEAD`.)
+>
+> **Not reproducible in this session** — TASK-000a/b/c/d/e require running
+> `pnpm build` / `pnpm test` / `pnpm test:e2e` / Playwright / Lighthouse.
+> This session's sandbox cannot run `pnpm` against this repo's path at all
+> (`\\wsl.localhost\...` is a UNC path; `pnpm install` fails immediately
+> with `EPERM` after falling back to `C:\Windows`), so the 277-error `tsc
+> --noEmit` count and the build/test pass counts cited in the Phase 3 note
+> below are carried forward as-authored, not independently re-verified here.
+> These remain open — the owner (or a session running from a real local
+> path) needs to run them and fill in the table below.
+
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
 | TASK-000a | Run `pnpm build`, record build time + total bundle size + route count | | |
 | TASK-000b | Run `pnpm test`, record pass/fail counts per suite | | |
-| TASK-000c | Run `pnpm test:e2e`, record pass/fail counts | | |
+| TASK-000c | Run `pnpm test:e2e`, record pass/fail counts | Blocked — no `playwright.config`, no `tests/e2e/` dir exists yet; must be scaffolded first | 2026-08-29 |
 | TASK-000d | Take Playwright screenshots of `/`, `/work`, `/services`, `/contact`, `/about` and archive | | |
 | TASK-000e | Run Lighthouse (mobile + desktop) on `/`, `/work`, `/services`; archive scores JSON | | |
-| TASK-000f | Record `globals.css` line count, `@keyframes` count, and `var(--` token count | | |
+| TASK-000f | Record `globals.css` line count, `@keyframes` count, and `var(--` token count | Done (retroactive) — pre-split `app/globals.css` (620e1266) was 4,324 lines | 2026-08-29 |
 | TASK-000g | Verify `ImageBlock.module.css` works (confirms CSS Modules pipeline is live) | | |
 
 ### Implementation Phase 1: CSS Modularization
@@ -72,6 +112,17 @@ This plan delivers a surgical, phased refactor of the crystalwebsolution.com Nex
 > imported in original cascade order, **class names left global on
 > purpose**. Verified byte-identical to the pre-split file by checksum. See
 > PR #133 (`worktree-refactor+css-modularization-phase1`).
+>
+> **Guard added (2026-08-29):** the risk this note describes — a rename
+> silently breaking GSAP with no build error — had no in-code signal
+> anywhere. Added a one-line comment above each of the three base
+> declarations `querySelectorAll` targets, naming the JS consumer:
+> `app/styles/nav.css:148` (`.menu-link`), `app/styles/services.css:5`
+> (`.service-row`), `app/styles/subpages.css:324` (`.work-row`). No CI gate
+> added — this repo has no lint step (`.github/workflows/docker-ci.yml`
+> only runs `pnpm test` / `pnpm test:marketing` / `pnpm build`), and a
+> comment at the exact edit site is more likely to be seen than a CI
+> failure discovered after the fact.
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
@@ -82,7 +133,7 @@ This plan delivers a surgical, phased refactor of the crystalwebsolution.com Nex
 | TASK-005 | Create `app/styles/reset.css` + `app/styles/tokens.css` (design tokens: colors, fonts, spacing, z-index scale) | Done | 2026-08-28 |
 | TASK-006 | Reduce `globals.css` to imports + keyframes + utility classes only (< 200 lines target) | Done — 41-line import manifest, 27 files under `app/styles/` | 2026-08-28 |
 | TASK-007 | Update all components to import their module CSS; verify no class name collisions via build | Done — not applicable in the global-class approach; `pnpm build` clean | 2026-08-28 |
-| TASK-008 | Run visual regression checklist: compare screenshots against Phase 0 baseline; every pixel must match | Done — MD5 checksum of resolved stylesheet vs. original is identical; 9 tests that read `globals.css` directly updated to resolve the `@import` chain | 2026-08-28 |
+| TASK-008 | Run visual regression checklist: compare screenshots against Phase 0 baseline; every pixel must match | Partial — no screenshot-based visual regression ran (Phase 0 screenshots don't exist; see retroactive note above). What's actually verified: the resolved stylesheet's MD5 is identical to the pre-split file, independently reproduced 2026-08-29 (see Phase 0 note) — this proves the *CSS rules* didn't change, not that the *rendered pixels* didn't change. Those are usually the same thing for a pure `@import`-order-preserving split, but a checksum is not itself a screenshot diff; 9 tests that read `globals.css` directly (confirmed: `latestFeatures`, `analytics`, `homepage-redesign`, `a11y`, `sectionArchitecture`, `serviceRowLinks`, `services`, `crm/responsive-contract`, `login-background`) updated to resolve the `@import` chain via `tests/helpers/resolvedGlobalsCss.mjs` | 2026-08-28 |
 
 ### Implementation Phase 2: Component Architecture Cleanup
 
@@ -129,13 +180,37 @@ This plan delivers a surgical, phased refactor of the crystalwebsolution.com Nex
 >    `app/api/contact/route.js` and `app/api/cron/crm-notifications/route.js`
 >    failed to resolve their `@/lib/*` imports the moment a `tsconfig.json`
 >    existed, while every other `@/`-aliased import in the app (60+ sites)
->    kept working. Root-caused by testing the TypeScript version in
->    isolation after tsconfig-option bisection ruled out `paths`/
->    `moduleResolution`/`baseUrl`. Pinned to `^5.9.3`, which builds clean.
+>    kept working. Pinned to `^5.9.3`, which builds clean.
+>    **Hedge (2026-08-29):** the "root-caused... after tsconfig-option
+>    bisection ruled out `paths`/`moduleResolution`/`baseUrl`" framing is an
+>    unverified single-source account — this session couldn't re-run
+>    `pnpm build` against either TypeScript version to confirm it (no
+>    `node_modules`, and `pnpm` cannot run against this repo's `\\wsl.localhost\...`
+>    UNC path at all). Treat it as an empirical workaround with a plausible
+>    but not independently re-verified mechanism, not a confirmed root
+>    cause. One thing *is* already true and doesn't need re-verifying:
+>    `package.json` pins `"typescript": "^5.9.3"` with a **caret**, and
+>    caret ranges on a version ≥1.0.0 already exclude `7.x` entirely
+>    (`^5.9.3` = `>=5.9.3 <6.0.0`) — the exact unpinned-install failure mode
+>    described above cannot recur through this dependency as currently
+>    specified. A tilde pin isn't needed to prevent that regression; it
+>    would only additionally block legitimate `5.10.x`/`5.11.x` patches,
+>    which isn't what broke here.
 
 ### Implementation Phase 4: Dead Code & Performance Audit
 
 - GOAL-004: Remove unused code, optimize bundle, and fix known issues
+
+> **Pre-flight gate (added 2026-08-29, per Council review):** Phase 2 closed
+> 4 of its 15 tasks (TASK-010c, TASK-012, TASK-013, TASK-015) as "premise
+> didn't hold" after investigation — legitimate outcomes, not failures, but
+> a pattern worth gating on before it repeats. Before starting any TASK-022
+> through TASK-028 below, re-check that task's premise against the current
+> codebase (grep for the pattern it claims to find) and mark it
+> **"premise verified"** or **"premise stale — close without work"** in
+> this table before writing any code for it. This catches a stale task
+> before it burns a work session, the same way TASK-010c/012/013/015 were
+> caught only *after* investigation.
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|

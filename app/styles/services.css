@@ -2,6 +2,7 @@
 .services { padding-block: 18vh; justify-content: flex-start; }
 .services-catalogue { width: 100%; }
 .services-list { position: relative; border-top: 1px solid var(--line); }
+/* GSAP target — components/sections/Services.jsx querySelectorAll('.service-row'). Renaming this class without updating that call site breaks the row activation animation silently (no build error). Also referenced (via [data-active]) in app/styles/refraction.css. */
 .service-row {
   position: relative;
   z-index: 1;
