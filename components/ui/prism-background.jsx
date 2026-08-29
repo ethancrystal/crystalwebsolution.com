@@ -1,4 +1,5 @@
 'use client';
+// @ts-check
 
 import { useEffect, useRef } from 'react';
 import { Renderer, Triangle, Program, Mesh } from 'ogl';
@@ -440,6 +441,7 @@ function Prism({
   return <div className="prism-container" ref={containerRef} />;
 }
 
+/** @returns {import('react').ReactElement} */
 export default function PrismBackground() {
   return (
     <div className="prism-bg" aria-hidden="true">
