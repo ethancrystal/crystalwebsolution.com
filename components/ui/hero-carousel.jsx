@@ -1,4 +1,5 @@
 'use client';
+// @ts-check
 
 // A full-bleed editorial hero driven by a filmstrip.
 //
@@ -51,6 +52,19 @@ const mono = {
   letterSpacing: '0.14em',
 };
 
+/**
+ * @param {Object} props
+ * @param {Array<Object>} props.items - Slide entries; shape driven by `renderDetail`.
+ * @param {number} [props.index] - Controlled active index; omit for uncontrolled mode.
+ * @param {number} [props.defaultIndex]
+ * @param {(index: number) => void} [props.onIndexChange]
+ * @param {boolean} [props.autoplay]
+ * @param {number} [props.autoplayDelay]
+ * @param {(item: Object, index: number) => import('react').ReactNode} [props.renderDetail]
+ * @param {string} [props.className]
+ * @param {string} [props.ariaLabel]
+ * @returns {import('react').ReactElement}
+ */
 export function HeroCarousel({
   items,
   index: controlled,

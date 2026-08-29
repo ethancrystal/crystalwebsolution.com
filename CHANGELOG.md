@@ -5,24 +5,111 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
-## v1.08 — 2026-08-29
+## v1.10 — 2026-08-29
 
-- Enlarge the header wordmark (`.nav-logo-art` in `app/styles/nav.css`,
-  shared by the homepage and subpage `Nav`/`SubpageNav` headers) by roughly
-  15%: desktop clamp bounds go from `4.75rem/7vw/6.75rem` to
-  `5.5rem/8vw/7.75rem`; the mobile clamp (used inside the open-menu media
-  query, which is the rule that actually wins over an earlier, already-dead
-  767.5px rule) goes from `9.5rem/7.2vw/12rem` width /
-  `1.45rem/7.2vw/1.8rem` height to `11rem/52vw/13.5rem` width /
-  `1.7rem/8.2vw/2.05rem` height. Desktop height is left untouched: the logo
-  is width-constrained under `object-fit: contain` there, so height was
-  already non-binding headroom.
-- Audited every other place the brand logo renders (`components/BrandLogo.jsx`,
-  `components/crm/WorkspaceShell.jsx`, `components/auth/PortalLoginForm.jsx`,
-  `app/login/page.jsx`, `app/signup/page.jsx`, `lib/email/templates.js`) for
-  the same styled-jsx/`next/link` scoping bug fixed in v1.06 — none reproduce
-  it; `WorkspaceShell.jsx`'s brand link is a plain `<a>`, not `next/link`'s
-  `Link`, so styled-jsx scopes it correctly.
+- Fix two stale/miscalibrated claims in `CLAUDE.md` surfaced by an
+  evidence-calibration review: the "CRM is launched" line now says when it
+  was last directly HTTP-verified and prompts a re-check rather than
+  reading as a permanently-settled fact, since several merges to `main`
+  have deployed since that check ran. The migration-count line ("0001
+  through 0035 as of 2026-08-20") was stale (real head is now `0038`) and
+  is replaced with guidance to always check the directory instead of
+  citing a number that goes stale within days during active periods.
+
+## v1.11 — 2026-08-29
+
+- Fix `updateProjectTask`'s revalidation bug: it passed the RPC-returned task
+  id to `revalidateAllProjectPaths` instead of the project id, so a task
+  update would never revalidate the right `/dashboard`, `/team`, or
+  `/admin/projects` pages. No UI calls this server action yet, so this was a
+  latent bug; fixed now, before any task-edit UI ships, matching every
+  sibling action's established form-supplied-`projectId` pattern. Added a
+  regression test.
+- The vitest wiring fix originally paired with this bug fix (scoping
+  `vitest.config.js`'s `include` glob off the `node:test`-based `.test.mjs`
+  files) turned out to already be live on `main` via the separate
+  `test:marketing` script, added independently while this branch was open —
+  same fix, different script name. Dropped the redundant `test:unit` script
+  this PR would have added and documented the existing `test:marketing`
+  command in `AGENTS.md`/`CLAUDE.md` instead, rather than ship two
+  differently-named commands that do the same thing.
+
+## v1.09 — 2026-08-29
+
+- Phase 3 of the architecture-cleanup refactor plan: JSDoc-based type safety,
+  stacked on top of v1.08's component cleanup. No runtime TypeScript — this
+  repo stays plain JSX + JS per its own convention; `tsconfig.json` exists
+  purely to drive `tsc --noEmit` as a dev-time check.
+- `jsconfig.json` → `tsconfig.json` (`allowJs`, `noEmit`, path alias
+  preserved). `typescript`, `@types/react`, `@types/react-dom` added as
+  devDependencies.
+- Added `@typedef` blocks to `lib/projects.js`, `lib/services.mjs`,
+  `lib/site.js`, `lib/reviews.js`, and `lib/crm/project-contract.mjs`
+  (`ProjectCategoryValue`, `ProjectStatus`, `TaskStatus`, etc., plus
+  `value is X` type-guard returns on the `is*` predicate functions).
+- Added JSDoc `@param`/`@returns` to every exported component in
+  `components/ui/*.jsx` (10 files).
+- Added `types/index.d.ts` re-exporting the shapes above by reference
+  (`import('../lib/projects.js').Project`, etc.) rather than duplicating
+  them, so the type can't drift from the data it describes.
+- **Deviated from the plan's literal `checkJs: true`**: global `checkJs`
+  surfaced 277 pre-existing false-positive errors across untouched files (a
+  known JSDoc-less-JSX prop-inference artifact, not real bugs — e.g. optional
+  props with defaults getting inferred as required). Set `checkJs: false`
+  project-wide and opted in per-file with `// @ts-check` on exactly the 15
+  files this phase typed, which is the standard incremental-adoption pattern
+  for JSDoc typing in an existing JS codebase. `tsc --noEmit` is clean.
+- **Found and fixed a real build regression during this phase**:
+  `typescript@7.0.2` (the brand-new native/Go-rewrite major version, pulled
+  in by `pnpm add -D typescript` with no version pin) broke Next.js
+  15.5.23's route-handler resolution — `app/api/contact/route.js` and
+  `app/api/cron/crm-notifications/route.js` failed to resolve their `@/lib/*`
+  imports (`Module not found`) specifically because a `tsconfig.json` was
+  now present; every other `@/`-aliased import in the app (60+ call sites)
+  kept resolving fine. Isolated by bisecting tsconfig options down to the
+  bare minimum jsconfig-equivalent (still failed) and finally by testing the
+  TypeScript version in isolation. Pinned `typescript` to `^5.9.3` — build,
+  `tsc --noEmit`, `pnpm test` (448/448), and `pnpm test:marketing` (20/20)
+  are all clean on that pin.
+
+## v1.08 — 2026-08-28
+
+- Phase 2 of the architecture-cleanup refactor plan: component-level
+  de-duplication, stacked on top of v1.07's CSS split.
+- Added `components/shared/SectionHeader.jsx` and used it in `Services.jsx`,
+  `Approach.jsx`, and `Stories.jsx` — the three sections that shared
+  byte-identical eyebrow + `<h2>` markup, only the copy differed. Verified
+  against the built page's HTML that the rendered output (classes, reveal
+  wrapper, inline styles) is unchanged. `Mark.jsx` (imperative split-line
+  headline) and `Motion.jsx` (plain-text eyebrow, no heading) were left
+  alone — genuinely different markup, not a duplicate to collapse.
+- Added `lib/interactionGuards.mjs` (`skipsPointerAnimation()`) and used it
+  in `Services.jsx` to replace two identical inline
+  `matchMedia('(pointer: coarse)') || matchMedia('(prefers-reduced-motion:
+  reduce)')` checks. Kept as a plain function, not a hook: both call sites
+  check once at effect-mount time and don't need to react live to the query
+  changing, so a hook would add reactivity that didn't exist before.
+- Investigated and closed out the rest of the plan's Phase 2 list without
+  code changes, because the premise didn't hold up:
+  - `Contact.jsx` already delegates fully to `ContactForm`; nothing to do.
+  - The "redundant" comment in `app/signup/page.jsx` is a deliberate
+    visually-hidden-but-focusable radio pattern for keyboard/screen-reader
+    navigation, not dead CSS.
+  - No duplicated `ScrollTrigger` setup exists across `Mark.jsx`/`Hero.jsx`
+    (one unique inline config each) and `Lab.jsx` doesn't use ScrollTrigger
+    at all — nothing to extract into a shared hook.
+  - `ProjectHandoffLink.jsx` is a single-purpose stripe-wipe transition, not
+    a generic pattern — nothing to rename or extract.
+  - `components/three/` has no duplicated geometry/material setup; every
+    `new THREE.*Geometry`/`*Material` call is a distinct shape serving a
+    distinct visual purpose.
+  - `components/three/CanvasFeatureBoundary.jsx` already implements the
+    error-boundary task, and with better scoping (per-feature, not
+    whole-Canvas) than the plan proposed.
+- Flagged, but did not act on: 31 `data-cursor="..."` attributes across the
+  codebase have no reader anywhere (no JS, no CSS) — likely dead, possibly
+  reserved for an unbuilt custom-cursor feature. Left alone pending
+  confirmation, per this repo's "confirm before deleting" rule.
 
 ## v1.07 — 2026-08-28
 

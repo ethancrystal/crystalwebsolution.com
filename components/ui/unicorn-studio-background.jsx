@@ -1,4 +1,5 @@
 'use client';
+// @ts-check
 
 import { useEffect, useState } from 'react';
 
@@ -14,6 +15,7 @@ function initializeUnicornStudio() {
   return true;
 }
 
+/** @returns {import('react').ReactElement} */
 export default function UnicornStudioBackground() {
   const [isInteractive, setIsInteractive] = useState(false);
 

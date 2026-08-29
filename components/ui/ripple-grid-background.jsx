@@ -1,4 +1,5 @@
 'use client';
+// @ts-check
 
 import { useEffect, useRef } from 'react';
 import { Renderer, Program, Triangle, Mesh } from 'ogl';
@@ -281,6 +282,7 @@ void main() {
   return <div ref={containerRef} className="ripple-grid-container" />;
 }
 
+/** @returns {import('react').ReactElement} */
 export default function RippleGridBackground() {
   return (
     <div className="ripple-grid-bg" aria-hidden="true">
