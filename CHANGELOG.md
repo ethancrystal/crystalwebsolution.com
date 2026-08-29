@@ -5,6 +5,20 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.07 — 2026-08-29
+
+- Expand the Motion section's decorative `WorkMarquee` from 9 to all 31
+  supplied Awwwards showcase screenshots (`lib/clientTileImages.mjs`), so
+  each tile in the rail shows a distinct image before repeating.
+- Correct comments in `lib/clientTileImages.mjs`, `components/ui/work-marquee.jsx`,
+  and `components/sections/Motion.jsx` that mischaracterized these
+  third-party screenshots as "real CD Sportswear USA client deployments" —
+  they are unrelated Awwwards sites used only as decorative visual texture
+  in an `aria-hidden` rail. The real, named client record is
+  `lib/projects.js`, rendered as the accessible project list beside the
+  marquee. Add `public/projects/clients/SOURCES.md` with full per-image
+  attribution for audit.
+
 ## v1.06 — 2026-08-27
 
 - Set the canonical contact email to `sales@cdsportswearusa.com` and the
