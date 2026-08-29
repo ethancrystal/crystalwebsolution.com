@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import { readResolvedGlobalsCss } from './helpers/resolvedGlobalsCss.mjs';
 
 const featureModule = await import('../lib/experienceFeatures.mjs').catch(() => ({}));
 const layoutModule = await import('../lib/flyingCarouselLayout.mjs').catch(() => ({}));
@@ -9,7 +10,7 @@ const studiesModule = await import('../lib/motionStudies.mjs').catch(() => ({}))
 const qualityModule = await import('../lib/renderQuality.mjs').catch(() => ({}));
 const activityModule = await import('../lib/sceneActivity.mjs').catch(() => ({}));
 const motionLayoutModule = await import('../lib/motionLayout.mjs').catch(() => ({}));
-const globalCss = readFileSync(new URL('../app/globals.css', import.meta.url), 'utf8');
+const globalCss = readResolvedGlobalsCss();
 const motionSource = readFileSync(new URL('../components/sections/Motion.jsx', import.meta.url), 'utf8');
 const navSource = readFileSync(new URL('../components/Nav.jsx', import.meta.url), 'utf8');
 
@@ -29,7 +30,7 @@ test('open navigation keeps its first link below the fixed header on short viewp
   assert.match(globalCss, /\.menu-links\s*\{[\s\S]*?flex:\s*none;[\s\S]*?margin-top:\s*auto;/);
   assert.match(globalCss, /\.menu-meta\s*\{[\s\S]*?flex:\s*none;[\s\S]*?margin-bottom:\s*auto;/);
   assert.match(globalCss, /font-size:\s*clamp\(2rem, min\(5\.5vw, 8vh\), 3\.75rem\)/);
-  assert.match(globalCss, /width:\s*clamp\(9\.5rem, 48vw, 12rem\)/);
+  assert.match(globalCss, /width:\s*clamp\(11rem, 52vw, 13\.5rem\)/);
 });
 
 test('latest experience features default to the additive WebGL carousel', () => {

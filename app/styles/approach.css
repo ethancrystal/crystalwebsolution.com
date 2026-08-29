@@ -1,0 +1,145 @@
+/* ---------- how it works: numbered approach accordion ---------- */
+/* One step expanded at a time. Height is animated with the grid 0fr -> 1fr
+   trick so nothing is measured in JS and no per-frame work is created; the
+   collapsed panel is also visibility:hidden so its text leaves the
+   accessibility tree and cannot be selected or read while closed. */
+.approach-accordion {
+  width: min(100%, 62rem);
+  margin: 4rem auto 0;
+  border-top: 1px solid var(--line);
+}
+.approach-step {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  --approach-accent: var(--cyan);
+}
+.approach-step[data-theme='purple'] { --approach-accent: var(--violet); }
+
+/* Cursor-tracked sheen, driven by useCardMouseReveal's --mouse-x/--mouse-y. */
+.approach-step::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    color-mix(in srgb, var(--approach-accent) 9%, transparent),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.approach-step:hover::before,
+.approach-step[data-open='true']::before { opacity: 1; }
+
+.approach-step-heading { margin: 0; font-weight: inherit; }
+.approach-step-trigger {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 4.5rem 1fr auto;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1.9rem 0.75rem;
+  text-align: left;
+  color: var(--muted);
+  transition: color 0.35s ease;
+}
+.approach-step:hover .approach-step-trigger,
+.approach-step[data-open='true'] .approach-step-trigger { color: var(--ink); }
+
+.approach-step-num {
+  font-family: var(--font-mono);
+  font-size: clamp(0.8rem, 1.6vw, 0.95rem);
+  letter-spacing: 0.14em;
+  color: var(--approach-accent);
+  opacity: 0.6;
+  transition: opacity 0.35s ease;
+}
+.approach-step[data-open='true'] .approach-step-num { opacity: 1; }
+
+.approach-step-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 3vw, 2.1rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: inherit;
+}
+
+.approach-step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--approach-accent);
+  opacity: 0.65;
+  transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.approach-step[data-open='true'] .approach-step-icon {
+  opacity: 1;
+  transform: rotate(180deg);
+}
+/* Plus becomes minus when the step is open. */
+.approach-step-icon-bar {
+  transform-origin: 50% 50%;
+  transition: opacity 0.3s ease;
+}
+.approach-step[data-open='true'] .approach-step-icon-bar { opacity: 0; }
+
+.approach-step-panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.approach-step[data-open='true'] .approach-step-panel { grid-template-rows: 1fr; }
+.approach-step-panel-inner {
+  overflow: hidden;
+  visibility: hidden;
+  transition: visibility 0s linear 0.5s;
+}
+.approach-step[data-open='true'] .approach-step-panel-inner {
+  visibility: visible;
+  transition: visibility 0s;
+}
+.approach-step-desc {
+  max-width: 46rem;
+  margin: 0 0 2rem;
+  padding: 0 0.75rem 0 6rem;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+  line-height: 1.7;
+}
+
+.approach-step-trigger:focus { outline: none; }
+.approach-step-trigger:focus-visible {
+  outline: 2px solid var(--approach-accent);
+  outline-offset: -4px;
+}
+
+@media (max-width: 720px) {
+  .approach-step-trigger {
+    grid-template-columns: 3rem 1fr auto;
+    gap: 1rem;
+    padding: 1.4rem 0.5rem;
+  }
+  .approach-step-desc { padding: 0 0.5rem 0 4rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The panel still opens and closes — only the easing is dropped, so the
+     copy is never gated behind an animation that never runs. */
+  .approach-step-panel,
+  .approach-step-panel-inner,
+  .approach-step-icon,
+  .approach-step-num,
+  .approach-step-trigger,
+  .approach-step::before { transition: none; }
+  .approach-step-icon { transform: none; }
+  .approach-step[data-open='true'] .approach-step-icon { transform: none; }
+}

@@ -1,0 +1,232 @@
+/* ---------- nav ---------- */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.4rem 3vw;
+  mix-blend-mode: normal;
+}
+/* Glazed-glass pane behind the bar. It lives on a pseudo-element so the
+   whole treatment (blur, tint, hairline, shadow) fades as one layer once
+   content scrolls underneath — the header reads as its own component
+   instead of type floating over the page. */
+.nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--bg) 58%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  backdrop-filter: blur(18px) saturate(1.35);
+  border-bottom: 1px solid rgba(143, 216, 255, 0.09);
+  box-shadow: 0 14px 44px rgba(2, 4, 10, 0.35);
+  transition: opacity 0.35s ease;
+}
+.nav-glass::before { opacity: 1; }
+.nav-on-light::before {
+  background: color-mix(in srgb, #e6e5e1 66%, transparent);
+  border-bottom-color: rgba(21, 22, 18, 0.12);
+  box-shadow: 0 12px 34px rgba(17, 19, 15, 0.12);
+}
+/* Without backdrop-filter support the tint alone must carry legibility. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nav::before { background: color-mix(in srgb, var(--bg) 92%, transparent); }
+  .nav-on-light::before { background: color-mix(in srgb, #e6e5e1 94%, transparent); }
+}
+.nav-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: auto;
+  flex-shrink: 1;
+  line-height: 1;
+}
+.nav-logo-art {
+  position: relative;
+  display: block;
+  width: clamp(5.5rem, 8vw, 7.75rem);
+  height: clamp(3.25rem, 5vw, 4.5rem);
+}
+.nav-logo-art img {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.25s ease, transform 0.25s ease, filter 0.25s ease;
+}
+.nav-logo-art-full {
+  height: 100%;
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+.nav-right { display: flex; align-items: center; gap: 0.8rem; }
+.nav-login-link {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--cyan);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s, color 0.3s;
+}
+.nav-login-link:hover, .nav-login-link:focus-visible { border-color: var(--cyan); }
+.nav-on-light .nav-logo-art img { filter: invert(1); }
+.nav-on-light .nav-login-link { color: #151612; }
+.nav-on-light .nav-login-link:hover, .nav-on-light .nav-login-link:focus-visible { border-color: #151612; }
+.nav-on-light .btn-ghost {
+  color: #151612;
+  border-color: rgba(21, 22, 18, 0.32);
+  background: rgba(244, 243, 239, 0.36);
+  box-shadow: none;
+}
+.nav-on-light .nav-burger { border-color: rgba(21, 22, 18, 0.18); }
+.nav-on-light .nav-burger span { background: #151612; }
+
+@media (max-width: 767.5px) {
+  .nav-logo { gap: 0.65rem; }
+  .nav-logo-art { width: 5rem; height: 3.5rem; }
+  .nav-right .btn-ghost { display: none; }
+  .nav-right .nav-login-link { display: none; }
+}
+
+.nav-burger {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: border-color 0.3s;
+}
+.nav-burger span {
+  display: block;
+  width: 18px; height: 1.5px;
+  background: var(--ink);
+  transition: transform 0.35s;
+}
+.nav-burger:hover, .nav-burger:focus-visible { border-color: var(--cyan); }
+.nav-burger.is-open span:first-child { transform: translateY(3.75px) rotate(45deg); }
+.nav-burger.is-open span:last-child { transform: translateY(-3.75px) rotate(-45deg); }
+
+/* ---------- menu ---------- */
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 480;
+  background: rgba(4, 6, 12, 0.96);
+  backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: clamp(2rem, 5vh, 3.5rem);
+  /* padding-top must clear .nav's rendered height (1.4rem padding top/bottom
+     + up to 2.65rem .nav-logo-art) with headroom to spare, or the open menu
+     overlaps the fixed header on short viewports. If .nav's own padding or
+     .nav-logo-art's height ever change, re-check this value (and the
+     767.5px breakpoint below) against the new nav height. */
+  padding: max(6.75rem, calc(env(safe-area-inset-top) + 12vh)) 8vw clamp(2.5rem, 8vh, 4rem);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+.menu-links {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: clamp(0.15rem, 0.6vh, 0.5rem);
+  margin-top: auto;
+}
+.menu-link-mask { overflow: hidden; }
+.menu-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1rem;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, min(5.5vw, 8vh), 3.75rem);
+  line-height: 1.1;
+  transition: color 0.3s, letter-spacing 0.4s;
+}
+.menu-link:hover { color: var(--cyan); letter-spacing: 0.03em; }
+.menu-link-index { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.menu-meta {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: 1.75rem 3rem;
+  margin-bottom: auto;
+}
+.menu-meta a, .menu-meta p { display: block; color: var(--muted); font-size: 0.9rem; line-height: 1.8; }
+.menu-meta a:hover { color: var(--cyan); }
+.menu-meta-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--cyan) !important;
+  margin-bottom: 0.4rem;
+}
+@media (max-width: 767.5px) {
+  .nav-logo-art {
+    width: clamp(11rem, 52vw, 13.5rem);
+    height: clamp(1.7rem, 8.2vw, 2.05rem);
+  }
+  .menu {
+    /* Same nav-clearance intent as the desktop rule above, tuned for this
+       breakpoint's smaller .nav-logo-art height. */
+    padding: max(6.5rem, calc(5.75rem + env(safe-area-inset-top))) 7vw 2.5rem;
+    gap: clamp(1.5rem, 4vh, 2rem);
+  }
+  .menu-link { font-size: clamp(1.9rem, min(9vw, 7.5vh), 2.9rem); gap: 0.8rem; }
+  .menu-link-index { font-size: 0.66rem; }
+  .menu-meta { gap: 1.5rem 2.5rem; }
+  .menu-meta a, .menu-meta p { font-size: 0.85rem; line-height: 1.7; }
+}
+@media (max-width: 380px) {
+  .menu-link { font-size: clamp(1.7rem, min(8.5vw, 7vh), 2.25rem); }
+}
+
+/* ---------- scroll progress ---------- */
+.scroll-progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  z-index: 600;
+  background: rgba(89, 243, 255, 0.08);
+}
+.scroll-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--blue), var(--violet));
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+/* Beat readout. Fixed rather than absolute — the parent is only 2px tall, so
+   it has no useful box to position against. The right edge at mid-height is
+   the one margin the fixed chrome leaves free: the nav owns the whole top row
+   and Lab's caption/link sit in both bottom corners. */
+.scroll-progress-count {
+  position: fixed;
+  top: 50%;
+  right: 3vw;
+  transform: translateY(-50%);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(2, 4, 8, 0.75);
+}
+.scroll-progress-index { color: var(--cyan); }
+.scroll-progress-total { color: var(--muted); }
+/* Below the nav's two-focal-point breakpoint the gutters disappear and the
+   count would sit on top of body copy. */
+@media (max-width: 900px) {
+  .scroll-progress-count { display: none; }
+}

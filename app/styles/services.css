@@ -1,0 +1,237 @@
+/* ---------- services / Blender-authored signal catalogue ---------- */
+.services { padding-block: 18vh; justify-content: flex-start; }
+.services-catalogue { width: 100%; }
+.services-list { position: relative; border-top: 1px solid var(--line); }
+.service-row {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.8fr) minmax(18rem, 1.2fr);
+  gap: 2rem;
+  align-items: baseline;
+  padding: 2.35rem 0;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(90deg, rgba(89, 243, 255, 0), rgba(89, 243, 255, 0));
+  transition: background 0.45s, border-color 0.45s;
+}
+/* Ghost numeral: a shared, absolutely-positioned marker that glides down the
+   intro/list gutter to track whichever row is hovered — an ambient
+   wayfinding cue, not a per-card effect. Lives in .services-catalogue's own
+   grid gap, so it never overruns .service-desc's live copy. Desktop-only;
+   see the matching bail in Services.jsx's mount effect. */
+.service-marker {
+  position: absolute;
+  top: 0;
+  /* Anchored by its right edge (not left) so the numeral only ever grows
+     further left into the gutter as its glyphs render wider — it can never
+     bleed rightward across the list's edge into the row title, whatever its
+     rendered width turns out to be. */
+  right: calc(100% + 1rem);
+  left: auto;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  text-align: right;
+}
+.service-marker-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: clamp(2rem, 4vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(89, 243, 255, 0.5);
+}
+@media (max-width: 900px) {
+  .service-marker { display: none; }
+}
+.service-row:hover,
+.service-row.is-active {
+  border-color: rgba(89, 243, 255, 0.42);
+  background: linear-gradient(90deg, rgba(89, 243, 255, 0.08), rgba(89, 243, 255, 0) 72%);
+}
+.service-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.6vw, 2rem);
+  transition: color 0.3s;
+}
+.service-row:hover .service-title,
+.service-row.is-active .service-title { color: var(--cyan); }
+.service-title-inner { display: inline-block; transition: transform 0.3s; }
+.service-row:hover .service-title-inner,
+.service-row.is-active .service-title-inner { transform: translateX(0.4rem); }
+.service-desc { color: var(--muted); line-height: 1.7; font-size: 0.95rem; transition: opacity 0.3s; }
+/* Sibling rows dim their secondary text while another row is hovered or
+   scroll-auto-advanced (Services.jsx's activateRow — same visual language,
+   just also driven without a pointer) — a focus cue layered under the
+   existing cyan border/background state, not replacing it. Row background/
+   border and the light()/dim() 3D beacon are untouched. */
+.services-list:has(.service-row:hover) .service-row:not(:hover) .service-desc,
+.services-list:has(.service-row.is-active) .service-row:not(.is-active) .service-desc {
+  /* 0.6 read as illegible "shadowed" text against the animated dark backdrop
+     (reported bug) -- raised so the sibling-row cue stays visible without
+     losing contrast. */
+  opacity: 0.82;
+}
+/* Capability chips + the /services/[slug] link, stacked under .service-desc
+   in the row's second column. The chip pills are .case-services verbatim;
+   .service-chips is a layout-only modifier for this context (the case-study
+   page keeps .case-services' own 3rem trailing gap untouched). */
+.service-row-more {
+  grid-column: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 1.15rem;
+}
+.case-services.service-chips { margin-bottom: 0; gap: 0.5rem; max-width: 100%; }
+.service-more-link { display: inline-flex; align-items: center; gap: 0.45rem; }
+.service-more-arrow {
+  display: inline-block;
+  transition: transform 0.35s var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.service-more-link:hover .service-more-arrow,
+.service-more-link:focus-visible .service-more-arrow { transform: translateX(0.35rem); }
+.service-more-link:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-more-arrow { transition: none; }
+  .service-more-link:hover .service-more-arrow,
+  .service-more-link:focus-visible .service-more-arrow { transform: none; }
+}
+.services-marquee { margin-top: 5rem; }
+
+/* ---------- magnified bento (draggable capability-tag lens) ---------- */
+.services-bento {
+  display: flex;
+  justify-content: center;
+  margin-top: 5rem;
+}
+.magnifier-wrap { width: min(100%, 460px); }
+.magnifier-shell {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 2.4rem;
+  border: 1px solid rgba(89, 243, 255, 0.18);
+  background: rgba(8, 12, 20, 0.85);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  padding: 1.5rem;
+}
+.magnifier-stage {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 1.8rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+@media (min-width: 640px) {
+  .magnifier-stage { height: 240px; }
+}
+.magnifier-relative { position: relative; width: 100%; height: 100%; }
+.magnifier-base,
+.magnifier-reveal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+}
+.magnifier-reveal { z-index: 10; pointer-events: none; user-select: none; }
+.magnifier-row { display: flex; gap: 1rem; width: max-content; }
+.magnifier-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  width: fit-content;
+  color: var(--muted);
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.magnifier-tag-active {
+  position: relative;
+  white-space: nowrap;
+  width: fit-content;
+  padding: 0.5rem 0.75rem;
+  margin-left: 1.5rem;
+  background: rgba(4, 7, 13, 0.92);
+  border: 1px solid rgba(89, 243, 255, 0.4);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  transform: scale(1.1);
+}
+.magnifier-tag-icon { color: var(--cyan); }
+.magnifier-tag-label {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--cyan);
+  text-transform: uppercase;
+}
+.magnifier-lens {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 40;
+  cursor: grab;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.5));
+}
+.magnifier-lens:active { cursor: grabbing; }
+.magnifier-lens-inner { position: relative; }
+.magnifier-lens-glass {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+.magnifier-fade { position: absolute; top: 0; bottom: 0; width: 22%; pointer-events: none; z-index: 20; }
+.magnifier-fade-left { left: 0; background: linear-gradient(90deg, rgba(4, 7, 13, 0.9), transparent); }
+.magnifier-fade-right { right: 0; background: linear-gradient(270deg, rgba(4, 7, 13, 0.9), transparent); }
+.magnifier-copy { padding: 1.5rem 0.5rem 0.5rem; }
+.magnifier-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  color: var(--ink);
+  margin-bottom: 0.6rem;
+}
+.magnifier-desc { color: var(--muted); font-size: 0.95rem; line-height: 1.7; max-width: 46ch; }
+@media (prefers-reduced-motion: reduce) {
+  .magnifier-row { animation: none !important; }
+  .magnifier-lens { cursor: default; }
+}
+
+@media (min-width: 901px) {
+  .services-catalogue {
+    display: grid;
+    grid-template-columns: minmax(15rem, 0.68fr) minmax(0, 1.42fr);
+    gap: clamp(4rem, 8vw, 10rem);
+    align-items: start;
+  }
+  .services-intro {
+    position: sticky;
+    top: max(7rem, 16vh);
+    align-self: start;
+  }
+  .services-intro .section-title { max-width: 9ch; }
+}

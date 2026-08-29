@@ -1,4 +1,5 @@
 'use client';
+// @ts-check
 
 // The "Client proof" review stage: one focused review at a time inside a
 // bordered card, the quote itself as the headline instead of the reviewer's
@@ -15,6 +16,15 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
 
+/**
+ * @param {Object} props
+ * @param {Array<Object>} props.items - Review entries; shape driven by whatever renders each card body.
+ * @param {boolean} [props.autoplay]
+ * @param {number} [props.autoplayDelay]
+ * @param {string} [props.ariaLabel]
+ * @param {string} [props.className]
+ * @returns {import('react').ReactElement}
+ */
 export function ReviewCarousel({
   items,
   autoplay = false,

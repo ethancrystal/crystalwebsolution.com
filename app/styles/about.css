@@ -1,0 +1,87 @@
+/* ---------- about (interactive SMIL refraction) ---------- */
+.about-smil {
+  min-height: 100svh;
+  padding: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background: #050706;
+  color: #f3f4ef;
+  cursor: crosshair;
+}
+.about-smil:focus-visible { outline: 2px solid var(--cyan); outline-offset: -4px; }
+.about-kicker,
+.about-hint {
+  position: absolute;
+  z-index: 2;
+  left: 5vw;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: rgba(243, 244, 239, 0.54);
+}
+.about-kicker { top: clamp(6.5rem, 11vh, 8.5rem); max-width: min(54rem, 72vw); line-height: 1.55; }
+.about-hint { bottom: 5vh; }
+.about-smil-copy {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  /* Vertical clearance below .about-kicker is measured and applied as an
+     inline transform in components/sections/About.jsx (alignCopyBelowKicker) -
+     both the kicker's wrapped height and this SVG's viewBox-scaled first-row
+     position vary independently with viewport size, so no fixed CSS value
+     here can predict every combination. */
+}
+.about-smil-word {
+  fill: #f3f4ef;
+  font-family: var(--font-display);
+  font-size: 84px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.about-smil [data-about-word] { will-change: opacity, transform; }
+.about-smil [data-about-row] { will-change: clip-path; }
+
+@media (max-width: 767px) {
+  .about-smil { min-height: 82svh; }
+  /* No transform: scale() here -- the SVG already fits itself to the
+     container (default preserveAspectRatio "meet"). Scaling the
+     already-fitted element up pushed the word cloud past the screen
+     edges on phones, since the copy spans almost the full viewBox
+     width side to side. */
+  .about-smil-word { font-size: 72px; }
+}
+
+/* ---------- facts / precision ledger ---------- */
+.facts-grid {
+  display: block;
+  border-top: 1px solid rgba(139, 152, 184, 0.35);
+  margin-bottom: 5rem;
+}
+.fact-card {
+  display: grid;
+  grid-template-columns: 3rem minmax(9rem, 0.7fr) minmax(10rem, 0.8fr) minmax(18rem, 1.5fr);
+  gap: clamp(1.25rem, 3vw, 3.5rem);
+  align-items: baseline;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: clamp(1.65rem, 3.5vw, 2.7rem) 0;
+  background: linear-gradient(90deg, rgba(60, 108, 255, 0), rgba(60, 108, 255, 0));
+  transition: border-color 0.35s, background 0.35s;
+}
+.fact-card:hover {
+  border-color: rgba(89, 243, 255, 0.5);
+  background: linear-gradient(90deg, rgba(60, 108, 255, 0.08), transparent 68%);
+}
+.fact-index { font-family: var(--font-mono); font-size: 0.68rem; color: rgba(139, 152, 184, 0.62); }
+.fact-num {
+  font-family: var(--font-mono);
+  font-size: clamp(2.3rem, 5vw, 4.6rem);
+  line-height: 0.82;
+  letter-spacing: -0.07em;
+  color: var(--cyan);
+}
+.fact-label { font-family: var(--font-display); font-size: clamp(1.05rem, 1.6vw, 1.35rem); }
+.fact-note { color: var(--muted); font-size: 0.92rem; line-height: 1.72; }

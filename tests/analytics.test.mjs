@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { readResolvedGlobalsCss } from './helpers/resolvedGlobalsCss.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -277,7 +278,7 @@ test('the banner is the only path to consent, and defers to the module', async (
   );
   assert.doesNotMatch(code, /useState\(true\)/, 'rendering before the stored choice is read is a hydration mismatch');
 
-  const css = source('app/globals.css');
+  const css = readResolvedGlobalsCss(ROOT);
   assert.match(css, /\.consent \{/, 'the banner needs styles or it lands unstyled over the scene');
   const reducedMotionBlocks = css.match(/@media \(prefers-reduced-motion: reduce\)[^@]*/g) || [];
   assert.ok(

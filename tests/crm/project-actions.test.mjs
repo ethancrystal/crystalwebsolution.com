@@ -114,3 +114,20 @@ test('optional notification recipient is UUID-validated before the RPC', async (
   const source = await readActions();
   assert.match(source, /userId !== null && !isCanonicalUuid\(userId\)/);
 });
+
+test('updateProjectTask validates and revalidates by the form-supplied projectId, not the RPC-returned task id', async () => {
+  const source = await readActions();
+  const fnMatch = source.match(
+    /export async function updateProjectTask\(formData\) \{[\s\S]*?\n\}\n/,
+  );
+  assert.ok(fnMatch, 'updateProjectTask should exist');
+  const fnBody = fnMatch[0];
+
+  assert.match(fnBody, /const projectId = formString\(formData, ['"]projectId['"]\)/);
+  assert.match(fnBody, /isCanonicalUuid\(projectId\)/);
+  // update_project_task's RPC return value is the task id (see migration
+  // 0012), not the project id -- revalidation must use the validated
+  // projectId from the form, exactly like every sibling action.
+  assert.match(fnBody, /revalidateAllProjectPaths\(projectId\);/);
+  assert.doesNotMatch(fnBody, /revalidateAllProjectPaths\(data\);/);
+});

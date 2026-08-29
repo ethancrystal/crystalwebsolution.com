@@ -1,0 +1,55 @@
+/* ---------- fixed WebGL stage ---------- */
+.scene-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.page { position: relative; z-index: 2; }
+
+/* ---------- focus system (DOM half) ---------- */
+/* Sits between the canvas (z-index 0) and .page (z-index 2). Invisible by
+   default; FocusVeil.jsx eases it in while a [data-quiet] section owns the
+   viewport. Asymmetric on purpose — never a flat full-viewport wash — so the
+   3D scene stays visible around every text block. No backdrop-filter here:
+   that would cost a live-WebGL-canvas blur on every frame. */
+.focus-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  will-change: opacity;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(3, 5, 9, 0.5) 0%,
+      rgba(3, 5, 9, 0) 20%,
+      rgba(3, 5, 9, 0) 80%,
+      rgba(3, 5, 9, 0.5) 100%
+    ),
+    radial-gradient(95rem 62rem at 28% 55%, rgba(3, 5, 9, 0.46) 0%, rgba(3, 5, 9, 0) 62%);
+}
+
+/* ---------- local text plates ---------- */
+/* Wrap a headline BLOCK (eyebrow + h1/h2 + lede), never a whole section.
+   The scrim hugs the copy only — everything around it stays fully lit. */
+.text-plate { position: relative; }
+.text-plate::before {
+  content: '';
+  position: absolute;
+  inset: -1.75rem -3rem;
+  z-index: -1;
+  border-radius: 28px;
+  background: var(--plate);
+  filter: blur(2px);
+  pointer-events: none;
+}
+/* Centered sections (Hero stays centered pre-off-axis media query, Contact,
+   Stories) get a plate centered on the text instead of weighted left. */
+.hero .text-plate::before,
+.contact .text-plate::before,
+.stories .text-plate::before {
+  background: var(--plate-centered);
+}
