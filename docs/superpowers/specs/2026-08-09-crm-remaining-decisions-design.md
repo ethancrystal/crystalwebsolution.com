@@ -4,7 +4,7 @@
 
 ## Context
 
-`plan/feature-crm-remaining-work-2.md` (written 2026-08-09, after Phase 1 CRM
+`docs/plans/feature-crm-remaining-work-2.md` (written 2026-08-09, after Phase 1 CRM
 verification) named two items as "decide, don't just implement":
 `NotesPanel`'s companies/contacts bug, and `priority`/`client_visible` task
 exposure. This design resolves both, plus two adjacent decisions raised in

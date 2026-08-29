@@ -11,7 +11,7 @@ tags: [feature, crm, notifications, verification, tasks, migrations]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This plan continues directly from `plan/feature-crm-website-completion-1.md`
+This plan continues directly from `docs/plans/feature-crm-website-completion-1.md`
 (PR #60, now merged into `preview`) and `STATUS.md`'s "Still open" /
 "In Progress / Next" sections as of 2026-08-08. It does not re-scope or
 re-litigate anything already shipped — it closes the specific, named gaps
@@ -287,5 +287,5 @@ here so Hermes doesn't redo them:
 ## 8. Related Specifications / Further Reading
 
 - [STATUS.md](../STATUS.md) — full incident history, current verification state, and the section this plan's Section 0 updates.
-- [plan/feature-crm-website-completion-1.md](feature-crm-website-completion-1.md) — the plan this one continues from (PR #60, now merged).
-- [plan/process-branch-consolidation-1.md](process-branch-consolidation-1.md) — the branch-consolidation plan executed earlier the same session that produced this one; not CRM-scoped but explains why `preview` is in its current merged state.
+- [docs/plans/feature-crm-website-completion-1.md](feature-crm-website-completion-1.md) — the plan this one continues from (PR #60, now merged).
+- [docs/archive/process-branch-consolidation-1.md](process-branch-consolidation-1.md) — the branch-consolidation plan executed earlier the same session that produced this one; not CRM-scoped but explains why `preview` is in its current merged state.

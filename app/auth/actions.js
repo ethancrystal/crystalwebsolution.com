@@ -34,7 +34,7 @@ export async function signUp(formData) {
 
   // Server Actions are unauthenticated POST endpoints reachable directly, so
   // this uses the shared IP + email throttle. See lib/rateLimit.mjs and
-  // ADR-002-contact-form-rate-limiting.md.
+  // docs/adr/ADR-002-contact-form-rate-limiting.md.
   const allowed = await checkAuthRateLimit('auth:signup', email, await headers(), {
     limit: 5,
     windowSeconds: 600,

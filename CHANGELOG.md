@@ -5,6 +5,48 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.13 — 2026-08-29
+
+Repository leanness pass. No behaviour change to any shipping page — the only
+runtime-visible edit is a Content-Security-Policy that stopped allowing a CDN
+nothing loads from any more.
+
+- **CSP tightened.** `script-src` no longer allows `https://cdn.jsdelivr.net`.
+  That origin existed solely for the UnicornStudio auth background, which was
+  replaced by the procedural `DarkPageBackground` canvases on 2026-08-25. The
+  component stayed in the tree, so the allowlist entry did too.
+  `tests/login-background.test.mjs` now asserts the origin stays out.
+- **Dead components removed** (1,038 lines), each verified against history as
+  orphaned by a later redesign rather than unfinished work:
+  `components/ui/hero-carousel.jsx` and `components/ui/image-stream-hero.jsx`
+  (unwired by the 2026-08-26 showcase redesign),
+  `components/ui/unicorn-studio-background.jsx` and
+  `components/auth/UnicornBackground.jsx` (replaced same-day by `ee7c264`),
+  `components/crm/ProjectOperations.jsx` (never imported since it was added).
+- **`tests/login-background.test.mjs` rewritten.** It was asserting against the
+  replaced UnicornStudio component while the login page rendered
+  `DarkPageBackground` — passing tests that guarded code nothing shipped. It
+  now asserts the real prism background, its reduced-motion and ≤767px
+  fallbacks, and that the auth backgrounds stay dependency-free.
+- **`.gitattributes` added.** A Windows/OneDrive tool had rewritten the working
+  tree to CRLF, which showed up as 109 modified files and 20,729 phantom
+  insertions with zero real changes, and broke source-reading tests whose
+  regexes assume `\n`. `* text=auto eol=lf` stops it recurring.
+- **Planning docs consolidated.** `plan/`, `plans/` and
+  `docs/superpowers/plans/` merged into `docs/plans/`; ADRs moved to
+  `docs/adr/`; five purely-historical documents moved to `docs/archive/`.
+  `plans/New Plan` — tracked, 21 KB, referenced by section number from
+  `docs/HOMEPAGE-OVERHAUL-REUSE-INVENTORY.md` — is now
+  `docs/plans/homepage-overhaul-spec.md`. All cross-references updated.
+- **`docs/README.md` added.** Names `docs/CRM-MASTER-PLAN.md` as canonical and
+  records what an audit of the five overlapping CRM plans found: a transplant
+  backlog of content that exists in exactly one document, and three conflicts
+  between documents (storage path format, whether a project manager may claim
+  unassigned work, and the superseded `preview`-branch rule).
+- **`output/` and `test-results/` untracked** and gitignored — generated scan
+  artifacts that were committed by mistake. Windows/OneDrive droppings
+  (`*:Zone.Identifier`, `desktop.ini`, `*.lnk`, `FireShot Capture*`) ignored.
+
 ## v1.12 — 2026-08-29
 
 Re-does the still-needed part of PR #118 ("frontend finishing-touches pass")

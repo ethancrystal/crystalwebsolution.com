@@ -251,4 +251,4 @@ up build.
 - `docs/CRM-OPERATIONS.md` — portal/role/migration reference.
 - `CLAUDE.md` — repo-wide conventions (stack, package manager, no-lint, no-Tailwind rules referenced in Section 1's constraints).
 - `C:\Users\moizjmj\.claude\plans\mellow-wiggling-peach.md` — the original prose-form goal/plan this document formalizes, written the same session from the same audit.
-- `docs/superpowers/plans/2026-08-08-inner-pages-entrance-reveals.md` — the companion website plan referenced in Phase 5/DEP-004.
+- `docs/plans/2026-08-08-inner-pages-entrance-reveals.md` — the companion website plan referenced in Phase 5/DEP-004.

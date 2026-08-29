@@ -261,7 +261,7 @@ test('reduced motion also gates the glow/emissive animation, not just rotation',
 
 - [ ] **Step 1: Confirm nothing under `.hermes/` is a unique, needed source of truth**
 
-  - Diff each file under `.hermes/desktop-attachments/*_extracted/` against its real, currently-tracked counterpart (e.g. `.hermes/desktop-attachments/qXQIjc-2_extracted/components/marketing/SubpageExperience.jsx` vs `components/marketing/SubpageExperience.jsx`) to confirm they're stale duplicates, not divergent content that would be lost. `.hermes/plans/*.md` are working notes from an earlier planning pass — confirm their content is superseded by (or already folded into) `docs/superpowers/plans/2026-08-06-marketing-inner-pages-enhancement-plan.md` and `docs/superpowers/plans/2026-08-08-inner-pages-entrance-reveals.md` before removing.
+  - Diff each file under `.hermes/desktop-attachments/*_extracted/` against its real, currently-tracked counterpart (e.g. `.hermes/desktop-attachments/qXQIjc-2_extracted/components/marketing/SubpageExperience.jsx` vs `components/marketing/SubpageExperience.jsx`) to confirm they're stale duplicates, not divergent content that would be lost. `.hermes/plans/*.md` are working notes from an earlier planning pass — confirm their content is superseded by (or already folded into) `docs/plans/2026-08-06-marketing-inner-pages-enhancement-plan.md` and `docs/plans/2026-08-08-inner-pages-entrance-reveals.md` before removing.
 
 - [ ] **Step 2: Untrack**
 

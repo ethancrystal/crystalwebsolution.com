@@ -7,7 +7,7 @@
 - Checked-in migrations: canonical `supabase/migrations/0001` … `0023`;
   live history intentionally omits `0007` and records the ad-hoc `0009b`
   operation before canonical `0009`–`0011` (see below); `fix_handle_new_user_coalesce`
-  is applied live with no tracked file yet — see `plan/feature-crm-remaining-work-2.md`
+  is applied live with no tracked file yet — see `docs/plans/feature-crm-remaining-work-2.md`
 - Project read boundary: `lib/crm/projects.js`
 - Server actions: `app/actions/project-actions.js`
 - Contract/read-model tests: `tests/crm/*.test.mjs`
@@ -119,7 +119,7 @@ Mapped all CRM functionality across read-model, server actions, and frontend/por
 
 **Noticed, explicitly left alone:** `app/api/contact/route.js` modified (minor error message text change) and `app/layout.jsx` modified (safety comment added to `dangerouslySetInnerHTML`) — both in working tree, unrelated to any plan. Not part of this audit; not touched.
 
-Ran `plan/feature-crm-remaining-work-2.md`'s Phase 1 (the never-yet-done
+Ran `docs/plans/feature-crm-remaining-work-2.md`'s Phase 1 (the never-yet-done
 live three-role browser verification) against `preview` run locally via
 `pnpm dev` against the live Supabase project (Vercel's preview deployments
 are behind Vercel Authentication/SSO, which this session couldn't get past
@@ -222,7 +222,7 @@ would mask anyway).
 
 **Update 2026-08-10: this batch is merged.** `crm/remaining-decisions` was fast-forward merged into `preview` and pushed; both local and `origin/preview` are confirmed at `d6ee832`. The worktree and local feature branch have been cleaned up (`git worktree remove` hit Windows's path-length limit, resolved via `git worktree prune`; `git branch -d crm/remaining-decisions` succeeded). The stale note below ("merge held for owner go-ahead") describes an intermediate state from before this session finished the SDD execution flow — kept for history, not current.
 
-Closed the eight remaining CRM decisions from `docs/superpowers/plans/2026-08-09-crm-remaining-decisions.md`, executed in the `crm/remaining-decisions` worktree (branch `crm/remaining-decisions`).
+Closed the eight remaining CRM decisions from `docs/plans/2026-08-09-crm-remaining-decisions.md`, executed in the `crm/remaining-decisions` worktree (branch `crm/remaining-decisions`).
 
 **Mid-execution collision, same pattern as PR #49/#50:** after Task 1 was dispatched and reviewed clean, a concurrent session (commit `700bee7`, authored `ethancrystal`, not a subagent this session dispatched) landed Tasks 2–8 directly on the shared worktree branch in one shot, including applying migration `0020` live — bypassing the per-task review loop entirely. Rather than discard it, it was verified as real/functional (tests passing, migration confirmed live via Supabase MCP) and subjected to a retroactive catch-up review as a single gate. That review found and fixed in one commit (`5585c41`): a Critical bug (`EntityNotes.jsx`'s `.select('*, profiles(...))` embed can never work — `notes.created_by` has no FK to `profiles`, only to `auth.users`; fixed via a separate `profiles` query), and three Task-7 spec gaps (wrong prop name/URL target on the delivered-project email, `templateContextFor` never wired to supply it, and a test that asserted the bug instead of catching it).
 
@@ -277,8 +277,8 @@ notifications/messaging/PM assignment), and a new #64 (Screaming Frog SEO
 remediation, extracted from a prior session's uncommitted working tree) are
 all merged into `preview`, in that order. `pnpm test` (157/158, 1
 pre-existing unrelated `auth-portals` failure) and `pnpm build` verified
-clean after every merge. Full sequencing plan: `plan/process-branch-
-consolidation-1.md`.
+clean after every merge. Full sequencing plan:
+`docs/archive/process-branch-consolidation-1.md`.
 
 **Migration `0015` is now applied to the live database**, closing the
 single highest-priority blocker from the 2026-08-08 update below. Verified
@@ -310,7 +310,7 @@ testing. This is `production`-branch/Vercel-config housekeeping, not CRM
 app code — the `production` git branch itself was never touched, per
 standing instruction.
 
-**Next plan for continuing CRM work**: `plan/feature-crm-remaining-work-2.md`
+**Next plan for continuing CRM work**: `docs/plans/feature-crm-remaining-work-2.md`
 — the never-yet-done three-role browser verification pass (now unblocked
 by the migration fix above), the `priority`/`client_visible` and
 `budget_amount`/`currency` exposure decisions, `updateProjectTask`'s
@@ -385,7 +385,7 @@ PR **#60**, stacked independently of the marketing branches):
 Full audit trail and 6 phases of remaining work (security/Auth-config
 items, the pre-existing gaps below, the never-yet-done full logged-in
 three-role click-through):
-`plan/feature-crm-website-completion-1.md`.
+`docs/plans/feature-crm-website-completion-1.md`.
 
 **Also this session, separate branches, same session:**
 - **PR #58** (`agent/marketing-inner-pages` → `preview`, open) — gave
@@ -401,7 +401,7 @@ three-role click-through):
   the homepage already uses everywhere) across all 9 inner-page route
   templates, which previously had zero entrance animation. Built with
   `superpowers:subagent-driven-development`; ledger and plan at
-  `docs/superpowers/plans/2026-08-08-inner-pages-entrance-reveals.md`.
+  `docs/plans/2026-08-08-inner-pages-entrance-reveals.md`.
 
 **Newly confirmed live-account gaps this session** (owner action only, no
 tool access to fix): the Supabase Auth "Redirect URLs" allow-list is
@@ -525,8 +525,8 @@ full comparison and PR #50's closing comment for the itemized verdict.
   password reset, and staff invite actions; the existing invite helper now
   shares that tested Resend boundary. No live email was sent during verification.
 - Ended with one canonical worktree. Full worktree/stash recovery evidence is
-  in `docs/WORKTREE-STATE.md`; the exact cleanup and retention manifest is in
-  `docs/REPOSITORY-CLEANUP-2026-08-02.md`.
+  in `docs/archive/WORKTREE-STATE.md`; the exact cleanup and retention manifest is in
+  `docs/archive/REPOSITORY-CLEANUP-2026-08-02.md`.
 - Current verification: CRM tests 59/59, full suite 110/110, production build
   43/43 pages, desktop/mobile/browser CRM smoke checks with no console errors.
 - Read-only live Supabase checks confirmed canonical migrations 0009–0011 and

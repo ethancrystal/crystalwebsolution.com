@@ -42,12 +42,12 @@ const GA_CONNECT_ORIGINS = [
 // The conversion linker uses an iframe; default-src 'self' would block it.
 const GA_FRAME_ORIGINS = ['https://td.doubleclick.net'];
 
-// components/ui/unicorn-studio-background.jsx (the interactive canvas behind
-// every dark auth page) loads its runtime from jsDelivr's GitHub CDN. Same
-// silent-failure shape as GA above: without this origin the script is
-// blocked, isInteractive never flips true, and every login/signup/reset page
-// just shows the static star-field fallback with no visible error.
-const UNICORN_STUDIO_SCRIPT_ORIGIN = 'https://cdn.jsdelivr.net';
+// The dark auth pages used to load an UnicornStudio runtime from jsDelivr's
+// GitHub CDN, which is why script-src once allowed https://cdn.jsdelivr.net.
+// That component was replaced on 2026-08-25 by the procedural canvases in
+// components/ui/dark-page-background.jsx, which render in-process and fetch
+// nothing, so the origin is gone. tests/login-background.test.mjs asserts it
+// stays gone — a stale allowlist entry widens the policy for no benefit.
 
 const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS]
   .filter(Boolean)
@@ -59,7 +59,7 @@ const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS]
 // script/worker because Three.js compiles shader workers from blob URLs.
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: ${GA_SCRIPT_ORIGIN} ${UNICORN_STUDIO_SCRIPT_ORIGIN}`,
+  `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: ${GA_SCRIPT_ORIGIN}`,
   "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
