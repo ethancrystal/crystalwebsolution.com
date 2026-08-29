@@ -30,7 +30,7 @@ test('open navigation keeps its first link below the fixed header on short viewp
   assert.match(globalCss, /\.menu-links\s*\{[\s\S]*?flex:\s*none;[\s\S]*?margin-top:\s*auto;/);
   assert.match(globalCss, /\.menu-meta\s*\{[\s\S]*?flex:\s*none;[\s\S]*?margin-bottom:\s*auto;/);
   assert.match(globalCss, /font-size:\s*clamp\(2rem, min\(5\.5vw, 8vh\), 3\.75rem\)/);
-  assert.match(globalCss, /width:\s*clamp\(9\.5rem, 48vw, 12rem\)/);
+  assert.match(globalCss, /width:\s*clamp\(11rem, 52vw, 13\.5rem\)/);
 });
 
 test('latest experience features default to the additive WebGL carousel', () => {

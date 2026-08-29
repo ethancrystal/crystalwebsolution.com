@@ -49,7 +49,7 @@
 .nav-logo-art {
   position: relative;
   display: block;
-  width: clamp(4.75rem, 7vw, 6.75rem);
+  width: clamp(5.5rem, 8vw, 7.75rem);
   height: clamp(3.25rem, 5vw, 4.5rem);
 }
 .nav-logo-art img {
@@ -175,8 +175,8 @@
 }
 @media (max-width: 767.5px) {
   .nav-logo-art {
-    width: clamp(9.5rem, 48vw, 12rem);
-    height: clamp(1.45rem, 7.2vw, 1.8rem);
+    width: clamp(11rem, 52vw, 13.5rem);
+    height: clamp(1.7rem, 8.2vw, 2.05rem);
   }
   .menu {
     /* Same nav-clearance intent as the desktop rule above, tuned for this

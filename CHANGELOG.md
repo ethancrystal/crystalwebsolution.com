@@ -5,6 +5,25 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.08 — 2026-08-29
+
+- Enlarge the header wordmark (`.nav-logo-art` in `app/styles/nav.css`,
+  shared by the homepage and subpage `Nav`/`SubpageNav` headers) by roughly
+  15%: desktop clamp bounds go from `4.75rem/7vw/6.75rem` to
+  `5.5rem/8vw/7.75rem`; the mobile clamp (used inside the open-menu media
+  query, which is the rule that actually wins over an earlier, already-dead
+  767.5px rule) goes from `9.5rem/7.2vw/12rem` width /
+  `1.45rem/7.2vw/1.8rem` height to `11rem/52vw/13.5rem` width /
+  `1.7rem/8.2vw/2.05rem` height. Desktop height is left untouched: the logo
+  is width-constrained under `object-fit: contain` there, so height was
+  already non-binding headroom.
+- Audited every other place the brand logo renders (`components/BrandLogo.jsx`,
+  `components/crm/WorkspaceShell.jsx`, `components/auth/PortalLoginForm.jsx`,
+  `app/login/page.jsx`, `app/signup/page.jsx`, `lib/email/templates.js`) for
+  the same styled-jsx/`next/link` scoping bug fixed in v1.06 — none reproduce
+  it; `WorkspaceShell.jsx`'s brand link is a plain `<a>`, not `next/link`'s
+  `Link`, so styled-jsx scopes it correctly.
+
 ## v1.07 — 2026-08-28
 
 - Split the 4,324-line `app/globals.css` into 27 ordered stylesheets under
