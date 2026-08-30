@@ -5,6 +5,43 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.15 — 2026-08-30
+
+Extends the per-section loading skeleton to Lab and Motion, the two beats
+`v1.14`'s "homepage section skeletons + cube intro loader" PR (#148) left out
+as too risky to place without checking their layout first.
+
+- **`Lab.jsx`**: the skeleton sits inside `.lab-sticky`, not `.lab` itself.
+  `.lab` is a 340svh scroll track so its sticky beat can pin; `.lab-sticky`
+  is the 100svh box actually on screen. An `inset: 0` skeleton on `.lab`
+  would have stretched across the whole track instead of matching the pinned
+  viewport — confirmed by measuring both boxes under CPU-throttled Playwright
+  before and after hydration (skeleton: 900px tall against a 900px parent;
+  `.lab` itself is legitimately 3060px). `.lab-sticky` is already
+  `position: sticky`, so this reuses its existing positioning context rather
+  than adding a new one, and it closes a real gap: `.im-card` is
+  `opacity: 0` by default in the non-static layout, invisible until GSAP's
+  scroll-tied `applyProgress` sets it inline — the same class of bug the
+  skeleton system was built to paper over elsewhere.
+- **`Motion.jsx`**: `.motion` is a plain `position: relative`, content-height
+  section (no sticky/pin behavior lives in its own DOM — the "WebGL scene +
+  camera lock" comment in `Lab.jsx` refers to the fixed-canvas mascot cluster
+  `journey.js` drives during this scroll beat, not anything in this
+  component's layout), so the skeleton drops in exactly like the six
+  sections `v1.14` already covered.
+- **Process note**: `v1.14`'s own PR (#148) never got a CHANGELOG entry and
+  reused the version number `v1.13`'s PR had already claimed — a direct miss
+  of this repo's mandatory versioning rule (`VERSIONING.md`). Recorded here
+  rather than rewritten into the already-merged history; this entry resumes
+  correct numbering at `VERSIONING.md`'s own rule (top of `CHANGELOG.md` +
+  0.01).
+
+Verified: `pnpm build` clean, `pnpm test:marketing` 22/22. Browser-verified
+under CPU-throttled Playwright (12x/8x rate): both skeletons render on first
+paint, hold their shape while hydration is pending, and disappear cleanly
+(no residual overlay) the instant `data-cws-hydrated` flips — same lifecycle
+already proven for the other six sections.
+
 ## v1.14 — 2026-08-29
 
 Turns the CSP into an enforced invariant. Test-only — no runtime code changed,
