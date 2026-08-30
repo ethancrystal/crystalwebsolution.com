@@ -20,6 +20,12 @@ export default function ProcessStepsRail({ steps }) {
             <div className="mkt-step-body">
               <h2 className="mkt-step-title">{step.title}</h2>
               <p className="mkt-step-text">{step.body}</p>
+              {(step.duration || step.deliverable) && (
+                <p className="mkt-step-meta">
+                  {step.duration && <span className="mkt-step-duration">{step.duration}</span>}
+                  {step.deliverable && <span className="mkt-step-deliverable">{step.deliverable}</span>}
+                </p>
+              )}
             </div>
           </li>
         ))}
