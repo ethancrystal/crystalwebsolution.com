@@ -15,6 +15,7 @@ import { DEFAULT_MOTION_LAYOUT, shouldUseStaticMotionLayout } from '../../lib/mo
 import { scrollState } from '../../lib/scrollState';
 import { useExperienceFeatures } from '../../lib/useExperienceFeatures';
 import { SITE } from '../../lib/site';
+import SectionSkeleton from '../ui/section-skeleton';
 
 // "CWS in motion" — the services beat. Eight cards fly a full orbital lap
 // over the giant statement, then settle into a real, clickable grid. Unlike
@@ -284,6 +285,13 @@ export default function Lab() {
       data-lab-layout={DEFAULT_MOTION_LAYOUT}
     >
       <div className="lab-sticky">
+        {/* .lab-sticky, not .lab, is the visible box: .lab spans a 340svh
+            scroll track so the sticky beat can pin, and inset:0 on that
+            would stretch the skeleton across the whole track instead of the
+            100svh pinned viewport. .lab-sticky is already position: sticky,
+            so this reuses its existing positioning context rather than
+            adding a new one. */}
+        <SectionSkeleton />
         <div className="lab-copy" ref={headlineRef} aria-hidden="true">
           <span>CDS</span>
           <span>IN MOTION</span>

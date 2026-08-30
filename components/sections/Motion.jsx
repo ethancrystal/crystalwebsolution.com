@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import ProjectHandoffLink from '../ProjectHandoffLink';
 import WorkMarquee from '../ui/work-marquee';
+import SectionSkeleton from '../ui/section-skeleton';
 import { PROJECTS } from '../../lib/projects';
 import { CLIENT_TILE_IMAGES } from '../../lib/clientTileImages.mjs';
 const DEEP_LINK_PROGRESS = 0.32;
@@ -40,6 +41,7 @@ export default function Motion() {
       id="motion"
       data-anchor-progress={DEEP_LINK_PROGRESS}
     >
+      <SectionSkeleton />
       <header className="motion-header">
         <div>
           <p className="eyebrow">Named client record</p>
