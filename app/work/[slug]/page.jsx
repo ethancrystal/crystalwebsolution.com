@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProjectVisual from '../../../components/ProjectVisual';
+import MarketingShell from '../../../components/marketing/MarketingShell';
+import SectionReveal from '../../../components/SectionReveal';
 import { PROJECTS, getProject } from '../../../lib/projects';
 import { SITE } from '../../../lib/site';
 
@@ -43,30 +45,32 @@ export default async function CaseStudy({ params }) {
   const next = PROJECTS[(index + 1) % PROJECTS.length];
 
   return (
-    <div className="subpage">
-      <header className="nav">
-        <Link href="/" className="nav-logo" data-cursor="Home">
-          <span className="nav-logo-monogram" aria-hidden="true">CWS</span>
-          <span className="nav-logo-name">{SITE.name}</span>
-        </Link>
-        <Link href="/work" className="btn btn-ghost" data-cursor="Back">All projects</Link>
-      </header>
-      <main className="case">
-        <p className="eyebrow">Case study • {project.category}</p>
-        <h1 className="page-title">{project.title}</h1>
-        <p className="case-summary">{project.summary}</p>
-        <ul className="case-services" aria-label="Services">
+    <MarketingShell>
+      <article className="case">
+        <Link href="/work" className="case-back" data-cursor="Work">← All projects</Link>
+        <p className="eyebrow">
+          <SectionReveal as="span" direction="left">Case study • {project.category}</SectionReveal>
+        </p>
+        <SectionReveal as="h1" className="page-title" direction="left" delay={0.05}>
+          {project.title}
+        </SectionReveal>
+        <SectionReveal as="p" className="case-summary" direction="up" delay={0.1}>
+          {project.summary}
+        </SectionReveal>
+        <SectionReveal as="ul" className="case-services" aria-label="Services" direction="up" delay={0.15}>
           {project.services.map((service) => <li key={service}>{service}</li>)}
-        </ul>
-        <ProjectVisual palette={project.palette} title={project.title} ratio="21 / 9" />
-        <div className="case-body">
+        </SectionReveal>
+        <SectionReveal direction="up" delay={0.2}>
+          <ProjectVisual palette={project.palette} title={project.title} ratio="21 / 9" />
+        </SectionReveal>
+        <SectionReveal as="div" className="case-body" direction="up" delay={0.25}>
           {project.body.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-        </div>
+        </SectionReveal>
         <Link href={`/work/${next.slug}`} className="case-next" data-cursor="Next case">
           <span className="eyebrow">Next case study</span>
           <span className="case-next-title">{next.title} →</span>
         </Link>
-      </main>
-    </div>
+      </article>
+    </MarketingShell>
   );
 }

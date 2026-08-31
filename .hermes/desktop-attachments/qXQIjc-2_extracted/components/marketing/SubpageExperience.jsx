@@ -9,11 +9,11 @@ import MarketingFooter from './MarketingFooter';
 
 const IdleScene = dynamic(() => import('./IdleScene'), { ssr: false });
 
-export default function SubpageExperience({ children, sceneVariant }) {
+export default function SubpageExperience({ children }) {
   return (
     <SmoothScroll>
       <div className="mkt-shell subpage-shell">
-        <IdleScene variant={sceneVariant} />
+        <IdleScene />
         <FocusVeil />
         <SubpageNav />
         <ScrollProgress />

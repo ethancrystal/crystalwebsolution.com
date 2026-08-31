@@ -2,6 +2,7 @@ import Link from 'next/link';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import PageHero from '../../components/marketing/PageHero';
 import ContentSection from '../../components/marketing/ContentSection';
+import FoundingRail from '../../components/marketing/FoundingRail';
 import { SITE } from '../../lib/site';
 
 const TITLE = 'About';
@@ -45,7 +46,7 @@ const PRINCIPLES = [
 
 export default function AboutPage() {
   return (
-    <MarketingShell>
+    <MarketingShell sceneVariant="about">
       <PageHero
         eyebrow="About"
         title="A studio built on clarity, craft, and impact."
@@ -63,14 +64,17 @@ export default function AboutPage() {
         </p>
       </ContentSection>
       <ContentSection eyebrow="How we think" title="What we hold to" tone="alt">
-        <ul className="mkt-principles">
-          {PRINCIPLES.map((item) => (
-            <li key={item.title} className="mkt-principle">
-              <h2 className="mkt-principle-title">{item.title}</h2>
-              <p className="mkt-principle-body">{item.body}</p>
-            </li>
-          ))}
-        </ul>
+        <div className="mkt-principles-wrap">
+          <FoundingRail founded={SITE.founded} />
+          <ul className="mkt-principles">
+            {PRINCIPLES.map((item) => (
+              <li key={item.title} className="mkt-principle">
+                <h2 className="mkt-principle-title">{item.title}</h2>
+                <p className="mkt-principle-body">{item.body}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
       </ContentSection>
       <ContentSection eyebrow="Work with us" title="Let’s make something rare">
         <p className="mkt-prose">

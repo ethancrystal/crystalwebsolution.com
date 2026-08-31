@@ -3,6 +3,7 @@ import MarketingShell from '../../components/marketing/MarketingShell';
 import PageHero from '../../components/marketing/PageHero';
 import ContentSection from '../../components/marketing/ContentSection';
 import ContactForm from '../../components/marketing/ContactForm';
+import ContactPulseLinks from '../../components/marketing/ContactPulseLinks';
 import { SITE } from '../../lib/site';
 
 const TITLE = 'Contact';
@@ -27,7 +28,7 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <MarketingShell>
+    <MarketingShell sceneVariant="contact">
       <PageHero
         eyebrow="Contact"
         title="Send us your brief."
@@ -42,13 +43,7 @@ export default function ContactPage() {
         <p className="mkt-prose">
           Reach us directly and we’ll route your note to the right person.
         </p>
-        <ul className="mkt-contact-direct">
-          <li><span className="mkt-contact-label">Email</span><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
-          {SITE.phone && (
-            <li><span className="mkt-contact-label">Phone</span><a href={`tel:${SITE.phone.replace(/[^\d+]/g, '')}`}>{SITE.phone}</a></li>
-          )}
-          <li><span className="mkt-contact-label">Studio</span><span>{SITE.city}</span></li>
-        </ul>
+        <ContactPulseLinks />
       </ContentSection>
     </MarketingShell>
   );
