@@ -5,6 +5,32 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.14 — 2026-08-31
+
+Services beat: the emblem rail now explains itself. One emblem is spotlighted
+at a time — the hovered row's, or the scroll-active row's — springing larger,
+brighter and toward the camera while the rest recede, and each emblem carries
+a small cyan actor that demonstrates its service. Desktop-only rail as before;
+reduced motion freezes all choreography without hiding the forms.
+
+- **`components/three/ServiceRail.jsx`** — second per-emblem focus spring
+  (scale, z-pull, steadier tumble) on top of the existing emissive spring;
+  per-signal demo actors: viewport scanline (web), stack packet (development),
+  orbiting drafting point (brand), registration tick (logo), sonar ping with
+  blip flashes (marketing), comet riding the exact torus-knot path (motion),
+  branching decision pulse (ai), station-hopping work item (workflow). All
+  pre-built geometry, phase state in refs, zero per-frame allocation, one
+  unlit material per emblem; actor speeds multiply `motionScale.value`.
+- **Typography polish** (progressive enhancement, identical rendering where
+  unsupported): `text-wrap: balance` on display headings
+  (`app/styles/primitives.css`), `text-wrap: pretty` on service descriptions
+  (`app/styles/services.css`).
+- **`--spring` easing token** (`app/styles/tokens.css`) — CSS `linear()`
+  overshoot-and-settle curve matching the 3D emblem springs, first used on
+  the service-title hover nudge so DOM and canvas respond with one physics.
+- Verified: services contract tests 5/5, marketing suite 22/22, `pnpm build`
+  clean (57/57 pages).
+
 ## v1.13 — 2026-08-29
 
 Repository leanness pass. No behaviour change to any shipping page — the only

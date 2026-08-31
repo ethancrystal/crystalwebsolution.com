@@ -30,6 +30,20 @@ import { SERVICE_SIGNAL_META } from '../../lib/serviceSignals.mjs';
 // DOM row lifts its emblem via the lib/beacon.js singleton. Both feed one
 // mass-spring-damper per emblem (ApproachCompass's constants) driving
 // emissive + scale, so responses overshoot slightly and settle alive.
+//
+// Spotlight + performance pass: beyond ignition, exactly one emblem is "in
+// focus" at a time — the hovered row's, or the scroll-active row's when
+// nothing is hovered. A second spring per emblem pulls the focused form
+// larger, brighter and toward the camera while the rest recede, and each
+// emblem carries a small bright cyan ACTOR that demonstrates its service
+// while focused: the radar pings, a comet rides the motion knot, a decision
+// pulse branches through the AI nodes, a packet hops the workflow pipeline,
+// a scanline sweeps the web viewport, data descends the development stack,
+// a drafting point orbits the brand stone, and a registration tick traces
+// the logo ring. Actors are one or four extra meshes per emblem, all
+// pre-built geometry, phase state in refs — never React state — and every
+// per-frame speed multiplies motionScale.value so reduced motion freezes
+// the choreography without hiding the forms.
 const COUNT = SERVICES.length;
 const RAIL_X = -1.15;
 const TOP_Y = 1.05;
@@ -45,16 +59,28 @@ const RAIL_META = SERVICES.map(({ signal }) => {
 });
 const BASE_SCALE = 0.19;
 
-// Spring levels: dark until the scroll window ignites a row, bright while
-// its DOM row is hovered. The spring value IS the emissive intensity.
+// Spring levels: dark until the scroll window ignites a row, focused while
+// its row is the current one, bright while its DOM row is hovered. The
+// spring value IS the emissive intensity. LEVEL_LIT is deliberately dimmer
+// than the old flat "everything on" value so the focused emblem owns the
+// moment instead of joining a field of equally-bright shapes.
 const LEVEL_UNLIT = 0.15;
-const LEVEL_LIT = 0.55;
+const LEVEL_LIT = 0.4;
+const LEVEL_ACTIVE = 1.05;
 const LEVEL_HOVER = 1.5;
 const STIFFNESS = 90;
 const DAMPING = 9;
 
+// Focus spring drives the spotlight: scale-up, camera pull and actor
+// intensity. 0 = receded, 1 = focused; overshoot past 1 is the springiness.
+const FOCUS_SCALE_GAIN = 0.95;
+const FOCUS_Z_PULL = 0.45;
+
 const EMISSIVE_BASE = new THREE.Color('#3c6cff');
 const EMISSIVE_ACTIVE = new THREE.Color('#59f3ff');
+// Actors are unlit MeshBasicMaterial pushed past 1.0 so the bloom pass
+// reads them as signal light, same family as the hero-core cyan.
+const ACTOR_COLOR = new THREE.Color('#59f3ff').multiplyScalar(1.7);
 
 // The Blender design pass established a family of precise "signal
 // instruments": open frames, calibrated rings, faceted cores and relay
@@ -130,6 +156,174 @@ function cylinderBetween(start, end, radius = 0.035) {
   geometry.translate(midpoint.x, midpoint.y, midpoint.z);
   return geometry;
 }
+
+// Node/way positions the demo actors travel. Shared with the geometry
+// builders below — if a builder's layout moves, move these with it.
+const DEV_STACK_PATH = [
+  new THREE.Vector3(-0.5, 0.46, 0.04),
+  new THREE.Vector3(-0.37, 0, 0.04),
+  new THREE.Vector3(0, 0, 0.08),
+  new THREE.Vector3(0.37, 0, 0.04),
+  new THREE.Vector3(0.5, -0.46, 0.04),
+];
+const AI_NODES = [
+  new THREE.Vector3(-0.56, 0.12, 0),
+  new THREE.Vector3(-0.04, 0.48, 0.04),
+  new THREE.Vector3(0.5, 0.24, -0.02),
+  new THREE.Vector3(0.42, -0.42, 0.03),
+  new THREE.Vector3(-0.22, -0.5, -0.03),
+];
+// Node index routes along real edges: one source resolving into outcomes.
+const AI_ROUTES = [
+  [0, 1, 2],
+  [0, 1, 3],
+  [0, 4, 3],
+];
+const WORKFLOW_STATIONS = [
+  new THREE.Vector3(-0.65, 0.28, 0),
+  new THREE.Vector3(-0.22, -0.2, 0.04),
+  new THREE.Vector3(0.22, 0.22, -0.03),
+  new THREE.Vector3(0.65, -0.25, 0.02),
+];
+const MARKETING_BLIPS = [
+  new THREE.Vector3(-0.34, 0.33, 0.04),
+  new THREE.Vector3(0.42, -0.34, 0.04),
+  new THREE.Vector3(-0.14, -0.58, 0.04),
+];
+const MARKETING_BLIP_RADII = MARKETING_BLIPS.map((p) => Math.hypot(p.x, p.y));
+// The brand orbit torus and motion knot are authored transformed; actors
+// reuse the exact same transforms so they ride the visible geometry.
+const BRAND_ORBIT_Q = new THREE.Quaternion().setFromEuler(
+  new THREE.Euler(Math.PI / 2, 0, Math.PI / 4)
+);
+const MOTION_TRANSFORM = new THREE.Matrix4().compose(
+  new THREE.Vector3(0, 0, 0),
+  new THREE.Quaternion().setFromEuler(new THREE.Euler(0.22, -0.18, 0.12)),
+  new THREE.Vector3(1.2, 1.2, 1.2)
+);
+
+// Loop lengths in seconds-ish at full focus (phase advances by
+// dt * speed, scaled down while merely lit and by motionScale).
+const ACTOR_SPEED = {
+  web: 0.35,
+  development: 0.4,
+  brand: 1.4,
+  logo: 1.6,
+  marketing: 0.55,
+  motion: 2.2,
+  ai: 0.5,
+  workflow: 0.45,
+};
+
+const TMP_V = new THREE.Vector3();
+
+function fract(v) {
+  return v - Math.floor(v);
+}
+
+function lerpAlong(points, u, out) {
+  const segments = points.length - 1;
+  const scaled = Math.min(u, 0.9999) * segments;
+  const i0 = Math.floor(scaled);
+  return out.lerpVectors(points[i0], points[i0 + 1], scaled - i0);
+}
+
+// One updater per signal: mutate the actor meshes for this frame. `rate` is
+// the pre-scaled phase advance (dt * focus ramp * motionScale); `op` is the
+// resolved actor opacity for this emblem.
+const ACTOR_UPDATERS = {
+  // A scanline sweeping the viewport top to bottom — the frame being drawn.
+  web(store, ph, rate, op) {
+    if (!store.scan) return;
+    ph.t += rate * ACTOR_SPEED.web;
+    store.scan.position.y = 0.45 - fract(ph.t) * 0.9;
+    store.scan.material.opacity = op;
+  },
+  // A data packet descending the stack: top node, through the core, out the
+  // bottom — the runtime actually running.
+  development(store, ph, rate, op) {
+    if (!store.dot) return;
+    ph.t += rate * ACTOR_SPEED.development;
+    lerpAlong(DEV_STACK_PATH, fract(ph.t), TMP_V);
+    store.dot.position.copy(TMP_V);
+    store.dot.material.opacity = op;
+  },
+  // A drafting point circling the identity stone on its authored orbit.
+  brand(store, ph, rate, op) {
+    if (!store.dot) return;
+    ph.t += rate * ACTOR_SPEED.brand;
+    TMP_V.set(Math.cos(ph.t) * 0.88, Math.sin(ph.t) * 0.88, 0).applyQuaternion(
+      BRAND_ORBIT_Q
+    );
+    store.dot.position.set(TMP_V.x, TMP_V.y, TMP_V.z - 0.04);
+    store.dot.material.opacity = op;
+  },
+  // A registration tick tracing the construction circle around the mark.
+  logo(store, ph, rate, op) {
+    if (!store.dot) return;
+    ph.t += rate * ACTOR_SPEED.logo;
+    store.dot.position.set(Math.cos(ph.t) * 0.78, Math.sin(ph.t) * 0.78, -0.04);
+    store.dot.material.opacity = op;
+  },
+  // A sonar ping expanding through the calibrated rings; each acquired
+  // point flashes as the wavefront passes its radius.
+  marketing(store, ph, rate, op, dt) {
+    if (!store.ring) return;
+    ph.t += rate * ACTOR_SPEED.marketing;
+    const u = fract(ph.t);
+    const radius = 0.06 + u * 0.74;
+    store.ring.scale.set(radius, radius, 1);
+    store.ring.material.opacity = op * (1 - u) * (1 - u);
+    const decay = Math.exp(-dt * 6);
+    for (let j = 0; j < MARKETING_BLIP_RADII.length; j++) {
+      const blip = store[`blip${j}`];
+      if (!blip) continue;
+      if (Math.abs(radius - MARKETING_BLIP_RADII[j]) < 0.07) ph.blips[j] = 1;
+      else ph.blips[j] *= decay;
+      blip.scale.setScalar(0.05 + ph.blips[j] * 0.075);
+      blip.material.opacity = op;
+    }
+  },
+  // A comet riding the exact torus-knot path (p=2, q=3, r=0.5, then the
+  // knot's authored rotation + 1.2 scale) — motion made literal.
+  motion(store, ph, rate, op) {
+    if (!store.dot) return;
+    ph.t += rate * ACTOR_SPEED.motion;
+    const u = ph.t % (Math.PI * 4);
+    const cs = Math.cos(1.5 * u);
+    TMP_V.set(
+      0.25 * (2 + cs) * Math.cos(u),
+      0.25 * (2 + cs) * Math.sin(u),
+      0.25 * Math.sin(1.5 * u)
+    ).applyMatrix4(MOTION_TRANSFORM);
+    store.dot.position.copy(TMP_V);
+    store.dot.material.opacity = op;
+  },
+  // A decision pulse leaving the source node and resolving along a
+  // different branch each journey.
+  ai(store, ph, rate, op) {
+    if (!store.dot) return;
+    ph.t += rate * ACTOR_SPEED.ai;
+    const route = AI_ROUTES[Math.floor(ph.t) % AI_ROUTES.length];
+    const scaled = Math.min(fract(ph.t), 0.9999) * 2;
+    const i0 = Math.floor(scaled);
+    TMP_V.lerpVectors(AI_NODES[route[i0]], AI_NODES[route[i0 + 1]], scaled - i0);
+    store.dot.position.copy(TMP_V);
+    store.dot.material.opacity = op;
+  },
+  // A work item hopping station to station down the pipeline.
+  workflow(store, ph, rate, op) {
+    if (!store.dot) return;
+    ph.t += rate * ACTOR_SPEED.workflow;
+    const u = fract(ph.t);
+    const scaled = Math.min(u, 0.9999) * 3;
+    const i0 = Math.floor(scaled);
+    const segT = scaled - i0;
+    TMP_V.lerpVectors(WORKFLOW_STATIONS[i0], WORKFLOW_STATIONS[i0 + 1], segT);
+    store.dot.position.set(TMP_V.x, TMP_V.y, TMP_V.z + Math.sin(segT * Math.PI) * 0.1);
+    store.dot.material.opacity = op;
+  },
+};
 
 function createSignalGeometries() {
   // 01 / Web — an open viewport with a split horizon and signal cursor.
@@ -264,12 +458,71 @@ function createSignalGeometries() {
   });
 }
 
+// Declarative actor meshes per signal. Refs land in the per-emblem store
+// object read by ACTOR_UPDATERS; geometry/materials come from the shared
+// actor asset pool so each emblem costs at most one extra material.
+function actorMeshes(signal, assets, store, material) {
+  switch (signal) {
+    case 'web':
+      return (
+        <mesh
+          ref={(el) => (store.scan = el)}
+          geometry={assets.scan}
+          material={material}
+          position={[0, 0.45, 0.1]}
+        />
+      );
+    case 'marketing':
+      return (
+        <>
+          <mesh
+            ref={(el) => (store.ring = el)}
+            geometry={assets.ping}
+            material={assets.ringMat}
+            position={[0, 0, 0.02]}
+            scale={[0.06, 0.06, 1]}
+          />
+          {MARKETING_BLIPS.map((p, j) => (
+            <mesh
+              key={j}
+              ref={(el) => (store[`blip${j}`] = el)}
+              geometry={assets.dot}
+              material={material}
+              position={[p.x, p.y, p.z]}
+              scale={0.05}
+            />
+          ))}
+        </>
+      );
+    default:
+      // Every travelling actor (dev packet, brand point, logo tick, motion
+      // comet, ai pulse, workflow item) is one small bright dot.
+      return (
+        <mesh
+          ref={(el) => (store.dot = el)}
+          geometry={assets.dot}
+          material={material}
+          scale={signal === 'ai' ? 0.085 : 0.07}
+        />
+      );
+  }
+}
+
 export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
   const rail = useRef();
   const emblems = useRef([]);
   // { value, velocity } per emblem — tiny spring sims, never React state.
   const springs = useRef(
     Array.from({ length: COUNT }, () => ({ value: LEVEL_UNLIT, velocity: 0 }))
+  );
+  // Second spring per emblem for the spotlight (0 = receded, 1 = focused).
+  const focusSprings = useRef(
+    Array.from({ length: COUNT }, () => ({ value: 0, velocity: 0 }))
+  );
+  // Actor mesh refs + phase clocks, staggered so neighbours never sync up.
+  const actorStores = useRef(Array.from({ length: COUNT }, () => ({})));
+  const actorPhases = useRef(
+    Array.from({ length: COUNT }, (_, i) => ({ t: i * 0.37, blips: [0, 0, 0] }))
   );
   const geometries = useMemo(() => createSignalGeometries(), []);
 
@@ -292,12 +545,39 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
     []
   );
 
+  // Shared actor pool: unit primitives scaled per mesh, one unlit material
+  // per emblem (plus the ping ring's own, since its opacity fades per ping).
+  const actorAssets = useMemo(() => {
+    const dot = new THREE.SphereGeometry(1, 8, 6);
+    const scan = new THREE.BoxGeometry(1.18, 0.035, 0.05);
+    const ping = new THREE.TorusGeometry(1, 0.022, 5, 40);
+    const makeMat = () =>
+      new THREE.MeshBasicMaterial({
+        color: ACTOR_COLOR,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+      });
+    return {
+      dot,
+      scan,
+      ping,
+      ringMat: makeMat(),
+      mats: Array.from({ length: COUNT }, makeMat),
+    };
+  }, []);
+
   useEffect(
     () => () => {
       geometries.forEach((geometry) => geometry.dispose());
       materials.forEach((material) => material.dispose());
+      actorAssets.dot.dispose();
+      actorAssets.scan.dispose();
+      actorAssets.ping.dispose();
+      actorAssets.ringMat.dispose();
+      actorAssets.mats.forEach((material) => material.dispose());
     },
-    [geometries, materials]
+    [geometries, materials, actorAssets]
   );
 
   useFrame((state, delta) => {
@@ -321,6 +601,10 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
     const span = Math.max(b - a, 0.0001);
     const ease = THREE.MathUtils.clamp((scrollState.progress - a) / span, 0, 1);
     const activeStep = Math.min(COUNT - 1, Math.floor(ease * COUNT));
+    // The spotlight index: hover always wins; otherwise the scroll-active
+    // row (mirrors Services.jsx's auto-advance, so DOM marker, row shine and
+    // this emblem all agree on which service is "now").
+    const focusIndex = beacon.index !== -1 ? beacon.index : activeStep;
 
     // The DOM list is much taller than the viewport. Advance the authored
     // instrument rail by the same local progress so the current forms occupy
@@ -335,11 +619,24 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
       if (!g) continue;
 
       const target =
-        beacon.index === i ? LEVEL_HOVER : i <= activeStep ? LEVEL_LIT : LEVEL_UNLIT;
+        beacon.index === i
+          ? LEVEL_HOVER
+          : focusIndex === i
+            ? LEVEL_ACTIVE
+            : i <= activeStep
+              ? LEVEL_LIT
+              : LEVEL_UNLIT;
       const s = springs.current[i];
       const force = (target - s.value) * STIFFNESS - s.velocity * DAMPING;
       s.velocity += force * dt;
       s.value += s.velocity * dt;
+
+      const f = focusSprings.current[i];
+      const focusForce =
+        ((focusIndex === i ? 1 : 0) - f.value) * STIFFNESS - f.velocity * DAMPING;
+      f.velocity += focusForce * dt;
+      f.value += f.velocity * dt;
+      const fv = THREE.MathUtils.clamp(f.value, 0, 1.15);
 
       const mat = materials[i];
       mat.emissiveIntensity = Math.max(0, s.value);
@@ -351,9 +648,35 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
       );
       mat.emissive.lerpColors(EMISSIVE_BASE, EMISSIVE_ACTIVE, heat);
 
-      g.rotation.y += dt * RAIL_META[i].rotSpeed * (1 + heat * 1.5) * motionScale.value;
-      g.rotation.x = Math.sin(t * 0.4 + i * 1.3) * 0.18 * motionScale.value;
-      g.scale.setScalar(BASE_SCALE * (1 + Math.max(0, s.value - LEVEL_LIT) * 0.2));
+      // The focused emblem steadies its tumble so its performance reads;
+      // receded emblems keep the ambient drift.
+      const steady = 1 - 0.55 * Math.min(fv, 1);
+      g.rotation.y += dt * RAIL_META[i].rotSpeed * (1 + heat * 1.5) * steady * motionScale.value;
+      g.rotation.x = Math.sin(t * 0.4 + i * 1.3) * 0.18 * steady * motionScale.value;
+
+      // Spotlight: ignition still nudges scale, but focus is what makes one
+      // emblem grow toward the camera while the rest recede.
+      const litMix = THREE.MathUtils.clamp(
+        (s.value - LEVEL_UNLIT) / (LEVEL_LIT - LEVEL_UNLIT),
+        0,
+        1
+      );
+      g.scale.setScalar(BASE_SCALE * (0.88 + 0.12 * litMix + FOCUS_SCALE_GAIN * fv));
+      g.position.z = RAIL_META[i].zOffset + FOCUS_Z_PULL * fv;
+
+      // Demo actor: idles faintly while merely lit, performs at full
+      // brightness and speed while focused. Reduced motion freezes the
+      // phase (rate → 0) without hiding the composed form.
+      const store = actorStores.current[i];
+      if (store) {
+        const op = litMix * (0.16 + 0.74 * Math.min(fv, 1));
+        const groupVisible = op > 0.02;
+        if (store.group) store.group.visible = groupVisible;
+        if (groupVisible) {
+          const rate = dt * (0.3 + 0.7 * Math.min(fv, 1)) * motionScale.value;
+          ACTOR_UPDATERS[SERVICES[i].signal]?.(store, actorPhases.current[i], rate, op, dt);
+        }
+      }
     }
   });
 
@@ -367,6 +690,17 @@ export default function ServiceRail({ position = [0, 0, 0], animate = true }) {
           scale={BASE_SCALE}
         >
           <mesh geometry={geometry} material={materials[index]} />
+          <group
+            ref={(el) => (actorStores.current[index].group = el)}
+            visible={false}
+          >
+            {actorMeshes(
+              SERVICES[index].signal,
+              actorAssets,
+              actorStores.current[index],
+              actorAssets.mats[index]
+            )}
+          </group>
         </group>
       ))}
     </group>

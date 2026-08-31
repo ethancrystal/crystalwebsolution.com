@@ -25,6 +25,14 @@
   margin-bottom: 3.5rem;
 }
 
+/* Balanced line breaks for short display headings (progressive enhancement:
+   ignored where unsupported). Kept off DecodeText-split headlines' children —
+   balance acts on the block, and split chars are inline, so this is safe. */
+h1, h2, h3,
+.section-title {
+  text-wrap: balance;
+}
+
 .decode { display: inline-block; }
 .decode .char { display: inline-block; will-change: transform, opacity; }
 .eyebrow .section-reveal { display: inline-block; }
