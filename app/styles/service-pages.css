@@ -306,6 +306,7 @@
 .mkt-contact-direct { list-style: none; display: grid; gap: 0.75rem; margin-top: 1rem; }
 .mkt-contact-direct li { display: flex; gap: 1rem; align-items: baseline; }
 .mkt-contact-label { color: var(--muted); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; min-width: 5rem; }
+.mkt-contact-city { display: flex; flex-direction: column; gap: 0.3rem; }
 .mkt-contact-direct a { color: var(--ink); }
 .mkt-contact-direct a:hover { color: var(--cyan); }
 

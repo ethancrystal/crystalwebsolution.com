@@ -5,6 +5,23 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.16 — 2026-08-31
+
+Updates the studio location shown site-wide (footer, contact links, contact
+section, and About page) to a two-line "Location in X / Also Located in Y"
+format, and confirms the enquiry email/phone already match the approved
+contact details.
+
+- `lib/site.js` — `SITE.city` is now the short primary location
+  (`Manassas, VA`), with a new `SITE.citySecondary` (`Sharjah, DXB`) for the
+  second studio; `SITE.cityCompact` combines both for single-line contexts
+  (OG image).
+- `MarketingFooter`, `ContactPulseLinks`, and the homepage `Contact` footer
+  now render both locations as separate lines instead of one combined
+  string; the About page's prose and FAQ answer read from the same fields.
+- No change to `SITE.email` (`sales@cdsportswearusa.com`) or `SITE.phone` —
+  already correct.
+
 ## v1.15 — 2026-08-30
 
 Deepens all six inner marketing pages (About, Services, Work, Contact,

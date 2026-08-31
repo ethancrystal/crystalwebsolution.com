@@ -24,7 +24,8 @@ export default function MarketingFooter() {
           <p className="mkt-footer-label">Enquiry</p>
           <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
           {SITE.phone && <a href={`tel:${SITE.phone.replace(/[^\d+]/g, '')}`}>{SITE.phone}</a>}
-          <p className="mkt-footer-city">{SITE.city}</p>
+          <p className="mkt-footer-city">Location in {SITE.city}</p>
+          <p className="mkt-footer-city">Also Located in {SITE.citySecondary}</p>
         </div>
       </div>
       <p className="mkt-footer-bottom">

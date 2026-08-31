@@ -31,7 +31,13 @@ export default function ContactPulseLinks() {
           </a>
         </li>
       )}
-      <li><span className="mkt-contact-label">Studio</span><span>{SITE.city}</span></li>
+      <li>
+        <span className="mkt-contact-label">Studio</span>
+        <span className="mkt-contact-city">
+          <span>Location in {SITE.city}</span>
+          <span>Also Located in {SITE.citySecondary}</span>
+        </span>
+      </li>
     </ul>
   );
 }

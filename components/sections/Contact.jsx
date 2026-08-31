@@ -53,7 +53,8 @@ export default function Contact() {
         )}
         <div className="footer-col">
           <p className="footer-label">Studio</p>
-          <p>{SITE.city}</p>
+          <p>Location in {SITE.city}</p>
+          <p>Also Located in {SITE.citySecondary}</p>
           <p>Web, brand &amp; automation</p>
         </div>
         <p className="footer-bottom">
