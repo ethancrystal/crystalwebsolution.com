@@ -410,8 +410,25 @@
   border-bottom: 1px solid var(--line);
 }
 .reviews-standard .eyebrow { grid-column: 1 / -1; margin-bottom: -2rem; }
+
+/* ---------- shared inner-page closing rhythm ----------
+   FAQ + cross-link + closing-CTA blocks reused across /work, /reviews and
+   other subpages, styled to match .review-archive/.reviews-close exactly so
+   these later additions read as the same design system, not a bolt-on. */
+.work-faq, .reviews-faq { padding-top: clamp(5rem, 10vw, 8rem); }
+.work-faq-heading, .reviews-faq-heading { max-width: 62ch; margin-bottom: 2rem; }
+.work-related, .reviews-related { padding-top: clamp(4rem, 8vw, 6rem); }
+.work-close {
+  padding: clamp(6rem, 12vw, 10rem) 0 2rem;
+}
+.work-close h2 { max-width: 16ch; margin-bottom: 1.5rem; }
+.work-close > p:not(.eyebrow) { max-width: 58ch; color: var(--muted); line-height: 1.75; margin-bottom: 2rem; }
+
 .reviews-standard h2,
 .review-archive-heading h2,
+.work-faq-heading h2,
+.reviews-faq-heading h2,
+.work-close h2,
 .reviews-close h2 {
   font-family: var(--font-display);
   font-size: clamp(2rem, 4.5vw, 3.5rem);
