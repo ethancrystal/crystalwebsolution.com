@@ -58,10 +58,26 @@
 }
 .service-row:hover .service-title,
 .service-row.is-active .service-title { color: var(--cyan); }
-.service-title-inner { display: inline-block; transition: transform 0.3s; }
+/* Plain easing first, then the spring curve override — browsers without
+   linear() keep the original 0.3s slide, so the hover feel only ever
+   upgrades. The spring matches the 3D emblem's overshoot-and-settle. */
+.service-title-inner {
+  display: inline-block;
+  transition: transform 0.3s;
+  transition-timing-function: var(--spring);
+  transition-duration: 0.45s;
+}
 .service-row:hover .service-title-inner,
 .service-row.is-active .service-title-inner { transform: translateX(0.4rem); }
-.service-desc { color: var(--muted); line-height: 1.7; font-size: 0.95rem; transition: opacity 0.3s; }
+.service-desc {
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 0.95rem;
+  transition: opacity 0.3s;
+  /* Avoid orphaned last words in the one-sentence PAS copy (progressive
+     enhancement; ignored where unsupported). */
+  text-wrap: pretty;
+}
 /* Sibling rows dim their secondary text while another row is hovered or
    scroll-auto-advanced (Services.jsx's activateRow — same visual language,
    just also driven without a pointer) — a focus cue layered under the

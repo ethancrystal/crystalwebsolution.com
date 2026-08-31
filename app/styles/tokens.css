@@ -11,6 +11,16 @@
   --font-body: 'Inter', sans-serif;
   --font-mono: 'Space Mono', monospace;
 
+  /* Physics spring for micro-interactions: overshoots ~8% then settles,
+     matching the mass-spring-damper feel of the 3D emblem springs
+     (ServiceRail/ApproachCompass). Baseline-widely-available linear();
+     unsupported browsers fall back to the plain easing declared before it. */
+  --spring: linear(
+    0, 0.062 2.3%, 0.24 4.9%, 0.508 7.9%, 0.914 12.2%, 1.056 14.7%,
+    1.095 16.3%, 1.098 17.9%, 1.073 20.4%, 0.99 25.7%, 0.963 29%,
+    0.968 32.6%, 1.005 41.7%, 1.011 46.9%, 0.998 61.4%, 1
+  );
+
   /* --- foreground prominence upgrade --- */
   --text-lift: 0 1px 2px rgba(2, 4, 8, 0.7), 0 14px 44px rgba(2, 4, 8, 0.5);
   --plate: radial-gradient(
