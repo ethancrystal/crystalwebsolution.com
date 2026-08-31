@@ -6,6 +6,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { scrollState } from '../lib/scrollState';
 import { measureBeats } from '../lib/beatProgress';
+import { registerScrollApi, scrollLock } from '../lib/scrollLock';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -57,6 +58,8 @@ export default function SmoothScroll({ children }) {
         touchMultiplier: 1,
       });
 
+      registerScrollApi({ stop: () => lenis.stop(), start: () => lenis.start() });
+
       const onScroll = ({ progress, velocity }) => {
         scrollState.progress = progress;
         scrollState.velocity = velocity * 1000;
@@ -102,6 +105,7 @@ export default function SmoothScroll({ children }) {
         lenis.off('scroll', onScroll);
         lenis.destroy();
         resizeObserver?.disconnect();
+        scrollLock.api = null;
       };
     };
 

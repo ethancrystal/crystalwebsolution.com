@@ -3,6 +3,7 @@
 import SectionReveal from '../SectionReveal';
 import Magnetic from '../Magnetic';
 import ContactForm from '../marketing/ContactForm';
+import SectionSkeleton from '../ui/section-skeleton';
 import { SITE } from '../../lib/site';
 
 // Contact deliberately closes quietly. The hero owns the crystal and its
@@ -12,6 +13,7 @@ import { SITE } from '../../lib/site';
 export default function Contact() {
   return (
     <section className="section contact contact--quiet" id="contact" data-quiet>
+      <SectionSkeleton />
       <div className="text-plate">
         <p className="eyebrow"><SectionReveal as="span" direction="left">From idea to outcome</SectionReveal></p>
         <SectionReveal as="h2" direction="left" className="contact-line">Let&apos;s make</SectionReveal>

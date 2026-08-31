@@ -5,6 +5,28 @@ import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
+import FaqSchema from '../../components/marketing/FaqSchema';
+
+// "Leave a review" answer is PLACEHOLDER pending founder input — see the
+// inner-pages content plan's founder-input checklist.
+const REVIEWS_FAQ = [
+  {
+    q: 'Are all of your reviews shown on this page?',
+    a: `Yes. Every one of the ${REVIEW_STATS.total} published reviews appears here in full, including the critical ones — nothing gets filtered out before it reaches this page.`,
+  },
+  {
+    q: 'Why publish a negative review instead of removing it?',
+    a: 'Because a page that only shows five-star reviews is not evidence of anything. The response standard below applies to every review equally, good or bad — removing the hard ones would mean it only applied when it was easy.',
+  },
+  {
+    q: 'How do you decide what to say in a public reply?',
+    a: 'The same standard every time: acknowledge the concern, state what can be confirmed, keep project specifics out of a public thread, and offer one real way to reach us next.',
+  },
+  {
+    q: 'Can I leave a review of a project we worked on together?',
+    a: 'PLACEHOLDER — confirm which platform current and former clients should use to leave a review, and link it here.',
+  },
+];
 
 // schema.org datePublished must be ISO 8601; lib/reviews.js stores
 // human-readable strings like "June 15, 2026". Returns undefined rather than
@@ -125,6 +147,44 @@ export default function ReviewsPage() {
           </div>
         </section>
 
+        <section className="reviews-faq" aria-labelledby="reviews-faq-title">
+          <SectionReveal as="div" className="reviews-faq-heading" direction="up">
+            <p className="eyebrow">FAQ</p>
+            <h2 id="reviews-faq-title">Common questions</h2>
+          </SectionReveal>
+          <SectionReveal as="dl" className="mkt-faq" direction="up" delay={0.1}>
+            {REVIEWS_FAQ.map((item) => (
+              <div className="mkt-faq-item" key={item.q}>
+                <dt>{item.q}</dt>
+                <dd>{item.a}</dd>
+              </div>
+            ))}
+          </SectionReveal>
+        </section>
+
+        <section className="reviews-related" aria-label="More about the studio">
+          <SectionReveal as="ul" className="mkt-related" direction="up">
+            <li>
+              <Link href="/work" className="mkt-related-link" data-cursor="View">
+                <span className="mkt-related-title">Selected work — the projects behind these reviews.</span>
+                <span className="mkt-related-arrow" aria-hidden="true">→</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/services" className="mkt-related-link" data-cursor="View">
+                <span className="mkt-related-title">Services — the eight offers these clients hired us for.</span>
+                <span className="mkt-related-arrow" aria-hidden="true">→</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/about" className="mkt-related-link" data-cursor="View">
+                <span className="mkt-related-title">About — meet the studio behind the work.</span>
+                <span className="mkt-related-arrow" aria-hidden="true">→</span>
+              </Link>
+            </li>
+          </SectionReveal>
+        </section>
+
         <section className="reviews-close">
           <p className="eyebrow"><SectionReveal as="span" direction="left">From idea to outcome</SectionReveal></p>
           <SectionReveal as="h2" direction="left" delay={0.05}>Let&apos;s make something rare.</SectionReveal>
@@ -137,6 +197,7 @@ export default function ReviewsPage() {
         </section>
       </main>
       <BreadcrumbSchema trail={[{ name: REVIEWS_TITLE, path: '/reviews' }]} />
+      <FaqSchema faq={REVIEWS_FAQ} />
       {/* Google requires AggregateRating to be backed by actual Review nodes
           with named authors. These are real, attributable client reviews —
           never synthesise entries here, and keep parseDate in sync with the

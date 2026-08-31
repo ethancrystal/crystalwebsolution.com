@@ -31,36 +31,51 @@ export const metadata = {
   },
 };
 
+// duration/deliverable are PLACEHOLDER values — confirm real figures with
+// the studio before this ships. See docs (content plan) for the open
+// founder-input checklist this closes once answered.
 const STEPS = [
   {
     n: '01',
     title: 'Discover',
     body: 'We learn the goal, the audience, and the one job the work must do. No assumptions, no recycled pitch.',
+    duration: 'PLACEHOLDER — confirm typical duration',
+    deliverable: 'PLACEHOLDER — confirm deliverable',
   },
   {
     n: '02',
     title: 'Define',
     body: 'We turn the brief into structure — information architecture, brand position, or automation map — before a pixel moves.',
+    duration: 'PLACEHOLDER — confirm typical duration',
+    deliverable: 'PLACEHOLDER — confirm deliverable',
   },
   {
     n: '03',
     title: 'Design',
     body: 'Visual systems, copy, and motion are built together so the message and the medium agree.',
+    duration: 'PLACEHOLDER — confirm typical duration',
+    deliverable: 'PLACEHOLDER — confirm deliverable',
   },
   {
     n: '04',
     title: 'Build',
     body: 'Engineering and design stay in lockstep. You see working vertical slices, not a mockup that breaks in the browser.',
+    duration: 'PLACEHOLDER — confirm typical duration',
+    deliverable: 'PLACEHOLDER — confirm deliverable',
   },
   {
     n: '05',
     title: 'Refine',
     body: 'We measure against real behavior and real outcomes, then tighten — the work earns its keep or it changes.',
+    duration: 'PLACEHOLDER — confirm typical duration',
+    deliverable: 'PLACEHOLDER — confirm deliverable',
   },
   {
     n: '06',
     title: 'Hand off',
     body: 'You own maintainable, documented code and assets. We leave your team able to extend without us.',
+    duration: 'PLACEHOLDER — confirm typical duration',
+    deliverable: 'PLACEHOLDER — confirm deliverable',
   },
 ];
 

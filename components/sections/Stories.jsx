@@ -3,6 +3,7 @@
 import SectionReveal from '../SectionReveal';
 import SectionHeader from '../shared/SectionHeader';
 import ReviewCarousel from '../ui/review-carousel';
+import SectionSkeleton from '../ui/section-skeleton';
 import { REVIEWS } from '../../lib/reviews';
 
 // Same curated set as before the visual redesign: real, named, five-star
@@ -34,6 +35,7 @@ const SLIDES = HOME_REVIEW_IDS.map((id) => REVIEWS_BY_ID.get(id)).map(
 export default function Stories() {
   return (
     <section className="section stories" id="stories" data-quiet>
+      <SectionSkeleton />
       <div className="text-plate">
         <SectionHeader eyebrow="Client proof" title="Real clients. Real outcomes. No invented case studies." />
         <SectionReveal className="stories-intro" direction="up" delay={0.08}>

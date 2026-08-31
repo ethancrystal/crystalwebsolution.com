@@ -23,13 +23,21 @@ export default function ServicePage({ page }) {
       </PageHero>
 
       <ContentSection eyebrow="Overview" title="What this looks like in practice">
+        {page.scenario && <p className="mkt-prose">{page.scenario}</p>}
         <p className="mkt-prose">{page.introduction}</p>
         <p className="mkt-prose">{page.problem}</p>
       </ContentSection>
 
       <ContentSection eyebrow="Capabilities" title="What we do" tone="alt">
         <ul className="mkt-list">
-          {page.capabilities.map((item) => <li key={item}>{item}</li>)}
+          {page.capabilities.map((item, i) => (
+            <li key={item}>
+              {item}
+              {page.capabilityDetails?.[i] && (
+                <span className="mkt-list-detail"> — {page.capabilityDetails[i]}</span>
+              )}
+            </li>
+          ))}
         </ul>
       </ContentSection>
 
@@ -37,6 +45,7 @@ export default function ServicePage({ page }) {
         <ul className="mkt-list">
           {page.deliverables.map((item) => <li key={item}>{item}</li>)}
         </ul>
+        {page.deliverablesNote && <p className="mkt-list-note">{page.deliverablesNote}</p>}
       </ContentSection>
 
       <ContentSection eyebrow="Process" title="How we work" tone="alt">
@@ -44,7 +53,12 @@ export default function ServicePage({ page }) {
           {page.process.map((step, i) => (
             <li key={step} className="mkt-step">
               <span className="mkt-step-index">{String(i + 1).padStart(2, '0')}</span>
-              <span className="mkt-step-text">{step}</span>
+              <span className="mkt-step-text">
+                {step}
+                {page.processDetails?.[i] && (
+                  <span className="mkt-list-detail"> — {page.processDetails[i]}</span>
+                )}
+              </span>
             </li>
           ))}
         </ol>
@@ -52,6 +66,7 @@ export default function ServicePage({ page }) {
 
       <ContentSection eyebrow="For you" title="Who this is for">
         <p className="mkt-prose">{page.idealClient}</p>
+        {page.notIdealClient && <p className="mkt-prose">{page.notIdealClient}</p>}
       </ContentSection>
 
       <ContentSection eyebrow="FAQ" title="Common questions" tone="alt">
@@ -77,9 +92,23 @@ export default function ServicePage({ page }) {
                 </Link>
               </li>
             ))}
+            {(page.industryLinks || []).map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="mkt-related-link" data-cursor="View">
+                  <span className="mkt-related-title">{link.label}</span>
+                  <span className="mkt-related-arrow" aria-hidden="true">→</span>
+                </Link>
+              </li>
+            ))}
           </ul>
         </ContentSection>
       )}
+
+      <ContentSection eyebrow="See our work" title="Every project, one standard">
+        <Link href="/work" className="mkt-related-link" data-cursor="View work">
+          <span className="mkt-related-title">See the work →</span>
+        </Link>
+      </ContentSection>
 
       <ContentSection eyebrow="Start" title="Let’s talk">
         <p className="mkt-prose">{page.finalCta}</p>

@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SplitType from 'split-type';
 import SectionReveal from '../SectionReveal';
+import SectionSkeleton from '../ui/section-skeleton';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -126,6 +127,7 @@ export default function Mark() {
 
   return (
     <section className="section mark" id="mark">
+      <SectionSkeleton />
       <p className="eyebrow"><SectionReveal as="span" direction="left" start="top 65%">The idea</SectionReveal></p>
       <div className="mark-headline" style={{ opacity: 0 }} ref={headRef}>
         <h2 className="mark-line" ref={line1Ref}>Scattered thoughts,</h2>

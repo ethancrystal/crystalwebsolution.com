@@ -5,31 +5,86 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
-## v1.14 — 2026-08-31
+## v1.15 — 2026-08-30
 
-Services beat: the emblem rail now explains itself. One emblem is spotlighted
-at a time — the hovered row's, or the scroll-active row's — springing larger,
-brighter and toward the camera while the rest recede, and each emblem carries
-a small cyan actor that demonstrates its service. Desktop-only rail as before;
-reduced motion freezes all choreography without hiding the forms.
+Deepens all six inner marketing pages (About, Services, Work, Contact,
+Process, Reviews) plus the embroidery-screen-printing landing page, closing
+the content-depth gap identified against the site's own deepest reference
+pages (the `/services/[slug]` template and the embroidery long-form page).
 
-- **`components/three/ServiceRail.jsx`** — second per-emblem focus spring
-  (scale, z-pull, steadier tumble) on top of the existing emissive spring;
-  per-signal demo actors: viewport scanline (web), stack packet (development),
-  orbiting drafting point (brand), registration tick (logo), sonar ping with
-  blip flashes (marketing), comet riding the exact torus-knot path (motion),
-  branching decision pulse (ai), station-hopping work item (workflow). All
-  pre-built geometry, phase state in refs, zero per-frame allocation, one
-  unlit material per emblem; actor speeds multiply `motionScale.value`.
-- **Typography polish** (progressive enhancement, identical rendering where
-  unsupported): `text-wrap: balance` on display headings
-  (`app/styles/primitives.css`), `text-wrap: pretty` on service descriptions
-  (`app/styles/services.css`).
-- **`--spring` easing token** (`app/styles/tokens.css`) — CSS `linear()`
-  overshoot-and-settle curve matching the 3D emblem springs, first used on
-  the service-title hover nudge so DOM and canvas respond with one physics.
-- Verified: services contract tests 5/5, marketing suite 22/22, `pnpm build`
-  clean (57/57 pages).
+- **About** — adds an FAQ + `FaqSchema`, a "who this is for" section,
+  cross-links to `/work`/`/process`/`/reviews`, a live review-count/rating
+  sentence sourced from `REVIEW_STATS`, and an embedded contact form
+  replacing the previous bare "start a project" link.
+- **Services** — extends each of the 8 `lib/servicePages.mjs` records with a
+  concrete opening scenario, a counter-audience ("not for you if…")
+  paragraph, one elaboration sentence per capability/process step (kept as
+  parallel `*Details` arrays — `capabilities`/`process`/`deliverables` stay
+  plain `string[]`, since the homepage's `Services.jsx` row chips read
+  `capabilities` directly and key off the string value), and 3 new FAQ
+  entries per service. Adds services-index body copy explaining why the
+  eight offers run as one team.
+- **Work** — adds an FAQ + `FaqSchema`, cross-links, and a closing CTA to
+  the work index.
+- **Contact** — adds an FAQ + `FaqSchema`, a "who this is for" section, and
+  a "what happens after you submit" section, closing the page's near-total
+  content gap.
+- **Process** — adds `duration`/`deliverable` fields to each of the 6 steps,
+  rendered as a meta row in `ProcessStepsRail.jsx`.
+- **Embroidery landing page** — adds an FAQ + `FaqSchema` and cross-links to
+  the Development service page and Contact.
+- **Fixes a homepage bug** found while auditing the same content:
+  `app/styles/refraction.css`'s `.service-row:not([data-active='true'])
+  .service-desc` rule unconditionally clipped the first 7% of every
+  description on load — matching every row before any row had gone active —
+  cutting off the start of the "Development"/"Branding" text. Added a
+  `:has()` guard so the clip only applies once a sibling row is actually
+  active.
+- Adds a visible link treatment (`color` + `underline`) for inline links in
+  body copy (`.mkt-prose a`), which previously inherited the invisible
+  global `a` reset.
+
+Facts only the founder has — team headcount, response-time commitments,
+per-service pricing/timelines, process durations, review sourcing — are left
+as explicit `PLACEHOLDER`/`[CONFIRM: …]` strings rather than invented; none
+of the eight `SERVICE_PAGES` copy uses the literal word "placeholder" so the
+existing banned-copy test (`tests/marketing.test.mjs`) still passes. No
+homepage/WebGL journey files touched beyond the one CSS bug fix above.
+
+## v1.14 — 2026-08-29
+
+Turns the CSP into an enforced invariant. Test-only — no runtime code changed,
+so no shipping page behaves differently.
+
+v1.13 removed `https://cdn.jsdelivr.net` from `script-src` and added a test
+asserting it stays out. That guard turned out to be a denylist: it names one
+origin, so it only catches the one regression it was written for. Measured
+against v1.13's suite, both of these widenings left all 449 tests green:
+
+- adding a *different* CDN (`https://cdn.unpkg.com`) to `script-src`
+- collapsing `script-src` to a bare `https:`, which permits any https origin
+  to execute script and leaves the directive doing nothing
+
+- **`tests/csp-policy.test.mjs` added.** Pins the entire policy as an exact
+  directive→token map, compared order-insensitively, so *any* change fails
+  rather than only the ones someone thought to enumerate. The failure message
+  says what the test is for: a CSP edit is a security-header review
+  checkpoint, and landing one means deliberately updating the pinned table
+  and justifying the new token in the PR.
+- **Two companion assertions** for failure modes an exact match would report
+  confusingly: a directive deleted from the array (silently inherits
+  `default-src`) or present but empty (blocks the resource type outright),
+  and a bare scheme or wildcard host in `script-src` — named separately
+  because that one is the difference between a policy that constrains script
+  execution and one that only looks like it does.
+- **`img-src` left deliberately wide** (`https:`) and now documented as such
+  in the pinned table. Images cannot execute; enumerating every host the
+  marketing pages reference costs more than it buys.
+
+The existing origin-presence assertions in `tests/analytics.test.mjs` stay —
+the exact-match test subsumes them, but their per-origin failure messages
+explain *why* GA breaks without each host, which a diff of the whole policy
+would not.
 
 ## v1.13 — 2026-08-29
 

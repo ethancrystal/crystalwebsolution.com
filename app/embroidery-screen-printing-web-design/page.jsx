@@ -3,7 +3,29 @@ import { SITE } from '../../lib/site';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
+import FaqSchema from '../../components/marketing/FaqSchema';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
+
+// Cost figure is PLACEHOLDER pending founder input — see the inner-pages
+// content plan's founder-input checklist.
+const EMBROIDERY_FAQ = [
+  {
+    q: 'How much does a project like this cost?',
+    a: 'It depends on which of the three problems above you actually have — a reorder path for one wholesale account is a different build than a full B2B account layer. A flat number here would be a guess dressed up as a quote. Send your catalog and current order process through the brief and you get a real one.',
+  },
+  {
+    q: 'Do you migrate our existing catalog, pricing, and customer accounts?',
+    a: 'Yes — migrating what already works is part of the job. We connect to the systems you already run rather than asking you to rebuild your business around a new one.',
+  },
+  {
+    q: 'What if we only have one of these three problems, not all three?',
+    a: 'Then that is what gets built. We scope to the problem you actually have, not the biggest build we could sell you.',
+  },
+  {
+    q: 'Does this replace our existing site, or add onto it?',
+    a: 'Depends on what is already there. Sometimes the catalog and account layer bolts onto the site you have; sometimes the whole thing needs replacing. That gets decided in the brief, not assumed before we have seen your setup.',
+  },
+];
 
 export const metadata = {
   title: 'Embroidery & Screen-Printing Web Design',
@@ -107,7 +129,7 @@ export default function EmbroideryScreenPrintingWebDesign() {
             in a screenshot.
           </p>
           <p>
-            {SITE.name} offers custom web design, e-commerce development, software development,
+            {SITE.name} offers custom web design, <Link href="/services/web-development">e-commerce and software development</Link>,
             AI development, and portal integration. For a decoration business, we apply those
             capabilities to the parts that matter here: structured catalogs, account access,
             order history, and repeat-order workflows.
@@ -135,11 +157,28 @@ export default function EmbroideryScreenPrintingWebDesign() {
           <li>B2B &amp; Wholesale Accounts</li>
         </SectionReveal>
 
+        <SectionReveal as="div" className="case-body" direction="up" delay={0.1}>
+          <h2>Common questions</h2>
+        </SectionReveal>
+        <SectionReveal as="dl" className="mkt-faq" direction="up" delay={0.1}>
+          {EMBROIDERY_FAQ.map((item) => (
+            <div className="mkt-faq-item" key={item.q}>
+              <dt>{item.q}</dt>
+              <dd>{item.a}</dd>
+            </div>
+          ))}
+        </SectionReveal>
+
+        <Link href="/contact" className="case-next" data-cursor="Contact">
+          <span className="eyebrow">Start here</span>
+          <span className="case-next-title">Send us your catalog and current workflow →</span>
+        </Link>
         <Link href="/work" className="case-next" data-cursor="View work">
           <span className="eyebrow">See our work</span>
           <span className="case-next-title">Every project, one standard →</span>
         </Link>
         <BreadcrumbSchema trail={[{ name: 'Embroidery & Screen-Printing Web Design', path: '/embroidery-screen-printing-web-design' }]} />
+        <FaqSchema faq={EMBROIDERY_FAQ} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

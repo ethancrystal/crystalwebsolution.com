@@ -7,6 +7,7 @@ import SectionReveal from '../SectionReveal';
 import SectionHeader from '../shared/SectionHeader';
 import Marquee from '../Marquee';
 import MagnifiedBento from '../MagnifiedBento';
+import SectionSkeleton from '../ui/section-skeleton';
 import { light, dim } from '../../lib/beacon';
 import { skipsPointerAnimation } from '../../lib/interactionGuards.mjs';
 import { scrollState } from '../../lib/scrollState';
@@ -139,6 +140,7 @@ export default function Services() {
 
   return (
     <section className="section services" id="services" data-quiet>
+      <SectionSkeleton />
       <div className="services-catalogue">
         <div className="text-plate services-intro">
           <SectionHeader eyebrow="What we do" title="Focused vision. Measured execution." />

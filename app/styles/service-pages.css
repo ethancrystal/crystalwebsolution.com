@@ -115,6 +115,11 @@
 .mkt-section-title { margin-top: 0.5rem; font-family: var(--font-display); font-size: clamp(1.5rem, 3.5vw, 2.4rem); }
 .mkt-prose { color: var(--ink); font-size: 1.05rem; line-height: 1.7; max-width: 64ch; }
 .mkt-prose + .mkt-prose { margin-top: 1rem; }
+/* Inline links inherit color+no-underline from the global `a` reset, making
+   them indistinguishable from surrounding text. Give body-copy links a
+   visible treatment, matching the existing .mkt-contact-alt a color. */
+.mkt-prose a, .case-body a { color: var(--cyan); text-decoration: underline; text-underline-offset: 0.2em; }
+.mkt-prose a:hover, .case-body a:hover { color: var(--ink); }
 
 .mkt-breadcrumb { display: flex; gap: 0.5rem; align-items: center; padding: 1rem clamp(1.25rem, 5vw, 4rem) 0; color: var(--muted); font-size: 0.82rem; }
 .mkt-breadcrumb a:hover { color: var(--cyan); }
@@ -126,6 +131,8 @@
 .mkt-list { list-style: none; display: grid; gap: 0.75rem; margin-top: 1.25rem; }
 .mkt-list li { position: relative; padding-left: 1.6rem; color: var(--ink); }
 .mkt-list li::before { content: '✦'; position: absolute; left: 0; color: var(--cyan); }
+.mkt-list-detail { color: var(--muted); }
+.mkt-list-note { margin-top: 1rem; color: var(--muted); font-size: 0.85rem; font-style: italic; }
 .mkt-steps { list-style: none; display: grid; gap: 1rem; margin-top: 1.25rem; counter-reset: step; }
 .mkt-step { display: flex; gap: 1rem; align-items: baseline; padding: 1rem 0; border-top: 1px solid var(--line); }
 .mkt-step-index { font-family: var(--font-mono); color: var(--cyan); font-size: 0.95rem; }
@@ -133,6 +140,9 @@
 .mkt-step-text { color: var(--muted); }
 .mkt-steps--wide .mkt-step-body { max-width: 60ch; }
 .mkt-step-title { color: var(--ink); }
+.mkt-step-meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin-top: 0.5rem; font-size: 0.78rem; letter-spacing: 0.04em; }
+.mkt-step-duration { color: var(--cyan); }
+.mkt-step-deliverable { color: var(--muted); }
 
 /* --- faq --- */
 .mkt-faq { display: grid; gap: 1rem; margin-top: 1.25rem; }
