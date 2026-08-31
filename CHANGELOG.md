@@ -5,6 +5,26 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.15 — 2026-08-31
+
+Deepens inner-page content across About, Contact, Process, Services, Work,
+Reviews, and the embroidery-screen-printing landing page: each gains an FAQ
+block with `FaqSchema` structured data, cross-links to the pages a visitor
+would naturally want next, and (About/Contact) a "who this is for" section.
+Process steps gain duration/deliverable meta fields. Inline body-copy links
+(`.mkt-prose a`) get a visible color/underline treatment — they had none
+before and were indistinguishable from plain text. No homepage/WebGL scene
+files touched.
+
+**Known blocker before this can merge to `main`:** several FAQ answers and
+one hero lede are literal `PLACEHOLDER — confirm …` strings standing in for
+facts only the site owner can supply (reply-time commitment, NDA policy,
+review-platform link, pricing-disclosure policy, team headcount, process
+step durations/deliverables, embroidery cost figures). These render as
+real visitor-facing copy — including inside the FAQ structured data — so
+this PR must not merge until every `PLACEHOLDER` string is replaced with a
+real answer or the surrounding FAQ item is removed.
+
 ## v1.14 — 2026-08-29
 
 Turns the CSP into an enforced invariant. Test-only — no runtime code changed,
