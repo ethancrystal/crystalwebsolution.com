@@ -5,6 +5,52 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.15 — 2026-08-30
+
+Deepens all six inner marketing pages (About, Services, Work, Contact,
+Process, Reviews) plus the embroidery-screen-printing landing page, closing
+the content-depth gap identified against the site's own deepest reference
+pages (the `/services/[slug]` template and the embroidery long-form page).
+
+- **About** — adds an FAQ + `FaqSchema`, a "who this is for" section,
+  cross-links to `/work`/`/process`/`/reviews`, a live review-count/rating
+  sentence sourced from `REVIEW_STATS`, and an embedded contact form
+  replacing the previous bare "start a project" link.
+- **Services** — extends each of the 8 `lib/servicePages.mjs` records with a
+  concrete opening scenario, a counter-audience ("not for you if…")
+  paragraph, one elaboration sentence per capability/process step (kept as
+  parallel `*Details` arrays — `capabilities`/`process`/`deliverables` stay
+  plain `string[]`, since the homepage's `Services.jsx` row chips read
+  `capabilities` directly and key off the string value), and 3 new FAQ
+  entries per service. Adds services-index body copy explaining why the
+  eight offers run as one team.
+- **Work** — adds an FAQ + `FaqSchema`, cross-links, and a closing CTA to
+  the work index.
+- **Contact** — adds an FAQ + `FaqSchema`, a "who this is for" section, and
+  a "what happens after you submit" section, closing the page's near-total
+  content gap.
+- **Process** — adds `duration`/`deliverable` fields to each of the 6 steps,
+  rendered as a meta row in `ProcessStepsRail.jsx`.
+- **Embroidery landing page** — adds an FAQ + `FaqSchema` and cross-links to
+  the Development service page and Contact.
+- **Fixes a homepage bug** found while auditing the same content:
+  `app/styles/refraction.css`'s `.service-row:not([data-active='true'])
+  .service-desc` rule unconditionally clipped the first 7% of every
+  description on load — matching every row before any row had gone active —
+  cutting off the start of the "Development"/"Branding" text. Added a
+  `:has()` guard so the clip only applies once a sibling row is actually
+  active.
+- Adds a visible link treatment (`color` + `underline`) for inline links in
+  body copy (`.mkt-prose a`), which previously inherited the invisible
+  global `a` reset.
+
+Facts only the founder has — team headcount, response-time commitments,
+per-service pricing/timelines, process durations, review sourcing — are left
+as explicit `PLACEHOLDER`/`[CONFIRM: …]` strings rather than invented; none
+of the eight `SERVICE_PAGES` copy uses the literal word "placeholder" so the
+existing banned-copy test (`tests/marketing.test.mjs`) still passes. No
+homepage/WebGL journey files touched beyond the one CSS bug fix above.
+
 ## v1.14 — 2026-08-29
 
 Turns the CSP into an enforced invariant. Test-only — no runtime code changed,
