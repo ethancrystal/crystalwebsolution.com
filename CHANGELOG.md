@@ -5,6 +5,32 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.16 — 2026-08-31
+
+Updates the studio location shown site-wide (footer, contact links, contact
+section, and About page) to a two-line "Location in X / Also Located in Y"
+format, and confirms the enquiry email/phone already match the approved
+contact details.
+
+- `lib/site.js` — `SITE.city` is now the short primary location
+  (`Manassas, VA`), with a new `SITE.citySecondary` (`Sharjah, DXB`) for the
+  second studio; `SITE.cityCompact` combines both for single-line contexts
+  (OG image).
+- `MarketingFooter`, `ContactPulseLinks`, and the homepage `Contact` footer
+  now render both locations as separate lines instead of one combined
+  string; the About page's prose and FAQ answer read from the same fields.
+- No change to `SITE.email` (`sales@cdsportswearusa.com`) or `SITE.phone` —
+  already correct.
+- **Footer logo** — the marketing footer showed only the plain-text brand
+  name; it now renders the same `BrandLogo` image as the header, linked to
+  home, sized by a new `.mkt-footer-logo` rule.
+- **Homepage copy** — the Approach accordion read as four bare labels until a
+  visitor clicked one. Each of the four steps now carries an always-visible
+  summary line, a deeper description, and a "What you get" list; the section
+  gains a lede explaining that every project runs the same four steps. The
+  Motion beat's heading no longer near-duplicates Stories' "no invented case
+  studies" line — it leads on what the work changed and adds a short intro.
+
 ## v1.15 — 2026-08-30
 
 Deepens all six inner marketing pages (About, Services, Work, Contact,

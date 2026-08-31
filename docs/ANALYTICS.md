@@ -44,11 +44,15 @@ it. Two rules:
 `page_location`. Everything else is dropped before the hit is built.
 
 This is not hypothetical hygiene. `app/auth/actions.js` redirects to
-`/auth/confirm?email=<address>` after signup, and `middleware.js` does not
-cover `/auth`, so the route is live regardless of `NEXT_PUBLIC_CRM_ENABLED`.
-Sending that URL to GA4 would put a visitor's email address in a third-party
-property — a breach of Google's own no-PII terms (grounds for data deletion)
-and a GDPR disclosure. A test asserts that exact URL produces no hit.
+`/auth/confirm?email=<address>` after signup. `middleware.js`'s matcher does
+include `/auth/:path*`, but the middleware only redirects it away when
+`NEXT_PUBLIC_CRM_ENABLED` is false; with the CRM launched (the current state),
+that branch never fires and `/auth/confirm` renders normally, so the route is
+live in production regardless of whether anyone thinks of `/auth` as
+"CRM-gated." Sending that URL to GA4 would put a visitor's email address in a
+third-party property — a breach of Google's own no-PII terms (grounds for
+data deletion) and a GDPR disclosure. A test asserts that exact URL produces
+no hit.
 
 **2. Authenticated routes are not measured at all.** `/admin`, `/auth`,
 `/dashboard`, `/team`, `/login`, `/signup`, and `/forgot-password` are skipped

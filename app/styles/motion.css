@@ -44,6 +44,13 @@
   font-weight: 600;
   text-shadow: none;
 }
+.motion-intro {
+  max-width: 52ch;
+  margin-top: 1.1rem;
+  color: var(--muted);
+  font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+  line-height: 1.75;
+}
 .motion-link {
   display: flex;
   flex: none;

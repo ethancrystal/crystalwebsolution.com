@@ -44,8 +44,9 @@ test('global content publishes authorized studio facts and contact details', () 
   assert.equal(SITE.experience, '10+ years');
   assert.equal(SITE.projectsShipped, '60+ projects shipped');
   assert.equal(SITE.phone, '+1 917-463-4214');
-  assert.equal(SITE.city, 'Manassas, Virginia • Sharjah, UAE');
-  assert.equal(SITE.cityCompact, 'Manassas, VA + Sharjah, UAE');
+  assert.equal(SITE.city, 'Manassas, VA');
+  assert.equal(SITE.citySecondary, 'Sharjah, DXB');
+  assert.equal(SITE.cityCompact, 'Manassas, VA + Sharjah, DXB');
   assert.deepEqual(SITE.socials, []);
   assert.ok(SITE.nav.some((item) => item.href === '/reviews'));
 });

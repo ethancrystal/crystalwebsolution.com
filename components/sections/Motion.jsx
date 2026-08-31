@@ -42,8 +42,16 @@ export default function Motion() {
     >
       <header className="motion-header">
         <div>
-          <p className="eyebrow">Named client record</p>
-          <h2>Real names. Real businesses. No invented case studies.</h2>
+          <p className="eyebrow">Selected work</p>
+          {/* Stories (the reviews beat) already carries the "real clients, no
+              invented case studies" claim in the client's own words. This beat
+              is the work itself, so it leads on what the work changed rather
+              than restating the same line one section later. */}
+          <h2>The work, and what it changed.</h2>
+          <p className="motion-intro">
+            Every case study names the client, the problem they hired us to fix,
+            and what moved once it shipped. Open any one and judge it yourself.
+          </p>
         </div>
         <Link href="/work" className="motion-link" data-cursor="All projects">
           View all work <span aria-hidden="true">→</span>
