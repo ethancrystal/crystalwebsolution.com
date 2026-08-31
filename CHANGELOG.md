@@ -21,6 +21,15 @@ contact details.
   string; the About page's prose and FAQ answer read from the same fields.
 - No change to `SITE.email` (`sales@cdsportswearusa.com`) or `SITE.phone` —
   already correct.
+- **Footer logo** — the marketing footer showed only the plain-text brand
+  name; it now renders the same `BrandLogo` image as the header, linked to
+  home, sized by a new `.mkt-footer-logo` rule.
+- **Homepage copy** — the Approach accordion read as four bare labels until a
+  visitor clicked one. Each of the four steps now carries an always-visible
+  summary line, a deeper description, and a "What you get" list; the section
+  gains a lede explaining that every project runs the same four steps. The
+  Motion beat's heading no longer near-duplicates Stories' "no invented case
+  studies" line — it leads on what the work changed and adds a short intro.
 
 ## v1.15 — 2026-08-30
 

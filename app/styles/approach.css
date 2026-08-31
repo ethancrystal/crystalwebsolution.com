@@ -116,6 +116,67 @@
   line-height: 1.7;
 }
 
+/* Section lede under the header. Matches .stories-intro's measure and tone so
+   the two sections' intros read as the same element. */
+.approach-intro {
+  max-width: 58ch;
+  margin: -1.8rem 0 0;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+/* The one-line summary shown whether or not the step is expanded. Indented to
+   the same gutter as .approach-step-desc so title, summary and body share a
+   left edge. */
+.approach-step-summary {
+  position: relative;
+  z-index: 1;
+  max-width: 52rem;
+  margin: -1rem 0 1.5rem;
+  padding: 0 0.75rem 0 6rem;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: clamp(0.9rem, 1.4vw, 1rem);
+  line-height: 1.65;
+}
+
+.approach-step-outputs {
+  margin: 0 0 2rem;
+  padding: 0 0.75rem 0 6rem;
+}
+.approach-step-outputs-label {
+  margin-bottom: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--approach-accent);
+}
+.approach-step-outputs ul {
+  display: grid;
+  gap: 0.4rem;
+  list-style: none;
+  max-width: 46rem;
+}
+.approach-step-outputs li {
+  position: relative;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: clamp(0.88rem, 1.35vw, 0.98rem);
+  line-height: 1.6;
+}
+.approach-step-outputs li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--approach-accent);
+  opacity: 0.75;
+}
+
 .approach-step-trigger:focus { outline: none; }
 .approach-step-trigger:focus-visible {
   outline: 2px solid var(--approach-accent);
@@ -128,7 +189,10 @@
     gap: 1rem;
     padding: 1.4rem 0.5rem;
   }
-  .approach-step-desc { padding: 0 0.5rem 0 4rem; }
+  .approach-step-desc,
+  .approach-step-summary,
+  .approach-step-outputs { padding: 0 0.5rem 0 4rem; }
+  .approach-step-summary { margin: -0.6rem 0 1.2rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
