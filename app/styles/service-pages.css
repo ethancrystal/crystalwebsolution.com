@@ -133,6 +133,9 @@
 .mkt-step-text { color: var(--muted); }
 .mkt-steps--wide .mkt-step-body { max-width: 60ch; }
 .mkt-step-title { color: var(--ink); }
+.mkt-step-meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin-top: 0.5rem; font-size: 0.78rem; letter-spacing: 0.04em; }
+.mkt-step-duration { color: var(--cyan); }
+.mkt-step-deliverable { color: var(--muted); }
 
 /* --- faq --- */
 .mkt-faq { display: grid; gap: 1rem; margin-top: 1.25rem; }

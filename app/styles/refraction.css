@@ -48,7 +48,13 @@
   transform: translate3d(0, 0, 0);
 }
 
-.service-row:not([data-active='true']) .service-desc {
+/* Only clip the focus cue while a sibling row is active (hover or
+   scroll-auto-advance). On initial load / when nothing is active every row
+   starts at data-active='false', and clipping all of them by 7% hides the
+   first ~7% of every paragraph's text — reported as the "Development"/"Branding"
+   desc cut-off. The :has() guard keeps the reveal tied to an active row, so
+   the idle/default state shows full, unclipped text. */
+.services-list:has(.service-row[data-active='true']) .service-row:not([data-active='true']) .service-desc {
   clip-path: inset(0 0 0 7%);
   transition: opacity 0.35s ease, clip-path 0.55s var(--ease-settle, cubic-bezier(0.22, 1, 0.36, 1));
 }
