@@ -112,7 +112,9 @@ test('pageview forwards campaign params and drops everything else', async () => 
 
 test('the live /auth/confirm?email= route is never measured', async () => {
   // app/auth/actions.js redirects to /auth/confirm?email=<address> after
-  // signup, and middleware.js does not cover /auth — so this is reachable.
+  // signup. middleware.js's matcher covers /auth, but only redirects it away
+  // when NEXT_PUBLIC_CRM_ENABLED is false; with the CRM launched, that branch
+  // never fires, so this route is reachable in production.
   const redirect = source('app/auth/actions.js');
   assert.match(redirect, /\/auth\/confirm\?email=/, 'guard assumes this route still leaks an address into the URL');
 
