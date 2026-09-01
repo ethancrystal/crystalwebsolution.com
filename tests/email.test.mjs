@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { SITE } from '../lib/site.js';
+import { SITE_ORIGIN } from '../lib/seo.mjs';
 
 test('email module exports the generic helper used by auth actions', async () => {
   const emailModule = await import('../lib/email/resend.js');
@@ -131,7 +132,11 @@ test('transactional templates render the canonical logo and accessible text fall
     fullName: 'Ada',
   });
 
-  assert.match(rendered.html, /https:\/\/www\.crystalwebsolution\.com\/cd-sportswear-usa-logo\.png/);
+  const expectedLogoUrl = `${SITE_ORIGIN}${SITE.logoPath}`;
+  assert.ok(
+    rendered.html.includes(expectedLogoUrl),
+    `expected rendered email to include the canonical logo URL ${expectedLogoUrl}`,
+  );
   assert.match(rendered.html, /alt="CD Sportswear USA"/);
 });
 

@@ -5,6 +5,22 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.17 — 2026-09-01
+
+Refactor plan Phase 0 (`docs/plans/refactor-architecture-cleanup-2.md`):
+establishes a genuinely green baseline before the CRM/architecture refactor
+begins.
+
+- `tests/email.test.mjs` — the "canonical logo" assertion hardcoded the
+  retired `www.crystalwebsolution.com` domain; `lib/email/templates.js`
+  correctly renders the logo from `SITE_ORIGIN` (`lib/seo.mjs`), which was
+  intentionally repointed to `cdsportswearusa.com` in v1.16's follow-up fix
+  (#164). The test never caught up. Now derives its expectation from
+  `SITE_ORIGIN` directly instead of a second hardcoded literal, so it can't
+  drift out of sync with the source of truth again.
+- No other code changed. `pnpm test` 452/452, `pnpm test:marketing` 22/22,
+  `pnpm build` clean (57/57 routes) — recorded as the refactor's baseline.
+
 ## v1.16 — 2026-08-31
 
 Updates the studio location shown site-wide (footer, contact links, contact
