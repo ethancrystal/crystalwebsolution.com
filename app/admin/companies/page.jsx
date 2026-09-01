@@ -5,6 +5,23 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
 import { SkeletonTable } from '@/components/crm/Skeleton';
+import {
+  ADMIN_PAGE,
+  ADMIN_HEADER,
+  ADMIN_HEADER_TITLE,
+  BUTTON,
+  TABLE_CONTAINER,
+  TABLE,
+  TABLE_HEAD,
+  TABLE_TH,
+  TABLE_TD,
+  TABLE_ROW_HOVER,
+  ACTIONS,
+  LINK,
+  EMPTY_STATE,
+  EMPTY_STATE_P,
+  ERROR,
+} from '@/lib/crm/adminPageStyles';
 
 export default function CompaniesPage() {
   const { isAdmin } = useUserRole();
@@ -36,50 +53,50 @@ export default function CompaniesPage() {
 
   if (isLoading) {
     return (
-      <div className="crm-admin-page">
+      <div className={ADMIN_PAGE}>
         <SkeletonTable columns={5} />
       </div>
     );
   }
 
   return (
-    <div className="crm-admin-page">
-      <header className="crm-admin-header">
-        <h1>Companies</h1>
+    <div className={ADMIN_PAGE}>
+      <header className={ADMIN_HEADER}>
+        <h1 className={ADMIN_HEADER_TITLE}>Companies</h1>
         {isAdmin && (
-          <Link href="/admin/companies/new" className="crm-button">
+          <Link href="/admin/companies/new" className={BUTTON}>
             Add Company
           </Link>
         )}
       </header>
 
-      {error && <div className="crm-error">{error}</div>}
+      {error && <div className={ERROR}>{error}</div>}
 
-      <div className="crm-table-container">
+      <div className={TABLE_CONTAINER}>
         {companies.length > 0 ? (
-          <table className="crm-table">
-            <thead>
+          <table className={TABLE}>
+            <thead className={TABLE_HEAD}>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Industry</th>
-                <th>Actions</th>
+                <th className={TABLE_TH}>Name</th>
+                <th className={TABLE_TH}>Email</th>
+                <th className={TABLE_TH}>Phone</th>
+                <th className={TABLE_TH}>Industry</th>
+                <th className={TABLE_TH}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {companies.map((company) => (
-                <tr key={company.id}>
-                  <td>{company.name}</td>
-                  <td>{company.email}</td>
-                  <td>{company.phone || '-'}</td>
-                  <td>{company.industry || '-'}</td>
-                  <td>
-                    <div className="crm-actions">
-                      <Link href={`/admin/companies/${company.id}`} className="crm-link">
+                <tr key={company.id} className={TABLE_ROW_HOVER}>
+                  <td className={TABLE_TD}>{company.name}</td>
+                  <td className={TABLE_TD}>{company.email}</td>
+                  <td className={TABLE_TD}>{company.phone || '-'}</td>
+                  <td className={TABLE_TD}>{company.industry || '-'}</td>
+                  <td className={TABLE_TD}>
+                    <div className={ACTIONS}>
+                      <Link href={`/admin/companies/${company.id}`} className={LINK}>
                         View
                       </Link>
-                      <Link href={`/admin/companies/${company.id}/edit`} className="crm-link">
+                      <Link href={`/admin/companies/${company.id}/edit`} className={LINK}>
                         Edit
                       </Link>
                     </div>
@@ -89,143 +106,16 @@ export default function CompaniesPage() {
             </tbody>
           </table>
         ) : (
-          <div className="crm-empty-state">
-            <p>No companies yet.</p>
+          <div className={EMPTY_STATE}>
+            <p className={EMPTY_STATE_P}>No companies yet.</p>
             {isAdmin && (
-              <Link href="/admin/companies/new" className="crm-button">
+              <Link href="/admin/companies/new" className={BUTTON}>
                 Create one
               </Link>
             )}
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        .crm-admin-page {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          color: #e0e0e0;
-          font-family: inherit;
-          padding: 2rem;
-        }
-
-        .crm-admin-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-          max-width: 1200px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .crm-admin-header h1 {
-          font-size: 2rem;
-          color: #64c8ff;
-        }
-
-        .crm-button {
-          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
-          color: #0a0e27;
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          text-decoration: none;
-          font-weight: 600;
-          transition: all 0.2s ease;
-          display: inline-block;
-        }
-
-        .crm-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
-        }
-
-        .crm-table-container {
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.1);
-          border-radius: 12px;
-          overflow: hidden;
-          max-width: 1200px;
-          margin-left: auto;
-          margin-right: auto;
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .crm-table thead {
-          background: rgba(15, 20, 40, 0.6);
-          border-bottom: 1px solid rgba(100, 200, 255, 0.2);
-        }
-
-        .crm-table th {
-          padding: 1rem;
-          text-align: left;
-          font-weight: 600;
-          color: #64c8ff;
-        }
-
-        .crm-table td {
-          padding: 1rem;
-          border-top: 1px solid rgba(100, 200, 255, 0.1);
-          color: #ccc;
-        }
-
-        .crm-table tbody tr:hover {
-          background: rgba(100, 200, 255, 0.05);
-        }
-
-        .crm-actions {
-          display: flex;
-          gap: 1rem;
-        }
-
-        .crm-link {
-          color: #64c8ff;
-          text-decoration: none;
-          font-size: 0.9rem;
-          transition: color 0.2s ease;
-        }
-
-        .crm-link:hover {
-          color: #5bb8ff;
-          text-decoration: underline;
-        }
-
-        .crm-empty-state {
-          text-align: center;
-          padding: 3rem 1rem;
-        }
-
-        .crm-empty-state p {
-          color: #999;
-          margin-bottom: 1rem;
-        }
-
-        .crm-error {
-          background: rgba(255, 100, 100, 0.1);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff9999;
-          padding: 1rem;
-          border-radius: 6px;
-          margin-bottom: 1rem;
-          max-width: 1200px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
-      `}</style>
     </div>
   );
 }

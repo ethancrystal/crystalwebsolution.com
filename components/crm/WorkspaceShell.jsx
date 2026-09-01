@@ -3,22 +3,29 @@
 import { useState } from 'react';
 import { homeForRole } from '@/lib/auth/roles.mjs';
 
-const SECTION_CLASSES = 'crm-workspace-section';
+const SIDEBAR_BASE_CLASS =
+  'tw:sticky tw:top-20 tw:flex tw:flex-col tw:gap-3 tw:self-start tw:rounded-xl tw:border tw:border-[rgba(100,200,255,0.12)] tw:bg-[rgba(30,35,60,0.8)] tw:p-4 tw:backdrop-blur-[10px] tw:max-md:fixed tw:max-md:inset-x-0 tw:max-md:bottom-0 tw:max-md:top-auto tw:max-md:z-20 tw:max-md:rounded-t-xl tw:max-md:rounded-b-none';
+
+const SECTION_CLASSES =
+  'tw:mb-6 tw:rounded-xl tw:border tw:border-[rgba(100,200,255,0.12)] tw:bg-[rgba(30,35,60,0.8)] tw:p-6 tw:backdrop-blur-[10px]';
 
 export default function WorkspaceShell({ role = 'client', title, children }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const projectsHref = homeForRole(role) ?? '/dashboard';
+  const sidebarClass = isSidebarOpen ? SIDEBAR_BASE_CLASS : `${SIDEBAR_BASE_CLASS} tw:max-md:hidden`;
 
   return (
-    <div className="crm-workspace">
-      <header className="crm-workspace-header">
-        <div className="crm-workspace-header-main">
-          <h1>{title}</h1>
-          <span className="crm-workspace-role">{role}</span>
+    <div className="tw:min-h-screen tw:bg-gradient-to-br tw:from-crm-bg tw:to-crm-bg2 tw:text-crm-text">
+      <header className="tw:sticky tw:top-0 tw:z-10 tw:flex tw:items-center tw:justify-between tw:gap-4 tw:border-b tw:border-[rgba(100,200,255,0.15)] tw:bg-[rgba(30,35,60,0.8)] tw:py-5 tw:px-6 tw:backdrop-blur-[10px] tw:max-md:p-4">
+        <div className="tw:flex tw:items-center tw:gap-4">
+          <h1 className="tw:text-[1.6rem] tw:text-crm-cyan tw:max-md:text-[1.25rem]">{title}</h1>
+          <span className="tw:rounded-full tw:border tw:border-[rgba(100,200,255,0.25)] tw:py-[0.2rem] tw:px-[0.6rem] tw:text-xs tw:uppercase tw:tracking-[0.08em] tw:text-[#99a]">
+            {role}
+          </span>
         </div>
         <button
           type="button"
-          className="crm-workspace-sidebar-toggle"
+          className="tw:hidden tw:max-md:inline-flex tw:cursor-pointer tw:rounded-md tw:border tw:border-[rgba(100,200,255,0.35)] tw:bg-[rgba(100,200,255,0.08)] tw:py-[0.45rem] tw:px-[0.9rem] tw:font-semibold tw:text-crm-cyan"
           onClick={() => setSidebarOpen((prev) => !prev)}
           aria-expanded={isSidebarOpen}
         >
@@ -26,163 +33,22 @@ export default function WorkspaceShell({ role = 'client', title, children }) {
         </button>
       </header>
 
-      <div className="crm-workspace-body">
-        <aside className={`crm-workspace-sidebar ${isSidebarOpen ? 'is-open' : ''}`}>
-          <nav className="crm-workspace-nav">
-            <a className="crm-workspace-nav-link" href={projectsHref}>
+      <div className="tw:mx-auto tw:grid tw:max-w-[1200px] tw:grid-cols-[240px_1fr] tw:gap-6 tw:p-6 tw:max-md:grid-cols-[1fr] tw:max-md:p-4">
+        <aside className={sidebarClass}>
+          <nav className="tw:flex tw:flex-col tw:gap-2">
+            <a
+              className="tw:rounded-lg tw:border tw:border-[rgba(100,200,255,0.15)] tw:bg-[rgba(100,200,255,0.05)] tw:py-[0.55rem] tw:px-3 tw:font-medium tw:text-crm-cyan tw:no-underline tw:hover:border-[rgba(100,200,255,0.35)] tw:hover:bg-[rgba(100,200,255,0.14)]"
+              href={projectsHref}
+            >
               Projects
             </a>
           </nav>
         </aside>
 
-        <div className="crm-workspace-main">
+        <div className="tw:min-w-0">
           <div className={SECTION_CLASSES}>{children}</div>
         </div>
       </div>
-
-      <style jsx>{`
-        .crm-workspace {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          color: #e0e0e0;
-          font-family: inherit;
-        }
-
-        .crm-workspace-header {
-          position: sticky;
-          top: 0;
-          z-index: 10;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 1rem;
-          padding: 1.25rem 1.5rem;
-          background: rgba(30, 35, 60, 0.8);
-          border-bottom: 1px solid rgba(100, 200, 255, 0.15);
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-workspace-header-main {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .crm-workspace-header h1 {
-          font-size: 1.6rem;
-          color: #64c8ff;
-        }
-
-        .crm-workspace-role {
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          font-size: 0.75rem;
-          color: #99a;
-          border: 1px solid rgba(100, 200, 255, 0.25);
-          padding: 0.2rem 0.6rem;
-          border-radius: 999px;
-        }
-
-        .crm-workspace-sidebar-toggle {
-          display: none;
-          border: 1px solid rgba(100, 200, 255, 0.35);
-          background: rgba(100, 200, 255, 0.08);
-          color: #64c8ff;
-          padding: 0.45rem 0.9rem;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 600;
-        }
-
-        .crm-workspace-body {
-          display: grid;
-          grid-template-columns: 240px 1fr;
-          gap: 1.5rem;
-          padding: 1.5rem;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .crm-workspace-sidebar {
-          position: sticky;
-          top: 5rem;
-          align-self: start;
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.12);
-          border-radius: 12px;
-          padding: 1rem;
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-workspace-nav {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .crm-workspace-nav-link {
-          color: #64c8ff;
-          text-decoration: none;
-          padding: 0.55rem 0.75rem;
-          border-radius: 8px;
-          border: 1px solid rgba(100, 200, 255, 0.15);
-          background: rgba(100, 200, 255, 0.05);
-          font-weight: 500;
-        }
-
-        .crm-workspace-nav-link:hover {
-          background: rgba(100, 200, 255, 0.14);
-          border-color: rgba(100, 200, 255, 0.35);
-        }
-
-        .crm-workspace-main {
-          min-width: 0;
-        }
-
-        .crm-workspace-section {
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.12);
-          border-radius: 12px;
-          padding: 1.5rem;
-          margin-bottom: 1.5rem;
-          backdrop-filter: blur(10px);
-        }
-
-        @media (max-width: 768px) {
-          .crm-workspace-sidebar-toggle {
-            display: inline-flex;
-          }
-
-          .crm-workspace-body {
-            grid-template-columns: 1fr;
-            padding: 1rem;
-          }
-
-          .crm-workspace-sidebar {
-            display: none;
-            position: fixed;
-            inset: auto 0 0 0;
-            top: auto;
-            border-radius: 12px 12px 0 0;
-            z-index: 20;
-          }
-
-          .crm-workspace-sidebar.is-open {
-            display: flex;
-          }
-
-          .crm-workspace-header {
-            padding: 1rem;
-          }
-
-          .crm-workspace-header h1 {
-            font-size: 1.25rem;
-          }
-        }
-      `}</style>
     </div>
   );
 }

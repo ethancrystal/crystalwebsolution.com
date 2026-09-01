@@ -6,6 +6,23 @@ import { createClient } from '@/lib/supabase/browser';
 import { projectTypeLabel } from '@/lib/projectTypes';
 import { useUserRole } from '@/lib/useUserRole';
 import { SkeletonTable } from '@/components/crm/Skeleton';
+import {
+  ADMIN_PAGE,
+  ADMIN_HEADER,
+  ADMIN_HEADER_TITLE,
+  BUTTON,
+  TABLE_CONTAINER,
+  TABLE,
+  TABLE_HEAD,
+  TABLE_TH,
+  TABLE_TD,
+  TABLE_ROW_HOVER,
+  ACTIONS,
+  LINK,
+  EMPTY_STATE,
+  EMPTY_STATE_P,
+  ERROR,
+} from '@/lib/crm/adminPageStyles';
 
 const STAGE_LABELS = {
   prospecting: 'Prospecting',
@@ -38,7 +55,7 @@ function StageBadge({ stage }) {
   const palette = STAGE_COLORS[stage] || STAGE_COLORS.prospecting;
   return (
     <span
-      className="crm-badge"
+      className="tw:inline-block tw:whitespace-nowrap tw:rounded-full tw:border tw:px-3 tw:py-[0.3rem] tw:text-[0.8rem] tw:font-semibold"
       style={{
         color: palette.color,
         background: palette.bg,
@@ -46,17 +63,6 @@ function StageBadge({ stage }) {
       }}
     >
       {STAGE_LABELS[stage] || stage}
-      <style jsx>{`
-        .crm-badge {
-          display: inline-block;
-          padding: 0.3rem 0.75rem;
-          border-radius: 999px;
-          border: 1px solid;
-          font-size: 0.8rem;
-          font-weight: 600;
-          white-space: nowrap;
-        }
-      `}</style>
     </span>
   );
 }
@@ -91,59 +97,59 @@ export default function DealsPage() {
 
   if (isLoading) {
     return (
-      <div className="crm-admin-page">
+      <div className={ADMIN_PAGE}>
         <SkeletonTable columns={6} />
       </div>
     );
   }
 
   return (
-    <div className="crm-admin-page">
-      <header className="crm-admin-header">
-        <h1>{isPm ? 'My Deals' : 'Deals'}</h1>
-        <div className="crm-header-actions">
-          <Link href="/admin/deals/pipeline" className="crm-link">
+    <div className={ADMIN_PAGE}>
+      <header className={ADMIN_HEADER}>
+        <h1 className={ADMIN_HEADER_TITLE}>{isPm ? 'My Deals' : 'Deals'}</h1>
+        <div className="tw:flex tw:items-center tw:gap-6">
+          <Link href="/admin/deals/pipeline" className={LINK}>
             Pipeline View
           </Link>
           {isAdmin && (
-            <Link href="/admin/deals/new" className="crm-button">
+            <Link href="/admin/deals/new" className={BUTTON}>
               Add Deal
             </Link>
           )}
         </div>
       </header>
 
-      {error && <div className="crm-error">{error}</div>}
+      {error && <div className={ERROR}>{error}</div>}
 
-      <div className="crm-table-container">
+      <div className={TABLE_CONTAINER}>
         {deals.length > 0 ? (
-          <table className="crm-table">
-            <thead>
+          <table className={TABLE}>
+            <thead className={TABLE_HEAD}>
               <tr>
-                <th>Title</th>
-                <th>Company</th>
-                <th>Type</th>
-                <th>Value</th>
-                <th>Stage</th>
-                <th>Actions</th>
+                <th className={TABLE_TH}>Title</th>
+                <th className={TABLE_TH}>Company</th>
+                <th className={TABLE_TH}>Type</th>
+                <th className={TABLE_TH}>Value</th>
+                <th className={TABLE_TH}>Stage</th>
+                <th className={TABLE_TH}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {deals.map((deal) => (
-                <tr key={deal.id}>
-                  <td>{deal.title}</td>
-                  <td>{deal.companies?.name || '-'}</td>
-                  <td>{deal.project_type ? projectTypeLabel(deal.project_type) : '-'}</td>
-                  <td>{formatCurrency(deal.value)}</td>
-                  <td>
+                <tr key={deal.id} className={TABLE_ROW_HOVER}>
+                  <td className={TABLE_TD}>{deal.title}</td>
+                  <td className={TABLE_TD}>{deal.companies?.name || '-'}</td>
+                  <td className={TABLE_TD}>{deal.project_type ? projectTypeLabel(deal.project_type) : '-'}</td>
+                  <td className={TABLE_TD}>{formatCurrency(deal.value)}</td>
+                  <td className={TABLE_TD}>
                     <StageBadge stage={deal.stage} />
                   </td>
-                  <td>
-                    <div className="crm-actions">
-                      <Link href={`/admin/deals/${deal.id}`} className="crm-link">
+                  <td className={TABLE_TD}>
+                    <div className={ACTIONS}>
+                      <Link href={`/admin/deals/${deal.id}`} className={LINK}>
                         View
                       </Link>
-                      <Link href={`/admin/deals/${deal.id}/edit`} className="crm-link">
+                      <Link href={`/admin/deals/${deal.id}/edit`} className={LINK}>
                         Edit
                       </Link>
                     </div>
@@ -153,149 +159,16 @@ export default function DealsPage() {
             </tbody>
           </table>
         ) : (
-          <div className="crm-empty-state">
-            <p>No deals yet.</p>
+          <div className={EMPTY_STATE}>
+            <p className={EMPTY_STATE_P}>No deals yet.</p>
             {isAdmin && (
-              <Link href="/admin/deals/new" className="crm-button">
+              <Link href="/admin/deals/new" className={BUTTON}>
                 Create one
               </Link>
             )}
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        .crm-admin-page {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          color: #e0e0e0;
-          font-family: inherit;
-          padding: 2rem;
-        }
-
-        .crm-admin-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-          max-width: 1200px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .crm-admin-header h1 {
-          font-size: 2rem;
-          color: #64c8ff;
-        }
-
-        .crm-header-actions {
-          display: flex;
-          align-items: center;
-          gap: 1.5rem;
-        }
-
-        .crm-button {
-          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
-          color: #0a0e27;
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          text-decoration: none;
-          font-weight: 600;
-          transition: all 0.2s ease;
-          display: inline-block;
-        }
-
-        .crm-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
-        }
-
-        .crm-table-container {
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.1);
-          border-radius: 12px;
-          overflow: hidden;
-          max-width: 1200px;
-          margin-left: auto;
-          margin-right: auto;
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .crm-table thead {
-          background: rgba(15, 20, 40, 0.6);
-          border-bottom: 1px solid rgba(100, 200, 255, 0.2);
-        }
-
-        .crm-table th {
-          padding: 1rem;
-          text-align: left;
-          font-weight: 600;
-          color: #64c8ff;
-        }
-
-        .crm-table td {
-          padding: 1rem;
-          border-top: 1px solid rgba(100, 200, 255, 0.1);
-          color: #ccc;
-        }
-
-        .crm-table tbody tr:hover {
-          background: rgba(100, 200, 255, 0.05);
-        }
-
-        .crm-actions {
-          display: flex;
-          gap: 1rem;
-        }
-
-        .crm-link {
-          color: #64c8ff;
-          text-decoration: none;
-          font-size: 0.9rem;
-          transition: color 0.2s ease;
-        }
-
-        .crm-link:hover {
-          color: #5bb8ff;
-          text-decoration: underline;
-        }
-
-        .crm-empty-state {
-          text-align: center;
-          padding: 3rem 1rem;
-        }
-
-        .crm-empty-state p {
-          color: #999;
-          margin-bottom: 1rem;
-        }
-
-        .crm-error {
-          background: rgba(255, 100, 100, 0.1);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff9999;
-          padding: 1rem;
-          border-radius: 6px;
-          margin-bottom: 1rem;
-          max-width: 1200px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
-      `}</style>
     </div>
   );
 }

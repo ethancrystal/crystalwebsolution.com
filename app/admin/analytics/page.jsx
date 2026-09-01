@@ -166,7 +166,7 @@ export default function AnalyticsPage() {
         </div>
         <Link
           href="/admin"
-          className="tw:text-sm tw:text-crm-cyan tw:no-underline hover:tw:underline"
+          className="tw:text-sm tw:text-crm-cyan tw:no-underline tw:hover:underline"
         >
           ← Dashboard
         </Link>
@@ -180,10 +180,10 @@ export default function AnalyticsPage() {
           {error}
         </div>
       ) : (
-        <div className="tw:mx-auto tw:grid tw:max-w-6xl tw:grid-cols-1 tw:gap-6 tw:p-8 md:tw:grid-cols-2">
+        <div className="tw:mx-auto tw:grid tw:max-w-6xl tw:grid-cols-1 tw:gap-6 tw:p-8 tw:md:grid-cols-2">
           <section
             aria-label="Key metrics"
-            className="tw:grid tw:grid-cols-1 tw:gap-6 tw:sm:grid-cols-2 tw:lg:grid-cols-4 md:tw:col-span-2"
+            className="tw:grid tw:grid-cols-1 tw:gap-6 tw:sm:grid-cols-2 tw:lg:grid-cols-4 tw:md:col-span-2"
           >
             <Kpi
               title="Open Pipeline"
@@ -257,7 +257,7 @@ export default function AnalyticsPage() {
 
           <section
             aria-label="Closing within 30 days"
-            className={`${panelClass} md:tw:col-span-2`}
+            className={`${panelClass} tw:md:col-span-2`}
           >
             <h2 className="tw:mb-5 tw:text-base tw:font-semibold">Closing Within 30 Days</h2>
             {closing.length === 0 ? (
@@ -281,7 +281,7 @@ export default function AnalyticsPage() {
                     {closing.map((d) => (
                       <tr key={d.id} className={d.overdue ? 'tw:text-crm-amber' : ''}>
                         <td className="tw:border-b tw:border-[rgba(100,200,255,0.07)] tw:py-3 tw:pr-3">
-                          <Link href={`/admin/deals/${d.id}`} className="tw:text-crm-cyan tw:no-underline hover:tw:underline">
+                          <Link href={`/admin/deals/${d.id}`} className="tw:text-crm-cyan tw:no-underline tw:hover:underline">
                             {d.title}
                           </Link>
                         </td>

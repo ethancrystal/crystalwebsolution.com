@@ -7,12 +7,39 @@ import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
 import { changeUserRole, resolveStaffRequest } from './actions';
 import { SkeletonTable } from '@/components/crm/Skeleton';
+import {
+  ADMIN_PAGE,
+  ADMIN_HEADER,
+  ADMIN_HEADER_TITLE,
+  BUTTON,
+  TABLE_CONTAINER,
+  TABLE,
+  TABLE_HEAD,
+  TABLE_TH,
+  TABLE_TD,
+  TABLE_ROW_HOVER,
+  EMPTY_STATE,
+  EMPTY_STATE_P,
+  ERROR,
+  STATUS_BADGE_BASE,
+} from '@/lib/crm/adminPageStyles';
 
 const ROLE_LABELS = {
   admin: 'Admin',
   project_manager: 'Project Manager',
   client: 'Client',
 };
+
+const ROLE_COLORS = {
+  client: 'tw:border-[rgba(100,200,255,0.3)] tw:bg-[rgba(100,200,255,0.1)] tw:text-crm-cyan',
+  admin: 'tw:border-[rgba(251,191,36,0.4)] tw:bg-[rgba(251,191,36,0.1)] tw:text-crm-amber',
+  project_manager: 'tw:border-[rgba(167,139,250,0.4)] tw:bg-[rgba(167,139,250,0.1)] tw:text-[#c4b5fd]',
+};
+
+const ACTION_BUTTON_BASE =
+  'tw:cursor-pointer tw:rounded-md tw:border tw:border-transparent tw:px-4 tw:py-2 tw:text-[0.85rem] tw:font-semibold tw:transition-[opacity,transform] tw:duration-200 tw:[transition-timing-function:ease] tw:motion-reduce:transition-none tw:motion-safe:enabled:hover:-translate-y-px tw:disabled:cursor-not-allowed tw:disabled:opacity-50';
+const APPROVE_BUTTON = 'tw:bg-gradient-to-br tw:from-crm-green tw:to-[#22c55e] tw:text-crm-bg';
+const DECLINE_BUTTON = 'tw:border-[rgba(255,100,100,0.4)] tw:bg-transparent tw:text-crm-red';
 
 // Admin is pinned to one address in the database (0014), so it is never an
 // option here - only movement between client and project_manager.
@@ -113,45 +140,53 @@ export default function UsersPage() {
 
   if (isRoleLoading || !isAdmin || isLoading) {
     return (
-      <div className="crm-admin-page">
+      <div className={ADMIN_PAGE}>
         <SkeletonTable columns={4} />
       </div>
     );
   }
 
   return (
-    <div className="crm-admin-page">
-      <header className="crm-admin-header">
-        <h1>Users</h1>
-        <Link href="/admin/users/invite" className="crm-button">
+    <div className={ADMIN_PAGE}>
+      <header className={ADMIN_HEADER}>
+        <h1 className={ADMIN_HEADER_TITLE}>Users</h1>
+        <Link href="/admin/users/invite" className={BUTTON}>
           Invite User
         </Link>
       </header>
 
-      {error && <div className="crm-error">{error}</div>}
+      {error && <div className={ERROR}>{error}</div>}
 
       {pendingRequests.length > 0 && (
-        <section className="crm-requests" aria-labelledby="staff-requests-heading">
-          <h2 id="staff-requests-heading">
+        <section
+          aria-labelledby="staff-requests-heading"
+          className="tw:mx-auto tw:mb-6 tw:max-w-[1200px] tw:rounded-xl tw:border tw:border-[rgba(251,191,36,0.28)] tw:bg-[rgba(251,191,36,0.06)] tw:px-6 tw:pt-5 tw:pb-6"
+        >
+          <h2 id="staff-requests-heading" className="tw:mb-[0.35rem] tw:text-[1.1rem] tw:text-crm-amber">
             Pending employee requests ({pendingRequests.length})
           </h2>
-          <p className="crm-requests-hint">
+          <p className="tw:mb-4 tw:text-[0.85rem] tw:leading-[1.45] tw:text-[#b9a06a]">
             These accounts asked for employee access at signup. They currently have
             client access only; approving grants Project Manager.
           </p>
-          <ul className="crm-request-list">
+          <ul className="tw:m-0 tw:flex tw:list-none tw:flex-col tw:gap-[0.6rem] tw:p-0">
             {pendingRequests.map((user) => (
-              <li key={user.id} className="crm-request">
-                <div className="crm-request-who">
-                  <span className="crm-request-name">{user.full_name || 'Unnamed account'}</span>
-                  <span className="crm-request-date">
+              <li
+                key={user.id}
+                className="tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-4 tw:rounded-lg tw:border tw:border-[rgba(100,200,255,0.1)] tw:bg-[rgba(15,20,40,0.5)] tw:px-4 tw:py-3"
+              >
+                <div className="tw:flex tw:flex-col tw:gap-[0.15rem]">
+                  <span className="tw:font-medium tw:text-crm-text">
+                    {user.full_name || 'Unnamed account'}
+                  </span>
+                  <span className="tw:text-[0.8rem] tw:text-[#888]">
                     Requested {new Date(user.created_at).toLocaleDateString('en-US')}
                   </span>
                 </div>
-                <div className="crm-request-actions">
+                <div className="tw:flex tw:gap-2">
                   <button
                     type="button"
-                    className="crm-approve"
+                    className={`${ACTION_BUTTON_BASE} ${APPROVE_BUTTON}`}
                     disabled={updatingId === user.id}
                     onClick={() => handleStaffRequest(user.id, 'approve')}
                   >
@@ -159,7 +194,7 @@ export default function UsersPage() {
                   </button>
                   <button
                     type="button"
-                    className="crm-decline"
+                    className={`${ACTION_BUTTON_BASE} ${DECLINE_BUTTON}`}
                     disabled={updatingId === user.id}
                     onClick={() => handleStaffRequest(user.id, 'decline')}
                   >
@@ -172,31 +207,31 @@ export default function UsersPage() {
         </section>
       )}
 
-      <div className="crm-table-container">
+      <div className={TABLE_CONTAINER}>
         {users.length > 0 ? (
-          <table className="crm-table">
-            <thead>
+          <table className={TABLE}>
+            <thead className={TABLE_HEAD}>
               <tr>
-                <th>Name</th>
-                <th>Role</th>
-                <th>Joined</th>
-                <th>Change Role</th>
+                <th className={TABLE_TH}>Name</th>
+                <th className={TABLE_TH}>Role</th>
+                <th className={TABLE_TH}>Joined</th>
+                <th className={TABLE_TH}>Change Role</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.full_name || '-'}</td>
-                  <td>
-                    <span className={`crm-status crm-status-${user.role}`}>
+                <tr key={user.id} className={TABLE_ROW_HOVER}>
+                  <td className={TABLE_TD}>{user.full_name || '-'}</td>
+                  <td className={TABLE_TD}>
+                    <span className={`${STATUS_BADGE_BASE} ${ROLE_COLORS[user.role] || ROLE_COLORS.client}`}>
                       {ROLE_LABELS[user.role] || user.role}
                     </span>
                   </td>
-                  <td>{new Date(user.created_at).toLocaleDateString('en-US')}</td>
-                  <td>
+                  <td className={TABLE_TD}>{new Date(user.created_at).toLocaleDateString('en-US')}</td>
+                  <td className={TABLE_TD}>
                     {ASSIGNABLE_ROLES.includes(user.role) ? (
                       <select
-                        className="crm-role-select"
+                        className="tw:rounded-md tw:border tw:border-[rgba(100,200,255,0.2)] tw:bg-[rgba(15,20,40,0.6)] tw:p-2 tw:text-[0.9rem] tw:text-crm-text tw:disabled:cursor-not-allowed tw:disabled:opacity-50"
                         value={user.role}
                         disabled={updatingId === user.id}
                         onChange={(e) => handleRoleChange(user.id, e.target.value)}
@@ -208,7 +243,7 @@ export default function UsersPage() {
                         ))}
                       </select>
                     ) : (
-                      <span className="crm-muted">
+                      <span className="tw:text-[0.85rem] tw:text-[#666]">
                         The admin account is pinned and can&apos;t be reassigned
                       </span>
                     )}
@@ -218,272 +253,11 @@ export default function UsersPage() {
             </tbody>
           </table>
         ) : (
-          <div className="crm-empty-state">
-            <p>No users yet.</p>
+          <div className={EMPTY_STATE}>
+            <p className={EMPTY_STATE_P}>No users yet.</p>
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        .crm-admin-page {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          color: #e0e0e0;
-          font-family: inherit;
-          padding: 2rem;
-        }
-
-        .crm-admin-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-          max-width: 1200px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .crm-admin-header h1 {
-          font-size: 2rem;
-          color: #64c8ff;
-        }
-
-        .crm-button {
-          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
-          color: #0a0e27;
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          text-decoration: none;
-          font-weight: 600;
-          transition: all 0.2s ease;
-          display: inline-block;
-        }
-
-        .crm-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
-        }
-
-        .crm-requests {
-          background: rgba(251, 191, 36, 0.06);
-          border: 1px solid rgba(251, 191, 36, 0.28);
-          border-radius: 12px;
-          padding: 1.25rem 1.5rem 1.5rem;
-          max-width: 1200px;
-          margin: 0 auto 1.5rem;
-        }
-
-        .crm-requests h2 {
-          font-size: 1.1rem;
-          color: #fbbf24;
-          margin-bottom: 0.35rem;
-        }
-
-        .crm-requests-hint {
-          color: #b9a06a;
-          font-size: 0.85rem;
-          line-height: 1.45;
-          margin-bottom: 1rem;
-        }
-
-        .crm-request-list {
-          list-style: none;
-          display: flex;
-          flex-direction: column;
-          gap: 0.6rem;
-          margin: 0;
-          padding: 0;
-        }
-
-        .crm-request {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 1rem;
-          flex-wrap: wrap;
-          background: rgba(15, 20, 40, 0.5);
-          border: 1px solid rgba(100, 200, 255, 0.1);
-          border-radius: 8px;
-          padding: 0.75rem 1rem;
-        }
-
-        .crm-request-who {
-          display: flex;
-          flex-direction: column;
-          gap: 0.15rem;
-        }
-
-        .crm-request-name {
-          color: #e0e0e0;
-          font-weight: 500;
-        }
-
-        .crm-request-date {
-          color: #888;
-          font-size: 0.8rem;
-        }
-
-        .crm-request-actions {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .crm-approve,
-        .crm-decline {
-          border-radius: 6px;
-          padding: 0.5rem 1rem;
-          font-size: 0.85rem;
-          font-weight: 600;
-          font-family: inherit;
-          cursor: pointer;
-          border: 1px solid transparent;
-          transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-
-        .crm-approve {
-          background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
-          color: #0a0e27;
-        }
-
-        .crm-decline {
-          background: transparent;
-          border-color: rgba(255, 100, 100, 0.4);
-          color: #ff9999;
-        }
-
-        .crm-approve:hover:not(:disabled),
-        .crm-decline:hover:not(:disabled) {
-          transform: translateY(-1px);
-        }
-
-        .crm-approve:disabled,
-        .crm-decline:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .crm-approve,
-          .crm-decline {
-            transition: none;
-          }
-
-          .crm-approve:hover:not(:disabled),
-          .crm-decline:hover:not(:disabled) {
-            transform: none;
-          }
-        }
-
-        .crm-table-container {
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.1);
-          border-radius: 12px;
-          overflow: hidden;
-          max-width: 1200px;
-          margin-left: auto;
-          margin-right: auto;
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .crm-table thead {
-          background: rgba(15, 20, 40, 0.6);
-          border-bottom: 1px solid rgba(100, 200, 255, 0.2);
-        }
-
-        .crm-table th {
-          padding: 1rem;
-          text-align: left;
-          font-weight: 600;
-          color: #64c8ff;
-        }
-
-        .crm-table td {
-          padding: 1rem;
-          border-top: 1px solid rgba(100, 200, 255, 0.1);
-          color: #ccc;
-        }
-
-        .crm-table tbody tr:hover {
-          background: rgba(100, 200, 255, 0.05);
-        }
-
-        .crm-status {
-          display: inline-block;
-          padding: 0.25rem 0.75rem;
-          border-radius: 999px;
-          font-size: 0.8rem;
-          background: rgba(100, 200, 255, 0.1);
-          border: 1px solid rgba(100, 200, 255, 0.3);
-          color: #64c8ff;
-        }
-
-        .crm-status-admin {
-          background: rgba(251, 191, 36, 0.1);
-          border-color: rgba(251, 191, 36, 0.4);
-          color: #fbbf24;
-        }
-
-        .crm-status-project_manager {
-          background: rgba(167, 139, 250, 0.1);
-          border-color: rgba(167, 139, 250, 0.4);
-          color: #c4b5fd;
-        }
-
-        .crm-role-select {
-          background: rgba(15, 20, 40, 0.6);
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          border-radius: 6px;
-          color: #e0e0e0;
-          padding: 0.5rem;
-          font-size: 0.9rem;
-          font-family: inherit;
-        }
-
-        .crm-role-select:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .crm-muted {
-          color: #666;
-          font-size: 0.85rem;
-        }
-
-        .crm-empty-state {
-          text-align: center;
-          padding: 3rem 1rem;
-        }
-
-        .crm-empty-state p {
-          color: #999;
-        }
-
-        .crm-error {
-          background: rgba(255, 100, 100, 0.1);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff9999;
-          padding: 1rem;
-          border-radius: 6px;
-          margin-bottom: 1rem;
-          max-width: 1200px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
-      `}</style>
     </div>
   );
 }
