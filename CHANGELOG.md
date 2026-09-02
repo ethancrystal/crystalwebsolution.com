@@ -5,6 +5,29 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.20 — 2026-09-02
+
+Phase 3 of `docs/plans/refactor-architecture-cleanup-2.md`: admin CRUD
+duplication audit and extraction. No visual or behavioural change intended;
+report in `docs/reports/phase-3-admin-crud-duplication-audit-2026-09-02.md`.
+
+- The eight `/admin/<entity>/{new,[id]/edit}` pages shared their page
+  chrome and ~150 lines of inline styled-jsx each, not their form logic.
+  New `components/crm/AdminFormShell.jsx` owns the wrapper, header, error
+  banner, form card and field/button CSS; every entity's loaders, guards,
+  cascades, payload coercion and submit flow are untouched. Pages: 3,322 →
+  1,965 lines.
+- The pages had drifted into two chrome styles (companies/deals 700px
+  "card", contacts/tasks 800px "container"); the shell keeps both as an
+  explicit `variant` so nothing changes on screen. Unifying them is listed
+  as an owner decision.
+- Characterization test `tests/crm/admin-form-shell.test.jsx` renders the
+  frozen pre-refactor pages (`tests/crm/fixtures/admin-forms-pre-phase3/`)
+  against the new ones and asserts byte-identical markup; the old CSS was
+  diffed selector-by-selector against the shell.
+- Two pre-existing gaps recorded, not fixed: contacts/tasks edit pages lack
+  the "no rows changed" post-update check; `tasks/new` has no admin guard.
+
 ## v1.17 — 2026-09-01
 
 Refactor plan Phase 0 (`docs/plans/refactor-architecture-cleanup-2.md`):
