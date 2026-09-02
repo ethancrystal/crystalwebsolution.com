@@ -12,6 +12,10 @@
 ## Invitations and Cleanup
 
 - Invite through `app/admin/users/actions.js`.
+- The invite email's link goes to `/auth/verify`, which signs the invitee in
+  from the one-time token and lands them on `/auth/reset-password` to choose
+  a password. `updatePassword()` then sends them to their role's portal home
+  (`/team` for project managers). They sign in afterwards at `/login/employee`.
 - Role is provisioned through the authoritative database path.
 - If email delivery or role assignment fails, the newly created auth user is deleted.
 

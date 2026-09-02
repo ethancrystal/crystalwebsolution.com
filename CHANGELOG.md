@@ -5,6 +5,29 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.18 — 2026-09-02
+
+Admin-invited staff can now actually set a password.
+
+- `app/admin/users/actions.js` — the invite email says "Set your password
+  to activate your account", but its one-time link landed on `/admin`. For
+  the only invitable role (project manager) the middleware then bounced the
+  invitee to `/team`, signed in via the magic link with no password ever
+  set; their next visit to `/login/employee` could only succeed through
+  `/forgot-password`. The verify link (and the unused `redirectTo`
+  fallback) now target `/auth/reset-password`, the same set-password page
+  the reset flow uses. The `admin_set_user_role` call now runs before the
+  email is sent, so the role is in place before the invitee can click
+  through (previously it ran after, and a failure read "Invite sent" even
+  though the account was deleted).
+- `app/auth/actions.js` — `updatePassword()` redirected every caller to
+  `/dashboard`, the client home. It now looks up the caller's `profiles.role`
+  and sends them to their own portal home (`/team`, `/admin`, or
+  `/dashboard`), falling back to `/dashboard` if no profile is found.
+- `tests/crm/invite-set-password.test.mjs` — new contract test pinning the
+  invite landing page and the role-aware redirect.
+- `docs/CRM-OPERATIONS.md` — documents the invite landing flow.
+
 ## v1.17 — 2026-09-01
 
 Refactor plan Phase 0 (`docs/plans/refactor-architecture-cleanup-2.md`):

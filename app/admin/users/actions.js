@@ -54,12 +54,19 @@ export async function inviteUser(formData) {
     return { error: 'Invites are temporarily unavailable. Please try again later.' };
   }
 
+  // The invite email promises "Set your password to activate your account",
+  // and an invited account has no password until the invitee chooses one.
+  // /auth/verify signs them in from the one-time token, so the only correct
+  // landing page is the set-password form - the same one the reset flow
+  // uses. updatePassword() then sends them to their role's portal home.
+  // Landing on a portal home instead would leave them signed in for one
+  // session with no way back in except /forgot-password.
   const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'invite',
     email,
     options: {
       data: { full_name: fullName },
-      redirectTo: `${APP_URL}/auth/callback?next=/admin`,
+      redirectTo: `${APP_URL}/auth/callback?next=/auth/reset-password`,
     },
   });
 
@@ -67,8 +74,23 @@ export async function inviteUser(formData) {
     return { error: error.message };
   }
 
+  // The auth trigger creates a client profile. Promote invited staff through
+  // the same validated command used by subsequent role changes - and do it
+  // before the email goes out, so the role is already in place by the time
+  // the invitee clicks through and updatePassword() reads it to pick their
+  // portal home.
+  const { error: roleError } = await supabase.rpc('admin_set_user_role', {
+    p_user_id: data.user.id,
+    p_role: role,
+  });
+
+  if (roleError) {
+    await adminClient.auth.admin.deleteUser(data.user.id).catch(() => null);
+    return { error: 'Invite created, but role assignment failed.' };
+  }
+
   const { subject, html } = inviteUserEmail({
-    inviteUrl: buildVerifyUrl({ properties: data.properties, next: '/admin' }),
+    inviteUrl: buildVerifyUrl({ properties: data.properties, next: '/auth/reset-password' }),
     fullName,
     role,
   });
@@ -78,18 +100,6 @@ export async function inviteUser(formData) {
   } catch (sendError) {
     await adminClient.auth.admin.deleteUser(data.user.id).catch(() => null);
     return { error: `Invite created, but the email failed to send: ${sendError.message}` };
-  }
-
-  // The auth trigger creates a client profile. Promote invited staff through
-  // the same validated command used by subsequent role changes.
-  const { error: roleError } = await supabase.rpc('admin_set_user_role', {
-    p_user_id: data.user.id,
-    p_role: role,
-  });
-
-  if (roleError) {
-    await adminClient.auth.admin.deleteUser(data.user.id).catch(() => null);
-    return { error: 'Invite sent, but role assignment failed.' };
   }
 
   redirect('/admin/users');
