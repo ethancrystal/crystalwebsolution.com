@@ -5,6 +5,29 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.23 — 2026-09-02
+
+Phase 4 of `docs/plans/refactor-architecture-cleanup-2.md`: oversized-file
+decomposition, the last phase of the plan. Report in
+`docs/reports/phase-4-oversized-file-decomposition-2026-09-02.md`.
+
+- **`components/crm/ProjectThread.jsx` split** into a data hook
+  (`components/crm/useProjectThread.js`: state, read-model load, Realtime
+  subscription, every mutation) and a presentation component that renders
+  from it. A verbatim move: the hook body and the JSX/CSS are diffed
+  identical to the original. No visual or behavioural change intended.
+- **New behavioural test** `tests/crm/project-thread-behaviour.test.jsx`
+  (11 tests) pins the Conversation panel's Realtime subscription
+  lifecycle, project-switch guard, inline edit and send idempotency — the
+  flows STATUS.md records as having regressed past every automated gate.
+  Written and green before the split, green after.
+- **`app/actions/project-actions.js` deliberately not split**: five CRM
+  contract tests assert against this one file's source text (RPC
+  allowlist, no direct table writes, result contract). That gate is worth
+  more than the split; the report records what would unlock it.
+- `lib/servicePages.mjs` and `components/ui/liquid-ether-background.jsx`
+  triaged as large but cohesive; no split.
+
 ## v1.17 — 2026-09-01
 
 Refactor plan Phase 0 (`docs/plans/refactor-architecture-cleanup-2.md`):
