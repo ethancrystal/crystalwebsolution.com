@@ -5,29 +5,25 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
-## v1.22 — 2026-09-02
+## v1.18 — 2026-09-02
 
-Homepage copy pass across all nine scroll beats. (The canonical-domain fix
-this PR originally carried landed separately as #164.)
+Phase 1 of `docs/plans/refactor-architecture-cleanup-2.md`: dead-code and
+performance audit. Findings and evidence in
+`docs/reports/phase-1-dead-code-performance-audit-2026-09-01.md`.
 
-- **Hero** — subhead tightened to end on the business outcome ("so the
-  click turns into the client") instead of stopping at the aesthetic one.
-- **About** — kicker sharpened; picks up the Hero's "scroll" language on
-  purpose, paid off again at Mark and Contact.
-- **Services** — adds a one-line bridge under the header ("Eight
-  disciplines, one team...") between the About statement and the row list;
-  the 8 row descriptions in `lib/services.mjs` are untouched.
-- **Stories** — one-word tighten ("No" → "Zero invented case studies").
-- **Mark** — sub tightened to tie "assembled on purpose" explicitly back to
-  the actual process described in Approach.
-- **Lab** — caption tightened; also fixes the decorative `aria-hidden`
-  label reading "CDS" when `SITE.short` is `"CD"`.
-- **Contact** — headline reworked from "Let's make something rare." (a
-  vibes line with no concrete client benefit) to "Let's build something
-  worth the scroll." — the closing beat of the "scroll" thread started in
-  Hero. Sub tightened for rhythm, same commitments.
-- Approach and Motion are unchanged — both were substantially rewritten in
-  v1.16 and reviewed here, not touched again.
+- **Fix** — `pnpm livecheck` was broken outright: `scripts/livecheck.mjs`
+  imported from `playwright`, which is not a direct dependency under pnpm's
+  strict layout. Now imports `chromium` from the already-installed
+  `@playwright/test`; verified clean across all nine marketing routes on a
+  production build.
+- Verified, no change needed: `dynamic(..., { ssr: false })` is used only on
+  the three WebGL boundaries; Three.js/R3F stays out of the shared and CRM
+  bundles (chunk-manifest comparison); `depcheck`'s `typescript` flag is a
+  false positive (required by `tsconfig.json`'s `@/*` alias); CSP comment and
+  `public/d/02-messenger.gif` size unchanged.
+- Owner-decision item left open: 51 inert `data-cursor` attributes plus an
+  unwired `.cursor-dot`/`.cursor-ring` block in `app/styles/cursor-loader.css`
+  (an unfinished custom-cursor feature) — remove or finish, not decided here.
 
 ## v1.17 — 2026-09-01
 
