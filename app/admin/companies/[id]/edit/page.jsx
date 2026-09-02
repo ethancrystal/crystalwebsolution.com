@@ -4,6 +4,22 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import {
+  ADMIN_PAGE,
+  LOADING,
+  FORM_HEADER,
+  ADMIN_HEADER_TITLE,
+  FORM_ERROR,
+  FORM_CARD,
+  FIELD,
+  FIELD_ROW,
+  FIELD_LABEL,
+  INPUT,
+  FORM_ACTIONS,
+  BUTTON,
+  BUTTON_SECONDARY,
+  LINK,
+} from '@/lib/crm/adminPageStyles';
 
 const INITIAL_FORM = {
   name: '',
@@ -93,27 +109,27 @@ export default function EditCompanyPage() {
 
   if (isLoading) {
     return (
-      <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+      <div className={ADMIN_PAGE}>
+        <div className={LOADING}>Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="crm-admin-page">
-      <header className="crm-admin-header">
-        <h1>Edit Company</h1>
-        <Link href={`/admin/companies/${id}`} className="crm-link">
+    <div className={ADMIN_PAGE}>
+      <header className={FORM_HEADER}>
+        <h1 className={ADMIN_HEADER_TITLE}>Edit Company</h1>
+        <Link href={`/admin/companies/${id}`} className={LINK}>
           Back to Company
         </Link>
       </header>
 
-      {error && <div className="crm-error">{error}</div>}
+      {error && <div className={FORM_ERROR}>{error}</div>}
 
-      <div className="crm-form-card">
+      <div className={FORM_CARD}>
         <form onSubmit={handleSubmit}>
-          <div className="crm-field">
-            <label htmlFor="name">Name *</label>
+          <div className={FIELD}>
+            <label htmlFor="name" className={FIELD_LABEL}>Name *</label>
             <input
               id="name"
               type="text"
@@ -121,11 +137,12 @@ export default function EditCompanyPage() {
               placeholder="Acme Inc."
               value={form.name}
               onChange={(e) => handleChange('name', e.target.value)}
+              className={INPUT}
             />
           </div>
 
-          <div className="crm-field">
-            <label htmlFor="email">Email *</label>
+          <div className={FIELD}>
+            <label htmlFor="email" className={FIELD_LABEL}>Email *</label>
             <input
               id="email"
               type="email"
@@ -133,47 +150,51 @@ export default function EditCompanyPage() {
               placeholder="contact@acme.com"
               value={form.email}
               onChange={(e) => handleChange('email', e.target.value)}
+              className={INPUT}
             />
           </div>
 
-          <div className="crm-field-row">
-            <div className="crm-field">
-              <label htmlFor="phone">Phone</label>
+          <div className={FIELD_ROW}>
+            <div className={FIELD}>
+              <label htmlFor="phone" className={FIELD_LABEL}>Phone</label>
               <input
                 id="phone"
                 type="text"
                 placeholder="(555) 123-4567"
                 value={form.phone}
                 onChange={(e) => handleChange('phone', e.target.value)}
+                className={INPUT}
               />
             </div>
 
-            <div className="crm-field">
-              <label htmlFor="website">Website</label>
+            <div className={FIELD}>
+              <label htmlFor="website" className={FIELD_LABEL}>Website</label>
               <input
                 id="website"
                 type="text"
                 placeholder="https://acme.com"
                 value={form.website}
                 onChange={(e) => handleChange('website', e.target.value)}
+                className={INPUT}
               />
             </div>
           </div>
 
-          <div className="crm-field-row">
-            <div className="crm-field">
-              <label htmlFor="industry">Industry</label>
+          <div className={FIELD_ROW}>
+            <div className={FIELD}>
+              <label htmlFor="industry" className={FIELD_LABEL}>Industry</label>
               <input
                 id="industry"
                 type="text"
                 placeholder="Software"
                 value={form.industry}
                 onChange={(e) => handleChange('industry', e.target.value)}
+                className={INPUT}
               />
             </div>
 
-            <div className="crm-field">
-              <label htmlFor="employee_count">Employee Count</label>
+            <div className={FIELD}>
+              <label htmlFor="employee_count" className={FIELD_LABEL}>Employee Count</label>
               <input
                 id="employee_count"
                 type="number"
@@ -181,177 +202,21 @@ export default function EditCompanyPage() {
                 placeholder="50"
                 value={form.employee_count}
                 onChange={(e) => handleChange('employee_count', e.target.value)}
+                className={INPUT}
               />
             </div>
           </div>
 
-          <div className="crm-form-actions">
-            <button type="submit" className="crm-button" disabled={isSubmitting}>
+          <div className={`${FORM_ACTIONS} tw:mt-8`}>
+            <button type="submit" className={BUTTON} disabled={isSubmitting}>
               {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
-            <Link href={`/admin/companies/${id}`} className="crm-button-secondary">
+            <Link href={`/admin/companies/${id}`} className={BUTTON_SECONDARY}>
               Cancel
             </Link>
           </div>
         </form>
       </div>
-
-      <style jsx>{`
-        .crm-admin-page {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          color: #e0e0e0;
-          font-family: inherit;
-          padding: 2rem;
-        }
-
-        .crm-admin-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-          max-width: 700px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .crm-admin-header h1 {
-          font-size: 2rem;
-          color: #64c8ff;
-        }
-
-        .crm-link {
-          color: #64c8ff;
-          text-decoration: none;
-          font-size: 0.9rem;
-          transition: color 0.2s ease;
-        }
-
-        .crm-link:hover {
-          color: #5bb8ff;
-          text-decoration: underline;
-        }
-
-        .crm-form-card {
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          border-radius: 12px;
-          padding: 2rem;
-          max-width: 700px;
-          margin-left: auto;
-          margin-right: auto;
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-field {
-          margin-bottom: 1.5rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-          flex: 1;
-        }
-
-        .crm-field-row {
-          display: flex;
-          gap: 1.5rem;
-        }
-
-        .crm-field label {
-          color: #999;
-          font-size: 0.85rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .crm-field input,
-        .crm-field select,
-        .crm-field textarea {
-          background: rgba(15, 20, 40, 0.6);
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          border-radius: 6px;
-          color: #e0e0e0;
-          padding: 0.75rem;
-          font-size: 1rem;
-          font-family: inherit;
-        }
-
-        .crm-field input:focus,
-        .crm-field select:focus,
-        .crm-field textarea:focus {
-          outline: none;
-          border-color: #64c8ff;
-        }
-
-        .crm-form-actions {
-          display: flex;
-          gap: 1rem;
-          margin-top: 2rem;
-        }
-
-        .crm-button {
-          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
-          color: #0a0e27;
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          border: none;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 1rem;
-          transition: all 0.2s ease;
-          cursor: pointer;
-          display: inline-block;
-        }
-
-        .crm-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
-        }
-
-        .crm-button:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .crm-button-secondary {
-          background: rgba(100, 200, 255, 0.1);
-          border: 1px solid rgba(100, 200, 255, 0.3);
-          color: #64c8ff;
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 1rem;
-          transition: all 0.2s ease;
-          display: inline-block;
-        }
-
-        .crm-button-secondary:hover {
-          background: rgba(100, 200, 255, 0.2);
-        }
-
-        .crm-error {
-          background: rgba(255, 100, 100, 0.1);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff9999;
-          padding: 1rem;
-          border-radius: 6px;
-          margin-bottom: 1rem;
-          max-width: 700px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
-      `}</style>
     </div>
   );
 }

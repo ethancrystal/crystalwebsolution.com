@@ -5,6 +5,24 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import EntityNotes from '@/components/crm/EntityNotes';
+import {
+  ADMIN_PAGE,
+  LOADING,
+  FORM_HEADER,
+  ADMIN_HEADER_TITLE,
+  FORM_ERROR,
+  FORM_CARD,
+  FIELD,
+  FIELD_ROW,
+  FIELD_LABEL,
+  FORM_ACTIONS,
+  VALUE,
+  NOTES_WRAP,
+  BUTTON,
+  BUTTON_SECONDARY,
+  DELETE_BUTTON,
+  LINK,
+} from '@/lib/crm/adminPageStyles';
 
 function formatDate(value) {
   if (!value) return '-';
@@ -68,64 +86,64 @@ export default function CompanyDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="crm-admin-page">
-        <div className="crm-loading">Loading...</div>
+      <div className={ADMIN_PAGE}>
+        <div className={LOADING}>Loading...</div>
       </div>
     );
   }
 
   if (error && !company) {
     return (
-      <div className="crm-admin-page">
-        <header className="crm-admin-header">
-          <h1>Company</h1>
-          <Link href="/admin/companies" className="crm-link">
+      <div className={ADMIN_PAGE}>
+        <header className={FORM_HEADER}>
+          <h1 className={ADMIN_HEADER_TITLE}>Company</h1>
+          <Link href="/admin/companies" className={LINK}>
             Back to Companies
           </Link>
         </header>
-        <div className="crm-error">{error}</div>
+        <div className={FORM_ERROR}>{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="crm-admin-page">
-      <header className="crm-admin-header">
-        <h1>{company.name}</h1>
-        <Link href="/admin/companies" className="crm-link">
+    <div className={ADMIN_PAGE}>
+      <header className={FORM_HEADER}>
+        <h1 className={ADMIN_HEADER_TITLE}>{company.name}</h1>
+        <Link href="/admin/companies" className={LINK}>
           Back to Companies
         </Link>
       </header>
 
-      {error && <div className="crm-error">{error}</div>}
+      {error && <div className={FORM_ERROR}>{error}</div>}
 
-      <div className="crm-form-card">
-        <dl className="crm-detail-grid">
-          <div className="crm-field">
-            <label>Name</label>
-            <div className="crm-value">{company.name}</div>
+      <div className={FORM_CARD}>
+        <dl className="tw:m-0">
+          <div className={FIELD}>
+            <label className={FIELD_LABEL}>Name</label>
+            <div className={VALUE}>{company.name}</div>
           </div>
 
-          <div className="crm-field">
-            <label>Email</label>
-            <div className="crm-value">{company.email}</div>
+          <div className={FIELD}>
+            <label className={FIELD_LABEL}>Email</label>
+            <div className={VALUE}>{company.email}</div>
           </div>
 
-          <div className="crm-field-row">
-            <div className="crm-field">
-              <label>Phone</label>
-              <div className="crm-value">{company.phone || '-'}</div>
+          <div className={FIELD_ROW}>
+            <div className={FIELD}>
+              <label className={FIELD_LABEL}>Phone</label>
+              <div className={VALUE}>{company.phone || '-'}</div>
             </div>
 
-            <div className="crm-field">
-              <label>Website</label>
-              <div className="crm-value">
+            <div className={FIELD}>
+              <label className={FIELD_LABEL}>Website</label>
+              <div className={VALUE}>
                 {company.website ? (
                   <a
                     href={company.website}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="crm-link"
+                    className={LINK}
                   >
                     {company.website}
                   </a>
@@ -136,43 +154,43 @@ export default function CompanyDetailPage() {
             </div>
           </div>
 
-          <div className="crm-field-row">
-            <div className="crm-field">
-              <label>Industry</label>
-              <div className="crm-value">{company.industry || '-'}</div>
+          <div className={FIELD_ROW}>
+            <div className={FIELD}>
+              <label className={FIELD_LABEL}>Industry</label>
+              <div className={VALUE}>{company.industry || '-'}</div>
             </div>
 
-            <div className="crm-field">
-              <label>Employee Count</label>
-              <div className="crm-value">
+            <div className={FIELD}>
+              <label className={FIELD_LABEL}>Employee Count</label>
+              <div className={VALUE}>
                 {company.employee_count != null ? company.employee_count : '-'}
               </div>
             </div>
           </div>
 
-          <div className="crm-field-row">
-            <div className="crm-field">
-              <label>Created</label>
-              <div className="crm-value">{formatDate(company.created_at)}</div>
+          <div className={FIELD_ROW}>
+            <div className={FIELD}>
+              <label className={FIELD_LABEL}>Created</label>
+              <div className={VALUE}>{formatDate(company.created_at)}</div>
             </div>
 
-            <div className="crm-field">
-              <label>Last Updated</label>
-              <div className="crm-value">{formatDate(company.updated_at)}</div>
+            <div className={FIELD}>
+              <label className={FIELD_LABEL}>Last Updated</label>
+              <div className={VALUE}>{formatDate(company.updated_at)}</div>
             </div>
           </div>
         </dl>
 
-        <div className="crm-form-actions">
-          <Link href={`/admin/companies/${company.id}/edit`} className="crm-button">
+        <div className={`${FORM_ACTIONS} tw:mt-4`}>
+          <Link href={`/admin/companies/${company.id}/edit`} className={BUTTON}>
             Edit
           </Link>
-          <Link href="/admin/companies" className="crm-button-secondary">
+          <Link href="/admin/companies" className={BUTTON_SECONDARY}>
             Back
           </Link>
           <button
             type="button"
-            className="crm-delete-btn"
+            className={DELETE_BUTTON}
             onClick={handleDelete}
             disabled={isDeleting}
           >
@@ -181,177 +199,9 @@ export default function CompanyDetailPage() {
         </div>
       </div>
 
-      <div className="crm-notes-wrap">
+      <div className={NOTES_WRAP}>
         <EntityNotes companyId={company.id} />
       </div>
-
-      <style jsx>{`
-        .crm-admin-page {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          color: #e0e0e0;
-          font-family: inherit;
-          padding: 2rem;
-        }
-
-        .crm-notes-wrap {
-          max-width: 700px;
-          margin: 1.5rem auto 0;
-        }
-
-        .crm-admin-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-          max-width: 700px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .crm-admin-header h1 {
-          font-size: 2rem;
-          color: #64c8ff;
-        }
-
-        .crm-link {
-          color: #64c8ff;
-          text-decoration: none;
-          font-size: 0.9rem;
-          transition: color 0.2s ease;
-        }
-
-        .crm-link:hover {
-          color: #5bb8ff;
-          text-decoration: underline;
-        }
-
-        .crm-form-card {
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          border-radius: 12px;
-          padding: 2rem;
-          max-width: 700px;
-          margin-left: auto;
-          margin-right: auto;
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-detail-grid {
-          margin: 0;
-        }
-
-        .crm-field {
-          margin-bottom: 1.5rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-          flex: 1;
-        }
-
-        .crm-field-row {
-          display: flex;
-          gap: 1.5rem;
-        }
-
-        .crm-field label {
-          color: #999;
-          font-size: 0.85rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .crm-value {
-          color: #e0e0e0;
-          font-size: 1rem;
-        }
-
-        .crm-form-actions {
-          display: flex;
-          gap: 1rem;
-          margin-top: 1rem;
-        }
-
-        .crm-button {
-          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
-          color: #0a0e27;
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          border: none;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 1rem;
-          transition: all 0.2s ease;
-          cursor: pointer;
-          display: inline-block;
-        }
-
-        .crm-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
-        }
-
-        .crm-button-secondary {
-          background: rgba(100, 200, 255, 0.1);
-          border: 1px solid rgba(100, 200, 255, 0.3);
-          color: #64c8ff;
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 1rem;
-          transition: all 0.2s ease;
-          display: inline-block;
-        }
-
-        .crm-button-secondary:hover {
-          background: rgba(100, 200, 255, 0.2);
-        }
-
-        .crm-delete-btn {
-          background: rgba(255, 100, 100, 0.1);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff9999;
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          font-weight: 600;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          margin-left: auto;
-        }
-
-        .crm-delete-btn:hover {
-          background: rgba(255, 100, 100, 0.2);
-        }
-
-        .crm-delete-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .crm-error {
-          background: rgba(255, 100, 100, 0.1);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff9999;
-          padding: 1rem;
-          border-radius: 6px;
-          margin-bottom: 1rem;
-          max-width: 700px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .crm-loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          color: #64c8ff;
-          font-size: 1.2rem;
-        }
-      `}</style>
     </div>
   );
 }
