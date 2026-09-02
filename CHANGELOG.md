@@ -5,6 +5,30 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.22 — 2026-09-02
+
+Homepage copy pass across all nine scroll beats. (The canonical-domain fix
+this PR originally carried landed separately as #164.)
+
+- **Hero** — subhead tightened to end on the business outcome ("so the
+  click turns into the client") instead of stopping at the aesthetic one.
+- **About** — kicker sharpened; picks up the Hero's "scroll" language on
+  purpose, paid off again at Mark and Contact.
+- **Services** — adds a one-line bridge under the header ("Eight
+  disciplines, one team...") between the About statement and the row list;
+  the 8 row descriptions in `lib/services.mjs` are untouched.
+- **Stories** — one-word tighten ("No" → "Zero invented case studies").
+- **Mark** — sub tightened to tie "assembled on purpose" explicitly back to
+  the actual process described in Approach.
+- **Lab** — caption tightened; also fixes the decorative `aria-hidden`
+  label reading "CDS" when `SITE.short` is `"CD"`.
+- **Contact** — headline reworked from "Let's make something rare." (a
+  vibes line with no concrete client benefit) to "Let's build something
+  worth the scroll." — the closing beat of the "scroll" thread started in
+  Hero. Sub tightened for rhythm, same commitments.
+- Approach and Motion are unchanged — both were substantially rewritten in
+  v1.16 and reviewed here, not touched again.
+
 ## v1.17 — 2026-09-01
 
 Refactor plan Phase 0 (`docs/plans/refactor-architecture-cleanup-2.md`):

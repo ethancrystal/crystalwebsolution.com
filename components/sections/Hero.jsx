@@ -90,10 +90,10 @@ export default function Hero() {
         </h1>
         <Reveal className="hero-sub" delay={introDelay + 1}>
           <p>
-            When your site blends into the scroll, visitors forget it before
-            the next tab — so we build brands and interactive 3D experiences
-            that are faster than your old site, sharper than the field, and
-            unmistakably yours.
+            Visitors forget a site that blends into the scroll before they have
+            even left the tab. We build brands and interactive 3D experiences
+            fast enough to hold attention, sharp enough to beat the competition,
+            and built only for you — so the click turns into the client.
           </p>
         </Reveal>
         <Reveal className="hero-cta" delay={introDelay + 1.3}>
