@@ -1,24 +1,26 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import {
   TASK_PRIORITIES,
   TASK_STATUSES,
 } from '@/lib/crm/project-contract.mjs';
-import AdminFormShell from '@/components/crm/AdminFormShell';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 const STATUS_OPTIONS = TASK_STATUSES;
 const PRIORITY_OPTIONS = TASK_PRIORITIES;
 
-export default function NewTaskPage() {
+export default function EditTaskPage() {
+  const { id } = useParams();
   const router = useRouter();
+
   const [companies, setCompanies] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [deals, setDeals] = useState([]);
-  const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -34,25 +36,40 @@ export default function NewTaskPage() {
   });
 
   useEffect(() => {
-    async function loadCompanies() {
+    async function loadData() {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase
-          .from('companies')
-          .select('id, name')
-          .order('name', { ascending: true });
 
-        if (error) throw error;
-        setCompanies(data || []);
+        const [companiesRes, taskRes] = await Promise.all([
+          supabase.from('companies').select('id, name').order('name', { ascending: true }),
+          supabase.from('tasks').select('*').eq('id', id).single(),
+        ]);
+
+        if (companiesRes.error) throw companiesRes.error;
+        if (taskRes.error) throw taskRes.error;
+
+        setCompanies(companiesRes.data || []);
+
+        const task = taskRes.data;
+        setForm({
+          company_id: task.company_id || '',
+          deal_id: task.deal_id || '',
+          contact_id: task.contact_id || '',
+          title: task.title || '',
+          description: task.description || '',
+          status: task.status || 'open',
+          priority: task.priority || 'medium',
+          due_date: task.due_date || '',
+        });
       } catch (err) {
         setError(err.message);
       } finally {
-        setIsLoadingCompanies(false);
+        setIsLoading(false);
       }
     }
 
-    loadCompanies();
-  }, []);
+    loadData();
+  }, [id]);
 
   useEffect(() => {
     async function loadRelated() {
@@ -90,7 +107,9 @@ export default function NewTaskPage() {
       setForm((prev) => ({
         ...prev,
         [field]: value,
-        ...(field === 'company_id' ? { deal_id: '', contact_id: '' } : {}),
+        ...(field === 'company_id' && value !== prev.company_id
+          ? { deal_id: '', contact_id: '' }
+          : {}),
       }));
     };
   }
@@ -103,14 +122,6 @@ export default function NewTaskPage() {
     try {
       const supabase = createClient();
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error('You must be signed in to create a task.');
-      }
-
       const payload = {
         company_id: form.company_id,
         deal_id: form.deal_id || null,
@@ -120,39 +131,39 @@ export default function NewTaskPage() {
         status: form.status,
         priority: form.priority,
         due_date: form.due_date || null,
-        assigned_to: user.id,
-        created_by: user.id,
       };
 
-      const { data, error } = await supabase.from('tasks').insert(payload).select().single();
+      const { error } = await supabase.from('tasks').update(payload).eq('id', id);
 
       if (error) throw error;
 
-      router.push(`/admin/tasks/${data.id}`);
+      router.push(`/admin/tasks/${id}`);
     } catch (err) {
       setError(err.message);
       setIsSubmitting(false);
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="crm-admin-page">
+        <SkeletonDetail />
+      </div>
+    );
+  }
+
   return (
-    <AdminFormShell
-      variant="container"
-      title="Add Task"
-      backHref="/admin/tasks"
-      backLabel="Back to Tasks"
-      error={error}
-      loading={isLoadingCompanies}
-      skeletonFields={8}
-    >
-      {!error && companies.length === 0 ? (
-        <div className="crm-empty-state">
-          <p>You need a company before you can add a task.</p>
-          <Link href="/admin/companies/new" className="crm-button">
-            Create a company
-          </Link>
-        </div>
-      ) : (
+    <div className="crm-admin-page">
+      <header className="crm-admin-header">
+        <h1>Edit Task</h1>
+        <Link href={`/admin/tasks/${id}`} className="crm-link">
+          Back to Task
+        </Link>
+      </header>
+
+      {error && <div className="crm-error">{error}</div>}
+
+      <div className="crm-form-container">
         <form onSubmit={handleSubmit} className="crm-form">
           <div className="crm-form-row">
             <label htmlFor="title">Title *</label>
@@ -267,14 +278,173 @@ export default function NewTaskPage() {
 
           <div className="crm-form-actions">
             <button type="submit" className="crm-button" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Task'}
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
-            <Link href="/admin/tasks" className="crm-cancel-link">
+            <Link href={`/admin/tasks/${id}`} className="crm-cancel-link">
               Cancel
             </Link>
           </div>
         </form>
-      )}
-    </AdminFormShell>
+      </div>
+
+      <style jsx>{`
+        .crm-admin-page {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+          color: #e0e0e0;
+          font-family: inherit;
+          padding: 2rem;
+        }
+
+        .crm-admin-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+          max-width: 800px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .crm-admin-header h1 {
+          font-size: 2rem;
+          color: #64c8ff;
+        }
+
+        .crm-button {
+          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
+          color: #0a0e27;
+          padding: 0.75rem 1.5rem;
+          border-radius: 6px;
+          text-decoration: none;
+          font-weight: 600;
+          transition: all 0.2s ease;
+          display: inline-block;
+          border: none;
+          cursor: pointer;
+          font-size: 1rem;
+        }
+
+        .crm-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
+        }
+
+        .crm-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .crm-form-container {
+          background: rgba(30, 35, 60, 0.8);
+          border: 1px solid rgba(100, 200, 255, 0.2);
+          border-radius: 12px;
+          padding: 2rem;
+          max-width: 800px;
+          margin-left: auto;
+          margin-right: auto;
+          backdrop-filter: blur(10px);
+        }
+
+        .crm-form {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .crm-form-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 1.5rem;
+        }
+
+        .crm-form-row {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .crm-form-row label {
+          color: #999;
+          font-size: 0.9rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .crm-form-row input,
+        .crm-form-row select,
+        .crm-form-row textarea {
+          background: rgba(15, 20, 40, 0.6);
+          border: 1px solid rgba(100, 200, 255, 0.2);
+          border-radius: 6px;
+          padding: 0.75rem 1rem;
+          color: #e0e0e0;
+          font-size: 1rem;
+          font-family: inherit;
+        }
+
+        .crm-form-row input:focus,
+        .crm-form-row select:focus,
+        .crm-form-row textarea:focus {
+          outline: none;
+          border-color: rgba(100, 200, 255, 0.6);
+        }
+
+        .crm-form-row select:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .crm-form-row textarea {
+          resize: vertical;
+          min-height: 100px;
+        }
+
+        .crm-form-actions {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          margin-top: 1rem;
+        }
+
+        .crm-cancel-link {
+          color: #999;
+          text-decoration: none;
+          font-size: 0.9rem;
+          transition: color 0.2s ease;
+        }
+
+        .crm-cancel-link:hover {
+          color: #ccc;
+          text-decoration: underline;
+        }
+
+        .crm-link {
+          color: #64c8ff;
+          text-decoration: none;
+          font-size: 0.9rem;
+          transition: color 0.2s ease;
+        }
+
+        .crm-link:hover {
+          color: #5bb8ff;
+          text-decoration: underline;
+        }
+
+        .crm-error {
+          background: rgba(255, 100, 100, 0.1);
+          border: 1px solid rgba(255, 100, 100, 0.3);
+          color: #ff9999;
+          padding: 1rem;
+          border-radius: 6px;
+          margin-bottom: 1rem;
+          max-width: 800px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+      `}</style>
+    </div>
   );
 }
