@@ -9,6 +9,17 @@
 - `/team` — employee home
 - `/admin` — admin home
 
+## RLS helper grants
+
+- Any `private.*` function used inside a policy `USING` / `WITH CHECK`
+  expression must stay executable by `authenticated`: policy expressions run
+  as the querying role, and a revoke makes every statement on that table fail
+  at planning (`42501 permission denied for function ...`). Migration `0027`
+  did this to `private.shares_project_with(uuid)` and took every portal login
+  down for every role until `0040` restored the grant.
+  `tests/crm/migration-0040-restore-shares-project-with-grant.test.mjs`
+  enforces the rule across the migration chain.
+
 ## Invitations and Cleanup
 
 - Invite through `app/admin/users/actions.js`.

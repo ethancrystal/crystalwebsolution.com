@@ -7,7 +7,29 @@ about to be, if the PR hasn't merged yet).
 
 ## v1.18 — 2026-09-02
 
-Admin-invited staff can now actually set a password.
+Admin-invited staff can now actually set a password, and the CRM login
+path that has been failing for every role since 2026-08-16 is repaired.
+
+- `supabase/migrations/0040_restore_shares_project_with_grant.sql` —
+  **production fix.** 0027 revoked EXECUTE on
+  `private.shares_project_with(uuid)` from `authenticated`, but 0018's
+  `profiles` SELECT policy still calls it. Policy expressions run as the
+  querying role, so every authenticated statement against `profiles` has
+  failed at planning with `42501 permission denied for function
+  shares_project_with` since 0027 applied. Confirmed read-only against the
+  production catalog on 2026-09-02 for a client, the admin, own-row
+  lookups, and `EXPLAIN` alike. `middleware.js` reads `profiles` on every
+  CRM request and `signIn()` reads it right after password auth, so every
+  portal login has bounced to `?error=portal` for every role (a client's
+  `last_sign_in_at` of 2026-08-23 is consistent: the password step
+  succeeded, the profile read then failed). 0040 re-grants `authenticated`
+  only, matching the contract 0009 set for `private.can_access_project`.
+  **Must be applied to production with this deploy; nothing in the app
+  works for any signed-in role until it is.**
+- `tests/crm/migration-0040-restore-shares-project-with-grant.test.mjs` —
+  pins the grant, and checks across every migration that any `private.*`
+  helper referenced from a policy is granted to `authenticated` after its
+  last revoke, so the next hardening pass cannot repeat this.
 
 - `app/admin/users/actions.js` — the invite email says "Set your password
   to activate your account", but its one-time link landed on `/admin`. For
