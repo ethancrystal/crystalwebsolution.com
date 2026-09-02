@@ -19,6 +19,13 @@ const ASSIGNABLE_ROLES = ['project_manager', 'client'];
 // Invitations are for staff only; a client account is self-service via /signup.
 const INVITABLE_ROLES = ['project_manager'];
 
+// Where the one-time invite link lands. An invited account has no password
+// until the invitee chooses one, so this must be the set-password form (the
+// same page the reset flow uses); ?reason=invite switches its copy. The
+// middleware gate (migration 0039) sends them back here from any portal
+// until a password exists.
+const INVITE_NEXT = '/auth/reset-password?reason=invite';
+
 async function requireAdmin() {
   return requireRole(['admin'], '/login/admin');
 }
@@ -66,7 +73,7 @@ export async function inviteUser(formData) {
     email,
     options: {
       data: { full_name: fullName },
-      redirectTo: `${APP_URL}/auth/callback?next=/auth/reset-password`,
+      redirectTo: `${APP_URL}/auth/callback?next=${encodeURIComponent(INVITE_NEXT)}`,
     },
   });
 
@@ -90,7 +97,7 @@ export async function inviteUser(formData) {
   }
 
   const { subject, html } = inviteUserEmail({
-    inviteUrl: buildVerifyUrl({ properties: data.properties, next: '/auth/reset-password' }),
+    inviteUrl: buildVerifyUrl({ properties: data.properties, next: INVITE_NEXT }),
     fullName,
     role,
   });

@@ -24,8 +24,27 @@ Admin-invited staff can now actually set a password.
   `/dashboard`, the client home. It now looks up the caller's `profiles.role`
   and sends them to their own portal home (`/team`, `/admin`, or
   `/dashboard`), falling back to `/dashboard` if no profile is found.
+- `supabase/migrations/0039_must_set_password_gate.sql` + `middleware.js` —
+  a signed-in invitee who navigated away from the set-password form could
+  use a portal on a one-time session with no password, then be locked out
+  once it lapsed. New hardened RPC `current_user_must_set_password()`
+  (SECURITY DEFINER, `authenticated` only, reads `auth.users` for
+  `auth.uid()`) reports whether the caller still has no password; the
+  middleware calls it on portal paths and sends anyone still password-less
+  to `/auth/reset-password?reason=invite`. `/auth/*` is not gated, so the
+  redirect cannot loop.
+- `app/auth/reset-password/page.jsx` — reads `?reason=invite` (set by the
+  invite link and the gate) and shows "Set Your Password / Activate
+  Account" copy instead of "Set New Password / Update Password", which
+  read oddly for someone who never had one. Wrapped in `Suspense` for
+  `useSearchParams()`, with the full reset-copy form as the fallback so the
+  prerendered HTML is never an empty shell. The gate fails open and logs
+  if the RPC is unavailable, so a missing migration cannot lock every
+  portal. No account that can sign in today is affected: sign-in is
+  password-only, so every existing usable account already has one.
 - `tests/crm/invite-set-password.test.mjs` — new contract test pinning the
-  invite landing page and the role-aware redirect.
+  invite landing page, the role-aware redirect, the RPC hardening, the
+  middleware gate, and the invite copy.
 - `docs/CRM-OPERATIONS.md` — documents the invite landing flow.
 
 ## v1.17 — 2026-09-01

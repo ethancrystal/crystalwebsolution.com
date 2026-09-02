@@ -16,6 +16,11 @@
   from the one-time token and lands them on `/auth/reset-password` to choose
   a password. `updatePassword()` then sends them to their role's portal home
   (`/team` for project managers). They sign in afterwards at `/login/employee`.
+- Until the invitee sets a password, `middleware.js` refuses every portal
+  path and returns them to `/auth/reset-password?reason=invite`. It decides
+  through `current_user_must_set_password()` (migration `0039`), which reads
+  `auth.users` for the caller only; nothing about this is stored in
+  `profiles`, so there is no flag to reset by hand.
 - Role is provisioned through the authoritative database path.
 - If email delivery or role assignment fails, the newly created auth user is deleted.
 

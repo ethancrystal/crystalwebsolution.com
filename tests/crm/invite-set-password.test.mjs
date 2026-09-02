@@ -20,10 +20,11 @@ test('admin invite link sends the invitee to the set-password page', async () =>
   const actions = await readFile('app/admin/users/actions.js', 'utf8');
   const inviteUser = exportedFunction(actions, 'inviteUser');
 
-  assert.match(inviteUser, /buildVerifyUrl\(\{[^}]*next:\s*['"]\/auth\/reset-password['"]/);
-  assert.match(inviteUser, /redirectTo:\s*`\$\{APP_URL\}\/auth\/callback\?next=\/auth\/reset-password`/);
-  assert.doesNotMatch(inviteUser, /buildVerifyUrl\(\{[^}]*next:\s*['"]\/admin['"]/);
-  assert.doesNotMatch(inviteUser, /callback\?next=\/admin`/);
+  assert.match(actions, /const INVITE_NEXT = ['"]\/auth\/reset-password(\?[^'"]*)?['"]/);
+  assert.match(inviteUser, /buildVerifyUrl\(\{[^}]*next:\s*INVITE_NEXT/);
+  assert.match(inviteUser, /redirectTo:\s*`\$\{APP_URL\}\/auth\/callback\?next=\$\{encodeURIComponent\(INVITE_NEXT\)\}`/);
+  assert.doesNotMatch(inviteUser, /next:\s*['"]\/admin['"]/);
+  assert.doesNotMatch(inviteUser, /callback\?next=\/admin/);
 });
 
 // updatePassword() reads profiles.role to choose the invitee's portal home,
@@ -58,4 +59,70 @@ test('updatePassword redirects by role rather than to a hardcoded client home', 
   assert.match(updatePassword, /from\(['"]profiles['"]\)/);
   assert.match(updatePassword, /homeForRole\(/);
   assert.doesNotMatch(updatePassword, /redirect\(['"]\/dashboard['"]\)/);
+});
+
+/* ----------------------------------------------- must-set-password gate */
+
+const gateMigration = 'supabase/migrations/0039_must_set_password_gate.sql';
+
+// Whether an account has a password is a fact only auth.users knows. The
+// gate derives it there through a hardened RPC instead of keeping a copy in
+// profiles that a user could clear through the "update own profile" policy.
+test('0039 exposes a hardened RPC that reports whether the caller still has no password', async () => {
+  const sql = await readFile(gateMigration, 'utf8');
+
+  assert.match(sql, /create or replace function public\.current_user_must_set_password\(\)/i);
+  assert.match(sql, /returns boolean/i);
+  assert.match(sql, /security definer/i);
+  assert.match(sql, /set search_path = pg_catalog, public/i);
+  assert.match(sql, /from auth\.users/i);
+  assert.match(sql, /encrypted_password/i);
+  assert.match(sql, /auth\.uid\(\)/i);
+  assert.match(sql, /revoke all on function public\.current_user_must_set_password\(\) from public/i);
+  assert.match(sql, /revoke all on function public\.current_user_must_set_password\(\) from anon/i);
+  assert.match(sql, /grant execute on function public\.current_user_must_set_password\(\) to authenticated/i);
+  assert.doesNotMatch(sql, /grant execute .* to anon/i);
+});
+
+// A signed-in user with no password (an invitee who skipped the form) must
+// not be able to use any portal until they set one.
+test('middleware sends password-less users on portal paths to the set-password page', async () => {
+  const middleware = await readFile('middleware.js', 'utf8');
+
+  assert.match(middleware, /rpc\(['"]current_user_must_set_password['"]\)/);
+  assert.match(middleware, /\/auth\/reset-password\?reason=invite/);
+  // The gate must sit inside the `if (protectedPortal)` block - before the
+  // /login, /signup, /forgot-password bounce that follows it - so it only
+  // ever fires on portal paths and never on /auth/* itself (a loop).
+  const gateAt = middleware.indexOf("rpc('current_user_must_set_password')");
+  const portalBlockAt = middleware.indexOf('if (protectedPortal) {');
+  const loginBounceAt = middleware.indexOf("pathname === '/login'");
+  assert.ok(portalBlockAt !== -1 && loginBounceAt !== -1);
+  assert.ok(gateAt > portalBlockAt, 'gate must be inside the protectedPortal block');
+  assert.ok(gateAt < loginBounceAt, 'gate must run before the login/signup bounce');
+  // Fails open with a log line, never closed: a missing migration must not
+  // lock every portal.
+  assert.match(middleware, /if \(passwordCheckError\)\s*\{\s*console\.error/);
+});
+
+test('admin invite link tells the set-password page it is an invite', async () => {
+  const actions = await readFile('app/admin/users/actions.js', 'utf8');
+  const inviteUser = exportedFunction(actions, 'inviteUser');
+
+  assert.match(actions, /const INVITE_NEXT = ['"]\/auth\/reset-password\?reason=invite['"]/);
+  assert.match(inviteUser, /next:\s*INVITE_NEXT/);
+  assert.equal(safeAuthNext('/auth/reset-password?reason=invite'), '/auth/reset-password?reason=invite');
+});
+
+test('set-password page shows invite copy instead of reset copy for invitees', async () => {
+  const page = await readFile('app/auth/reset-password/page.jsx', 'utf8');
+
+  assert.match(page, /useSearchParams/);
+  assert.match(page, /reason['"]?\)?\s*===?\s*['"]invite['"]/);
+  assert.match(page, /activate your account/i);
+  // The Suspense fallback must render the real form (reset copy), not null:
+  // a null fallback prerenders an empty shell and invitees get a blank page
+  // until hydration.
+  assert.match(page, /<Suspense fallback=\{<ResetPasswordForm copy=\{COPY\.reset\} \/>\}>/);
+  assert.doesNotMatch(page, /fallback=\{null\}/);
 });
