@@ -103,7 +103,7 @@ have collided with the same class names the detail pages scope locally.
 ## TASK-017 / TASK-018 — evidence of zero behaviour change
 
 One entity per commit, in the order companies → deals → contacts → tasks
-(`0f1b81a`, `655a4d4`, `9bfe6a2`, `2d84ec0`), each gated on:
+(`0f1b81a`, `655a4d4`, `9bfe6a2`, `dc67429`), each gated on:
 
 1. **Characterization test** `tests/crm/admin-form-shell.test.jsx`:
    renders the pre-refactor page (frozen under
