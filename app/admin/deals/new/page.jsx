@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
 import { PROJECT_TYPE_OPTIONS } from '@/lib/projectTypes';
-import { SkeletonDetail } from '@/components/crm/Skeleton';
+import AdminFormShell from '@/components/crm/AdminFormShell';
 
 const STAGE_OPTIONS = [
   { value: 'prospecting', label: 'Prospecting' },
@@ -140,146 +140,109 @@ export default function NewDealPage() {
     }
   }
 
-  if (isLoading || isRoleLoading || !isAdmin) {
-    return (
-      <div className="crm-admin-page">
-        <SkeletonDetail fields={9} />
-      </div>
-    );
-  }
-
   return (
-    <div className="crm-admin-page">
-      <header className="crm-admin-header">
-        <h1>Add Deal</h1>
-        <Link href="/admin/deals" className="crm-link">
-          Back to Deals
-        </Link>
-      </header>
+    <AdminFormShell
+      variant="card"
+      title="Add Deal"
+      backHref="/admin/deals"
+      backLabel="Back to Deals"
+      error={error}
+      loading={isLoading || isRoleLoading || !isAdmin}
+      skeletonFields={9}
+    >
+      <form onSubmit={handleSubmit}>
+        <div className="crm-field">
+          <label htmlFor="title">Title *</label>
+          <input
+            id="title"
+            type="text"
+            required
+            value={form.title}
+            onChange={(e) => handleChange('title', e.target.value)}
+          />
+        </div>
 
-      {error && <div className="crm-error">{error}</div>}
-
-      <div className="crm-form-card">
-        <form onSubmit={handleSubmit}>
-          <div className="crm-field">
-            <label htmlFor="title">Title *</label>
-            <input
-              id="title"
-              type="text"
-              required
-              value={form.title}
-              onChange={(e) => handleChange('title', e.target.value)}
-            />
-          </div>
-
-          <div className="crm-field">
-            <label htmlFor="company_id">Company *</label>
-            <select
-              id="company_id"
-              required
-              value={form.company_id}
-              onChange={(e) => handleChange('company_id', e.target.value)}
-            >
-              <option value="">Select a company...</option>
-              {companies.map((company) => (
-                <option key={company.id} value={company.id}>
-                  {company.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="crm-field">
-            <label htmlFor="contact_id">Contact</label>
-            <select
-              id="contact_id"
-              value={form.contact_id}
-              onChange={(e) => handleChange('contact_id', e.target.value)}
-              disabled={!form.company_id}
-            >
-              <option value="">
-                {form.company_id ? 'No contact' : 'Select a company first'}
+        <div className="crm-field">
+          <label htmlFor="company_id">Company *</label>
+          <select
+            id="company_id"
+            required
+            value={form.company_id}
+            onChange={(e) => handleChange('company_id', e.target.value)}
+          >
+            <option value="">Select a company...</option>
+            {companies.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.name}
               </option>
-              {contacts.map((contact) => (
-                <option key={contact.id} value={contact.id}>
-                  {contact.first_name} {contact.last_name}
-                </option>
-              ))}
-            </select>
-          </div>
+            ))}
+          </select>
+        </div>
 
+        <div className="crm-field">
+          <label htmlFor="contact_id">Contact</label>
+          <select
+            id="contact_id"
+            value={form.contact_id}
+            onChange={(e) => handleChange('contact_id', e.target.value)}
+            disabled={!form.company_id}
+          >
+            <option value="">
+              {form.company_id ? 'No contact' : 'Select a company first'}
+            </option>
+            {contacts.map((contact) => (
+              <option key={contact.id} value={contact.id}>
+                {contact.first_name} {contact.last_name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="crm-field">
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            rows={4}
+            value={form.description}
+            onChange={(e) => handleChange('description', e.target.value)}
+          />
+        </div>
+
+        <div className="crm-field-row">
           <div className="crm-field">
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              rows={4}
-              value={form.description}
-              onChange={(e) => handleChange('description', e.target.value)}
+            <label htmlFor="value">Value ($)</label>
+            <input
+              id="value"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.value}
+              onChange={(e) => handleChange('value', e.target.value)}
             />
           </div>
 
-          <div className="crm-field-row">
-            <div className="crm-field">
-              <label htmlFor="value">Value ($)</label>
-              <input
-                id="value"
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.value}
-                onChange={(e) => handleChange('value', e.target.value)}
-              />
-            </div>
-
-            <div className="crm-field">
-              <label htmlFor="probability">Probability (%)</label>
-              <input
-                id="probability"
-                type="number"
-                min="0"
-                max="100"
-                value={form.probability}
-                onChange={(e) => handleChange('probability', e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="crm-field-row">
-            <div className="crm-field">
-              <label htmlFor="stage">Stage</label>
-              <select
-                id="stage"
-                value={form.stage}
-                onChange={(e) => handleChange('stage', e.target.value)}
-              >
-                {STAGE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="crm-field">
-              <label htmlFor="expected_close_date">Expected Close Date</label>
-              <input
-                id="expected_close_date"
-                type="date"
-                value={form.expected_close_date}
-                onChange={(e) => handleChange('expected_close_date', e.target.value)}
-              />
-            </div>
-          </div>
-
           <div className="crm-field">
-            <label htmlFor="project_type">Project Type</label>
+            <label htmlFor="probability">Probability (%)</label>
+            <input
+              id="probability"
+              type="number"
+              min="0"
+              max="100"
+              value={form.probability}
+              onChange={(e) => handleChange('probability', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="crm-field-row">
+          <div className="crm-field">
+            <label htmlFor="stage">Stage</label>
             <select
-              id="project_type"
-              value={form.project_type}
-              onChange={(e) => handleChange('project_type', e.target.value)}
+              id="stage"
+              value={form.stage}
+              onChange={(e) => handleChange('stage', e.target.value)}
             >
-              <option value="">No type set</option>
-              {PROJECT_TYPE_OPTIONS.map((option) => (
+              {STAGE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -287,174 +250,42 @@ export default function NewDealPage() {
             </select>
           </div>
 
-          <div className="crm-form-actions">
-            <button type="submit" className="crm-button" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Create Deal'}
-            </button>
-            <Link href="/admin/deals" className="crm-button-secondary">
-              Cancel
-            </Link>
+          <div className="crm-field">
+            <label htmlFor="expected_close_date">Expected Close Date</label>
+            <input
+              id="expected_close_date"
+              type="date"
+              value={form.expected_close_date}
+              onChange={(e) => handleChange('expected_close_date', e.target.value)}
+            />
           </div>
-        </form>
-      </div>
+        </div>
 
-      <style jsx>{`
-        .crm-admin-page {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          color: #e0e0e0;
-          font-family: inherit;
-          padding: 2rem;
-        }
+        <div className="crm-field">
+          <label htmlFor="project_type">Project Type</label>
+          <select
+            id="project_type"
+            value={form.project_type}
+            onChange={(e) => handleChange('project_type', e.target.value)}
+          >
+            <option value="">No type set</option>
+            {PROJECT_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        .crm-admin-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-          max-width: 700px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .crm-admin-header h1 {
-          font-size: 2rem;
-          color: #64c8ff;
-        }
-
-        .crm-link {
-          color: #64c8ff;
-          text-decoration: none;
-          font-size: 0.9rem;
-          transition: color 0.2s ease;
-        }
-
-        .crm-link:hover {
-          color: #5bb8ff;
-          text-decoration: underline;
-        }
-
-        .crm-form-card {
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          border-radius: 12px;
-          padding: 2rem;
-          max-width: 700px;
-          margin-left: auto;
-          margin-right: auto;
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-field {
-          margin-bottom: 1.5rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-          flex: 1;
-        }
-
-        .crm-field-row {
-          display: flex;
-          gap: 1.5rem;
-        }
-
-        .crm-field label {
-          color: #999;
-          font-size: 0.85rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .crm-field input,
-        .crm-field select,
-        .crm-field textarea {
-          background: rgba(15, 20, 40, 0.6);
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          border-radius: 6px;
-          color: #e0e0e0;
-          padding: 0.75rem;
-          font-size: 1rem;
-          font-family: inherit;
-        }
-
-        .crm-field input:focus,
-        .crm-field select:focus,
-        .crm-field textarea:focus {
-          outline: none;
-          border-color: #64c8ff;
-        }
-
-        .crm-field select:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .crm-field textarea {
-          resize: vertical;
-        }
-
-        .crm-form-actions {
-          display: flex;
-          gap: 1rem;
-          margin-top: 2rem;
-        }
-
-        .crm-button {
-          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
-          color: #0a0e27;
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          border: none;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 1rem;
-          transition: all 0.2s ease;
-          cursor: pointer;
-          display: inline-block;
-        }
-
-        .crm-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
-        }
-
-        .crm-button:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .crm-button-secondary {
-          background: rgba(100, 200, 255, 0.1);
-          border: 1px solid rgba(100, 200, 255, 0.3);
-          color: #64c8ff;
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 1rem;
-          transition: all 0.2s ease;
-          display: inline-block;
-        }
-
-        .crm-button-secondary:hover {
-          background: rgba(100, 200, 255, 0.2);
-        }
-
-        .crm-error {
-          background: rgba(255, 100, 100, 0.1);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff9999;
-          padding: 1rem;
-          border-radius: 6px;
-          margin-bottom: 1rem;
-          max-width: 700px;
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-      `}</style>
-    </div>
+        <div className="crm-form-actions">
+          <button type="submit" className="crm-button" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving...' : 'Create Deal'}
+          </button>
+          <Link href="/admin/deals" className="crm-button-secondary">
+            Cancel
+          </Link>
+        </div>
+      </form>
+    </AdminFormShell>
   );
 }

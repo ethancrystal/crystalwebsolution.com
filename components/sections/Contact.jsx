@@ -16,10 +16,10 @@ export default function Contact() {
       <SectionSkeleton />
       <div className="text-plate">
         <p className="eyebrow"><SectionReveal as="span" direction="left">From idea to outcome</SectionReveal></p>
-        <SectionReveal as="h2" direction="left" className="contact-line">Let&apos;s make</SectionReveal>
-        <SectionReveal as="h2" direction="left" className="contact-line contact-line-accent" delay={0.08}>something rare.</SectionReveal>
+        <SectionReveal as="h2" direction="left" className="contact-line">Let&apos;s build</SectionReveal>
+        <SectionReveal as="h2" direction="left" className="contact-line contact-line-accent" delay={0.08}>something worth the scroll.</SectionReveal>
         <SectionReveal className="contact-sub" direction="up" delay={0.1}>
-          <p>Send us your brief. We&apos;ll give you a straight read on scope, timeline, cost, and the first move if it&apos;s a fit.</p>
+          <p>Send your brief and get a straight read — scope, timeline, cost, and the first move — if it&apos;s a fit.</p>
         </SectionReveal>
       </div>
       <SectionReveal className="contact-form-wrap" direction="up" delay={0.1}>

@@ -5,69 +5,43 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.19 — 2026-09-02
+
+Phase 2 of `docs/plans/refactor-architecture-cleanup-2.md`: testing and
+documentation. No runtime code changes.
+
+- New `tests/marketing/work-marquee.test.jsx` (9 tests: video-vs-image tile
+  selection by extension, replacement-media cycling, eager/lazy loading, row
+  offsetting) and `tests/marketing/motion.test.jsx` (4 tests: Motion wires
+  `WorkMarquee` to `CLIENT_TILE_IMAGES`/`REPLACEMENT_IMAGES`, accessible
+  project list independent of the decorative marquee).
+- `README.md` gains "Component directory conventions" and "Styling"
+  sections describing what actually shipped (28-file global `app/styles/`
+  split with global class names on purpose; `ImageBlock.module.css` as the
+  one CSS Modules exception).
+- New `docs/ARCHITECTURE.md`: sections → components → lib dependency map,
+  the per-frame singleton pattern, and the two CRM data-access shapes with
+  which entities use which.
+
 ## v1.18 — 2026-09-02
 
-Admin-invited staff can now actually set a password, and the CRM login
-path that has been failing for every role since 2026-08-16 is repaired.
+Phase 1 of `docs/plans/refactor-architecture-cleanup-2.md`: dead-code and
+performance audit. Findings and evidence in
+`docs/reports/phase-1-dead-code-performance-audit-2026-09-01.md`.
 
-- `supabase/migrations/0040_restore_shares_project_with_grant.sql` —
-  **production fix.** 0027 revoked EXECUTE on
-  `private.shares_project_with(uuid)` from `authenticated`, but 0018's
-  `profiles` SELECT policy still calls it. Policy expressions run as the
-  querying role, so every authenticated statement against `profiles` has
-  failed at planning with `42501 permission denied for function
-  shares_project_with` since 0027 applied. Confirmed read-only against the
-  production catalog on 2026-09-02 for a client, the admin, own-row
-  lookups, and `EXPLAIN` alike. `middleware.js` reads `profiles` on every
-  CRM request and `signIn()` reads it right after password auth, so every
-  portal login has bounced to `?error=portal` for every role (a client's
-  `last_sign_in_at` of 2026-08-23 is consistent: the password step
-  succeeded, the profile read then failed). 0040 re-grants `authenticated`
-  only, matching the contract 0009 set for `private.can_access_project`.
-  **Must be applied to production with this deploy; nothing in the app
-  works for any signed-in role until it is.**
-- `tests/crm/migration-0040-restore-shares-project-with-grant.test.mjs` —
-  pins the grant, and checks across every migration that any `private.*`
-  helper referenced from a policy is granted to `authenticated` after its
-  last revoke, so the next hardening pass cannot repeat this.
-
-- `app/admin/users/actions.js` — the invite email says "Set your password
-  to activate your account", but its one-time link landed on `/admin`. For
-  the only invitable role (project manager) the middleware then bounced the
-  invitee to `/team`, signed in via the magic link with no password ever
-  set; their next visit to `/login/employee` could only succeed through
-  `/forgot-password`. The verify link (and the unused `redirectTo`
-  fallback) now target `/auth/reset-password`, the same set-password page
-  the reset flow uses. The `admin_set_user_role` call now runs before the
-  email is sent, so the role is in place before the invitee can click
-  through (previously it ran after, and a failure read "Invite sent" even
-  though the account was deleted).
-- `app/auth/actions.js` — `updatePassword()` redirected every caller to
-  `/dashboard`, the client home. It now looks up the caller's `profiles.role`
-  and sends them to their own portal home (`/team`, `/admin`, or
-  `/dashboard`), falling back to `/dashboard` if no profile is found.
-- `supabase/migrations/0039_must_set_password_gate.sql` + `middleware.js` —
-  a signed-in invitee who navigated away from the set-password form could
-  use a portal on a one-time session with no password, then be locked out
-  once it lapsed. New hardened RPC `current_user_must_set_password()`
-  (SECURITY DEFINER, `authenticated` only, reads `auth.users` for
-  `auth.uid()`) reports whether the caller still has no password; the
-  middleware calls it on portal paths and sends anyone still password-less
-  to `/auth/reset-password?reason=invite`. `/auth/*` is not gated, so the
-  redirect cannot loop.
-- `app/auth/reset-password/page.jsx` — reads `?reason=invite` (set by the
-  invite link and the gate) and shows "Set Your Password / Activate
-  Account" copy instead of "Set New Password / Update Password", which
-  read oddly for someone who never had one. Wrapped in `Suspense` for
-  `useSearchParams()`, with the full reset-copy form as the fallback so the
-  prerendered HTML is never an empty shell. The gate fails open and logs
-  if the RPC is unavailable, so a missing migration cannot lock every
-  portal. No account that can sign in today is affected: sign-in is
-  password-only, so every existing usable account already has one.
-- `tests/crm/invite-set-password.test.mjs` — new contract test pinning the
-  invite landing page, the role-aware redirect, the RPC hardening, the
-  middleware gate, and the invite copy.
-- `docs/CRM-OPERATIONS.md` — documents the invite landing flow.
+- **Fix** — `pnpm livecheck` was broken outright: `scripts/livecheck.mjs`
+  imported from `playwright`, which is not a direct dependency under pnpm's
+  strict layout. Now imports `chromium` from the already-installed
+  `@playwright/test`; verified clean across all nine marketing routes on a
+  production build.
+- Verified, no change needed: `dynamic(..., { ssr: false })` is used only on
+  the three WebGL boundaries; Three.js/R3F stays out of the shared and CRM
+  bundles (chunk-manifest comparison); `depcheck`'s `typescript` flag is a
+  false positive (required by `tsconfig.json`'s `@/*` alias); CSP comment and
+  `public/d/02-messenger.gif` size unchanged.
+- Owner-decision item left open: 51 inert `data-cursor` attributes plus an
+  unwired `.cursor-dot`/`.cursor-ring` block in `app/styles/cursor-loader.css`
+  (an unfinished custom-cursor feature) — remove or finish, not decided here.
 
 ## v1.17 — 2026-09-01
 

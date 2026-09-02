@@ -6,8 +6,6 @@ import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 import FaqSchema from '../../components/marketing/FaqSchema';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
-// Cost figure is PLACEHOLDER pending founder input — see the inner-pages
-// content plan's founder-input checklist.
 const EMBROIDERY_FAQ = [
   {
     q: 'How much does a project like this cost?',

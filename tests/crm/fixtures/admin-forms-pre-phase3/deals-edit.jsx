@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { useUserRole } from '@/lib/useUserRole';
 import { PROJECT_TYPE_OPTIONS } from '@/lib/projectTypes';
-import AdminFormShell from '@/components/crm/AdminFormShell';
+import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 const STAGE_OPTIONS = [
   { value: 'prospecting', label: 'Prospecting' },
@@ -154,17 +154,34 @@ export default function EditDealPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="crm-admin-page">
+        <SkeletonDetail />
+      </div>
+    );
+  }
+
+  if (error && !form) {
+    return (
+      <div className="crm-admin-page">
+        <div className="crm-error">{error}</div>
+      </div>
+    );
+  }
+
   return (
-    <AdminFormShell
-      variant="card"
-      title="Edit Deal"
-      backHref={`/admin/deals/${id}`}
-      backLabel="Back to Deal"
-      error={error}
-      loading={isLoading}
-      fatalError={error && !form ? error : null}
-    >
-      {form && (
+    <div className="crm-admin-page">
+      <header className="crm-admin-header">
+        <h1>Edit Deal</h1>
+        <Link href={`/admin/deals/${id}`} className="crm-link">
+          Back to Deal
+        </Link>
+      </header>
+
+      {error && <div className="crm-error">{error}</div>}
+
+      <div className="crm-form-card">
         <form onSubmit={handleSubmit}>
           <div className="crm-field">
             <label htmlFor="title">Title *</label>
@@ -323,7 +340,165 @@ export default function EditDealPage() {
             </Link>
           </div>
         </form>
-      )}
-    </AdminFormShell>
+      </div>
+
+      <style jsx>{`
+        .crm-admin-page {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+          color: #e0e0e0;
+          font-family: inherit;
+          padding: 2rem;
+        }
+
+        .crm-admin-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+          max-width: 700px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .crm-admin-header h1 {
+          font-size: 2rem;
+          color: #64c8ff;
+        }
+
+        .crm-link {
+          color: #64c8ff;
+          text-decoration: none;
+          font-size: 0.9rem;
+          transition: color 0.2s ease;
+        }
+
+        .crm-link:hover {
+          color: #5bb8ff;
+          text-decoration: underline;
+        }
+
+        .crm-form-card {
+          background: rgba(30, 35, 60, 0.8);
+          border: 1px solid rgba(100, 200, 255, 0.2);
+          border-radius: 12px;
+          padding: 2rem;
+          max-width: 700px;
+          margin-left: auto;
+          margin-right: auto;
+          backdrop-filter: blur(10px);
+        }
+
+        .crm-field {
+          margin-bottom: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          flex: 1;
+        }
+
+        .crm-field-row {
+          display: flex;
+          gap: 1.5rem;
+        }
+
+        .crm-field label {
+          color: #999;
+          font-size: 0.85rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .crm-field input,
+        .crm-field select,
+        .crm-field textarea {
+          background: rgba(15, 20, 40, 0.6);
+          border: 1px solid rgba(100, 200, 255, 0.2);
+          border-radius: 6px;
+          color: #e0e0e0;
+          padding: 0.75rem;
+          font-size: 1rem;
+          font-family: inherit;
+        }
+
+        .crm-field input:focus,
+        .crm-field select:focus,
+        .crm-field textarea:focus {
+          outline: none;
+          border-color: #64c8ff;
+        }
+
+        .crm-field select:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .crm-field textarea {
+          resize: vertical;
+        }
+
+        .crm-form-actions {
+          display: flex;
+          gap: 1rem;
+          margin-top: 2rem;
+        }
+
+        .crm-button {
+          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
+          color: #0a0e27;
+          padding: 0.75rem 1.5rem;
+          border-radius: 6px;
+          border: none;
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 1rem;
+          transition: all 0.2s ease;
+          cursor: pointer;
+          display: inline-block;
+        }
+
+        .crm-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
+        }
+
+        .crm-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .crm-button-secondary {
+          background: rgba(100, 200, 255, 0.1);
+          border: 1px solid rgba(100, 200, 255, 0.3);
+          color: #64c8ff;
+          padding: 0.75rem 1.5rem;
+          border-radius: 6px;
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 1rem;
+          transition: all 0.2s ease;
+          display: inline-block;
+        }
+
+        .crm-button-secondary:hover {
+          background: rgba(100, 200, 255, 0.2);
+        }
+
+        .crm-error {
+          background: rgba(255, 100, 100, 0.1);
+          border: 1px solid rgba(255, 100, 100, 0.3);
+          color: #ff9999;
+          padding: 1rem;
+          border-radius: 6px;
+          margin-bottom: 1rem;
+          max-width: 700px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+      `}</style>
+    </div>
   );
 }
