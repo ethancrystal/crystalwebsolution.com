@@ -5,6 +5,24 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.19 — 2026-09-02
+
+Phase 2 of `docs/plans/refactor-architecture-cleanup-2.md`: testing and
+documentation. No runtime code changes.
+
+- New `tests/marketing/work-marquee.test.jsx` (9 tests: video-vs-image tile
+  selection by extension, replacement-media cycling, eager/lazy loading, row
+  offsetting) and `tests/marketing/motion.test.jsx` (4 tests: Motion wires
+  `WorkMarquee` to `CLIENT_TILE_IMAGES`/`REPLACEMENT_IMAGES`, accessible
+  project list independent of the decorative marquee).
+- `README.md` gains "Component directory conventions" and "Styling"
+  sections describing what actually shipped (28-file global `app/styles/`
+  split with global class names on purpose; `ImageBlock.module.css` as the
+  one CSS Modules exception).
+- New `docs/ARCHITECTURE.md`: sections → components → lib dependency map,
+  the per-frame singleton pattern, and the two CRM data-access shapes with
+  which entities use which.
+
 ## v1.18 — 2026-09-02
 
 Phase 1 of `docs/plans/refactor-architecture-cleanup-2.md`: dead-code and
