@@ -27,8 +27,10 @@ vi.mock('@/lib/useUserRole', () => ({
 }));
 
 // One row per table for the `.single()` reads the edit pages do on mount;
-// list reads (`.order()` etc.) resolve to an empty list. Old and new pages
-// receive identical data, so any DOM difference is the refactor's.
+// list reads (`.order()` etc.) resolve to an empty list, which also drives
+// the "create a company first" empty state on the contacts/tasks new pages.
+// Old and new pages receive identical data, so any DOM difference is the
+// refactor's.
 const ROWS = {
   companies: {
     id: 'row-123',
@@ -51,6 +53,17 @@ const ROWS = {
     expected_close_date: '2026-12-01',
     owner_id: 'user-1',
     project_type: null,
+  },
+  contacts: {
+    id: 'row-123',
+    company_id: 'company-1',
+    first_name: 'Ada',
+    last_name: 'Lovelace',
+    email: 'ada@acme.com',
+    phone: null,
+    title: 'CTO',
+    linkedin_url: null,
+    status: 'customer',
   },
 };
 
@@ -81,10 +94,14 @@ import OldNewCompanyPage from './fixtures/admin-forms-pre-phase3/companies-new.j
 import OldEditCompanyPage from './fixtures/admin-forms-pre-phase3/companies-edit.jsx';
 import OldNewDealPage from './fixtures/admin-forms-pre-phase3/deals-new.jsx';
 import OldEditDealPage from './fixtures/admin-forms-pre-phase3/deals-edit.jsx';
+import OldNewContactPage from './fixtures/admin-forms-pre-phase3/contacts-new.jsx';
+import OldEditContactPage from './fixtures/admin-forms-pre-phase3/contacts-edit.jsx';
 import NewNewCompanyPage from '@/app/admin/companies/new/page.jsx';
 import NewEditCompanyPage from '@/app/admin/companies/[id]/edit/page.jsx';
 import NewNewDealPage from '@/app/admin/deals/new/page.jsx';
 import NewEditDealPage from '@/app/admin/deals/[id]/edit/page.jsx';
+import NewNewContactPage from '@/app/admin/contacts/new/page.jsx';
+import NewEditContactPage from '@/app/admin/contacts/[id]/edit/page.jsx';
 
 // styled-jsx is not transformed under vitest (no babel plugin), so <style jsx>
 // renders as a literal <style> element carrying the raw CSS -- strip it, since
@@ -99,17 +116,24 @@ function normalize(html) {
     .trim();
 }
 
-async function renderAndSettle(Component, label, expectedValue) {
+// Settle on either a labelled field (optionally asserting its loaded value)
+// or a piece of text -- the contacts/tasks new pages render an empty state
+// instead of the form when there are no companies.
+async function renderAndSettle(Component, { label, text, value }) {
   const result = render(<Component />);
-  const field = await screen.findByLabelText(label);
-  if (expectedValue !== undefined) expect(field).toHaveValue(expectedValue);
+  if (label) {
+    const field = await screen.findByLabelText(label);
+    if (value !== undefined) expect(field).toHaveValue(value);
+  } else {
+    await screen.findByText(text);
+  }
   return result.container.innerHTML;
 }
 
-async function expectSameMarkup({ Old, New, label, value, variant }) {
-  const oldHtml = normalize(await renderAndSettle(Old, label, value));
+async function expectSameMarkup({ Old, New, variant, ...settle }) {
+  const oldHtml = normalize(await renderAndSettle(Old, settle));
   cleanup();
-  const rawNewHtml = await renderAndSettle(New, label, value);
+  const rawNewHtml = await renderAndSettle(New, settle);
   expect(rawNewHtml).toContain(`crm-admin-form--${variant}`);
   expect(normalize(rawNewHtml)).toBe(oldHtml);
 }
@@ -140,6 +164,23 @@ describe('AdminFormShell characterization: deals (card variant)', () => {
   it('edit page renders identical markup once the deal has loaded', async () => {
     await expectSameMarkup({
       Old: OldEditDealPage, New: NewEditDealPage, label: 'Title *', value: 'Big deal', variant: 'card',
+    });
+  });
+});
+
+describe('AdminFormShell characterization: contacts (container variant)', () => {
+  it('new page renders the identical "create a company first" empty state', async () => {
+    await expectSameMarkup({
+      Old: OldNewContactPage,
+      New: NewNewContactPage,
+      text: 'You need a company before you can add a contact.',
+      variant: 'container',
+    });
+  });
+
+  it('edit page renders identical markup once the contact has loaded', async () => {
+    await expectSameMarkup({
+      Old: OldEditContactPage, New: NewEditContactPage, label: 'First Name *', value: 'Ada', variant: 'container',
     });
   });
 });
