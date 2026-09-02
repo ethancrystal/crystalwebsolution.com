@@ -5,35 +5,25 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
-## v1.21 — 2026-09-02
+## v1.18 — 2026-09-02
 
-Fixes literal `PLACEHOLDER — confirm …` strings that v1.15 shipped live to
-production on `/about`, `/contact`, `/process`, `/services`, and `/reviews`
-— visible to real visitors and inside each page's `FaqSchema` structured
-data. v1.15 intentionally left these as explicit placeholders pending
-founder input rather than inventing facts; this closes that gap with the
-owner's actual answers where given, and honest, non-fabricated interim
-copy where not:
+Phase 1 of `docs/plans/refactor-architecture-cleanup-2.md`: dead-code and
+performance audit. Findings and evidence in
+`docs/reports/phase-1-dead-code-performance-audit-2026-09-01.md`.
 
-- **Contact** — reply-time FAQ and hero lede now say "within 1 business
-  day"; NDA FAQ says "yes, on request."
-- **About** — team-size FAQ now describes a small, senior,
-  cross-disciplinary team (design, engineering, motion/AI-automation)
-  without an invented headcount.
-- **Services** — pricing FAQ now states scope-dependent, quote-only
-  pricing (matching the tone already shipped on the embroidery landing
-  page's cost FAQ) instead of asking whether to disclose ranges.
-- **Reviews** — "leave a review" FAQ now points to Contact/email instead
-  of a placeholder platform link that doesn't exist yet.
-- **Process** — the 6 steps' `duration`/`deliverable` fields are removed
-  rather than filled with invented numbers; `ProcessStepsRail` already
-  renders that meta row conditionally, so the steps show cleanly without
-  it until real figures are confirmed.
-- Removes a few stale `PLACEHOLDER`-referencing code comments left over
-  from v1.15 (embroidery page, Process, Services, Contact, About) that no
-  longer describe the code.
-
-No homepage/WebGL scene files touched.
+- **Fix** — `pnpm livecheck` was broken outright: `scripts/livecheck.mjs`
+  imported from `playwright`, which is not a direct dependency under pnpm's
+  strict layout. Now imports `chromium` from the already-installed
+  `@playwright/test`; verified clean across all nine marketing routes on a
+  production build.
+- Verified, no change needed: `dynamic(..., { ssr: false })` is used only on
+  the three WebGL boundaries; Three.js/R3F stays out of the shared and CRM
+  bundles (chunk-manifest comparison); `depcheck`'s `typescript` flag is a
+  false positive (required by `tsconfig.json`'s `@/*` alias); CSP comment and
+  `public/d/02-messenger.gif` size unchanged.
+- Owner-decision item left open: 51 inert `data-cursor` attributes plus an
+  unwired `.cursor-dot`/`.cursor-ring` block in `app/styles/cursor-loader.css`
+  (an unfinished custom-cursor feature) — remove or finish, not decided here.
 
 ## v1.17 — 2026-09-01
 
