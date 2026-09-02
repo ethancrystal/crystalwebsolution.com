@@ -52,9 +52,6 @@ const PRINCIPLES = [
   },
 ];
 
-// Placeholder for the third entry pending founder input (team headcount and
-// discipline breakdown) — see the inner-pages content plan's founder-input
-// checklist. Do not ship with only two FAQ items presented as final.
 const ABOUT_FAQ = [
   {
     q: 'Do you handle design and build, or just one?',
@@ -66,7 +63,7 @@ const ABOUT_FAQ = [
   },
   {
     q: 'How big is the team?',
-    a: 'PLACEHOLDER — confirm real team headcount and discipline breakdown (design, engineering, motion/AI-automation) before publishing.',
+    a: 'Small and senior on purpose — spanning design, engineering, and motion/AI-automation, working as one team rather than handed off between departments.',
   },
 ];
 

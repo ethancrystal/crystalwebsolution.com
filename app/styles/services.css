@@ -1,5 +1,12 @@
 /* ---------- services / Blender-authored signal catalogue ---------- */
 .services { padding-block: 18vh; justify-content: flex-start; }
+.services-intro-line {
+  max-width: 52ch;
+  margin: -1.2rem 0 2.5rem;
+  color: var(--muted);
+  font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+  line-height: 1.75;
+}
 .services-catalogue { width: 100%; }
 .services-list { position: relative; border-top: 1px solid var(--line); }
 .service-row {

@@ -144,6 +144,9 @@ export default function Services() {
       <div className="services-catalogue">
         <div className="text-plate services-intro">
           <SectionHeader eyebrow="What we do" title="Focused vision. Measured execution." />
+          <SectionReveal className="services-intro-line" direction="up" delay={0.08}>
+            <p>Eight disciplines, one team — bring us the whole build, or just the piece that's stuck.</p>
+          </SectionReveal>
         </div>
         <div
           className="services-list"
