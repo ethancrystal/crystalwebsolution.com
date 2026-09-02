@@ -37,7 +37,7 @@ export default function Stories() {
     <section className="section stories" id="stories" data-quiet>
       <SectionSkeleton />
       <div className="text-plate">
-        <SectionHeader eyebrow="Client proof" title="Real clients. Real outcomes. No invented case studies." />
+        <SectionHeader eyebrow="Client proof" title="Real clients. Real outcomes. Zero invented case studies." />
         <SectionReveal className="stories-intro" direction="up" delay={0.08}>
           <p>Unedited words from the people we have built for — before, during, and after launch.</p>
         </SectionReveal>

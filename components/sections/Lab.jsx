@@ -285,14 +285,14 @@ export default function Lab() {
     >
       <div className="lab-sticky">
         <div className="lab-copy" ref={headlineRef} aria-hidden="true">
-          <span>CDS</span>
+          <span>{SITE.short}</span>
           <span>IN MOTION</span>
         </div>
         <h2 className="sr-only">{SITE.name} in motion</h2>
         <p className="lab-caption" ref={captionRef}>
-          This site is the proof: one continuous 3D scene, scroll-linked
-          motion, responsive fallbacks, and accessible content — built by
-          CD Sportswear USA.
+          This whole site is the pitch: one continuous 3D scene, scroll-linked
+          motion, real accessibility, and fallbacks that hold up on any device
+          — built by CD Sportswear USA.
         </p>
         <a href="#services" className="lab-link">All services <span aria-hidden="true">→</span></a>
         <div className="lab-stage" ref={stageRef}>
