@@ -96,6 +96,50 @@ The August 2026 lean-repository audit and exact keep/remove decisions are in
 9. **Contact** — the project-brief form, direct email fallback, and footer close
    the journey without replaying the hero crystal.
 
+## Component directory conventions
+
+- `components/` (top level) — cross-cutting DOM/canvas plumbing shared by
+  the whole marketing experience: `Experience.jsx` (beat order), `Scene.jsx`
+  (the WebGL stage), navigation (`Nav.jsx`, `Menu.jsx`), and singletons-driven
+  primitives (`DecodeText.jsx`, `Magnetic.jsx`, `Reveal.jsx`).
+- `components/sections/` — one file per homepage scroll beat (`Hero.jsx`,
+  `About.jsx`, `Services.jsx`, ..., `Motion.jsx`), rendered in order by
+  `Experience.jsx`. Mirrors `STOPS`/`CLUSTERS` in `lib/journey.js` and
+  `BEAT_IDS` in `lib/beatProgress.js` — adding or reordering a beat means
+  moving all three together (see "Architecture rules" below).
+- `components/marketing/` — reusable DOM components for the inner marketing
+  pages (`/about`, `/services`, `/work`, etc.): layout shells, schema/SEO
+  components, case-study rails, the service emblem.
+- `components/ui/` — small, mostly presentational primitives with no
+  section-specific meaning (`work-marquee.jsx`, `GlowCard.jsx`, background
+  effects).
+- `components/three/` — R3F scene actors mounted once by `Scene.jsx`
+  (`CameraRig`, `Lights`, `Crystal`, `ServiceRail`, `Particles`, ...). Lab
+  and Motion render DOM/CSS-3D card experiences over the same canvas and do
+  **not** add their own actors here.
+- `components/crm/` — Supabase-backed CRM UI (`/dashboard`, `/team`,
+  `/admin`), independent of the marketing/animation stack above.
+
+## Styling
+
+Plain global CSS, split into 28 files under `app/styles/*.css`.
+`app/globals.css` is a 41-line **import manifest only** — the import order
+*is* the cascade order, reproducing what was originally one 4,324-line file
+byte-for-byte. Class names are intentionally left global (not scoped/hashed)
+because `Menu.jsx`, `Services.jsx`, and `WorkLibrary.jsx` select DOM nodes
+via `querySelectorAll('.menu-link')` / `.service-row` / `.work-row`, and GSAP
+animates those exact class names — CSS Modules would hash them and silently
+break the animations. Add a new stylesheet by creating `app/styles/<name>.css`
+and inserting its `@import` at the point in `globals.css` where it should
+cascade.
+
+The one deliberate exception is `components/marketing/ImageBlock.module.css`,
+a genuine (hashed) CSS Module — safe there because nothing targets
+`ImageBlock`'s classes by name from outside the component. Prefer the global
+`app/styles/*.css` approach for anything sections/GSAP might select; reach
+for a co-located `*.module.css` only for a component in the same isolated
+position as `ImageBlock`.
+
 ## Architecture rules (read before editing)
 
 - Per-frame state lives in module singletons (`lib/scrollState.js`, `lib/pulse.js`),
