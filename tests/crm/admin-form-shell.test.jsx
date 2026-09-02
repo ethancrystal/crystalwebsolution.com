@@ -65,6 +65,17 @@ const ROWS = {
     linkedin_url: null,
     status: 'customer',
   },
+  tasks: {
+    id: 'row-123',
+    company_id: 'company-1',
+    deal_id: null,
+    contact_id: null,
+    title: 'Fix the thing',
+    description: 'Before Friday',
+    status: 'in_progress',
+    priority: 'high',
+    due_date: '2026-09-05',
+  },
 };
 
 vi.mock('@/lib/supabase/browser', () => {
@@ -96,12 +107,16 @@ import OldNewDealPage from './fixtures/admin-forms-pre-phase3/deals-new.jsx';
 import OldEditDealPage from './fixtures/admin-forms-pre-phase3/deals-edit.jsx';
 import OldNewContactPage from './fixtures/admin-forms-pre-phase3/contacts-new.jsx';
 import OldEditContactPage from './fixtures/admin-forms-pre-phase3/contacts-edit.jsx';
+import OldNewTaskPage from './fixtures/admin-forms-pre-phase3/tasks-new.jsx';
+import OldEditTaskPage from './fixtures/admin-forms-pre-phase3/tasks-edit.jsx';
 import NewNewCompanyPage from '@/app/admin/companies/new/page.jsx';
 import NewEditCompanyPage from '@/app/admin/companies/[id]/edit/page.jsx';
 import NewNewDealPage from '@/app/admin/deals/new/page.jsx';
 import NewEditDealPage from '@/app/admin/deals/[id]/edit/page.jsx';
 import NewNewContactPage from '@/app/admin/contacts/new/page.jsx';
 import NewEditContactPage from '@/app/admin/contacts/[id]/edit/page.jsx';
+import NewNewTaskPage from '@/app/admin/tasks/new/page.jsx';
+import NewEditTaskPage from '@/app/admin/tasks/[id]/edit/page.jsx';
 
 // styled-jsx is not transformed under vitest (no babel plugin), so <style jsx>
 // renders as a literal <style> element carrying the raw CSS -- strip it, since
@@ -181,6 +196,23 @@ describe('AdminFormShell characterization: contacts (container variant)', () => 
   it('edit page renders identical markup once the contact has loaded', async () => {
     await expectSameMarkup({
       Old: OldEditContactPage, New: NewEditContactPage, label: 'First Name *', value: 'Ada', variant: 'container',
+    });
+  });
+});
+
+describe('AdminFormShell characterization: tasks (container variant)', () => {
+  it('new page renders the identical "create a company first" empty state', async () => {
+    await expectSameMarkup({
+      Old: OldNewTaskPage,
+      New: NewNewTaskPage,
+      text: 'You need a company before you can add a task.',
+      variant: 'container',
+    });
+  });
+
+  it('edit page renders identical markup once the task has loaded', async () => {
+    await expectSameMarkup({
+      Old: OldEditTaskPage, New: NewEditTaskPage, label: 'Title *', value: 'Fix the thing', variant: 'container',
     });
   });
 });
