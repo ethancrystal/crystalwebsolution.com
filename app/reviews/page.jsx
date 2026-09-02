@@ -7,8 +7,6 @@ import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 import FaqSchema from '../../components/marketing/FaqSchema';
 
-// "Leave a review" answer is PLACEHOLDER pending founder input — see the
-// inner-pages content plan's founder-input checklist.
 const REVIEWS_FAQ = [
   {
     q: 'Are all of your reviews shown on this page?',
@@ -24,7 +22,7 @@ const REVIEWS_FAQ = [
   },
   {
     q: 'Can I leave a review of a project we worked on together?',
-    a: 'PLACEHOLDER — confirm which platform current and former clients should use to leave a review, and link it here.',
+    a: 'Yes — reach out through Contact or email us directly and we’ll point you to the right place to leave it.',
   },
 ];
 

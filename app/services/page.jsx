@@ -14,8 +14,6 @@ const TITLE = 'Services';
 const DESCRIPTION =
   'CD Sportswear USA designs and builds websites, brand systems, motion, and AI and workflow automation — focused offers, each owned end to end.';
 
-// Pricing-disclosure answer is PLACEHOLDER pending founder input — see the
-// inner-pages content plan's founder-input checklist.
 const SERVICES_FAQ = [
   {
     q: 'Do I have to commit to more than one service?',
@@ -31,7 +29,7 @@ const SERVICES_FAQ = [
   },
   {
     q: 'Do you publish pricing per service?',
-    a: 'PLACEHOLDER — confirm whether typical price ranges are shown publicly per service, or kept quote-only after a brief.',
+    a: 'Not as fixed ranges — scope varies too much for a public number to mean anything. Send your brief through Contact and you get a real quote, not a guess.',
   },
 ];
 
