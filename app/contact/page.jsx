@@ -10,8 +10,6 @@ import { REVIEW_STATS } from '../../lib/reviews';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
-// Response-time answers below are PLACEHOLDER pending founder input — see
-// the inner-pages content plan's founder-input checklist (Contact #15).
 const CONTACT_FAQ = [
   {
     q: 'Do you take on smaller projects?',
@@ -27,11 +25,11 @@ const CONTACT_FAQ = [
   },
   {
     q: 'How quickly will you respond?',
-    a: 'PLACEHOLDER — confirm the real reply-window commitment (e.g. "within 1 business day") before publishing.',
+    a: 'Within 1 business day.',
   },
   {
     q: 'Will you sign an NDA before reviewing our brief?',
-    a: 'PLACEHOLDER — confirm whether an NDA is offered on request, and link a privacy/data-handling policy if one exists.',
+    a: 'Yes, on request — just ask when you send your brief.',
   },
 ];
 
@@ -64,7 +62,7 @@ export default function ContactPage() {
       <PageHero
         eyebrow="Contact"
         title="Send us your brief."
-        lede="Tell us what you are building and what success looks like. PLACEHOLDER — confirm reply-window before publishing: We’ll reply by email within [X business days] with a straight read."
+        lede="Tell us what you are building and what success looks like. We’ll reply by email within 1 business day with a straight read."
       />
       <ContentSection eyebrow="Project brief" title="The form">
         <div className="mkt-contact-wrap">
