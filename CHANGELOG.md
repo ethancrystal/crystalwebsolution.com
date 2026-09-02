@@ -5,6 +5,29 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.25 — 2026-09-02
+
+Fixes the second batch of live editorial placeholders (CRY-30): 24
+`[CONFIRM: …]` strings in `lib/servicePages.mjs` — three per service
+across all eight `/services/[slug]` pages — visible to visitors in the
+deliverables list and in two FAQ answers (and their `FaqSchema` JSON-LD).
+Same approach as v1.21: honest interim copy, no invented figures.
+
+- **deliverablesNote** — removed from all eight services rather than
+  filled with made-up round counts or turnarounds; `ServicePage.jsx`
+  already renders the note conditionally, so the list shows cleanly
+  without it.
+- **"What does this cost, and how long does it take?"** — now the same
+  scope-dependent, quote-only answer v1.21 shipped on `/services`.
+- **"What's not included?"** — now states that every engagement is
+  scoped in a written proposal up front and mid-project requests are
+  estimated separately with sign-off.
+- Adds `tests/no-live-placeholders.test.mjs`, which fails `pnpm test`
+  if `[CONFIRM` or `PLACEHOLDER` appears in `lib/servicePages.mjs` or
+  any `app/**/page.jsx`, so a third batch can't reach production.
+
+No homepage/WebGL scene files touched.
+
 ## v1.24 — 2026-09-02
 
 Docs-only: repairs the version ledger after the six PRs below merged out
