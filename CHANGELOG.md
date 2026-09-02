@@ -23,6 +23,26 @@ documentation. No runtime code changes.
   the per-frame singleton pattern, and the two CRM data-access shapes with
   which entities use which.
 
+## v1.18 — 2026-09-02
+
+Phase 1 of `docs/plans/refactor-architecture-cleanup-2.md`: dead-code and
+performance audit. Findings and evidence in
+`docs/reports/phase-1-dead-code-performance-audit-2026-09-01.md`.
+
+- **Fix** — `pnpm livecheck` was broken outright: `scripts/livecheck.mjs`
+  imported from `playwright`, which is not a direct dependency under pnpm's
+  strict layout. Now imports `chromium` from the already-installed
+  `@playwright/test`; verified clean across all nine marketing routes on a
+  production build.
+- Verified, no change needed: `dynamic(..., { ssr: false })` is used only on
+  the three WebGL boundaries; Three.js/R3F stays out of the shared and CRM
+  bundles (chunk-manifest comparison); `depcheck`'s `typescript` flag is a
+  false positive (required by `tsconfig.json`'s `@/*` alias); CSP comment and
+  `public/d/02-messenger.gif` size unchanged.
+- Owner-decision item left open: 51 inert `data-cursor` attributes plus an
+  unwired `.cursor-dot`/`.cursor-ring` block in `app/styles/cursor-loader.css`
+  (an unfinished custom-cursor feature) — remove or finish, not decided here.
+
 ## v1.17 — 2026-09-01
 
 Refactor plan Phase 0 (`docs/plans/refactor-architecture-cleanup-2.md`):
