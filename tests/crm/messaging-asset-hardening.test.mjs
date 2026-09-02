@@ -4,11 +4,18 @@ import { test } from 'node:test';
 
 const actionsPath = 'app/actions/project-actions.js';
 const threadPath = 'components/crm/ProjectThread.jsx';
+// The thread's data half (state, load, Realtime, mutations) lives in the hook;
+// reading threadPath returns component + hook so these assertions cover both.
+const threadHookPath = 'components/crm/useProjectThread.js';
 const filesPath = 'components/crm/ProjectFiles.jsx';
 const cronPath = 'app/api/cron/crm-notifications/route.js';
 const readModelPath = 'lib/crm/projects.js';
 
 async function read(path) {
+  if (path === threadPath) {
+    const [component, hook] = await Promise.all([readFile(threadPath, 'utf8'), readFile(threadHookPath, 'utf8')]);
+    return `${component}\n${hook}`;
+  }
   return readFile(path, 'utf8');
 }
 

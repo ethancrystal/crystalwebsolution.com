@@ -16,7 +16,10 @@ test('client workspace: dashboard and project detail use exact client guard and 
 });
 
 test('client workspace: project components are project-scoped, not deal-scoped', async () => {
-  const thread = await readFile('components/crm/ProjectThread.jsx', 'utf8');
+  const thread = [
+    await readFile('components/crm/ProjectThread.jsx', 'utf8'),
+    await readFile('components/crm/useProjectThread.js', 'utf8'),
+  ].join('\n');
   const notes = await readFile('components/crm/NotesPanel.jsx', 'utf8');
 
   assert.match(thread, /project_id|projectId/);
