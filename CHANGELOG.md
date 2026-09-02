@@ -5,6 +5,129 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.24 — 2026-09-02
+
+Docs-only: repairs the version ledger after the six PRs below merged out
+of order on 2026-09-02. Each merge resolved its `VERSION`/`CHANGELOG.md`
+conflict by keeping `main`'s side, so four deploys went out without their
+entry and `VERSION` stayed at `v1.19` while the deployed commit was titled
+`v1.23`. No runtime code changes.
+
+- Restores the `v1.20`, `v1.21`, `v1.22` and `v1.23` entries below, verbatim
+  from their PRs, and sets `VERSION` to the next number.
+- Every number `v1.18`–`v1.23` maps to exactly one deploy (commit titles in
+  Vercel's deploy list); only the deploy order differs from the numeric
+  order:
+
+  | deploy order | version | commit | PR |
+  | --- | --- | --- | --- |
+  | 1 | v1.18 | `cd2fdd0` | #166 |
+  | 2 | v1.21 | `0e0b9e0` | #162 |
+  | 3 | v1.22 | `339f540` | #163 |
+  | 4 | v1.19 | `e2f1ff2` | #167 |
+  | 5 | v1.20 | `17427e2` | #168 |
+  | 6 | v1.23 | `ceae722` | #169 |
+
+## v1.23 — 2026-09-02
+
+Phase 4 of `docs/plans/refactor-architecture-cleanup-2.md`: oversized-file
+decomposition, the last phase of the plan. Report in
+`docs/reports/phase-4-oversized-file-decomposition-2026-09-02.md`.
+
+- **`components/crm/ProjectThread.jsx` split** into a data hook
+  (`components/crm/useProjectThread.js`: state, read-model load, Realtime
+  subscription, every mutation) and a presentation component that renders
+  from it. A verbatim move: the hook body and the JSX/CSS are diffed
+  identical to the original. No visual or behavioural change intended.
+- **New behavioural test** `tests/crm/project-thread-behaviour.test.jsx`
+  (11 tests) pins the Conversation panel's Realtime subscription
+  lifecycle, project-switch guard, inline edit and send idempotency — the
+  flows STATUS.md records as having regressed past every automated gate.
+  Written and green before the split, green after.
+- **`app/actions/project-actions.js` deliberately not split**: five CRM
+  contract tests assert against this one file's source text (RPC
+  allowlist, no direct table writes, result contract). That gate is worth
+  more than the split; the report records what would unlock it.
+- `lib/servicePages.mjs` and `components/ui/liquid-ether-background.jsx`
+  triaged as large but cohesive; no split.
+
+## v1.22 — 2026-09-02
+
+Homepage copy pass across all nine scroll beats. (The canonical-domain fix
+this PR originally carried landed separately as #164.)
+
+- **Hero** — subhead tightened to end on the business outcome ("so the
+  click turns into the client") instead of stopping at the aesthetic one.
+- **About** — kicker sharpened; picks up the Hero's "scroll" language on
+  purpose, paid off again at Mark and Contact.
+- **Services** — adds a one-line bridge under the header ("Eight
+  disciplines, one team...") between the About statement and the row list;
+  the 8 row descriptions in `lib/services.mjs` are untouched.
+- **Stories** — one-word tighten ("No" → "Zero invented case studies").
+- **Mark** — sub tightened to tie "assembled on purpose" explicitly back to
+  the actual process described in Approach.
+- **Lab** — caption tightened; also fixes the decorative `aria-hidden`
+  label reading "CDS" when `SITE.short` is `"CD"`.
+- **Contact** — headline reworked from "Let's make something rare." (a
+  vibes line with no concrete client benefit) to "Let's build something
+  worth the scroll." — the closing beat of the "scroll" thread started in
+  Hero. Sub tightened for rhythm, same commitments.
+- Approach and Motion are unchanged — both were substantially rewritten in
+  v1.16 and reviewed here, not touched again.
+
+## v1.21 — 2026-09-02
+
+Fixes literal `PLACEHOLDER — confirm …` strings that v1.15 shipped live to
+production on `/about`, `/contact`, `/process`, `/services`, and `/reviews`
+— visible to real visitors and inside each page's `FaqSchema` structured
+data. v1.15 intentionally left these as explicit placeholders pending
+founder input rather than inventing facts; this closes that gap with the
+owner's actual answers where given, and honest, non-fabricated interim
+copy where not:
+
+- **Contact** — reply-time FAQ and hero lede now say "within 1 business
+  day"; NDA FAQ says "yes, on request."
+- **About** — team-size FAQ now describes a small, senior,
+  cross-disciplinary team (design, engineering, motion/AI-automation)
+  without an invented headcount.
+- **Services** — pricing FAQ now states scope-dependent, quote-only
+  pricing (matching the tone already shipped on the embroidery landing
+  page's cost FAQ) instead of asking whether to disclose ranges.
+- **Reviews** — "leave a review" FAQ now points to Contact/email instead
+  of a placeholder platform link that doesn't exist yet.
+- **Process** — the 6 steps' `duration`/`deliverable` fields are removed
+  rather than filled with invented numbers; `ProcessStepsRail` already
+  renders that meta row conditionally, so the steps show cleanly without
+  it until real figures are confirmed.
+- Removes a few stale `PLACEHOLDER`-referencing code comments left over
+  from v1.15 (embroidery page, Process, Services, Contact, About) that no
+  longer describe the code.
+
+No homepage/WebGL scene files touched.
+
+## v1.20 — 2026-09-02
+
+Phase 3 of `docs/plans/refactor-architecture-cleanup-2.md`: admin CRUD
+duplication audit and extraction. No visual or behavioural change intended;
+report in `docs/reports/phase-3-admin-crud-duplication-audit-2026-09-02.md`.
+
+- The eight `/admin/<entity>/{new,[id]/edit}` pages shared their page
+  chrome and ~150 lines of inline styled-jsx each, not their form logic.
+  New `components/crm/AdminFormShell.jsx` owns the wrapper, header, error
+  banner, form card and field/button CSS; every entity's loaders, guards,
+  cascades, payload coercion and submit flow are untouched. Pages: 3,322 →
+  1,965 lines.
+- The pages had drifted into two chrome styles (companies/deals 700px
+  "card", contacts/tasks 800px "container"); the shell keeps both as an
+  explicit `variant` so nothing changes on screen. Unifying them is listed
+  as an owner decision.
+- Characterization test `tests/crm/admin-form-shell.test.jsx` renders the
+  frozen pre-refactor pages (`tests/crm/fixtures/admin-forms-pre-phase3/`)
+  against the new ones and asserts byte-identical markup; the old CSS was
+  diffed selector-by-selector against the shell.
+- Two pre-existing gaps recorded, not fixed: contacts/tasks edit pages lack
+  the "no rows changed" post-update check; `tasks/new` has no admin guard.
+
 ## v1.19 — 2026-09-02
 
 Phase 2 of `docs/plans/refactor-architecture-cleanup-2.md`: testing and
