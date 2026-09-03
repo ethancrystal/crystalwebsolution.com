@@ -82,3 +82,6 @@ supabase/.temp
 
 # Scratch repo-analysis clones (nested git repos, never commit)
 /.tmp-repo-analysis/
+
+.vercel
+.env*
