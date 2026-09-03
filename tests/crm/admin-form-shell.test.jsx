@@ -121,12 +121,16 @@ import NewEditTaskPage from '@/app/admin/tasks/[id]/edit/page.jsx';
 // styled-jsx is not transformed under vitest (no babel plugin), so <style jsx>
 // renders as a literal <style> element carrying the raw CSS -- strip it, since
 // the CSS moved from the page into the shell by design. The shell also adds
-// its variant namespace classes to the page wrapper; those are asserted
-// explicitly, then removed so the rest of the tree can be compared verbatim.
+// its namespace class to the page wrapper; that is asserted explicitly, then
+// removed so the rest of the tree can be compared verbatim.
 function normalize(html) {
   return html
     .replace(/<style[^>]*>[\s\S]*?<\/style>/g, '')
-    .replace(/ crm-admin-form crm-admin-form--(card|container)/g, '')
+    .replace(/ crm-admin-form/g, '')
+    // 2026-09-03: the two chrome families were unified (plan 3, Task 6); the
+    // single frame is .crm-form-card, so the container fixtures are mapped
+    // onto it. Everything else in the tree must still match byte for byte.
+    .replace(/crm-form-container/g, 'crm-form-card')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -145,74 +149,73 @@ async function renderAndSettle(Component, { label, text, value }) {
   return result.container.innerHTML;
 }
 
-async function expectSameMarkup({ Old, New, variant, ...settle }) {
+async function expectSameMarkup({ Old, New, ...settle }) {
   const oldHtml = normalize(await renderAndSettle(Old, settle));
   cleanup();
   const rawNewHtml = await renderAndSettle(New, settle);
-  expect(rawNewHtml).toContain(`crm-admin-form--${variant}`);
+  expect(rawNewHtml).toContain('crm-admin-form');
+  expect(rawNewHtml).toContain('crm-form-card');
   expect(normalize(rawNewHtml)).toBe(oldHtml);
 }
 
 afterEach(() => cleanup());
 
-describe('AdminFormShell characterization: companies (card variant)', () => {
+describe('AdminFormShell characterization: companies', () => {
   it('new page renders identical markup to the pre-Phase-3 page', async () => {
     await expectSameMarkup({
-      Old: OldNewCompanyPage, New: NewNewCompanyPage, label: 'Name *', variant: 'card',
+      Old: OldNewCompanyPage, New: NewNewCompanyPage, label: 'Name *',
     });
   });
 
   it('edit page renders identical markup once the company has loaded', async () => {
     await expectSameMarkup({
-      Old: OldEditCompanyPage, New: NewEditCompanyPage, label: 'Name *', value: 'Acme Inc.', variant: 'card',
+      Old: OldEditCompanyPage, New: NewEditCompanyPage, label: 'Name *', value: 'Acme Inc.',
     });
   });
 });
 
-describe('AdminFormShell characterization: deals (card variant)', () => {
+describe('AdminFormShell characterization: deals', () => {
   it('new page renders identical markup to the pre-Phase-3 page', async () => {
     await expectSameMarkup({
-      Old: OldNewDealPage, New: NewNewDealPage, label: 'Title *', variant: 'card',
+      Old: OldNewDealPage, New: NewNewDealPage, label: 'Title *',
     });
   });
 
   it('edit page renders identical markup once the deal has loaded', async () => {
     await expectSameMarkup({
-      Old: OldEditDealPage, New: NewEditDealPage, label: 'Title *', value: 'Big deal', variant: 'card',
+      Old: OldEditDealPage, New: NewEditDealPage, label: 'Title *', value: 'Big deal',
     });
   });
 });
 
-describe('AdminFormShell characterization: contacts (container variant)', () => {
+describe('AdminFormShell characterization: contacts', () => {
   it('new page renders the identical "create a company first" empty state', async () => {
     await expectSameMarkup({
       Old: OldNewContactPage,
       New: NewNewContactPage,
       text: 'You need a company before you can add a contact.',
-      variant: 'container',
     });
   });
 
   it('edit page renders identical markup once the contact has loaded', async () => {
     await expectSameMarkup({
-      Old: OldEditContactPage, New: NewEditContactPage, label: 'First Name *', value: 'Ada', variant: 'container',
+      Old: OldEditContactPage, New: NewEditContactPage, label: 'First Name *', value: 'Ada',
     });
   });
 });
 
-describe('AdminFormShell characterization: tasks (container variant)', () => {
+describe('AdminFormShell characterization: tasks', () => {
   it('new page renders the identical "create a company first" empty state', async () => {
     await expectSameMarkup({
       Old: OldNewTaskPage,
       New: NewNewTaskPage,
       text: 'You need a company before you can add a task.',
-      variant: 'container',
     });
   });
 
   it('edit page renders identical markup once the task has loaded', async () => {
     await expectSameMarkup({
-      Old: OldEditTaskPage, New: NewEditTaskPage, label: 'Title *', value: 'Fix the thing', variant: 'container',
+      Old: OldEditTaskPage, New: NewEditTaskPage, label: 'Title *', value: 'Fix the thing',
     });
   });
 });
@@ -226,7 +229,7 @@ describe('AdminFormShell states', () => {
 
   it('fatalError renders only the error banner in the wrapper -- the deals edit `error && !form` branch', () => {
     const { container } = render(
-      <AdminFormShell variant="card" title="Edit Deal" backHref="/admin/deals/1" backLabel="Back" fatalError="boom" />
+      <AdminFormShell title="Edit Deal" backHref="/admin/deals/1" backLabel="Back" fatalError="boom" />
     );
     expect(normalize(container.innerHTML)).toBe(
       '<div class="crm-admin-page"><div class="crm-error">boom</div></div>'

@@ -102,7 +102,6 @@ export default function NewContactPage() {
 
   return (
     <AdminFormShell
-      variant="container"
       title="Add Contact"
       backHref="/admin/contacts"
       backLabel="Back to Contacts"

@@ -4,14 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import {
-  getProjectWorkspace,
-  listNotifications,
-  listProjectApprovals,
-  listProjectDeliverables,
-  listProjectMessages,
-  listProjectTasks,
-} from '@/lib/crm/projects';
+import { getProjectWorkspace, listNotifications } from '@/lib/crm/projects';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
 import ProjectOverview from '@/components/crm/ProjectOverview';
 import ProjectTimeline from '@/components/crm/ProjectTimeline';
@@ -28,9 +21,6 @@ export default function ClientProjectPage() {
   const projectId = params?.id;
   const [profile, setProfile] = useState(null);
   const [workspace, setWorkspace] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [approvals, setApprovals] = useState([]);
-  const [deliverables, setDeliverables] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -66,18 +56,16 @@ export default function ClientProjectPage() {
       const viewerProfile = { profile: profileData };
       setProfile(profileData);
 
-      const [data, taskList, approvalList, deliverableList, notificationList] = await Promise.all([
+      // getProjectWorkspace already returns tasks, approvals and deliverables
+      // scoped to this viewer; fetching them again through the standalone list
+      // functions cost four extra `projects` and `profiles` round trips per load
+      // for identical rows.
+      const [data, notificationList] = await Promise.all([
         getProjectWorkspace(supabase, viewerProfile, projectId),
-        listProjectTasks(supabase, viewerProfile, projectId),
-        listProjectApprovals(supabase, viewerProfile, projectId),
-        listProjectDeliverables(supabase, viewerProfile, projectId),
         listNotifications(supabase, viewerProfile),
       ]);
 
       setWorkspace(data);
-      setTasks(taskList ?? []);
-      setApprovals(approvalList ?? []);
-      setDeliverables(deliverableList ?? []);
       setNotifications((notificationList ?? []).filter((notification) => notification.project_id === projectId));
     } catch (err) {
       setError(err.message || 'Unable to load this project.');
@@ -114,15 +102,15 @@ export default function ClientProjectPage() {
       <ProjectOverview project={workspace.project} />
       <NotificationsPanel notifications={notifications} />
       <ProjectTimeline history={workspace.statusHistory} />
-      <ProjectTasks tasks={tasks} readOnly />
+      <ProjectTasks tasks={workspace.tasks ?? []} readOnly />
       <ProjectFiles
         files={workspace.attachments ?? []}
-        deliverables={deliverables}
+        deliverables={workspace.deliverables ?? []}
         canUpload={false}
         projectId={projectId}
         onChanged={loadWorkspace}
       />
-      <ProjectApprovals approvals={approvals} />
+      <ProjectApprovals approvals={workspace.approvals ?? []} />
       <ProjectThread projectId={projectId} profile={profile} />
       <NotesPanel projectId={projectId} />
 

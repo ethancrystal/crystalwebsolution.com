@@ -5,6 +5,49 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.28 — 2026-09-03
+
+Frontend follow-ups from `docs/plans/audit-followups-crm-hardening-3.md`
+(Tasks 5–8). No homepage/WebGL scene logic touched; the only marketing-file
+edits delete inert attributes.
+
+- **Custom-cursor leftovers removed.** The dot+ring cursor shipped in the
+  initial commit and was removed in PR #10 (2026-07-13) by design review;
+  three later audits misread its remains as an unbuilt feature. Deleted the
+  51 `data-cursor` and one `data-hover` attributes across 21 JSX files,
+  the `.cursor-*` rules (`app/styles/cursor-loader.css` → `loader.css`),
+  and the `html.has-cursor` rule in `reset.css`. Nothing read any of
+  them. `tests/no-dead-cursor-markup.test.mjs` keeps them out; restoring
+  the cursor is `git show 1a2807c^:components/Cursor.jsx`.
+- **One admin form chrome.** `AdminFormShell` loses its `variant` prop:
+  all eight `/admin/<entity>/{new,edit}` pages now share the 800px frame,
+  0.9rem unweighted labels, `0.75rem 1rem` inputs, `#64c8ff` focus ring
+  and a 1.5rem/2rem actions row. Companies/deals widen from 700px and lose
+  the bold label; contacts/tasks gain the stronger focus colour. Page markup
+  is unchanged apart from the frame class (contacts/tasks now render
+  `.crm-form-card` like the others); both selector families and both cancel
+  controls are kept, which the byte-identity test still proves against the
+  frozen pre-Phase-3 fixtures.
+- **Admin CRUD gaps closed** (recorded, not fixed, in v1.20): contacts and
+  tasks edit pages now `.select()` the updated row and throw
+  `Update failed - no rows changed (check permissions).` like companies and
+  deals; `tasks/new` gets the same admin redirect + skeleton gate as the
+  other three new pages (task INSERT is `is_admin()`, migration 0005).
+  `tests/crm/admin-crud-guards.test.mjs` pins all eight pages symmetric.
+- **CRM read-model waste.** `getProjectWorkspace` no longer fetches a
+  50-message page nobody rendered (ProjectThread owns that read) and skips
+  the `project_assignments` query for clients (RLS returns zero rows for
+  them anyway); `listProjectsForViewer` skips the companies fetch for
+  clients. The client project page renders `workspace.tasks/approvals/
+  deliverables` instead of re-fetching them, cutting four `projects` and
+  four `profiles` round trips per load to one each. Dead
+  `getUserProfile` server action removed. Two source-contract tests
+  updated in step.
+
+Verification: `pnpm test` 474/474, `pnpm test:marketing` 35/35,
+`pnpm build` 57/57 pages, First Load JS unchanged (`/` 378 kB, shared
+228 kB).
+
 ## v1.27 — 2026-09-03
 
 Docs only — no runtime code changes. Closes the refactor plan ledger and

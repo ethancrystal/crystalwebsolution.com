@@ -94,7 +94,6 @@ export default function EditCompanyPage() {
 
   return (
     <AdminFormShell
-      variant="card"
       title="Edit Company"
       backHref={`/admin/companies/${id}`}
       backLabel="Back to Company"

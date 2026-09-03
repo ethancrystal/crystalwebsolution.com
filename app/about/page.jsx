@@ -118,19 +118,19 @@ export default function AboutPage() {
         </p>
         <ul className="mkt-related">
           <li>
-            <Link href="/work" className="mkt-related-link" data-cursor="View">
+            <Link href="/work" className="mkt-related-link">
               <span className="mkt-related-title">Selected work — every project, shaped around the real problem it had to solve.</span>
               <span className="mkt-related-arrow" aria-hidden="true">→</span>
             </Link>
           </li>
           <li>
-            <Link href="/process" className="mkt-related-link" data-cursor="View">
+            <Link href="/process" className="mkt-related-link">
               <span className="mkt-related-title">Process — the steps between a brief and a launch, laid out plainly.</span>
               <span className="mkt-related-arrow" aria-hidden="true">→</span>
             </Link>
           </li>
           <li>
-            <Link href="/reviews" className="mkt-related-link" data-cursor="View">
+            <Link href="/reviews" className="mkt-related-link">
               <span className="mkt-related-title">Client reviews — what clients said, published in full.</span>
               <span className="mkt-related-arrow" aria-hidden="true">→</span>
             </Link>

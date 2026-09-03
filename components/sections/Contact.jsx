@@ -31,7 +31,6 @@ export default function Contact() {
           <a
             href={`mailto:${SITE.email}`}
             className="btn btn-ghost contact-email"
-            data-cursor="Write us"
           >
             {SITE.email}
           </a>
