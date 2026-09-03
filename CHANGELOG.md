@@ -5,6 +5,22 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.25 — 2026-09-02
+
+SEO programme memory + blog draft publish pipeline. No marketing/runtime
+page code changed.
+
+- **`docs/seo/`** — repository memory for the SEO programme (operations
+  manual, keyword registry, run logs, backlink research, blog drafts).
+  Replaces the Notion archive dropped 2026-09-02.
+- **`scripts/seo/publish-blog-drafts.mjs`** — upserts drafts with
+  `approved: true` into `blog_posts` as `status: draft` only. Never
+  publishes; MJ publishes from `/admin/blog`.
+- **`.github/workflows/seo-publish-blog.yml`** — runs the script on main
+  when drafts change. Inert until repo secrets exist.
+- **Draft** `docs/seo/drafts/blog/web-development-rfp-guide.md`
+  (`approved: true`) for CRY-22 target keywords.
+
 ## v1.24 — 2026-09-02
 
 Docs-only: repairs the version ledger after the six PRs below merged out
