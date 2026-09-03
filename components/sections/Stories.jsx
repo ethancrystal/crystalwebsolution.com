@@ -53,7 +53,7 @@ export default function Stories() {
       </SectionReveal>
 
       <SectionReveal className="stories-cta" delay={0.1} direction="up">
-        <a href="/reviews" className="link-underline" data-cursor="Read">
+        <a href="/reviews" className="link-underline">
           Read every client review →
         </a>
       </SectionReveal>

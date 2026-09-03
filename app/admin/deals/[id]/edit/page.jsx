@@ -156,7 +156,6 @@ export default function EditDealPage() {
 
   return (
     <AdminFormShell
-      variant="card"
       title="Edit Deal"
       backHref={`/admin/deals/${id}`}
       backLabel="Back to Deal"

@@ -70,7 +70,6 @@ export default function Hero() {
       className="section hero hero-off-axis hero-refraction"
       id="hero"
       onClick={onBlast}
-      data-cursor="Tap"
       data-quiet
     >
       <div className="hero-refraction-sweep" aria-hidden="true" />
@@ -101,7 +100,6 @@ export default function Hero() {
             <a
               href="/#contact"
               className="btn btn-solid"
-              data-cursor="Let's go"
               onClick={(e) => e.stopPropagation()}
             >
               Start a project <span className="btn-arrow">→</span>

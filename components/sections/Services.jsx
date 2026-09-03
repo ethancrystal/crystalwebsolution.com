@@ -183,7 +183,7 @@ export default function Services() {
                 data-service-index={i}
                 data-active="false"
               >
-                <h3 className="service-title" data-hover data-cursor="✦">
+                <h3 className="service-title">
                   <span className="service-title-inner">{s.title}</span>
                 </h3>
                 <p className="service-desc">{s.desc}</p>

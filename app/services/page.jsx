@@ -89,19 +89,19 @@ export default function ServicesIndex() {
       <ContentSection eyebrow="More" title="See the standard behind every offer" tone="alt">
         <ul className="mkt-related">
           <li>
-            <Link href="/process" className="mkt-related-link" data-cursor="View">
+            <Link href="/process" className="mkt-related-link">
               <span className="mkt-related-title">Process — the six stages every one of these services runs through.</span>
               <span className="mkt-related-arrow" aria-hidden="true">→</span>
             </Link>
           </li>
           <li>
-            <Link href="/work" className="mkt-related-link" data-cursor="View">
+            <Link href="/work" className="mkt-related-link">
               <span className="mkt-related-title">Selected work — see the services above applied to real briefs.</span>
               <span className="mkt-related-arrow" aria-hidden="true">→</span>
             </Link>
           </li>
           <li>
-            <Link href="/reviews" className="mkt-related-link" data-cursor="View">
+            <Link href="/reviews" className="mkt-related-link">
               <span className="mkt-related-title">Client reviews — what it was like to work with us, published in full.</span>
               <span className="mkt-related-arrow" aria-hidden="true">→</span>
             </Link>

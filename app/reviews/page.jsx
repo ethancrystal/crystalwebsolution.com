@@ -163,19 +163,19 @@ export default function ReviewsPage() {
         <section className="reviews-related" aria-label="More about the studio">
           <SectionReveal as="ul" className="mkt-related" direction="up">
             <li>
-              <Link href="/work" className="mkt-related-link" data-cursor="View">
+              <Link href="/work" className="mkt-related-link">
                 <span className="mkt-related-title">Selected work — the projects behind these reviews.</span>
                 <span className="mkt-related-arrow" aria-hidden="true">→</span>
               </Link>
             </li>
             <li>
-              <Link href="/services" className="mkt-related-link" data-cursor="View">
+              <Link href="/services" className="mkt-related-link">
                 <span className="mkt-related-title">Services — the eight offers these clients hired us for.</span>
                 <span className="mkt-related-arrow" aria-hidden="true">→</span>
               </Link>
             </li>
             <li>
-              <Link href="/about" className="mkt-related-link" data-cursor="View">
+              <Link href="/about" className="mkt-related-link">
                 <span className="mkt-related-title">About — meet the studio behind the work.</span>
                 <span className="mkt-related-arrow" aria-hidden="true">→</span>
               </Link>

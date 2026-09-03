@@ -142,7 +142,6 @@ export default function NewDealPage() {
 
   return (
     <AdminFormShell
-      variant="card"
       title="Add Deal"
       backHref="/admin/deals"
       backLabel="Back to Deals"

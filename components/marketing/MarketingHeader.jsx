@@ -13,14 +13,14 @@ export default function MarketingHeader() {
         <BrandLogo />
       </Link>
       <nav className="mkt-header-nav" aria-label="Marketing">
-        <Link href="/work" data-cursor="Work">Work</Link>
-        <Link href="/services" data-cursor="Services">Services</Link>
-        <Link href="/process" data-cursor="Process">Process</Link>
-        <Link href="/reviews" data-cursor="Reviews">Reviews</Link>
-        <Link href="/about" data-cursor="About">About</Link>
-        <Link href="/#contact" className="btn btn-ghost" data-cursor="Say hi">Start a project</Link>
+        <Link href="/work">Work</Link>
+        <Link href="/services">Services</Link>
+        <Link href="/process">Process</Link>
+        <Link href="/reviews">Reviews</Link>
+        <Link href="/about">About</Link>
+        <Link href="/#contact" className="btn btn-ghost">Start a project</Link>
         {CRM_ENABLED && (
-          <Link href="/login" className="mkt-header-login" data-cursor="Log in">Log in</Link>
+          <Link href="/login" className="mkt-header-login">Log in</Link>
         )}
       </nav>
     </header>

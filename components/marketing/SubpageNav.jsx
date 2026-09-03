@@ -46,7 +46,6 @@ export default function SubpageNav() {
         <Link
           href="/"
           className="nav-logo"
-          data-cursor="Home"
           aria-label={`${SITE.name} home`}
         >
           <BrandLogo />
@@ -54,7 +53,7 @@ export default function SubpageNav() {
 
         <nav className="subpage-nav-links" aria-label="Marketing">
           {SITE.nav.map((item) => (
-            <Link key={item.label} href={item.href} data-cursor={item.label}>
+            <Link key={item.label} href={item.href}>
               {item.label}
             </Link>
           ))}
@@ -62,12 +61,12 @@ export default function SubpageNav() {
 
         <div className="nav-right">
           {CRM_ENABLED && (
-            <Link href="/login" className="nav-login-link" data-cursor="Log in">
+            <Link href="/login" className="nav-login-link">
               Log in
             </Link>
           )}
           <Magnetic>
-            <Link href="/contact" className="btn btn-ghost" data-cursor="Say hi">
+            <Link href="/contact" className="btn btn-ghost">
               Start a project
             </Link>
           </Magnetic>
@@ -79,7 +78,6 @@ export default function SubpageNav() {
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
               aria-controls="site-menu"
-              data-cursor={open ? 'Close' : 'Menu'}
             >
               <span />
               <span />

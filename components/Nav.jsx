@@ -44,17 +44,17 @@ export default function Nav() {
   return (
     <>
       <header className={`nav ${scrolled && !open ? 'nav-glass' : ''} ${onLightSurface && !open ? 'nav-on-light' : ''}`}>
-        <Link href="/" className="nav-logo" data-cursor="Home" aria-label={`${SITE.name} home`}>
+        <Link href="/" className="nav-logo" aria-label={`${SITE.name} home`}>
           <BrandLogo />
         </Link>
         <div className="nav-right">
           {CRM_ENABLED && (
-            <Link href="/login" className="nav-login-link" data-cursor="Log in">
+            <Link href="/login" className="nav-login-link">
               Log in
             </Link>
           )}
           <Magnetic>
-            <a href="/#contact" className="btn btn-ghost" data-cursor="Say hi">
+            <a href="/#contact" className="btn btn-ghost">
               Start a project
             </a>
           </Magnetic>
@@ -66,7 +66,6 @@ export default function Nav() {
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
               aria-controls="site-menu"
-              data-cursor={open ? 'Close' : 'Menu'}
             >
               <span />
               <span />

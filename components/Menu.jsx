@@ -90,7 +90,7 @@ export default function Menu({ open, onClose }) {
       <div className="menu-links">
         {SITE.nav.map((item, i) => (
           <div className="menu-link-mask" key={item.label}>
-            <Link href={item.href} className="menu-link" onClick={onClose} data-cursor="Go" tabIndex={open ? 0 : -1}>
+            <Link href={item.href} className="menu-link" onClick={onClose} tabIndex={open ? 0 : -1}>
               <span className="menu-link-index">0{i + 1}</span>
               {item.label}
             </Link>

@@ -34,7 +34,11 @@ export default function NotificationsPanel({ notifications = [] }) {
       ) : (
         <ul className="crm-notification-list">
           {notifications.map((notification) => {
-            const unread = notification.channel === 'in_app' && !notification.read_at;
+            // Every row the SELECT policy returns is an in_app feed item since
+            // migration 0041; email/realtime rows are queue state the worker
+            // owns and are no longer visible here (they used to render as a
+            // second, un-dismissable copy of each event).
+            const unread = !notification.read_at;
             return (
               <li key={notification.id} className={`crm-notification-item ${unread ? 'unread' : ''}`}>
                 <div className="crm-notification-main">
@@ -44,7 +48,6 @@ export default function NotificationsPanel({ notifications = [] }) {
                   </span>
                 </div>
                 <div className="crm-notification-meta">
-                  <span>{notification.channel}</span>
                   <span>{formatWhen(notification.created_at)}</span>
                   {unread ? (
                     <form action={markNotificationsRead}>

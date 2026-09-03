@@ -74,7 +74,7 @@ export default function WorkIndex() {
             <p className="eyebrow">One standard of care</p>
             <h2>Every project starts with the real problem.</h2>
           </div>
-          <Link href="/process" className="btn btn-ghost" data-cursor="Process">
+          <Link href="/process" className="btn btn-ghost">
             View the process →
           </Link>
         </SectionReveal>
@@ -97,19 +97,19 @@ export default function WorkIndex() {
         <section className="work-related" aria-label="More about the studio">
           <SectionReveal as="ul" className="mkt-related" direction="up">
             <li>
-              <Link href="/services" className="mkt-related-link" data-cursor="View">
+              <Link href="/services" className="mkt-related-link">
                 <span className="mkt-related-title">Services — the eight offers behind the work above.</span>
                 <span className="mkt-related-arrow" aria-hidden="true">→</span>
               </Link>
             </li>
             <li>
-              <Link href="/reviews" className="mkt-related-link" data-cursor="View">
+              <Link href="/reviews" className="mkt-related-link">
                 <span className="mkt-related-title">Client reviews — what these and other clients said, published in full.</span>
                 <span className="mkt-related-arrow" aria-hidden="true">→</span>
               </Link>
             </li>
             <li>
-              <Link href="/about" className="mkt-related-link" data-cursor="View">
+              <Link href="/about" className="mkt-related-link">
                 <span className="mkt-related-title">About — the team that ran these projects.</span>
                 <span className="mkt-related-arrow" aria-hidden="true">→</span>
               </Link>
@@ -127,7 +127,7 @@ export default function WorkIndex() {
             straight read before anything else happens.
           </SectionReveal>
           <SectionReveal direction="up" delay={0.15}>
-            <Link href="/contact" className="btn btn-solid" data-cursor="Contact">
+            <Link href="/contact" className="btn btn-solid">
               Start a project <span aria-hidden="true">→</span>
             </Link>
           </SectionReveal>

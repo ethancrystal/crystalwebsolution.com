@@ -167,11 +167,11 @@ export default function EmbroideryScreenPrintingWebDesign() {
           ))}
         </SectionReveal>
 
-        <Link href="/contact" className="case-next" data-cursor="Contact">
+        <Link href="/contact" className="case-next">
           <span className="eyebrow">Start here</span>
           <span className="case-next-title">Send us your catalog and current workflow →</span>
         </Link>
-        <Link href="/work" className="case-next" data-cursor="View work">
+        <Link href="/work" className="case-next">
           <span className="eyebrow">See our work</span>
           <span className="case-next-title">Every project, one standard →</span>
         </Link>

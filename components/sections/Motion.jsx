@@ -53,7 +53,7 @@ export default function Motion() {
             and what moved once it shipped. Open any one and judge it yourself.
           </p>
         </div>
-        <Link href="/work" className="motion-link" data-cursor="All projects">
+        <Link href="/work" className="motion-link">
           View all work <span aria-hidden="true">→</span>
         </Link>
       </header>
@@ -69,7 +69,6 @@ export default function Motion() {
               className="motion-stream-item"
               style={{ '--rail-accent': project.palette[0] }}
               aria-label={`${project.title} — view case study`}
-              data-cursor="View case"
             >
               <span className="motion-stream-item-index" aria-hidden="true">
                 0{index + 1}

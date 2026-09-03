@@ -159,26 +159,6 @@ export async function getUser() {
   return user;
 }
 
-export async function getUserProfile() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null;
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  return { user, profile };
-}
-
 // Mirrors signUp(): generateLink() + Resend so the resent message is the
 // same branded template as the original, instead of Supabase's default one.
 // Always reports success so the endpoint cannot be used to enumerate which
