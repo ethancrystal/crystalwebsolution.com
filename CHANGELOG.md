@@ -5,6 +5,36 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.27 — 2026-09-03
+
+Docs only — no runtime code changes. Closes the refactor plan ledger and
+records what the 2026-09-02 audits got wrong before anyone acts on them.
+
+- **`docs/plans/README.md`** (new): status table for every plan file, the
+  "where results live" order of authority (CHANGELOG → `docs/reports/` →
+  `STATUS.md`), and an agent protocol requiring a real code review of each
+  cited `file:line` before acting on any plan row.
+- **`docs/plans/refactor-architecture-cleanup-2.md`** marked Complete;
+  the 25 blank Phase 1–4 task rows back-filled from CHANGELOG v1.18–v1.23
+  and the three phase reports. Plan v1 marked Complete (its Phases 4–5
+  shipped through v2).
+- **`docs/plans/audit-followups-crm-hardening-3.md`** (new): the plan for
+  the ten open items, with a §0 table of audit claims re-verified against
+  code and the live catalog. Five did not hold: `shares_project_with` was
+  already re-granted by migration 0040; every `project_*` table already
+  has enable+force RLS in 0009/0010; the blog-actions old-slug read and
+  the NotesPanel read are both correct; and the custom cursor was never
+  "unbuilt" — it shipped and was removed in PR #10 by design.
+- **`docs/reports/lighthouse-baseline-2026-09-03.md`** (new): first
+  Lighthouse run against production (`www.cdsportswearinc.com`). Homepage
+  mobile perf 34 / LCP 13.5 s, script-bound (WebGL + GSAP boot under 4× CPU
+  throttle); inner pages still load the Three.js chunk; Sentry envelopes
+  are blocked by CSP `connect-src` in production.
+- `docs/reports/phase-1-*.md` cursor section and `docs/CRM-OPERATIONS.md`
+  migration head corrected.
+- Housekeeping outside the PR: the five merged `refactor/phase-*` and
+  `claude/app-refactoring-plan-*` remote branches were deleted 2026-09-03.
+
 ## v1.26 — 2026-09-03
 
 Production moved to a new custom domain outside git, the same way

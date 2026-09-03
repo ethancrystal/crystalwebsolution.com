@@ -76,7 +76,25 @@ v1's audit flagged ~30 untracked SEO-crawl CSVs in `public/`
 downloadable. Re-checked: `public/` currently has zero untracked files.
 Already resolved (by a prior session or prior cleanup) — no action needed.
 
-### 6. Owner-decision item — still open: orphaned custom-cursor scaffolding
+### 6. Owner-decision item — resolved 2026-09-03: orphaned custom-cursor leftovers
+
+> **Correction (2026-09-03).** This section, and the "finish building it"
+> option below, were written on a false premise. The cursor was **not
+> unbuilt**: `components/Cursor.jsx` (60 lines, `gsap.quickTo` dot + ring,
+> label read from `data-cursor`) shipped in the initial commit `fdf3c1d`
+> and was deliberately deleted in PR #10 (`1a2807c`, 2026-07-13) "per
+> design feedback that it cluttered the page." `docs/PIXEL-POLISH-PLAN.md`
+> names that merge as its baseline. The 51 attributes,
+> `app/styles/cursor-loader.css:1-40`, and the `html.has-cursor` rule at
+> `app/styles/reset.css:19` (missed below) are what the removal left
+> behind. Every later audit re-litigated this as an open feature decision
+> because none read the git history. **Owner decision 2026-09-03:**
+> remove, consistent with PR #10 — shipped in v1.28 via
+> `docs/plans/audit-followups-crm-hardening-3.md` Task 5. Restoring it is a
+> 65-line revert from `git show 1a2807c^:components/Cursor.jsx` if design
+> direction ever changes.
+
+Original text follows for the record.
 
 Found a larger version of the same issue v1 flagged (v1 counted 31
 `data-cursor` attributes; current count is **51**, across 21 source
