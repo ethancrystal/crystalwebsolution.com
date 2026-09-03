@@ -89,6 +89,22 @@ export async function middleware(request) {
       if (roleHome) return redirectWithCookies(new URL(roleHome, request.url), response);
       return portalLoginResponse(request, protectedPortal, response);
     }
+
+    // An admin invitee is signed in from a one-time link with no password.
+    // Until they choose one they may not use any portal - otherwise they
+    // could skip the set-password form and be locked out once this session
+    // lapses. The fact lives only on auth.users, read through the hardened
+    // RPC from migration 0039. Only portal paths are gated, so the
+    // set-password page itself (under /auth) can never redirect-loop.
+    // Fails open on error: this gate sits behind getUser() and the role
+    // check, so a missing migration must not lock every portal. Log it so
+    // a silently disabled gate is at least visible in the runtime logs.
+    const { data: mustSetPassword, error: passwordCheckError } = await supabase.rpc('current_user_must_set_password');
+    if (passwordCheckError) {
+      console.error('must-set-password gate unavailable:', passwordCheckError.code ?? passwordCheckError.message);
+    } else if (mustSetPassword === true) {
+      return redirectWithCookies(new URL('/auth/reset-password?reason=invite', request.url), response);
+    }
   }
 
   if (roleHome && (pathname === '/login' || ['signup', 'forgot-password'].some((page) => pathname === `/${page}`))) {

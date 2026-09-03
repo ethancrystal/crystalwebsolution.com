@@ -1,10 +1,49 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { updatePassword } from '@/app/auth/actions';
 import DarkPageBackground from '@/components/ui/dark-page-background';
 
+// One form, two arrivals: a password reset (the account already has a
+// password) and an admin invite (it never had one). The invite link and the
+// middleware gate both add ?reason=invite so the copy can say what is
+// actually happening instead of "choose a *new* password".
+const COPY = {
+  reset: {
+    heading: 'Set New Password',
+    lead: 'Choose a new password for your account',
+    button: 'Update Password',
+    busy: 'Updating...',
+  },
+  invite: {
+    heading: 'Set Your Password',
+    lead: 'Choose a password to activate your account and open your portal',
+    button: 'Activate Account',
+    busy: 'Activating...',
+  },
+};
+
 export default function ResetPasswordPage() {
+  // useSearchParams() needs a Suspense boundary or the page bails out of
+  // static prerendering. The fallback is the full form with reset copy, not
+  // null: with a null fallback the prerendered HTML is an empty shell and an
+  // invitee sees a blank page until the client bundle hydrates. Invitees get
+  // a one-frame copy swap after hydration instead, which is far cheaper.
+  return (
+    <Suspense fallback={<ResetPasswordForm copy={COPY.reset} />}>
+      <InviteAwareForm />
+    </Suspense>
+  );
+}
+
+function InviteAwareForm() {
+  const searchParams = useSearchParams();
+  const copy = searchParams.get('reason') === 'invite' ? COPY.invite : COPY.reset;
+  return <ResetPasswordForm copy={copy} />;
+}
+
+function ResetPasswordForm({ copy }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -42,8 +81,8 @@ export default function ResetPasswordPage() {
     <div className="crm-login-container">
       <DarkPageBackground interactive="liquid-ether" />
       <div className="crm-login-card">
-        <h1>Set New Password</h1>
-        <p>Choose a new password for your account</p>
+        <h1>{copy.heading}</h1>
+        <p>{copy.lead}</p>
 
         <form action={handleSubmit} className="crm-form">
           {error && <div className="crm-error">{error}</div>}
@@ -75,7 +114,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <button type="submit" disabled={isLoading} className="crm-button">
-            {isLoading ? 'Updating...' : 'Update Password'}
+            {isLoading ? copy.busy : copy.button}
           </button>
         </form>
       </div>

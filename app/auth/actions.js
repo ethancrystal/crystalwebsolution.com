@@ -313,6 +313,19 @@ export async function updatePassword(formData) {
     return { error: friendlyAuthError(error.message) };
   }
 
+  // This page serves both password resets and admin invites, so the caller
+  // may be a client, a project manager, or the admin. Send each to their own
+  // portal home. Role comes from profiles (RLS-scoped), never from the JWT.
+  let roleHome = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    roleHome = homeForRole(profile?.role);
+  }
+
   // Security notice - best effort. A password change that succeeded must not
   // be reported as a failure just because the notification could not be sent.
   if (user?.email) {
@@ -326,5 +339,5 @@ export async function updatePassword(formData) {
     }
   }
 
-  redirect('/dashboard');
+  redirect(roleHome ?? '/dashboard');
 }
