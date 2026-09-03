@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { SITE } from '../lib/site.js';
-import { SITE_ORIGIN } from '../lib/seo.mjs';
+import { SITE_ORIGIN, SITE_HOST } from '../lib/seo.mjs';
 
 test('email module exports the generic helper used by auth actions', async () => {
   const emailModule = await import('../lib/email/resend.js');
@@ -69,7 +69,10 @@ test("the contact-form footer note names the site's own domain", async () => {
     brief: 'Hello',
   });
 
-  assert.match(rendered.html, /Sent from the cdsportswearusa\.com contact form\./);
+  // Derived from SITE_HOST (in turn derived from SITE_ORIGIN) rather than a
+  // second hardcoded literal, so it can't drift out of sync with the site's
+  // actual domain the way the canonical-logo assertion once did (v1.17).
+  assert.match(rendered.html, new RegExp(`Sent from the ${SITE_HOST.replace('.', '\\.')} contact form\\.`));
 });
 
 test('sender identity is overridable and defaults to the verified domain', async () => {
