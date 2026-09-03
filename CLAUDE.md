@@ -28,13 +28,42 @@ assets and compatibility URLs. CRM routes live under `/login`, `/dashboard`,
 
 **`main` is the production branch.** Vercel's Production Branch setting is
 `main` (verified against the Vercel API 2026-08-15): every merge into `main`
-auto-deploys to the Production environment and is aliased to
-cdsportswearusa.com — the production custom domain as of 2026-08-27.
-crystalwebsolution.com, the domain this repo is named for, no longer
-resolves; the change isn't recorded elsewhere in the repo, so treat this
-line as the source of truth until a fuller migration note exists. Work on a
-feature branch and land it in `main` via a reviewed PR — merging a PR into
-`main` IS deploying to production.
+auto-deploys to the Production environment. **The production custom domain
+is cdsportswearinc.com, confirmed 2026-09-03** (owner-confirmed intentional;
+`lib/seo.mjs`'s `SITE_ORIGIN` and this line are the only records of it —
+there is no PR or migration documenting the switch). Two domains have now
+retired the same way, at the Vercel/DNS layer, outside git, with no other
+trace in this repo:
+
+- `crystalwebsolution.com` (the domain this repo is named for) — dark since
+  before 2026-08-27, registration intact, DNS delegation broken (SERVFAIL).
+  See `docs/seo/` (once merged) for the PBN-spam finding that makes leaving
+  it dark deliberate.
+- `cdsportswearusa.com` (production 2026-08-27 to sometime before
+  2026-09-03) — DNS still resolves to Vercel's edge IPs, but the domain is
+  no longer attached to the Vercel project, so every request there returns
+  `DEPLOYMENT_NOT_FOUND`. **Nobody has 301'd it to the current domain**, so
+  whatever backlinks or rankings it built up in its ~1 week of life are
+  decaying unredirected — the same equity-loss risk `crystalwebsolution.com`
+  already illustrates once. Re-attaching it in Vercel → Settings → Domains
+  as a redirect to cdsportswearinc.com is an open owner action, not yet done.
+
+**Treat the live domain as something to re-verify (`curl -I` the apex and
+`www` host), not trust indefinitely** — it has now moved twice without a
+code change to announce it. Known related gaps as of 2026-09-03, not yet
+confirmed or fixed: `NEXT_PUBLIC_APP_URL` in Vercel's Production environment
+variables (feeds every auth/invite/reset link and the CRM notification
+cron's target — see `lib/supabase/admin.js`, `app/auth/actions.js`,
+`app/admin/users/actions.js`, `app/api/cron/crm-notifications/route.js`);
+Supabase Auth's `SUPABASE_AUTH_SITE_URL` / redirect allow-list
+(`supabase/config.toml`); and whether `sales@cdsportswearusa.com`
+(`lib/site.js`) and the Resend sender domain (`lib/email/resend.js`) move
+with the site or stay on the old domain's mail — neither was changed here,
+since that depends on whether a mailbox and Resend domain verification
+exist for the new address, which only the owner can confirm.
+
+Work on a feature branch and land it in `main` via a reviewed PR — merging
+a PR into `main` IS deploying to production.
 
 - **Feature branches** — every push gets its own Vercel preview deployment
   (behind Vercel Authentication), so anything can be verified on a real
