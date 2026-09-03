@@ -5,6 +5,43 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.26 — 2026-09-03
+
+Production moved to a new custom domain outside git, the same way
+crystalwebsolution.com -> cdsportswearusa.com did (#164): someone changed
+the Vercel project's attached domain to cdsportswearinc.com, and
+cdsportswearusa.com — production since 2026-08-27 — was left unattached.
+Every route on the old domain returned Vercel's `DEPLOYMENT_NOT_FOUND`
+(DNS still resolves there; the domain just isn't on the project anymore).
+Owner confirmed 2026-09-03 that cdsportswearinc.com is the intended domain.
+
+- `lib/seo.mjs` — `SITE_ORIGIN` now `https://www.cdsportswearinc.com`
+  (re-verified the apex->www 308 redirect on the new host). Every
+  canonical, sitemap `<loc>`, JSON-LD `@id` and `og:url` is built from
+  this one constant, so they all move with it. Adds `SITE_HOST` (bare
+  domain, derived from `SITE_ORIGIN`) for prose contexts.
+- `lib/email/templates.js` — the contact-form email footer note now
+  reads `SITE_HOST` instead of a hardcoded domain string; its test in
+  `tests/email.test.mjs` derives the same way, so it can't drift out of
+  sync again (the same fix v1.17 already made once for the canonical-logo
+  assertion).
+- `CLAUDE.md` — documents the new domain, records both retired domains'
+  actual state (crystalwebsolution.com: dead DNS, deliberate; the
+  cdsportswearusa.com: DEPLOYMENT_NOT_FOUND, not yet 301'd — the same
+  equity-decay risk called out for the previous domain), and lists what's
+  still unverified: `NEXT_PUBLIC_APP_URL`, Supabase Auth's
+  `SUPABASE_AUTH_SITE_URL` / redirect allow-list, and whether
+  `sales@cdsportswearusa.com` (`lib/site.js`) and the Resend sender
+  domain (`lib/email/resend.js`) move with the site.
+- **Deliberately not changed:** `SITE.email` and the Resend `DEFAULT_FROM`
+  sender still reference `cdsportswearusa.com`. Moving them requires a
+  working mailbox and Resend domain verification on the new address,
+  which only the owner can confirm — changing the displayed contact
+  address without one would silently drop real inquiries.
+- Re-attaching `cdsportswearusa.com` in Vercel as a redirect to preserve
+  its ~1 week of accrued link equity is still an open owner action, not
+  done here.
+
 ## v1.25 — 2026-09-02
 
 Fixes the second batch of live editorial placeholders (CRY-30): 24
