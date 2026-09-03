@@ -10,3 +10,8 @@ overrides:
   sharp: ">=0.35.0"
   cookie: ">=0.7.0 <1.0.0"
   nanoid: ">=3.3.18"
+  # 3 Dependabot HIGH alerts (SSRF via IPv6/hostname normalization, host
+  # confusion via skipped IDN canonicalization): transitive via ajv (a build
+  # tool dependency, not a direct one). fast-uri ^3.0.1 satisfies ajv's own
+  # range; pin the patched version rather than waiting on ajv to bump it.
+  fast-uri: ">=3.1.6 <4.0.0"

@@ -5,6 +5,25 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.32 — 2026-09-03
+
+Dependency fix. `pnpm-workspace.yaml` pins `fast-uri` to `>=3.1.6 <4.0.0`,
+closing three Dependabot HIGH alerts (SSRF via malformed IPv6/hostname
+normalization; host confusion via skipped IDN canonicalization). `fast-uri`
+is a transitive dependency of `ajv` (a build-tool dependency, not a direct
+one) — `ajv@8.20.0` declares `fast-uri: ^3.0.1`, which the pin satisfies, so
+no consumer needs to change. `pnpm update fast-uri` does not reach a nested
+transitive dependency; the fix follows this file's existing `overrides`
+pattern (`postcss`, `cookie`, `nanoid`) rather than adding a new mechanism.
+Bounded to the `3.x` line already in use — `fast-uri` has since released a
+`4.x` major that an unbounded override would otherwise pull in untested.
+
+`pnpm-lock.yaml` updates `fast-uri@3.1.5` → `3.1.7`. No application code
+changed.
+
+Verification: `pnpm test` 491/491, `pnpm build` 57/57 pages, First Load JS
+unchanged (228 kB shared).
+
 ## v1.31 — 2026-09-03
 
 Docs-only: repairs the version ledger after PR #173 merged directly onto
