@@ -5,6 +5,20 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.26 — 2026-09-03
+
+Removes `tests/placeholders-cry30.test.mjs`, a stray duplicate of the CRY-30
+placeholder guard shipped in v1.25 (#172). It asserted the exact same
+guarantee as `tests/no-live-placeholders.test.mjs` — no `[CONFIRM` or
+`PLACEHOLDER` markers in `lib/servicePages.mjs` or any `app/**/page.jsx` —
+but imported `globSync` from the `glob` package, which was never added to
+`package.json`. That made `pnpm test` fail on a clean checkout of `main`
+with `ERR_MODULE_NOT_FOUND`. The surviving test covers the same files with
+the same markers and is strictly more thorough: it reports every offending
+line instead of stopping at the first hit, resolves paths from the module's
+own location instead of the working directory, and asserts the page walk
+actually found files before declaring success.
+
 ## v1.25 — 2026-09-02
 
 Fixes the second batch of live editorial placeholders (CRY-30): 24
