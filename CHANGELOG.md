@@ -5,6 +5,37 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.31 — 2026-09-03
+
+Docs-only: repairs the version ledger after PR #173 merged directly onto
+`main` (commit `379c49c`, 2026-09-03T20:08Z) without a `VERSION`/
+`CHANGELOG.md` entry. The branch was opened before `v1.25` was assigned to
+the CRY-30 placeholder fix and was never rebased, so its own PR title still
+read "v1.25" at merge time — five numbers behind by then (`v1.26`–`v1.30`
+had since shipped) — and its diff never touched either file, so nothing
+caught the collision. No runtime code changes; this only adds the missing
+entry and advances `VERSION`.
+
+Ships repository memory for the SEO programme (`docs/seo/`, owner's
+decision 2026-09-02, replacing a Notion archive) and its blog-publish
+pipeline:
+
+- `docs/seo/OPERATIONS-MANUAL.md`, `KEYWORD-REGISTRY.md`, `README.md`,
+  `backlinks/{prospects,pbn-watch}.md`, `runs/2026-09-0{1,2}.md` — strategy,
+  the one-keyword-to-one-URL cannibalisation guard, outreach shortlist, PBN
+  spam watch-list, and daily run logs.
+- `docs/seo/drafts/blog/web-development-rfp-guide.md` (CRY-22) — an
+  approved draft, front-matter matching `blog_posts`.
+- `scripts/seo/publish-blog-drafts.mjs` — on merge, upserts every
+  `approved: true` draft into `blog_posts` as `status: draft` (never
+  `published`; that flip is a manual step in `/admin/blog`).
+- `docs/seo/seo-publish-blog.yml.pending` — the GitHub Actions workflow
+  that would call the script above is **not yet installed**
+  (`.github/workflows/`); the PR's own commit message records that the
+  push was refused for lacking the `workflow` OAuth scope. Until an
+  operator adds it manually, merging an approved draft does nothing
+  automatically — the script would need a manual run.
+
 ## v1.30 — 2026-09-03
 
 hCaptcha on the public contact form (every `ContactForm` instance: homepage
