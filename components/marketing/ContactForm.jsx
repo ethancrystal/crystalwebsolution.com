@@ -10,6 +10,10 @@ import {
   createEmptyContactForm,
   validateContactForm,
 } from '../../lib/contactForm.mjs';
+import { getHCaptchaSiteKey, HCAPTCHA_TOKEN_FIELD } from '../../lib/hcaptcha.mjs';
+import HCaptcha from './HCaptcha';
+
+const CAPTCHA_REQUIRED_MESSAGE = 'Please complete the security check before sending.';
 
 // Reusable contact form extracted from components/sections/Contact.jsx.
 // PRESENTATION REFACTOR ONLY (per the marketing plan, Contact Form Protection
@@ -22,6 +26,17 @@ export default function ContactForm({ variant = 'marketing' }) {
   const [values, setValues] = useState(createEmptyContactForm);
   const [errors, setErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: 'idle', message: '' });
+  // hCaptcha: the widget hands us a one-shot token; the API verifies it with
+  // HCAPTCHA_SECRET (lib/hcaptcha.mjs). `captchaReset` is bumped after a
+  // successful send, or when the server rejects the token, so the widget
+  // asks for a fresh solve.
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaReset, setCaptchaReset] = useState(0);
+  // Set when js.hcaptcha.com never loads (ad blocker, proxy, vendor outage).
+  // The server still requires a token once HCAPTCHA_SECRET is configured, so
+  // the honest fallback is the direct email path, not a silent bypass.
+  const [captchaUnavailable, setCaptchaUnavailable] = useState(false);
+  const siteKey = getHCaptchaSiteKey();
 
   useEffect(() => () => requestRef.current?.abort(), []);
 
@@ -70,6 +85,20 @@ export default function ContactForm({ variant = 'marketing' }) {
       return;
     }
 
+    if (captchaUnavailable) {
+      setSubmitState({
+        status: 'error',
+        message: `The security check could not load, so this form can’t send. Please email ${SITE.email} directly.`,
+      });
+      return;
+    }
+
+    if (!captchaToken) {
+      setErrors((current) => ({ ...current, hcaptcha: CAPTCHA_REQUIRED_MESSAGE }));
+      setSubmitState({ status: 'error', message: CAPTCHA_REQUIRED_MESSAGE });
+      return;
+    }
+
     const controller = new AbortController();
     requestRef.current = controller;
     setErrors({});
@@ -79,7 +108,7 @@ export default function ContactForm({ variant = 'marketing' }) {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validation.data),
+        body: JSON.stringify({ ...validation.data, [HCAPTCHA_TOKEN_FIELD]: captchaToken }),
         signal: controller.signal,
       });
       const responseBody = await response.json().catch(() => ({}));
@@ -88,6 +117,8 @@ export default function ContactForm({ variant = 'marketing' }) {
         if (responseBody.errors && typeof responseBody.errors === 'object') {
           setErrors(responseBody.errors);
         }
+        // Tokens are single-use: whatever the server said, this one is spent.
+        setCaptchaReset((count) => count + 1);
         setSubmitState({
           status: 'error',
           message:
@@ -104,6 +135,7 @@ export default function ContactForm({ variant = 'marketing' }) {
 
       setValues(createEmptyContactForm());
       setErrors({});
+      setCaptchaReset((count) => count + 1);
       setSubmitState({
         status: 'success',
         message: responseBody.message || 'Your project brief was sent. We’ll reply by email.',
@@ -233,6 +265,33 @@ export default function ContactForm({ variant = 'marketing' }) {
           tabIndex={-1}
         />
       </div>
+
+      <HCaptcha
+        siteKey={siteKey}
+        variant={variant}
+        resetSignal={captchaReset}
+        errorId={errors.hcaptcha ? `${variant}-hcaptcha-error` : undefined}
+        onUnavailable={() => setCaptchaUnavailable(true)}
+        onToken={(token) => {
+          if (token) setCaptchaUnavailable(false);
+          setCaptchaToken(token);
+          if (token) {
+            setErrors((current) => {
+              if (!current.hcaptcha) return current;
+              const next = { ...current };
+              delete next.hcaptcha;
+              return next;
+            });
+          }
+        }}
+      />
+      {errors.hcaptcha && <p className="contact-form-error" id={`${variant}-hcaptcha-error`}>{errors.hcaptcha}</p>}
+      {captchaUnavailable && !captchaToken && (
+        <p className="contact-form-error" role="alert">
+          The security check could not load (an ad blocker or network filter may be stopping it).
+          You can still reach us at <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+        </p>
+      )}
 
       <div className="contact-form-actions">
         <button

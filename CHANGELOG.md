@@ -5,6 +5,76 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.30 — 2026-09-03
+
+hCaptcha on the public contact form (every `ContactForm` instance: homepage
+Contact beat, `/contact`, `/about`, `/process`, and the eight
+`/services/[slug]` pages). It sits alongside the existing honeypot and
+Upstash rate limit; nothing about the fields, payload or success copy
+changes.
+
+- **Client** — `components/marketing/HCaptcha.jsx` injects `js.hcaptcha.com`
+  once per page from the form's mount effect and renders the dark checkbox
+  widget below the brief. The form refuses to submit without a token, sends it
+  as `hcaptchaToken`, and resets the widget after every response (tokens are
+  single-use). If the loader is blocked (ad blocker, proxy) or times out, the
+  form says so and offers the direct email address instead of waiting forever.
+- **Server** — `app/api/contact` verifies the token with hCaptcha's
+  `siteverify` after field validation and before the webhook, CRM write and
+  emails. Enforcement is on only when `HCAPTCHA_SECRET` is set (same
+  fail-open-when-unconfigured contract as `lib/rateLimit.mjs`). An explicit
+  rejection returns 400; a network/5xx failure reaching hCaptcha lets the
+  brief through and logs, so a vendor outage does not drop leads.
+- **Keys** — the site key is public and ships as the default in
+  `lib/hcaptcha.mjs` (`NEXT_PUBLIC_HCAPTCHA_SITE_KEY` overrides it for
+  previews). The secret is read only from `HCAPTCHA_SECRET` and is **not in
+  the repo**: set it in Vercel → Project → Environment Variables (Production
+  and Preview) and in `.env.local`, then redeploy. Until it is set the widget
+  shows but the server does not verify.
+- **CSP** — `script-src`, `style-src`, `frame-src` and `connect-src` gain
+  `https://hcaptcha.com https://*.hcaptcha.com`; `tests/csp-policy.test.mjs`
+  pins the new tokens.
+- Tests: `tests/hcaptcha.test.mjs` (verification unit tests with a fake
+  fetch, route/form source contracts, and a guard that no secret literal is
+  committed).
+- Not included: signup/login. Supabase Auth has native hCaptcha support
+  (Dashboard → Auth → Bot and Abuse Protection) that only needs the same
+  site key plus a `captchaToken` on `signUp()`; that is a follow-up once the
+  dashboard side is enabled.
+
+## v1.29 — 2026-09-03
+
+Adds migration `0041_client_read_scope_hardening.sql` — **checked in, not
+applied**. Production application is an owner-approved step per
+`docs/CRM-OPERATIONS.md` §Migrations; until it runs, the three holes below
+remain open in the live database. Plan:
+`docs/plans/audit-followups-crm-hardening-3.md` Tasks 10–11.
+
+- **`project_approvals` SELECT** now follows the deliverable: clients see
+  project-level approvals (`deliverable_id is null`) and approvals on
+  `shared` deliverables; approvals on `internal` deliverables — and their
+  reviewer notes — become staff-only. Policy renamed to "Project
+  participants can view visible approvals".
+- **`notifications_outbox` SELECT** limited to the recipient's `in_app`
+  rows, matching `mark_notifications_read()`. Users could previously read
+  their own email-queue rows (message excerpts; lead PII for the admin), and
+  the dashboard panel rendered every event twice. `NotificationsPanel`
+  drops the channel label and the `channel === 'in_app'` guard.
+- **`deals`**: drops the 0001 "Company members can view deals" and 0003
+  "Company members can submit a project brief" policies. No page outside
+  `/admin` reads or writes deals; `create_project()` and
+  `can_access_deal()` are SECURITY DEFINER and unaffected.
+- Two audit claims verified already-resolved and left alone:
+  `private.shares_project_with` grant (0040) and RLS enable/force on every
+  `project_*` table (0009/0010).
+- Tests: `tests/crm/migration-0041-client-read-scope-hardening.test.mjs`
+  (source contract) and `supabase/tests/0041_client_read_scope.test.sql`
+  (pgTAP: client sees 2 of 3 approvals and cannot read the internal note,
+  1 of 2 outbox rows, 0 deals and cannot insert one; PM sees all 3
+  approvals; admin still reads deals). `pnpm test:db` was not runnable in
+  this environment (no Docker / Supabase CLI) — run it, or apply on an
+  isolated branch database, before production.
+
 ## v1.28 — 2026-09-03
 
 Frontend follow-ups from `docs/plans/audit-followups-crm-hardening-3.md`
