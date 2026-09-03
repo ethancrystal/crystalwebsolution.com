@@ -5,6 +5,43 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.30 — 2026-09-03
+
+hCaptcha on the public contact form (every `ContactForm` instance: homepage
+Contact beat, `/contact`, `/about`, `/process`, and the eight
+`/services/[slug]` pages). It sits alongside the existing honeypot and
+Upstash rate limit; nothing about the fields, payload or success copy
+changes.
+
+- **Client** — `components/marketing/HCaptcha.jsx` injects `js.hcaptcha.com`
+  once per page from the form's mount effect and renders the dark checkbox
+  widget below the brief. The form refuses to submit without a token, sends it
+  as `hcaptchaToken`, and resets the widget after every response (tokens are
+  single-use). If the loader is blocked (ad blocker, proxy) or times out, the
+  form says so and offers the direct email address instead of waiting forever.
+- **Server** — `app/api/contact` verifies the token with hCaptcha's
+  `siteverify` after field validation and before the webhook, CRM write and
+  emails. Enforcement is on only when `HCAPTCHA_SECRET` is set (same
+  fail-open-when-unconfigured contract as `lib/rateLimit.mjs`). An explicit
+  rejection returns 400; a network/5xx failure reaching hCaptcha lets the
+  brief through and logs, so a vendor outage does not drop leads.
+- **Keys** — the site key is public and ships as the default in
+  `lib/hcaptcha.mjs` (`NEXT_PUBLIC_HCAPTCHA_SITE_KEY` overrides it for
+  previews). The secret is read only from `HCAPTCHA_SECRET` and is **not in
+  the repo**: set it in Vercel → Project → Environment Variables (Production
+  and Preview) and in `.env.local`, then redeploy. Until it is set the widget
+  shows but the server does not verify.
+- **CSP** — `script-src`, `style-src`, `frame-src` and `connect-src` gain
+  `https://hcaptcha.com https://*.hcaptcha.com`; `tests/csp-policy.test.mjs`
+  pins the new tokens.
+- Tests: `tests/hcaptcha.test.mjs` (verification unit tests with a fake
+  fetch, route/form source contracts, and a guard that no secret literal is
+  committed).
+- Not included: signup/login. Supabase Auth has native hCaptcha support
+  (Dashboard → Auth → Bot and Abuse Protection) that only needs the same
+  site key plus a `captchaToken` on `signUp()`; that is a follow-up once the
+  dashboard side is enabled.
+
 ## v1.29 — 2026-09-03
 
 Adds migration `0041_client_read_scope_hardening.sql` — **checked in, not

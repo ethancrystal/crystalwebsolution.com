@@ -110,6 +110,16 @@
   color: #ff6b6b;
 }
 .contact-form-honeypot { display: none; }
+.contact-form-captcha {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+/* hCaptcha's normal widget is 303×78; reserve the box so the layout doesn't
+   jump when the third-party iframe arrives after lazyOnload. */
+.contact-form-captcha-widget { min-height: 78px; }
+.contact-form-captcha .contact-form-hint { margin-top: 0; }
 .contact-form-actions {
   margin-top: 0.6rem;
   display: flex;
