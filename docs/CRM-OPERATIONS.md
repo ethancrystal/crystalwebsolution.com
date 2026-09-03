@@ -9,9 +9,29 @@
 - `/team` — employee home
 - `/admin` — admin home
 
+## RLS helper grants
+
+- Any `private.*` function used inside a policy `USING` / `WITH CHECK`
+  expression must stay executable by `authenticated`: policy expressions run
+  as the querying role, and a revoke makes every statement on that table fail
+  at planning (`42501 permission denied for function ...`). Migration `0027`
+  did this to `private.shares_project_with(uuid)` and took every portal login
+  down for every role until `0040` restored the grant.
+  `tests/crm/migration-0040-restore-shares-project-with-grant.test.mjs`
+  enforces the rule across the migration chain.
+
 ## Invitations and Cleanup
 
 - Invite through `app/admin/users/actions.js`.
+- The invite email's link goes to `/auth/verify`, which signs the invitee in
+  from the one-time token and lands them on `/auth/reset-password` to choose
+  a password. `updatePassword()` then sends them to their role's portal home
+  (`/team` for project managers). They sign in afterwards at `/login/employee`.
+- Until the invitee sets a password, `middleware.js` refuses every portal
+  path and returns them to `/auth/reset-password?reason=invite`. It decides
+  through `current_user_must_set_password()` (migration `0039`), which reads
+  `auth.users` for the caller only; nothing about this is stored in
+  `profiles`, so there is no flag to reset by hand.
 - Role is provisioned through the authoritative database path.
 - If email delivery or role assignment fails, the newly created auth user is deleted.
 
