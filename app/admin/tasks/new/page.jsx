@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { useUserRole } from '@/lib/useUserRole';
 import {
   TASK_PRIORITIES,
   TASK_STATUSES,
@@ -15,6 +16,7 @@ const PRIORITY_OPTIONS = TASK_PRIORITIES;
 
 export default function NewTaskPage() {
   const router = useRouter();
+  const { isAdmin, isLoading: isRoleLoading } = useUserRole();
   const [companies, setCompanies] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [deals, setDeals] = useState([]);
@@ -53,6 +55,16 @@ export default function NewTaskPage() {
 
     loadCompanies();
   }, []);
+
+  useEffect(() => {
+    // Task creation is admin-only (0005_pm_scoping_and_project_type.sql:120,
+    // "Admin can create tasks" WITH CHECK is_admin()) - a PM landing here would
+    // just hit an RLS rejection on submit. Same guard as the other three
+    // /admin/<entity>/new pages.
+    if (!isRoleLoading && !isAdmin) {
+      router.replace('/admin/tasks');
+    }
+  }, [isRoleLoading, isAdmin, router]);
 
   useEffect(() => {
     async function loadRelated() {
@@ -137,12 +149,11 @@ export default function NewTaskPage() {
 
   return (
     <AdminFormShell
-      variant="container"
       title="Add Task"
       backHref="/admin/tasks"
       backLabel="Back to Tasks"
       error={error}
-      loading={isLoadingCompanies}
+      loading={isLoadingCompanies || isRoleLoading || !isAdmin}
       skeletonFields={8}
     >
       {!error && companies.length === 0 ? (

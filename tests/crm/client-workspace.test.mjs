@@ -8,7 +8,8 @@ test('client workspace: dashboard and project detail use exact client guard and 
 
   assert.match(dashboard, /listProjectsForViewer/);
   assert.match(projectDetail, /getProjectWorkspace/);
-  assert.match(projectDetail, /listProjectMessages/);
+  // Messages are owned by ProjectThread (via useProjectThread), not the page.
+  assert.match(projectDetail, /ProjectThread/);
 
   assert.doesNotMatch(dashboard, /from\('deals'\)/);
   assert.doesNotMatch(projectDetail, /from\('deals'\)/);

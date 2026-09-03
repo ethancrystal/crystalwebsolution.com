@@ -71,7 +71,6 @@ export default function NewCompanyPage() {
 
   return (
     <AdminFormShell
-      variant="card"
       title="Add Company"
       backHref="/admin/companies"
       backLabel="Back to Companies"

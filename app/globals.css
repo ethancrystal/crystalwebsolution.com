@@ -17,7 +17,7 @@
 @import './styles/reset.css';
 @import './styles/stage.css';
 @import './styles/primitives.css';
-@import './styles/cursor-loader.css';
+@import './styles/loader.css';
 @import './styles/section-skeleton.css';
 @import './styles/nav.css';
 @import './styles/hero.css';

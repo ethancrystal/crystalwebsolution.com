@@ -85,7 +85,7 @@ export default function ServicePage({ page }) {
           <ul className="mkt-related">
             {related.map((service) => (
               <li key={service.slug}>
-                <Link href={`/services/${service.slug}`} className="mkt-related-link" data-cursor="View">
+                <Link href={`/services/${service.slug}`} className="mkt-related-link">
                   <span className="mkt-related-n">{service.n}</span>
                   <span className="mkt-related-title">{service.title}</span>
                   <span className="mkt-related-arrow" aria-hidden="true">→</span>
@@ -94,7 +94,7 @@ export default function ServicePage({ page }) {
             ))}
             {(page.industryLinks || []).map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="mkt-related-link" data-cursor="View">
+                <Link href={link.href} className="mkt-related-link">
                   <span className="mkt-related-title">{link.label}</span>
                   <span className="mkt-related-arrow" aria-hidden="true">→</span>
                 </Link>
@@ -105,7 +105,7 @@ export default function ServicePage({ page }) {
       )}
 
       <ContentSection eyebrow="See our work" title="Every project, one standard">
-        <Link href="/work" className="mkt-related-link" data-cursor="View work">
+        <Link href="/work" className="mkt-related-link">
           <span className="mkt-related-title">See the work →</span>
         </Link>
       </ContentSection>

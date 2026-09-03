@@ -8,29 +8,27 @@ import { SkeletonDetail } from './Skeleton';
 // and the styled-jsx rules for the field/button classes the entity pages
 // render inside it.
 //
-// Two visual variants exist because the four entities shipped as two
-// families with deliberately different chrome, and Phase 3 of
-// docs/plans/refactor-architecture-cleanup-2.md is a no-visual-change
-// refactor:
-//   - 'card'      -> companies, deals  (700px, .crm-field / .crm-field-row,
-//                                       .crm-button-secondary cancel)
-//   - 'container' -> contacts, tasks   (800px, .crm-form / .crm-form-row /
-//                                       .crm-form-grid, .crm-cancel-link)
-// Each variant's CSS is byte-for-byte the union of what its two pages used
-// to carry inline. Unifying the two is a design decision, not a refactor --
-// see docs/reports/phase-3-admin-crud-duplication-audit-2026-09-02.md.
+// History: Phase 3 of docs/plans/refactor-architecture-cleanup-2.md extracted
+// this shell with two `variant`s because the four entities had drifted into
+// two chrome families (companies/deals: 700px card; contacts/tasks: 800px
+// container, different label weight, focus colour, cancel control). The
+// owner chose to unify them on 2026-09-03 (docs/plans/
+// audit-followups-crm-hardening-3.md Task 6): one 800px frame, one set of
+// field rules. Both selector families the pages already use (.crm-field* and
+// .crm-form*) are kept and styled identically so no page markup had to
+// change; the two cancel controls (.crm-button-secondary, .crm-cancel-link)
+// likewise both remain.
 //
-// Field rules are emitted with :global() under the variant class because
+// Field rules are emitted with :global() under .crm-admin-form because
 // styled-jsx only scopes selectors to elements rendered by *this* component;
 // the entity pages render their own <input className="crm-field">, so the
-// rules have to reach descendants. The variant class is the namespace, so
+// rules have to reach descendants. The wrapper class is the namespace, so
 // nothing outside this shell picks them up.
 export default function AdminFormShell({
   title,
   backHref,
   backLabel,
   error,
-  variant = 'card',
   loading = false,
   skeletonFields,
   // A load failure with nothing to edit: render only the error banner inside
@@ -39,10 +37,8 @@ export default function AdminFormShell({
   fatalError = null,
   children,
 }) {
-  const frameClass = variant === 'container' ? 'crm-form-container' : 'crm-form-card';
-
   return (
-    <div className={`crm-admin-page crm-admin-form crm-admin-form--${variant}`}>
+    <div className="crm-admin-page crm-admin-form">
       {loading ? (
         <SkeletonDetail fields={skeletonFields} />
       ) : fatalError ? (
@@ -58,7 +54,7 @@ export default function AdminFormShell({
 
           {error && <div className="crm-error">{error}</div>}
 
-          <div className={frameClass}>{children}</div>
+          <div className="crm-form-card">{children}</div>
         </>
       )}
 
@@ -78,6 +74,7 @@ export default function AdminFormShell({
           margin-bottom: 2rem;
           margin-left: auto;
           margin-right: auto;
+          max-width: 800px;
         }
 
         .crm-admin-header h1 {
@@ -106,92 +103,106 @@ export default function AdminFormShell({
           margin-bottom: 1rem;
           margin-left: auto;
           margin-right: auto;
+          max-width: 800px;
         }
 
-        .crm-form-card,
-        .crm-form-container {
+        .crm-form-card {
           background: rgba(30, 35, 60, 0.8);
           border: 1px solid rgba(100, 200, 255, 0.2);
           border-radius: 12px;
           padding: 2rem;
           margin-left: auto;
           margin-right: auto;
-          backdrop-filter: blur(10px);
-        }
-
-        /* ---- variant: card (companies, deals) ---- */
-        .crm-admin-form--card .crm-admin-header,
-        .crm-admin-form--card .crm-error,
-        .crm-admin-form--card .crm-form-card {
-          max-width: 700px;
-        }
-
-        /* ---- variant: container (contacts, tasks) ---- */
-        .crm-admin-form--container .crm-admin-header,
-        .crm-admin-form--container .crm-error,
-        .crm-admin-form--container .crm-form-container {
           max-width: 800px;
+          backdrop-filter: blur(10px);
         }
       `}</style>
 
       <style jsx>{`
-        /* ===== card variant: field + action rules (from deals, the superset) ===== */
-        :global(.crm-admin-form--card .crm-field) {
-          margin-bottom: 1.5rem;
+        /* ---- field containers: both families, one look ---- */
+        :global(.crm-admin-form .crm-form) {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
-          flex: 1;
+          gap: 1.5rem;
         }
 
-        :global(.crm-admin-form--card .crm-field-row) {
+        :global(.crm-admin-form .crm-form-grid) {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 1.5rem;
+        }
+
+        :global(.crm-admin-form .crm-field-row) {
           display: flex;
           gap: 1.5rem;
         }
 
-        :global(.crm-admin-form--card .crm-field label) {
+        :global(.crm-admin-form .crm-field) {
+          margin-bottom: 1.5rem;
+          flex: 1;
+        }
+
+        :global(.crm-admin-form .crm-field),
+        :global(.crm-admin-form .crm-form-row) {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        :global(.crm-admin-form .crm-field label),
+        :global(.crm-admin-form .crm-form-row label) {
           color: #999;
-          font-size: 0.85rem;
-          font-weight: 600;
+          font-size: 0.9rem;
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
 
-        :global(.crm-admin-form--card .crm-field input),
-        :global(.crm-admin-form--card .crm-field select),
-        :global(.crm-admin-form--card .crm-field textarea) {
+        :global(.crm-admin-form .crm-field input),
+        :global(.crm-admin-form .crm-field select),
+        :global(.crm-admin-form .crm-field textarea),
+        :global(.crm-admin-form .crm-form-row input),
+        :global(.crm-admin-form .crm-form-row select),
+        :global(.crm-admin-form .crm-form-row textarea) {
           background: rgba(15, 20, 40, 0.6);
           border: 1px solid rgba(100, 200, 255, 0.2);
           border-radius: 6px;
           color: #e0e0e0;
-          padding: 0.75rem;
+          padding: 0.75rem 1rem;
           font-size: 1rem;
           font-family: inherit;
         }
 
-        :global(.crm-admin-form--card .crm-field input:focus),
-        :global(.crm-admin-form--card .crm-field select:focus),
-        :global(.crm-admin-form--card .crm-field textarea:focus) {
+        :global(.crm-admin-form .crm-field input:focus),
+        :global(.crm-admin-form .crm-field select:focus),
+        :global(.crm-admin-form .crm-field textarea:focus),
+        :global(.crm-admin-form .crm-form-row input:focus),
+        :global(.crm-admin-form .crm-form-row select:focus),
+        :global(.crm-admin-form .crm-form-row textarea:focus) {
           outline: none;
           border-color: #64c8ff;
         }
 
-        :global(.crm-admin-form--card .crm-field select:disabled) {
+        :global(.crm-admin-form .crm-field select:disabled),
+        :global(.crm-admin-form .crm-form-row select:disabled) {
           opacity: 0.5;
           cursor: not-allowed;
         }
 
-        :global(.crm-admin-form--card .crm-field textarea) {
+        :global(.crm-admin-form .crm-field textarea),
+        :global(.crm-admin-form .crm-form-row textarea) {
           resize: vertical;
+          min-height: 100px;
         }
 
-        :global(.crm-admin-form--card .crm-form-actions) {
+        /* ---- actions ---- */
+        :global(.crm-admin-form .crm-form-actions) {
           display: flex;
-          gap: 1rem;
+          align-items: center;
+          gap: 1.5rem;
           margin-top: 2rem;
         }
 
-        :global(.crm-admin-form--card .crm-button) {
+        :global(.crm-admin-form .crm-button) {
           background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
           color: #0a0e27;
           padding: 0.75rem 1.5rem;
@@ -205,18 +216,18 @@ export default function AdminFormShell({
           display: inline-block;
         }
 
-        :global(.crm-admin-form--card .crm-button:hover) {
+        :global(.crm-admin-form .crm-button:hover) {
           transform: translateY(-2px);
           box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
         }
 
-        :global(.crm-admin-form--card .crm-button:disabled) {
+        :global(.crm-admin-form .crm-button:disabled) {
           opacity: 0.6;
           cursor: not-allowed;
           transform: none;
         }
 
-        :global(.crm-admin-form--card .crm-button-secondary) {
+        :global(.crm-admin-form .crm-button-secondary) {
           background: rgba(100, 200, 255, 0.1);
           border: 1px solid rgba(100, 200, 255, 0.3);
           color: #64c8ff;
@@ -229,115 +240,28 @@ export default function AdminFormShell({
           display: inline-block;
         }
 
-        :global(.crm-admin-form--card .crm-button-secondary:hover) {
+        :global(.crm-admin-form .crm-button-secondary:hover) {
           background: rgba(100, 200, 255, 0.2);
         }
 
-        /* ===== container variant: field + action rules (from tasks, the superset) ===== */
-        :global(.crm-admin-form--container .crm-button) {
-          background: linear-gradient(135deg, #64c8ff 0%, #5bb8ff 100%);
-          color: #0a0e27;
-          padding: 0.75rem 1.5rem;
-          border-radius: 6px;
-          text-decoration: none;
-          font-weight: 600;
-          transition: all 0.2s ease;
-          display: inline-block;
-          border: none;
-          cursor: pointer;
-          font-size: 1rem;
-        }
-
-        :global(.crm-admin-form--container .crm-button:hover) {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(100, 200, 255, 0.3);
-        }
-
-        :global(.crm-admin-form--container .crm-button:disabled) {
-          opacity: 0.6;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        :global(.crm-admin-form--container .crm-form) {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        :global(.crm-admin-form--container .crm-form-grid) {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 1.5rem;
-        }
-
-        :global(.crm-admin-form--container .crm-form-row) {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        :global(.crm-admin-form--container .crm-form-row label) {
-          color: #999;
-          font-size: 0.9rem;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        :global(.crm-admin-form--container .crm-form-row input),
-        :global(.crm-admin-form--container .crm-form-row select),
-        :global(.crm-admin-form--container .crm-form-row textarea) {
-          background: rgba(15, 20, 40, 0.6);
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          border-radius: 6px;
-          padding: 0.75rem 1rem;
-          color: #e0e0e0;
-          font-size: 1rem;
-          font-family: inherit;
-        }
-
-        :global(.crm-admin-form--container .crm-form-row input:focus),
-        :global(.crm-admin-form--container .crm-form-row select:focus),
-        :global(.crm-admin-form--container .crm-form-row textarea:focus) {
-          outline: none;
-          border-color: rgba(100, 200, 255, 0.6);
-        }
-
-        :global(.crm-admin-form--container .crm-form-row select:disabled) {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        :global(.crm-admin-form--container .crm-form-row textarea) {
-          resize: vertical;
-          min-height: 100px;
-        }
-
-        :global(.crm-admin-form--container .crm-form-actions) {
-          display: flex;
-          align-items: center;
-          gap: 1.5rem;
-          margin-top: 1rem;
-        }
-
-        :global(.crm-admin-form--container .crm-cancel-link) {
+        :global(.crm-admin-form .crm-cancel-link) {
           color: #999;
           text-decoration: none;
           font-size: 0.9rem;
           transition: color 0.2s ease;
         }
 
-        :global(.crm-admin-form--container .crm-cancel-link:hover) {
+        :global(.crm-admin-form .crm-cancel-link:hover) {
           color: #ccc;
           text-decoration: underline;
         }
 
-        :global(.crm-admin-form--container .crm-empty-state) {
+        :global(.crm-admin-form .crm-empty-state) {
           text-align: center;
           padding: 3rem 1rem;
         }
 
-        :global(.crm-admin-form--container .crm-empty-state p) {
+        :global(.crm-admin-form .crm-empty-state p) {
           color: #999;
           margin-bottom: 1rem;
         }

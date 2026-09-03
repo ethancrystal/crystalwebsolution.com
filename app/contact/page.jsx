@@ -83,7 +83,7 @@ export default function ContactPage() {
           move if it is. If it’s a fit, everything after that follows the same six-stage path we use on
           every project, from discovery through hand-off.
         </p>
-        <Link href="/process" className="mkt-related-link" data-cursor="View">
+        <Link href="/process" className="mkt-related-link">
           <span className="mkt-related-title">See how we work</span>
           <span className="mkt-related-arrow" aria-hidden="true">→</span>
         </Link>

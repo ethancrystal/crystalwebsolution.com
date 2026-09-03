@@ -42,6 +42,13 @@ const GA_CONNECT_ORIGINS = [
 // The conversion linker uses an iframe; default-src 'self' would block it.
 const GA_FRAME_ORIGINS = ['https://td.doubleclick.net'];
 
+// hCaptcha (contact form, lib/hcaptcha.mjs). Per vendor docs the api.js loader,
+// the challenge iframe, its stylesheet and its XHR all come from *.hcaptcha.com
+// (newassets.hcaptcha.com, api.hcaptcha.com, ...), so the same origin list is
+// added to script-src, style-src, frame-src and connect-src. Nothing else on
+// the site talks to these hosts.
+const HCAPTCHA_ORIGINS = ['https://hcaptcha.com', 'https://*.hcaptcha.com'];
+
 // The dark auth pages used to load an UnicornStudio runtime from jsDelivr's
 // GitHub CDN, which is why script-src once allowed https://cdn.jsdelivr.net.
 // That component was replaced on 2026-08-25 by the procedural canvases in
@@ -49,7 +56,7 @@ const GA_FRAME_ORIGINS = ['https://td.doubleclick.net'];
 // nothing, so the origin is gone. tests/login-background.test.mjs asserts it
 // stays gone — a stale allowlist entry widens the policy for no benefit.
 
-const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS]
+const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS, ...HCAPTCHA_ORIGINS]
   .filter(Boolean)
   .join(' ');
 
@@ -65,14 +72,14 @@ const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS]
 // a narrower one will not do.
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: ${GA_SCRIPT_ORIGIN}`,
+  `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: ${GA_SCRIPT_ORIGIN} ${HCAPTCHA_ORIGINS.join(' ')}`,
   "worker-src 'self' blob:",
-  "style-src 'self' 'unsafe-inline'",
+  `style-src 'self' 'unsafe-inline' ${HCAPTCHA_ORIGINS.join(' ')}`,
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   `connect-src ${connectSrc}`,
   "media-src 'self' data: blob:",
-  `frame-src 'self' ${GA_FRAME_ORIGINS.join(' ')}`,
+  `frame-src 'self' ${[...GA_FRAME_ORIGINS, ...HCAPTCHA_ORIGINS].join(' ')}`,
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",
