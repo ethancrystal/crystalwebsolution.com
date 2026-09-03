@@ -1,0 +1,62 @@
+name: SEO — publish approved blog drafts
+
+# When a blog draft under docs/seo/drafts/blog/ lands on main with
+# `approved: true`, upsert it into the blog_posts table as status: draft.
+# A person then publishes it from /admin/blog. This workflow never sets
+# `published` — see scripts/seo/publish-blog-drafts.mjs and docs/seo/README.md.
+#
+# Inert until these repository secrets exist (Settings -> Secrets and
+# variables -> Actions -> Secrets):
+#   SUPABASE_URL                 https://<project-ref>.supabase.co
+#   SUPABASE_SERVICE_ROLE_KEY    service role key (server-only; never NEXT_PUBLIC_)
+# and optionally this repository variable:
+#   SEO_BLOG_COVERS_BUCKET       storage bucket for cover images (default blog-covers)
+#
+# Without the secrets the script logs what it would have done and exits 0, so
+# a draft can be merged before the plumbing is finished without breaking CI.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/seo/drafts/blog/**'
+      - 'scripts/seo/publish-blog-drafts.mjs'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Print what would change without writing
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Upsert approved drafts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SEO_BLOG_COVERS_BUCKET: ${{ vars.SEO_BLOG_COVERS_BUCKET }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/seo/publish-blog-drafts.mjs --dry-run
+          else
+            node scripts/seo/publish-blog-drafts.mjs
+          fi
