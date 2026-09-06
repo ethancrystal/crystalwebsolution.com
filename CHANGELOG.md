@@ -5,6 +5,38 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.31 — 2026-09-06
+
+Privacy and Terms pages (`/privacy` and `/terms`) now return 200 instead of
+404, resolving broken footer links and completing the site's legal foundation.
+
+- **Privacy page** (`app/privacy/page.jsx`) — Full privacy policy matching the
+  site's craft-forward tone. Covers information collection/use/sharing,
+  security measures, data retention, user rights, cookies, third-party
+  services, international transfers, and contact info. Uses `MarketingShell`
+  and follows the same structure as About/Contact pages.
+- **Terms page** (`app/terms/page.jsx`) — Terms of service for website and
+  client services. Covers acceptable use, intellectual property, client portal
+  access, payment terms, warranties, liability, dispute resolution, and general
+  provisions. Matches the existing legal/brand voice.
+- **Footer links** (`MarketingFooter.jsx`) — Privacy and Terms links added to
+  footer bottom row, visible on all marketing pages that use `MarketingShell`.
+  Styled with flexbox layout separating copyright and legal links.
+- **Sitemap** (`app/sitemap.js`) — Added `/privacy` and `/terms` entries with
+  priority 0.3 and yearly change frequency.
+- **Styles** (`app/styles/service-pages.css`) — `.mkt-footer-bottom` now uses
+  flexbox with space-between to separate copyright and legal links.
+  `.mkt-footer-legal` provides gap-separated link group with hover states.
+
+No invented legal claims beyond what's already on the site (Manassas VA,
+Sharjah, sales@cdsportswearusa.com, founded 2016). Dates are dynamic
+(`new Date()`) so they stay current without manual updates.
+
+Blog posts from Supabase are already in the sitemap via the existing
+`listPublishedSlugs()` integration (line 17 of `app/sitemap.js`). No
+redeploy-specific notes needed — the sitemap is async and regenerates on
+publish revalidation per existing architecture.
+
 ## v1.30 — 2026-09-03
 
 hCaptcha on the public contact form (every `ContactForm` instance: homepage
