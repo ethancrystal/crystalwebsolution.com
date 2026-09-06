@@ -31,9 +31,13 @@ export default function MarketingFooter() {
           <p className="mkt-footer-city">Also Located in {SITE.citySecondary}</p>
         </div>
       </div>
-      <p className="mkt-footer-bottom">
-        © {new Date().getFullYear()} {SITE.name}. {SITE.tagline}
-      </p>
+      <div className="mkt-footer-bottom">
+        <p>© {new Date().getFullYear()} {SITE.name}. {SITE.tagline}</p>
+        <div className="mkt-footer-legal">
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+        </div>
+      </div>
     </footer>
   );
 }

@@ -105,7 +105,10 @@
 .mkt-footer-nav a, .mkt-footer-contact a { color: var(--ink); font-size: 0.92rem; }
 .mkt-footer-nav a:hover, .mkt-footer-contact a:hover { color: var(--cyan); }
 .mkt-footer-city { color: var(--muted); font-size: 0.85rem; }
-.mkt-footer-bottom { margin-top: 2.5rem; color: var(--muted); font-size: 0.8rem; }
+.mkt-footer-bottom { margin-top: 2.5rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; color: var(--muted); font-size: 0.8rem; }
+.mkt-footer-legal { display: flex; gap: 1.25rem; }
+.mkt-footer-legal a { color: var(--muted); font-size: 0.8rem; }
+.mkt-footer-legal a:hover { color: var(--cyan); }
 
 /* --- hero / sections --- */
 .mkt-hero, .mkt-section { padding: clamp(2.5rem, 7vw, 6rem) clamp(1.25rem, 5vw, 4rem); }
