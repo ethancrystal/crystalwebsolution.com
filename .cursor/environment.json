@@ -1,0 +1,11 @@
+{
+  "name": "CD Sportswear USA / Crystal Web Solution",
+  "install": "pnpm install --frozen-lockfile",
+  "terminals": [
+    {
+      "name": "next-dev",
+      "command": "pnpm dev"
+    }
+  ],
+  "ports": [3000]
+}
