@@ -5,6 +5,26 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.32 — 2026-09-06
+
+SEO H1/title + Service JSON-LD pass for six `/services/[slug]` pages. Taxonomy
+labels on the homepage and `/services` index stay the same; only the detail
+page heading, document title, meta description, and Service schema change.
+
+- **Config** (`lib/servicePages.mjs`) — added `h1` (visible heading) beside
+  the existing `title` taxonomy label. Updated `seoTitle` + unique
+  `metaDescription` for ai-automation, web-design, branding, logo-design,
+  web-development, and digital-marketing. Short first-paragraph tweaks on
+  web-design, web-development, and logo-design so schema matches visible copy.
+- **Page** (`app/services/[slug]/page.jsx`, `ServicePage.jsx`) — H1 reads
+  `page.h1`; metadata title is the `seoTitle` stem (root layout appends
+  `| CD Sportswear USA`).
+- **Schema** (`ServiceSchema.jsx`) — Service `name`/`description` align with
+  the new H1/meta; adds canonical `url` and Organization `provider` (`@id`
+  + name). `areaServed` is country-level (US/AE) except web-design, which
+  also names Manassas, VA because that city is already on the page footer.
+  Northern VA is not claimed. No AggregateRating, reviews, or offers.
+
 ## v1.31 — 2026-09-06
 
 Privacy and Terms pages (`/privacy` and `/terms`) now return 200 instead of

@@ -60,7 +60,7 @@ test('service pages reuse the existing taxonomy and never contradict it', () => 
 
 test('every service page carries a complete content record', () => {
   const REQUIRED = [
-    'eyebrow', 'seoTitle', 'metaDescription', 'hero', 'introduction',
+    'eyebrow', 'seoTitle', 'metaDescription', 'h1', 'hero', 'introduction',
     'problem', 'capabilities', 'deliverables', 'process', 'idealClient',
     'faq', 'relatedSlugs', 'finalCta',
   ];
@@ -103,6 +103,58 @@ test('service content contains no banned placeholder/fluff copy', () => {
   SERVICE_PAGES.forEach((page) => {
     const blob = JSON.stringify(page);
     assert.doesNotMatch(blob, BANNED_COPY, `${page.slug} contains banned copy`);
+  });
+});
+
+const SEO_SHIP_TABLE = [
+  {
+    slug: 'ai-automation',
+    seoTitle: 'AI Automation Agency for Business',
+    h1: 'AI automation for business',
+  },
+  {
+    slug: 'web-design',
+    seoTitle: 'Custom Web Design Studio',
+    h1: 'Custom web design for brands',
+  },
+  {
+    slug: 'branding',
+    seoTitle: 'Branding Studio for Companies',
+    h1: 'Branding systems that won’t blend in',
+  },
+  {
+    slug: 'logo-design',
+    seoTitle: 'Custom Logo & Brand System Design',
+    h1: 'Custom logo and brand systems',
+  },
+  {
+    slug: 'web-development',
+    seoTitle: 'Custom React & Next.js Web Development',
+    h1: 'Custom React & Next.js development',
+  },
+  {
+    slug: 'digital-marketing',
+    seoTitle: 'Digital Marketing for Brands',
+    h1: 'Digital marketing for brands',
+  },
+];
+
+test('six service pages ship the SEO title stem and single H1 from the ship table', () => {
+  SEO_SHIP_TABLE.forEach(({ slug, seoTitle, h1 }) => {
+    const page = getServicePageBySlug(slug);
+    assert.ok(page, `${slug} should resolve`);
+    assert.equal(page.seoTitle, seoTitle);
+    assert.equal(page.h1, h1);
+    assert.doesNotMatch(page.seoTitle, /\s\|\s/, `${slug} seoTitle is a stem; layout appends | ${'CD Sportswear USA'}`);
+  });
+});
+
+test('service meta descriptions are unique and match each page angle', () => {
+  const descriptions = SERVICE_PAGES.map((page) => page.metaDescription);
+  assert.equal(new Set(descriptions).size, descriptions.length);
+  SEO_SHIP_TABLE.forEach(({ slug }) => {
+    const page = getServicePageBySlug(slug);
+    assert.ok(page.metaDescription.length > 40, `${slug} needs a rewritten meta description`);
   });
 });
 
