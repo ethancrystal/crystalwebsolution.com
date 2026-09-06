@@ -16,7 +16,7 @@ export default function ServicePage({ page }) {
     <article className="mkt-service">
       <PageHero
         eyebrow={page.eyebrow}
-        title={page.title}
+        title={page.h1 || page.title}
         lede={page.hero}
       >
         <ServiceEmblem signal={page.signal} n={page.n} size={72} variant="3d" className="mkt-service-hero-emblem" />
