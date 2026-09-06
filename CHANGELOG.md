@@ -5,6 +5,15 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.31 — 2026-09-06
+
+Add a committed Cloud Agent development environment
+(`.cursor/environment.json`) so agents boot a ready-to-work checkout. It runs
+`pnpm install --frozen-lockfile` on setup, exposes port 3000, and launches
+`pnpm dev` in a named `next-dev` terminal. This is tooling/dev-experience
+config only — it is not read by the Next.js build or the Vercel/Docker
+deploy path, so the production runtime is unchanged.
+
 ## v1.30 — 2026-09-03
 
 hCaptcha on the public contact form (every `ContactForm` instance: homepage
