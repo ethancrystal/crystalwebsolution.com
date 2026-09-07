@@ -65,7 +65,7 @@ export default async function ServiceDetail({ params }) {
   if (!page) notFound();
 
   return (
-    <MarketingShell>
+    <MarketingShell sceneVariant="services">
       <nav className="mkt-breadcrumb" aria-label="Breadcrumb">
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>

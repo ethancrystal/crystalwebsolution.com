@@ -158,6 +158,14 @@ test('service meta descriptions are unique and match each page angle', () => {
   });
 });
 
+test('service detail pages keep the 3D instrument beside the H1 and use the services scene', () => {
+  const servicePage = readFileSync(new URL('../components/marketing/ServicePage.jsx', import.meta.url), 'utf8');
+  const slugPage = readFileSync(new URL('../app/services/[slug]/page.jsx', import.meta.url), 'utf8');
+  assert.match(servicePage, /className="mkt-service-hero"/);
+  assert.match(servicePage, /mkt-service-hero-instrument/);
+  assert.match(slugPage, /sceneVariant="services"/);
+});
+
 test('marketing navigation links resolve to real routes', () => {
   // lib/site.js is an ESM-syntax .js file consumed by the Next bundler, not
   // directly by Node, so read its source like the other contract tests do.

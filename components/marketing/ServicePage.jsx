@@ -14,13 +14,16 @@ export default function ServicePage({ page }) {
 
   return (
     <article className="mkt-service">
-      <PageHero
-        eyebrow={page.eyebrow}
-        title={page.h1 || page.title}
-        lede={page.hero}
-      >
-        <ServiceEmblem signal={page.signal} n={page.n} size={72} variant="3d" className="mkt-service-hero-emblem" />
-      </PageHero>
+      <div className="mkt-service-hero">
+        <PageHero
+          eyebrow={page.eyebrow}
+          title={page.h1 || page.title}
+          lede={page.hero}
+        />
+        <div className="mkt-service-hero-instrument">
+          <ServiceEmblem signal={page.signal} n={page.n} size={72} variant="3d" className="mkt-service-hero-emblem" />
+        </div>
+      </div>
 
       <ContentSection eyebrow="Overview" title="What this looks like in practice">
         {page.scenario && <p className="mkt-prose">{page.scenario}</p>}
