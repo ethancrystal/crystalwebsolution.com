@@ -1,3 +1,121 @@
+# Theme
+
+## Compact token summary
+
+| Token | Value |
+|---|---|
+| --bg | #04060c |
+| --ink | #eaf2ff |
+| --muted | #8b98b8 |
+| --cyan | #59f3ff |
+| --blue | #3c6cff |
+| --violet | #c084fc |
+| --line | rgba(139, 152, 184, 0.18) |
+| --font-display | Space Grotesk |
+| --font-body | Inter |
+| --font-mono | Space Mono |
+
+Type: service H1 is Space Grotesk, clamp from page-title, max-width 16ch, text-wrap balance.
+No Tailwind. CSS lives in app/styles/*.css imported by app/globals.css.
+
+## Raw source
+
+
+### `app/styles/tokens.css`
+
+```css
+/* ---------- design tokens ---------- */
+:root {
+  --bg: #04060c;
+  --ink: #eaf2ff;
+  --muted: #8b98b8;
+  --cyan: #59f3ff;
+  --blue: #3c6cff;
+  --violet: #c084fc;
+  --line: rgba(139, 152, 184, 0.18);
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+
+  /* Physics spring for micro-interactions: overshoots ~8% then settles,
+     matching the mass-spring-damper feel of the 3D emblem springs
+     (ServiceRail/ApproachCompass). Baseline-widely-available linear();
+     unsupported browsers fall back to the plain easing declared before it. */
+  --spring: linear(
+    0, 0.062 2.3%, 0.24 4.9%, 0.508 7.9%, 0.914 12.2%, 1.056 14.7%,
+    1.095 16.3%, 1.098 17.9%, 1.073 20.4%, 0.99 25.7%, 0.963 29%,
+    0.968 32.6%, 1.005 41.7%, 1.011 46.9%, 0.998 61.4%, 1
+  );
+
+  /* --- foreground prominence upgrade --- */
+  --text-lift: 0 1px 2px rgba(2, 4, 8, 0.7), 0 14px 44px rgba(2, 4, 8, 0.5);
+  --plate: radial-gradient(
+    120% 110% at 28% 50%,
+    rgba(4, 7, 13, 0.72) 0%,
+    rgba(4, 7, 13, 0.34) 52%,
+    rgba(4, 7, 13, 0) 72%
+  );
+  --plate-centered: radial-gradient(
+    90% 130% at 50% 50%,
+    rgba(4, 7, 13, 0.7) 0%,
+    rgba(4, 7, 13, 0.32) 55%,
+    rgba(4, 7, 13, 0) 75%
+  );
+}
+```
+
+
+### `app/globals.css`
+
+```css
+/* ----------------------------------------------------------------------
+   globals.css — import manifest only.
+
+   Every rule lives in app/styles/*.css. The import order below IS the
+   cascade order and reproduces the original single-file order exactly, so
+   the resolved stylesheet is byte-identical to the pre-split file. Adding
+   a stylesheet means inserting its import where it should cascade.
+
+   Class names stay global on purpose: Menu.jsx, Services.jsx and
+   WorkLibrary.jsx select nodes via querySelectorAll('.menu-link'),
+   '.service-row' and '.work-row', and GSAP animates those same names.
+   CSS Modules would hash them and silently break the animations.
+   ---------------------------------------------------------------------- */
+
+@import './styles/tokens.css';
+@import './styles/skip-link.css';
+@import './styles/reset.css';
+@import './styles/stage.css';
+@import './styles/primitives.css';
+@import './styles/loader.css';
+@import './styles/section-skeleton.css';
+@import './styles/nav.css';
+@import './styles/hero.css';
+@import './styles/services.css';
+@import './styles/showcase.css';
+@import './styles/stories.css';
+@import './styles/motion.css';
+@import './styles/lab.css';
+@import './styles/about.css';
+@import './styles/contact.css';
+@import './styles/subpages.css';
+@import './styles/responsive.css';
+@import './styles/approach.css';
+@import './styles/review-cards.css';
+@import './styles/service-pages.css';
+@import './styles/border-glow.css';
+@import './styles/refraction.css';
+@import './styles/case-study.css';
+@import './styles/consent.css';
+@import './styles/review-carousel.css';
+@import './styles/marquee-corridor.css';
+@import './styles/auth.css';
+```
+
+
+### `app/styles/service-pages.css`
+
+```css
 /* ---------- recognition ---------- */
 .recognition-list { border-top: 1px solid var(--line); margin-bottom: 4rem; }
 .recognition-row-inner {
@@ -419,3 +537,25 @@
 
 /* Grid card emblem: small static SVG mark above the title. */
 .mkt-service-card-emblem { width: 44px; height: 44px; margin-bottom: 0.75rem; }
+```
+
+
+### `lib/easing.js`
+
+```js
+// Named easing/duration tokens — the Approach/Recognition choreography reads
+// off these instead of inline magic numbers, so timing stays intentional.
+export const EASE_OVERSHOOT = 'back.out(1.7)';
+export const EASE_SETTLE = 'power3.out';
+export const EASE_SNAP = 'power4.out';
+export const EASE_MASK = 'power4.out';
+
+export const DURATION_FAST = 0.2;
+export const DURATION_NORMAL = 0.5;
+export const DURATION_SLOW = 0.9;
+export const DURATION_CINEMATIC = 1.3;
+
+export const STAGGER_TIGHT = 0.035;
+export const STAGGER_ROW = 0.065;
+```
+

@@ -85,3 +85,6 @@ supabase/.temp
 
 .vercel
 .env*
+
+# Superdesign canvas scratch — never commit generated HTML templates.
+.superdesign/tmp/
