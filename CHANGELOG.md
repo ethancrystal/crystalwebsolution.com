@@ -5,6 +5,50 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.34 — 2026-09-08
+
+Brand lockup swap: the supplied CD SPORTSWEAR INC wordmark replaces the
+outgoing USA wordmark everywhere it renders, and the browser/app icon is
+re-cut from the same art. Owner-supplied artwork; no layout, motion or CRM
+behaviour changes.
+
+- **Logo** (`public/cd-sportswear-usa-logo.png`) — replaced with the supplied
+  INC lockup at 2304x412. `SITE.logoPath` is the single source of truth, so
+  the swap propagates on its own to the homepage nav, the marketing header,
+  the subpage nav, the marketing footer, the CRM workspace shell, the portal
+  login form, `/login`, `/signup`, the transactional email header, and the
+  `logo` / `image` nodes in the site-wide JSON-LD graph. The filename is
+  deliberately unchanged: transactional emails already delivered reference
+  this absolute URL, and renaming would break the header image in every one
+  of them.
+- **Background key** — the supplied art arrived composited on solid black
+  (alpha 255 across the whole canvas). Every consumer needs transparency
+  instead: the nav inverts the mark via `.nav-on-light .nav-logo-art img`,
+  and the email header sits on a white body, so an opaque plate would have
+  shown as a black box and, inverted, as a white one. The black was keyed to
+  alpha with a 24/205 luminance knee — a straight key left the source's soft
+  glow as a grey halo that read as a smudge once inverted — and colours were
+  un-premultiplied so antialiased edges carry no dark fringe.
+- **Dimensions** (`lib/site.js`) — `logoHeight` 398 -> 412 to match the new
+  intrinsic height. `logoWidth` stays 2304. The canvas reproduces the
+  outgoing asset's padding ratio (content at ~84.5% of canvas height), so
+  every fixed `object-fit: contain` box renders the new lockup at the same
+  optical size as the old one and nothing reflows.
+- **Icon** (`app/icon.png`, `public/cd-sportswear-usa-icon.png`) — re-cut from
+  the CD mark of the new lockup at 512x512, replacing v1.33's navy chrome
+  mark, so the tab icon and the wordmark are the same artwork. The new mark
+  is white and cyan, which disappears entirely on a light browser tab strip
+  on a transparent background (checked at 16, 32, 64 and 180px), so it is
+  seated on a dark navy (#090e1c) rounded-square plate at 78% width and
+  centred — the inverse of v1.33's white plate, which existed for the same
+  reason when the mark was dark.
+- **Not changed** — `SITE.name` is still `CD Sportswear USA`, so the logo's
+  `alt` text, document titles and the Organization node still say USA while
+  the artwork now says INC. Renaming the brand touches metadata, JSON-LD and
+  the brand-name assertions in `tests/site-brand.test.mjs`, and is an owner
+  decision rather than an asset swap.
+- **Tests** — full suite green (493/493) and `pnpm build` clean.
+
 ## v1.33 — 2026-09-08
 
 Contact phone number and browser/app icon refresh. Owner-supplied values; no
