@@ -43,7 +43,7 @@ test('global content publishes authorized studio facts and contact details', () 
   assert.equal(SITE.founded, 2016);
   assert.equal(SITE.experience, '10+ years');
   assert.equal(SITE.projectsShipped, '60+ projects shipped');
-  assert.equal(SITE.phone, '+1 917-463-4214');
+  assert.equal(SITE.phone, '+1 804-280-4941');
   assert.equal(SITE.city, 'Manassas, VA');
   assert.equal(SITE.citySecondary, 'Sharjah, DXB');
   assert.equal(SITE.cityCompact, 'Manassas, VA + Sharjah, DXB');

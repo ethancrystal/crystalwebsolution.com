@@ -5,6 +5,30 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.33 — 2026-09-08
+
+Contact phone number and browser/app icon refresh. Owner-supplied values; no
+layout, motion or CRM behaviour changes.
+
+- **Phone** (`lib/site.js`) — `SITE.phone` is now `+1 804-280-4941`, replacing
+  `+1 917-463-4214`. It is the single source for the number, so the change
+  propagates on its own to the contact section, the menu, the marketing footer,
+  the contact pulse links, and the `telephone` field on the Organization node
+  in the site-wide JSON-LD graph. Each surface derives its own `tel:` href by
+  stripping non-digits, so the dial target is `tel:+18042804941`.
+- **Icon** (`app/icon.png`, `public/cd-sportswear-usa-icon.png`) — both replaced
+  with the supplied CD mark, rendered at 512x512. The mark ships on a
+  transparent background and is dark navy, which would have gone near-invisible
+  on dark browser chrome and would have been composited onto black as an iOS
+  home-screen icon, so it is seated on a white rounded-square plate at 84% width
+  and centred. `SITE.iconPath` and the `icons` block in `app/layout.jsx` are
+  unchanged — the paths already pointed at these two files.
+- **Not changed** — `public/cd-sportswear-usa-logo.png`, the wide wordmark used
+  by the nav, CRM login, workspace shell and transactional email header. The
+  supplied art is an icon-proportioned mark, not a wordmark.
+- **Tests** (`tests/content.test.mjs`) — the exact-value phone assertion tracks
+  the new number. Full suite green (493/493).
+
 ## v1.32 — 2026-09-06
 
 SEO H1/title + Service JSON-LD pass for six `/services/[slug]` pages. Taxonomy
