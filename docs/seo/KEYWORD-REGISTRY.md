@@ -7,7 +7,16 @@ is approved or a page ships.
 Figures are Ubersuggest `keyword_overview` estimates, US (locId 2840), English.
 `Pulled` is the date of the figures shown. Re-validate on the Keywords lane.
 
-## Tracked in Ubersuggest project `5dfd943c…` (cdsportswearusa.com)
+## Tracked in Ubersuggest project `109eb168…` (cdsportswearinc.com)
+
+MJ replaced the old project (`5dfd943c…`, cdsportswearusa.com) on 2026-09-09;
+it is gone and this one is the only project on the account. Its first import
+tracked 50 keywords, none of which were registry targets. MJ's decision the
+same day: **the registry governs, the import does not.** Every target below is
+now tracked (added 2026-09-09), and four off-brand terms the import carried —
+`hulu logos`, `dreamwork logo`, `design a logo canva`, `n8n workflow` — were
+removed. 53 of 125 slots used. GA is still unconnected, so Mode A holds and
+every figure here remains an estimate.
 
 | Keyword | Vol/mo | Diff | CPC | Intent | Target URL | Page state | Tier | Issue | Pulled |
 |---|---|---|---|---|---|---|---|---|---|
@@ -17,9 +26,24 @@ Figures are Ubersuggest `keyword_overview` estimates, US (locId 2840), English.
 | website development rfp | 260 | 13 | $11.98 | commercial | /blog/web-development-rfp-guide | **approved 2026-09-02, landing as draft in blog_posts** | Now | CRY-22 | 2026-09-02 |
 | web development northern virginia | 260 | 9 | $17.99 | — | /northern-virginia-web-development | not built | Next | — | 2026-09-02 |
 | ai automation agency | 4,400 | 35 | $17.80 | navigational | /services/ai-automation | exists (service page) | Monitor | — | 2026-09-02 |
+| branding and web design | 720 | 31 | $16.50 | navigational | /blog/branding-and-web-design-studio | **live since 2026-09-06** | Now | — | 2026-09-09 |
 
 Drift log: `ai automation agency` difficulty 38 (2026-08-21) → 35 (2026-09-02).
 All others unchanged since 2026-08-21.
+
+`branding and web design` was added 2026-09-09 to give the live branding post a
+target. It is not a reversal of CRY-20: that decision dropped `branding agency
+northern virginia` for having **0/mo** demand, and this is a different term with
+real volume. The post's other registry conflict is unresolved — see below.
+
+**Evaluated and not tracked:** `ai automation cost` — 10/mo, difficulty 45,
+CPC $0, US 2840, pulled 2026-09-09. Monthly history is 0 for eight of the last
+thirteen months and peaks at 20. The live post
+`/blog/how-much-does-ai-automation-cost` therefore has **no viable head term of
+its own**, and spending a tracked slot on 10/mo at difficulty 45 is not worth
+it. The post is still worth having — it answers a real sales question and
+supports `ai automation agency` — but it should not be measured as a ranking
+play. Needs a better primary term before it gets a row.
 
 ## Secondary terms recorded on issues, not tracked
 
