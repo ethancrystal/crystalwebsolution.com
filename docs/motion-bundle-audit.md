@@ -1,4 +1,4 @@
-# CD Sportswear USA — Motion / Bundle Systems Audit
+# CD Sportswear Inc — Motion / Bundle Systems Audit
 
 ## 1. What I reviewed
 

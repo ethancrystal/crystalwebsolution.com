@@ -1,4 +1,4 @@
-# CD Sportswear USA
+# CD Sportswear Inc
 
 A dark, cinematic, scroll-driven agency homepage. The whole viewport is a fixed
 WebGL stage; the DOM scrolls over it while a virtual camera flies through one
@@ -62,7 +62,7 @@ docker run -p 3000:3000 --env-file .env.local ghcr.io/ethancrystal/crystalwebsol
 
 ## Canonical checkout
 
-Use `C:\Users\moizjmj\CD Sportswear USA` on `main` as the authoritative
+Use `C:\Users\moizjmj\CD Sportswear Inc` on `main` as the authoritative
 local checkout. Do not assume a linked worktree is current. The audited
 worktree inventory, cleanup status, and recovery instructions live in
 [`docs/archive/WORKTREE-STATE.md`](docs/archive/WORKTREE-STATE.md).

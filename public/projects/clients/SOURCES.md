@@ -1,9 +1,9 @@
 # Awwwards Web & Interactive — Page 1 Image Index
 
 **Usage note:** these screenshots belong to the third-party sites listed
-below, not to CD Sportswear USA. They are used only as decorative visual
+below, not to CD Sportswear Inc. They are used only as decorative visual
 texture in the `aria-hidden` `WorkMarquee` on the Motion section — never as
-a claim that any of these are CD Sportswear USA client work. The real,
+a claim that any of these are CD Sportswear Inc client work. The real,
 named client record is `lib/projects.js` / `/work`.
 
 Collected from the supplied [Awwwards page](https://www.awwwards.com/websites/web-interactive/). Each numbered image corresponds to one distinct project card found on page 1. Live screenshots were used when the homepage completed headless loading; otherwise the matching Awwwards high-resolution card preview is included and labeled below.

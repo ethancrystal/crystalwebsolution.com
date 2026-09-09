@@ -1,4 +1,4 @@
-# CD Sportswear USA — Migration Plan
+# CD Sportswear Inc — Migration Plan
 
 **Date:** 2026-08-14  
 **Status:** Ready for implementation

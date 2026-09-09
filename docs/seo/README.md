@@ -1,6 +1,6 @@
 # SEO operations — repository memory
 
-This directory is the operating memory for the CD Sportswear USA SEO programme.
+This directory is the operating memory for the CD Sportswear Inc SEO programme.
 It replaced the Notion archive on 2026-09-02 (MJ's decision). Everything the
 automated daily run needs to know lives here, and everything it produces lands
 here, so the same reviewed-PR gate that protects the site protects the plan.
@@ -12,6 +12,7 @@ here, so the same reviewed-PR gate that protects the site protects the plan.
 | `runs/YYYY-MM-DD.md` | Daily run logs, newest at the bottom of the list | The run, every run |
 | `drafts/blog/<slug>.md` | Blog post drafts, front-matter matching `blog_posts` | The run drafts; MJ approves |
 | `drafts/blog/assets/` | Cover images for drafts, uploaded on publish | The run or MJ |
+| `campaigns/<slug>.md` | Amp kits for published posts. Copy only — committing one sends nothing | The run drafts; MJ sends |
 | `backlinks/prospects.md` | Scored outreach shortlist. Research only. | The run |
 | `backlinks/pbn-watch.md` | The spam signature to watch for, and the known bad domains | The run |
 

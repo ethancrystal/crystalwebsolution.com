@@ -1,7 +1,7 @@
-# CD Sportswear USA CRM Master Product, UX, Architecture, and Implementation Plan
+# CD Sportswear Inc CRM Master Product, UX, Architecture, and Implementation Plan
 
 > **Status:** Planning source of truth — no further implementation should begin until this document is approved.
-> **Prepared for:** CD Sportswear USA
+> **Prepared for:** CD Sportswear Inc
 > **Prepared by:** Manus AI
 > **Planning date:** 16 August 2026
 > **Repository:** `ethancrystal/crystalwebsolution.com`
@@ -420,4 +420,4 @@ Future CRM work follows this sequence: **UX framing and state inventory → writ
 
 [11]: https://supabase.com/docs/guides/database/database-advisors "Supabase Database Security Advisors"
 
-[12]: https://www.crystalwebsolution.com/ "CD Sportswear USA production site"
+[12]: https://www.crystalwebsolution.com/ "CD Sportswear Inc production site"

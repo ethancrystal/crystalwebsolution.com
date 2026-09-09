@@ -78,8 +78,8 @@ body; not seeded; re-add if MJ wants it.
 One keyword maps to exactly one URL. The canonical mapping is
 `KEYWORD-REGISTRY.md`. Read it before proposing any new target.
 
-**Positioning caveat.** The brand is *CD Sportswear USA* but the live title is
-"Custom Web Design & AI Automation | CD Sportswear USA" and MJ seeded a
+**Positioning caveat.** The brand is *CD Sportswear Inc* but the live title is
+"Custom Web Design & AI Automation | CD Sportswear Inc" and MJ seeded a
 web-design keyword set on 2026-09-02. The run treats that as confirmation the
 studio's positioning is unchanged. If that ever changes, this whole section
 and the three content issues are wrong and must be revisited first.

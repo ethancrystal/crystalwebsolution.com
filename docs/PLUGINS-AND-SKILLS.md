@@ -65,7 +65,7 @@ import { Builder } from '@builder.io/sdk';
 
 Builder.init('YOUR_BUILDER_API_KEY');
 
-// Content model mapping for CD Sportswear USA
+// Content model mapping for CD Sportswear Inc
 export const CONTENT_MODELS = {
   // Marketing pages
   'service-page': {
@@ -111,7 +111,7 @@ export async function getBuilderPage(model, slug) {
 
 ### 2.2 Builder.io Component Mapping
 
-| CD Sportswear USA Component | Builder.io Equivalent | Notes |
+| CD Sportswear Inc Component | Builder.io Equivalent | Notes |
 |--------------------------------|----------------------|-------|
 | `components/marketing/PageHero.jsx` | Hero Section | Map eyebrow/title/lede fields |
 | `components/marketing/ContentSection.jsx` | Content Block | Map eyebrow/title/children |
@@ -179,7 +179,7 @@ customElements.define('service-emblem', ServiceEmblemElement);
 
 ---
 
-## 3. Agnes AI Skills for CD Sportswear USA
+## 3. Agnes AI Skills for CD Sportswear Inc
 
 ### 3.1 Custom Agnes Skills (Created)
 

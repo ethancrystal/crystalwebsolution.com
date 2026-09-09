@@ -292,7 +292,7 @@ export default function Lab() {
         <p className="lab-caption" ref={captionRef}>
           This whole site is the pitch: one continuous 3D scene, scroll-linked
           motion, real accessibility, and fallbacks that hold up on any device
-          — built by CD Sportswear USA.
+          — built by CD Sportswear Inc.
         </p>
         <a href="#services" className="lab-link">All services <span aria-hidden="true">→</span></a>
         <div className="lab-stage" ref={stageRef}>

@@ -1,4 +1,4 @@
-# CD Sportswear USA — Scroll-Driven Motion Choreography
+# CD Sportswear Inc — Scroll-Driven Motion Choreography
 
 > **Historical plan — superseded.** This proposal targets an earlier section
 > layout and retains obsolete component names for traceability. It is not the
