@@ -10,7 +10,16 @@ test('selected work contains six unique, route-ready case studies', () => {
     assert.match(project.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     assert.equal(project.palette.length, 2);
     assert.ok(project.services.length >= 3);
-    assert.equal(project.body.length, 4);
+    // The case-study layout splits body[] into three beats: the first paragraph
+    // is THE PROBLEM, the last is THE RESULT, and everything between is OUR
+    // APPROACH (see beatsFor in app/work/[slug]/page.jsx). Three is the real
+    // floor — below it the layout collapses to a single untitled block. The
+    // approach section takes any number of paragraphs, so this is deliberately
+    // not pinned to an exact count: case studies are expected to grow.
+    assert.ok(
+      project.body.length >= 3,
+      `${project.slug} needs at least 3 paragraphs to render problem/approach/result`,
+    );
     assert.equal(getProject(project.slug), project);
   }
 });
