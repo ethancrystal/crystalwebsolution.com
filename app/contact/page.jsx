@@ -33,7 +33,7 @@ const CONTACT_FAQ = [
   },
 ];
 
-const TITLE = 'Contact';
+const TITLE = 'Contact — Start a Project Brief';
 const DESCRIPTION =
   'Start a project with CD Sportswear Inc. Send your brief and get a straight read on scope, timeline, cost, and the first move if it’s a fit.';
 

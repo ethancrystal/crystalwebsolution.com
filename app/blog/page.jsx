@@ -8,24 +8,30 @@ import MarketingShell from '../../components/marketing/MarketingShell';
 import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
+// `BLOG_TITLE` is the crumb and the schema label, where the plain word is what
+// a reader expects. `BLOG_SEO_TITLE` is the document-title stem only: the root
+// layout appends `| ${SITE.name}`, and "Blog" alone left the rendered title at
+// 24 characters, under the 30 an audit will flag as too short to describe the
+// page. The two are deliberately different — don't collapse them.
 const BLOG_TITLE = 'Blog';
+const BLOG_SEO_TITLE = 'Web Design & Automation Notes';
 const BLOG_DESCRIPTION =
   'Notes on web design, development and brand systems from the CD Sportswear Inc studio — what we build, how we build it, and what it costs.';
 
 export const metadata = {
-  title: BLOG_TITLE,
+  title: BLOG_SEO_TITLE,
   description: BLOG_DESCRIPTION,
   alternates: { canonical: '/blog' },
   openGraph: {
     type: 'website',
     url: absoluteUrl('/blog'),
-    title: `${BLOG_TITLE} | ${SITE.name}`,
+    title: `${BLOG_SEO_TITLE} | ${SITE.name}`,
     description: BLOG_DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${BLOG_TITLE} | ${SITE.name}`,
+    title: `${BLOG_SEO_TITLE} | ${SITE.name}`,
     description: BLOG_DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
@@ -62,7 +68,7 @@ export default async function BlogIndexPage() {
     '@context': 'https://schema.org',
     '@type': 'Blog',
     '@id': absoluteUrl('/blog'),
-    name: `${BLOG_TITLE} | ${SITE.name}`,
+    name: `${BLOG_SEO_TITLE} | ${SITE.name}`,
     description: BLOG_DESCRIPTION,
     url: absoluteUrl('/blog'),
     blogPost: posts.map((post) => ({

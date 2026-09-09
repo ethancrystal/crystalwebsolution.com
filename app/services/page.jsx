@@ -10,7 +10,7 @@ import { SITE } from '../../lib/site';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
-const TITLE = 'Services';
+const TITLE = 'Web Design & AI Automation Services';
 const DESCRIPTION =
   'CD Sportswear Inc designs and builds websites, brand systems, motion, and AI and workflow automation — focused offers, each owned end to end.';
 

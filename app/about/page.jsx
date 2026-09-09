@@ -10,7 +10,7 @@ import { REVIEW_STATS } from '../../lib/reviews';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
-const TITLE = 'About';
+const TITLE = 'About Our Web Design & AI Studio';
 const DESCRIPTION =
   'CD Sportswear Inc is a digital studio designing websites, brand systems, motion, and AI automation — clarity, craft, and impact since 2016.';
 

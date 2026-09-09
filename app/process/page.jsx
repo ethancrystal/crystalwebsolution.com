@@ -8,7 +8,7 @@ import { SITE } from '../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
-const TITLE = 'Process';
+const TITLE = 'Our Process — Brief to Launch';
 const DESCRIPTION =
   'How CD Sportswear Inc works — a clear path from discovery to a product your team owns, measured against real behavior.';
 
