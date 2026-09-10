@@ -56,7 +56,7 @@ export default function SignupPage() {
         </Link>
 
         <h1>Create your account</h1>
-        <p>Join CD Sportswear USA and start managing your projects.</p>
+        <p>Join CD Sportswear Inc and start managing your projects.</p>
 
         <form action={handleSubmit} className="crm-form">
           {error && <div className="crm-error">{error}</div>}
@@ -85,7 +85,7 @@ export default function SignupPage() {
             {accountType === 'employee' && (
               <p className="crm-account-note">
                 Employee accounts need admin approval. You&apos;ll sign in with client
-                access until CD Sportswear USA approves the request.
+                access until CD Sportswear Inc approves the request.
               </p>
             )}
           </fieldset>

@@ -30,13 +30,13 @@ const PUBLIC_BRAND_FILES = [
   'lib/site.js',
 ];
 
-test('the canonical site brand is CD Sportswear USA', async () => {
+test('the canonical site brand is CD Sportswear Inc', async () => {
   const { SITE } = await import('../lib/site.js');
-  assert.equal(SITE.name, 'CD Sportswear USA');
+  assert.equal(SITE.name, 'CD Sportswear Inc');
   assert.equal(SITE.short, 'CD');
 });
 
-test('the supplied CD Sportswear USA logo is the canonical runtime asset', () => {
+test('the supplied CD Sportswear Inc logo is the canonical runtime asset', () => {
   assert.ok(existsSync(new URL('../public/cd-sportswear-usa-logo.png', import.meta.url)));
   const siteSource = read('lib/site.js');
   assert.match(siteSource, /logoPath:\s*'\/cd-sportswear-usa-logo\.png'/);
@@ -53,7 +53,7 @@ test('the app icon and root metadata use the new brand asset and name', () => {
   const layout = read('app/layout.jsx');
   assert.doesNotMatch(layout, new RegExp(['Crystal', 'Web', 'Solution'].join('\\s+')));
   assert.match(layout, /SITE\.logoPath/);
-  assert.match(layout, /CD Sportswear USA/);
+  assert.match(layout, /CD Sportswear Inc/);
 });
 
 test('public page and shared chrome sources contain no old visible brand name', () => {

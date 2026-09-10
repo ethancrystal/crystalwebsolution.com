@@ -5,6 +5,34 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.35 — 2026-09-10
+
+Brand name and contact-email text catch-up following v1.34's wordmark swap:
+the visible legal/brand name was still "CD Sportswear USA" and the sales
+inbox was still on the retired `cdsportswearusa.com` domain everywhere text
+renders it. `SITE.name` and `SITE.email` in `lib/site.js` are the single
+source of truth for the nav, footer, contact page, and page metadata, so
+updating those two fields there propagated the fix across the site. The
+phone number was already correct (`+1 804-280-4941`) and needed no change.
+
+- **Brand name** — `CD Sportswear USA` → `CD Sportswear Inc` in `SITE.name`,
+  the `crystal-web-solution` case-study title/body in `lib/projects.js`,
+  historical client review quotes in `lib/reviews.js`, and every page
+  metadata description/copy string across `app/**` and
+  `components/sections/{About,Lab,Motion}.jsx` that spelled the name out
+  literally instead of reading `SITE.name`.
+- **Sales email** — `sales@cdsportswearusa.com` → `sales@cdsportswearinc.com`
+  in `SITE.email`; the transactional-email sender address in
+  `lib/email/resend.js` moved from `no-reply@cdsportswearusa.com` to
+  `no-reply@cdsportswearinc.com` to match.
+- Updated the test suite's brand/email assertions
+  (`tests/site-brand.test.mjs`, `tests/email.test.mjs`,
+  `tests/content.test.mjs`, `tests/projects.test.mjs`,
+  `tests/marketing.test.mjs`, `tests/latestFeatures.test.mjs`,
+  `tests/crm/notification-coverage.test.mjs`,
+  `tests/marketing/serviceSchema.test.jsx`) to match.
+- No layout, motion, or CRM behaviour changes.
+
 ## v1.34 — 2026-09-08
 
 Brand lockup swap: the supplied CD SPORTSWEAR INC wordmark replaces the

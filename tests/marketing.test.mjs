@@ -145,7 +145,7 @@ test('six service pages ship the SEO title stem and single H1 from the ship tabl
     assert.ok(page, `${slug} should resolve`);
     assert.equal(page.seoTitle, seoTitle);
     assert.equal(page.h1, h1);
-    assert.doesNotMatch(page.seoTitle, /\s\|\s/, `${slug} seoTitle is a stem; layout appends | ${'CD Sportswear USA'}`);
+    assert.doesNotMatch(page.seoTitle, /\s\|\s/, `${slug} seoTitle is a stem; layout appends | ${'CD Sportswear Inc'}`);
   });
 });
 

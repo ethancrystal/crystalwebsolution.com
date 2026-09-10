@@ -35,7 +35,7 @@ const CONTACT_FAQ = [
 
 const TITLE = 'Contact';
 const DESCRIPTION =
-  'Start a project with CD Sportswear USA. Send your brief and get a straight read on scope, timeline, cost, and the first move if it’s a fit.';
+  'Start a project with CD Sportswear Inc. Send your brief and get a straight read on scope, timeline, cost, and the first move if it’s a fit.';
 
 export const metadata = {
   title: TITLE,
