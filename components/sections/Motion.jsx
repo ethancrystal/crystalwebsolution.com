@@ -12,7 +12,7 @@ const DEEP_LINK_PROGRESS = 0.32;
 // lives in the accessible project list below, sourced from lib/projects.js.
 // The marquee tiles themselves are third-party Awwwards showcase
 // screenshots used only as visual texture (see
-// public/projects/clients/SOURCES.md); they are not CD Sportswear USA
+// public/projects/clients/SOURCES.md); they are not CD Sportswear INC
 // client work and should never be presented as such.
 // Animated media for the duplicated (second-half) tiles in the marquee.
 // WebM is preferred for smaller file size and better quality; GIF is used

@@ -22,7 +22,7 @@ export const metadata = {
     template: `%s | ${SITE.name}`,
   },
   description:
-    'CD Sportswear USA designs and builds distinctive websites, brand systems, motion experiences, and AI automations for businesses ready to stand apart.',
+    'CD Sportswear INC designs and builds distinctive websites, brand systems, motion experiences, and AI automations for businesses ready to stand apart.',
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',

@@ -12,7 +12,7 @@ import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
 const TITLE = 'Services';
 const DESCRIPTION =
-  'CD Sportswear USA designs and builds websites, brand systems, motion, and AI and workflow automation — focused offers, each owned end to end.';
+  'CD Sportswear INC designs and builds websites, brand systems, motion, and AI and workflow automation — focused offers, each owned end to end.';
 
 const SERVICES_FAQ = [
   {
