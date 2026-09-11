@@ -9,23 +9,26 @@ import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const BLOG_TITLE = 'Blog';
+// Exact <title> flagged by Ubersuggest and specified by MJ (2026-09-11). Wrapped
+// in `absolute` so the root layout's `%s | <brand>` template does not append to it.
+const SEO_TITLE = 'Web Design & Branding Blog | CD Sportswear Inc';
 const BLOG_DESCRIPTION =
   'Notes on web design, development and brand systems from the CD Sportswear INC studio — what we build, how we build it, and what it costs.';
 
 export const metadata = {
-  title: BLOG_TITLE,
+  title: { absolute: SEO_TITLE },
   description: BLOG_DESCRIPTION,
   alternates: { canonical: '/blog' },
   openGraph: {
     type: 'website',
     url: absoluteUrl('/blog'),
-    title: `${BLOG_TITLE} | ${SITE.name}`,
+    title: SEO_TITLE,
     description: BLOG_DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${BLOG_TITLE} | ${SITE.name}`,
+    title: SEO_TITLE,
     description: BLOG_DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
