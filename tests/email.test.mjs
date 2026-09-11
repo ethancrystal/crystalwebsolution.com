@@ -140,7 +140,7 @@ test('transactional templates render the canonical logo and accessible text fall
     rendered.html.includes(expectedLogoUrl),
     `expected rendered email to include the canonical logo URL ${expectedLogoUrl}`,
   );
-  assert.match(rendered.html, /alt="CD Sportswear Inc"/);
+  assert.match(rendered.html, /alt="CD Sportswear INC"/);
 });
 
 test('the password-changed notice carries no actionable auth link', async () => {

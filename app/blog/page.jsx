@@ -10,7 +10,7 @@ import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const BLOG_TITLE = 'Blog';
 const BLOG_DESCRIPTION =
-  'Notes on web design, development and brand systems from the CD Sportswear Inc studio — what we build, how we build it, and what it costs.';
+  'Notes on web design, development and brand systems from the CD Sportswear INC studio — what we build, how we build it, and what it costs.';
 
 export const metadata = {
   title: BLOG_TITLE,

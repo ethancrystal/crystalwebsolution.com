@@ -2,7 +2,7 @@
 // portal gets a distinct title instead of inheriting the duplicate homepage one.
 export const metadata = {
   title: 'Admin Portal',
-  description: 'Administrator sign-in for the CD Sportswear Inc workspace.',
+  description: 'Administrator sign-in for the CD Sportswear INC workspace.',
   alternates: { canonical: '/login/admin' },
   robots: { index: false, follow: false },
 };

@@ -39,7 +39,7 @@ test('homepage uses three complete, attributable reviews', () => {
 });
 
 test('global content publishes authorized studio facts and contact details', () => {
-  assert.equal(SITE.name, 'CD Sportswear Inc');
+  assert.equal(SITE.name, 'CD Sportswear INC');
   assert.equal(SITE.founded, 2016);
   assert.equal(SITE.experience, '10+ years');
   assert.equal(SITE.projectsShipped, '60+ projects shipped');

@@ -1,7 +1,7 @@
 // See app/login/layout.jsx — noindex rationale.
 export const metadata = {
   title: 'Employee Portal',
-  description: 'Employee sign-in for the CD Sportswear Inc workspace.',
+  description: 'Employee sign-in for the CD Sportswear INC workspace.',
   alternates: { canonical: '/login/employee' },
   robots: { index: false, follow: false },
 };

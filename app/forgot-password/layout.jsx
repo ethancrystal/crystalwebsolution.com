@@ -1,7 +1,7 @@
 // See app/login/layout.jsx — noindex rationale.
 export const metadata = {
   title: 'Reset Password',
-  description: 'Request a password reset link for your CD Sportswear Inc account.',
+  description: 'Request a password reset link for your CD Sportswear INC account.',
   alternates: { canonical: '/forgot-password' },
   robots: { index: false, follow: false },
 };
