@@ -30,9 +30,9 @@ const PUBLIC_BRAND_FILES = [
   'lib/site.js',
 ];
 
-test('the canonical site brand is CD Sportswear USA', async () => {
+test('the canonical site brand is CD Sportswear INC', async () => {
   const { SITE } = await import('../lib/site.js');
-  assert.equal(SITE.name, 'CD Sportswear USA');
+  assert.equal(SITE.name, 'CD Sportswear INC');
   assert.equal(SITE.short, 'CD');
 });
 
@@ -53,7 +53,7 @@ test('the app icon and root metadata use the new brand asset and name', () => {
   const layout = read('app/layout.jsx');
   assert.doesNotMatch(layout, new RegExp(['Crystal', 'Web', 'Solution'].join('\\s+')));
   assert.match(layout, /SITE\.logoPath/);
-  assert.match(layout, /CD Sportswear USA/);
+  assert.match(layout, /CD Sportswear INC/);
 });
 
 test('public page and shared chrome sources contain no old visible brand name', () => {
