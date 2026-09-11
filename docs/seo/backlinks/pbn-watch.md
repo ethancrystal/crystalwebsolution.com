@@ -24,7 +24,7 @@ A match on path, title, or anchor is flagged in the run log the same day. If
 this signature ever appears on the live host, a Search Console property plus a
 disavow becomes the right tool — MJ's call, never automatic.
 
-## Known bad domains — signature A
+## Known bad domains — signature A (Ubersuggest `linking_domains`, crystalwebsolution.com, 2026-09-02)
 
 | Domain | DA | Spam | Gained |
 |---|---|---|---|
