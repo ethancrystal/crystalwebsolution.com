@@ -50,17 +50,23 @@ trace in this repo:
 
 **Treat the live domain as something to re-verify (`curl -I` the apex and
 `www` host), not trust indefinitely** — it has now moved twice without a
-code change to announce it. Known related gaps as of 2026-09-03, not yet
-confirmed or fixed: `NEXT_PUBLIC_APP_URL` in Vercel's Production environment
-variables (feeds every auth/invite/reset link and the CRM notification
-cron's target — see `lib/supabase/admin.js`, `app/auth/actions.js`,
-`app/admin/users/actions.js`, `app/api/cron/crm-notifications/route.js`);
-Supabase Auth's `SUPABASE_AUTH_SITE_URL` / redirect allow-list
-(`supabase/config.toml`); and whether `sales@cdsportswearusa.com`
-(`lib/site.js`) and the Resend sender domain (`lib/email/resend.js`) move
-with the site or stay on the old domain's mail — neither was changed here,
-since that depends on whether a mailbox and Resend domain verification
-exist for the new address, which only the owner can confirm.
+code change to announce it. Known related gaps as of 2026-09-11:
+
+- `NEXT_PUBLIC_APP_URL` in Vercel's Production environment variables
+  (feeds every auth/invite/reset link and the CRM notification worker's
+  in-email URLs — see `lib/supabase/admin.js`, `app/auth/actions.js`,
+  `app/admin/users/actions.js`, `app/api/cron/crm-notifications/route.js`).
+  Dashboard setting; `NEXT_PUBLIC_*` values are inlined at build time, so
+  changing the variable alone does nothing until Production is rebuilt.
+- Supabase Auth's dashboard `SITE_URL`. The repo allow-list in
+  `supabase/config.toml` was updated in v1.36.
+- Applying migration `0042` to the live database (checked in as of v1.37).
+  Until applied, `pg_cron`'s `drain-crm-outbox` job still POSTs to the
+  dark `crystalwebsolution.com` host if `0025` ran, and
+  `public.pinned_admin_email()` still returns `ethan@crystalwebsolution.com`.
+- Mailbox and Resend domain verification for `cdsportswearinc.com`:
+  `SITE.email` and the Resend sender in `lib/email/resend.js` already
+  moved in v1.35; DNS/mailbox/Resend verification is still owner-side.
 
 Work on a feature branch and land it in `main` via a reviewed PR — merging
 a PR into `main` IS deploying to production.

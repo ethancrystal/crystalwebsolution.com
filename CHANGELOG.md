@@ -5,6 +5,30 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.37 — 2026-09-11
+
+Owner-approved cutover of two live-database references that still named
+the retired `crystalwebsolution.com` host after the second domain move.
+
+- **pg_cron drain URL** — migration `0042` unschedules and reschedules
+  `drain-crm-outbox` to POST
+  `https://www.cdsportswearinc.com/api/cron/crm-notifications` (matches
+  `SITE_ORIGIN` in `lib/seo.mjs`). `0025` is left untouched as history.
+  Until this migration is applied on the live database, a previously
+  applied `0025` job still calls the dark host every five minutes; Vercel
+  Cron (`vercel.json`, daily 13:00 UTC) remains the backstop.
+- **Pinned admin mailbox** — `public.pinned_admin_email()` now returns
+  `ethan@cdsportswearinc.com`. If the old Auth user still exists and the
+  new address is free, the migration renames that login in place; if both
+  addresses exist, it demotes the old admin to `project_manager` and
+  promotes the named address. Lead-capture RPCs (0026, 0029) resolve the
+  admin actor through this function, so the pin and the login have to
+  move together.
+- Merging deploys the Next.js app; it does **not** run SQL. Applying
+  `0042` (and any earlier unapplied migrations, including `0041`) on the
+  live Supabase project is a separate owner action.
+- No layout, motion, or CRM UI changes.
+
 ## v1.36 — 2026-09-11
 
 Closes part of the gap `CLAUDE.md` flags around the domain's second move
