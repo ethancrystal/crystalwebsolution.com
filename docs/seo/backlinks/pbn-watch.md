@@ -1,6 +1,12 @@
 # PBN watch
 
-## The signature
+Two distinct link-spam networks have now hit this business's domains. MJ
+confirmed on 2026-09-02 that no link package was bought — that confirmation
+covers **signature A only**; signature B was first seen by the run on
+2026-09-10 and has not been put to MJ. Check **every** new referring domain on
+the live host against both signatures on the Backlinks lane.
+
+## Signature A — the 2026-08 blast on `crystalwebsolution.com`
 
 Between 2026-08-16 and 2026-08-27, `crystalwebsolution.com` gained ~32
 referring domains from one private-blog-network template. Every link shares:
@@ -14,13 +20,11 @@ referring domains from one private-blog-network template. Every link shares:
 MJ confirmed on 2026-09-02 that nobody bought a link package. It is inbound.
 The old domain was left dark on purpose (Operations Manual §7).
 
-**The run checks every new referring domain on `cdsportswearusa.com` against
-this signature on the Backlinks lane.** A match on path, title, or anchor is
-flagged in the run log and on CRY-29 the same day. If it appears on the new
-domain, a Search Console property plus a disavow becomes the right tool — MJ's
-call, never automatic.
+A match on path, title, or anchor is flagged in the run log the same day. If
+this signature ever appears on the live host, a Search Console property plus a
+disavow becomes the right tool — MJ's call, never automatic.
 
-## Known bad domains (Ubersuggest `linking_domains`, crystalwebsolution.com, 2026-09-02)
+## Known bad domains — signature A
 
 | Domain | DA | Spam | Gained |
 |---|---|---|---|
@@ -56,3 +60,44 @@ call, never automatic.
 | expresskitchendesigns.com | 57 | 6 | 2026-08-16 |
 
 Thirty returned by a `limit: 30` call; the total gained in the window was ~32.
+
+---
+
+## Signature B — the 2026-08-31/09-01 shells on `cdsportswearusa.com`
+
+Found 2026-09-10 (Ubersuggest `linking_domains` and `backlinks`,
+`cdsportswearusa.com`). Different template, same class. Every link shares:
+
+- a keyword-stuffed gTLD host: `.shop` / `.site`, hyphenated link-selling phrase
+- page path shaped `/<hyphenated-slug>-<8 random chars>/page-75`
+- page title `Buy High-Quality Contextual Backlinks for Higher Google & AI Rankings <date> — <host>`
+- anchor text `i used to think cdsportswearusa.com was a stray sheep. easyrank.link brought it into the fold of success. for cdsportswearusa.com on <host>` — the vendor name **`easyrank.link`** is the tell
+- `nofollow: true` (signature A was dofollow)
+- DA 2, `domain_inlink_rank` 2, `inlink_rank` 12, `spam_score: null`
+- every link points at the bare root `https://cdsportswearusa.com/`
+
+| Domain | DA | Gained | First seen |
+|---|---|---|---|
+| white-hat-high-authority-seo.shop | 2 | 2026-09-01 | 2026-09-01 |
+| seo-backlinks-contextual-dofollow.site | 2 | 2026-09-01 | 2026-09-01 |
+| quality-manual-link-building.shop | 2 | 2026-08-31 | 2026-09-01 |
+
+Three referring domains. `domain_overview` reports **6** backlinks; the
+`backlinks` call at limit 25 returned only **5** rows (2026-09-10) — the sixth
+was not returned and has not been inspected. All five that were returned match
+the template above, and they are everything the tool showed for
+`cdsportswearusa.com` (Ubersuggest `domain_overview`, locId 2840, 2026-09-10:
+backlinks 6, refDomains 3, follow 0, noFollow 6, DA 1).
+
+**Assessment.** Low risk as it stands, for three reasons: the links are
+nofollow, the referring domains have no authority to pass (DA 2), and their
+target has served HTTP 404 since the domain move on 2026-09-03 — so the links
+land nowhere. The live host `cdsportswearinc.com` had **0 backlinks and 0
+referring domains** on 2026-09-10 (Ubersuggest `backlinks_overview`), so
+signature B has not followed the move.
+
+**Action: watch, do not disavow.** There is no Search Console property on the
+live domain to file one from, and nothing worth filing against a 404. What
+would change that: the same `easyrank.link` anchor appearing on
+`cdsportswearinc.com`, or the links turning dofollow. Recheck every Backlinks
+lane.
