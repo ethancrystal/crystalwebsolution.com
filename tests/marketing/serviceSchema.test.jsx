@@ -44,7 +44,7 @@ describe('ServiceSchema', () => {
       provider: {
         '@type': 'Organization',
         '@id': 'https://www.cdsportswearinc.com/#organization',
-        name: 'CD Sportswear USA',
+        name: 'CD Sportswear INC',
         url: 'https://www.cdsportswearinc.com/',
       },
       areaServed,
