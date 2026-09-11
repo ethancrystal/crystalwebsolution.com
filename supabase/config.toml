@@ -173,6 +173,8 @@ site_url = "env(SUPABASE_AUTH_SITE_URL)"
 additional_redirect_urls = [
   "http://localhost:3000/**",
   "http://127.0.0.1:3000/**",
+  "https://cdsportswearinc.com/**",
+  "https://www.cdsportswearinc.com/**",
   "https://crystalwebsolution.com/**",
   "https://www.crystalwebsolution.com/**",
 ]
