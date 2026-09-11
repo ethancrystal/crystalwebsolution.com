@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendInviteEmail } from '../lib/email/resend.js';
 
-const ADMIN_EMAIL = 'ethan@crystalwebsolution.com';
+// Must match public.pinned_admin_email() after migration 0042.
+const ADMIN_EMAIL = 'ethan@cdsportswearinc.com';
 const EMPLOYEE_EMAIL = 'ethan+employee@crystalwebsolution.com';
 const CLIENT_EMAIL = 'ethan+client@crystalwebsolution.com';
 
