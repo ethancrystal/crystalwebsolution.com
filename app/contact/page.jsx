@@ -34,23 +34,26 @@ const CONTACT_FAQ = [
 ];
 
 const TITLE = 'Contact';
+// Exact <title> flagged by Ubersuggest and specified by MJ (2026-09-11). Wrapped
+// in `absolute` so the root layout's `%s | <brand>` template does not append to it.
+const SEO_TITLE = 'Contact CD Sportswear | Send Us Your Project Brief';
 const DESCRIPTION =
   'Start a project with CD Sportswear INC. Send your brief and get a straight read on scope, timeline, cost, and the first move if it’s a fit.';
 
 export const metadata = {
-  title: TITLE,
+  title: { absolute: SEO_TITLE },
   description: DESCRIPTION,
   alternates: { canonical: '/contact' },
   openGraph: {
     type: 'website',
     url: absoluteUrl('/contact'),
-    title: `${TITLE} | ${SITE.name}`,
+    title: SEO_TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${TITLE} | ${SITE.name}`,
+    title: SEO_TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
