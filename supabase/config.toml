@@ -173,8 +173,17 @@ site_url = "env(SUPABASE_AUTH_SITE_URL)"
 additional_redirect_urls = [
   "http://localhost:3000/**",
   "http://127.0.0.1:3000/**",
+  "https://cdsportswearinc.com/**",
+  "https://www.cdsportswearinc.com/**",
+  # Retired domains, kept harmless in the allow-list rather than pruned:
+  # crystalwebsolution.com is dark by design (see CLAUDE.md), and
+  # cdsportswearusa.com is detached from Vercel (DEPLOYMENT_NOT_FOUND) as of
+  # 2026-09-10 — neither can serve a redirect target today, but nothing here
+  # depends on removing them.
   "https://crystalwebsolution.com/**",
   "https://www.crystalwebsolution.com/**",
+  "https://cdsportswearusa.com/**",
+  "https://www.cdsportswearusa.com/**",
 ]
 
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).

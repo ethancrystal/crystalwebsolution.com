@@ -5,6 +5,36 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.36 — 2026-09-11
+
+Closes part of the gap `CLAUDE.md` flags around the domain's second move
+(`cdsportswearusa.com` → `cdsportswearinc.com`, confirmed 2026-09-03):
+`supabase/config.toml`'s Auth `additional_redirect_urls` allow-list was
+never updated past the original `crystalwebsolution.com` entries from
+before either move. Password-reset, invite, and confirmation links are
+built in `lib/supabase/admin.js`'s `buildVerifyUrl()` as
+`${NEXT_PUBLIC_APP_URL}/auth/verify?...`, and Supabase's GoTrue validates
+that target against this allow-list server-side before `generateLink()`
+will even issue a link.
+
+- Added `https://cdsportswearinc.com/**` and `https://www.cdsportswearinc.com/**`
+  to `additional_redirect_urls`. Kept the retired `crystalwebsolution.com`
+  and `cdsportswearusa.com` entries in place (harmless — both are dead
+  hosts today) rather than pruning them.
+- This fixes the allow-list half of the gap only. The other half —
+  `NEXT_PUBLIC_APP_URL` in Vercel's Production environment variables, which
+  is what actually gets baked into the link's host — is a Vercel dashboard
+  setting outside this repo; verified 2026-09-11 that `cdsportswearusa.com`
+  now 404s (`DEPLOYMENT_NOT_FOUND`, detached from the Vercel project) while
+  `https://www.cdsportswearinc.com` is the live site, so if `NEXT_PUBLIC_APP_URL`
+  is still set to the old domain, reset/invite/confirm emails will keep
+  linking to a dead host until it's updated to
+  `https://www.cdsportswearinc.com` (matching `SITE_ORIGIN` in
+  `lib/seo.mjs`) and Production is redeployed — `NEXT_PUBLIC_*` values are
+  inlined at build time, so the env var alone won't fix already-built
+  deploys.
+- No application code changed; no layout, motion, or CRM behaviour changes.
+
 ## v1.35 — 2026-09-10
 
 Brand name and contact-email text catch-up following v1.34's wordmark swap:
