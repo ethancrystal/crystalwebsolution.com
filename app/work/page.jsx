@@ -10,7 +10,7 @@ import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
 const WORK_TITLE = 'Selected Work';
 const WORK_DESCRIPTION =
-  'Explore selected CD Sportswear USA projects across product, commerce, local service, learning, and immersive web design.';
+  'Explore selected CD Sportswear INC projects across product, commerce, local service, learning, and immersive web design.';
 
 const WORK_FAQ = [
   {
