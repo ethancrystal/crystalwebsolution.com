@@ -56,7 +56,7 @@ test('sendEmail rejects incomplete messages without contacting the provider', as
 });
 
 test('the canonical contact address is on the current brand domain', () => {
-  assert.equal(SITE.email, 'sales@cdsportswearusa.com');
+  assert.equal(SITE.email, 'sales@cdsportswearinc.com');
 });
 
 test("the contact-form footer note names the site's own domain", async () => {
@@ -83,7 +83,7 @@ test('sender identity is overridable and defaults to the verified domain', async
   delete process.env.RESEND_FROM_EMAIL;
 
   try {
-    assert.match(getFromAddress(), /@cdsportswearusa\.com>$/);
+    assert.match(getFromAddress(), /@cdsportswearinc\.com>$/);
     assert.equal(getReplyToAddress(), SITE.email);
     assert.equal(getOperationsAddress(), SITE.email);
 

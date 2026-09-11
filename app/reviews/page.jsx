@@ -37,7 +37,7 @@ function isoDate(value) {
 
 const REVIEWS_TITLE = 'Client Reviews';
 const REVIEWS_DESCRIPTION =
-  `Read all ${REVIEW_STATS.total} published client reviews for CD Sportswear USA, with ratings, dates, feedback, and company replies.`;
+  `Read all ${REVIEW_STATS.total} published client reviews for CD Sportswear INC, with ratings, dates, feedback, and company replies.`;
 
 export const metadata = {
   title: REVIEWS_TITLE,

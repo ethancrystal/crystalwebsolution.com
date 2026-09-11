@@ -8,7 +8,7 @@ import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'Privacy Policy';
 const DESCRIPTION =
-  'How CD Sportswear USA collects, uses, and protects your information when you visit our site or use our services.';
+  'How CD Sportswear INC collects, uses, and protects your information when you visit our site or use our services.';
 
 export const metadata = {
   title: TITLE,

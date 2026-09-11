@@ -36,7 +36,7 @@ test('the canonical site brand is CD Sportswear INC', async () => {
   assert.equal(SITE.short, 'CD');
 });
 
-test('the supplied CD Sportswear USA logo is the canonical runtime asset', () => {
+test('the supplied CD Sportswear Inc logo is the canonical runtime asset', () => {
   assert.ok(existsSync(new URL('../public/cd-sportswear-usa-logo.png', import.meta.url)));
   const siteSource = read('lib/site.js');
   assert.match(siteSource, /logoPath:\s*'\/cd-sportswear-usa-logo\.png'/);

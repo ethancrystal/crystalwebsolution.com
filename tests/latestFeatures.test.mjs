@@ -378,7 +378,7 @@ test('carousel departure clears the frame without collapsing the flying cards', 
   }
 });
 
-test('shared motion studies name six CD Sportswear USA capabilities', () => {
+test('shared motion studies name six CD Sportswear Inc capabilities', () => {
   assert.ok(Array.isArray(studiesModule.MOTION_STUDIES));
   if (!Array.isArray(studiesModule.MOTION_STUDIES)) return;
 
