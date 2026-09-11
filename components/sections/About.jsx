@@ -184,10 +184,10 @@ export default function About() {
         const rect = rootRef.current.getBoundingClientRect();
         blastAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
       }}
-      aria-label="About CD Sportswear USA"
+      aria-label="About CD Sportswear INC"
     >
       <SectionSkeleton />
-      <p className="about-kicker" ref={kickerRef}>A brand that looks like everyone else's doesn't get remembered — it gets scrolled past. CD Sportswear USA is the independent studio built to make sure that never happens to yours: distinct strategy, real craft, work that's unmistakably yours.</p>
+      <p className="about-kicker" ref={kickerRef}>A brand that looks like everyone else's doesn't get remembered — it gets scrolled past. CD Sportswear INC is the independent studio built to make sure that never happens to yours: distinct strategy, real craft, work that's unmistakably yours.</p>
       <h2 className="sr-only">We build digital experiences that turn clear strategy into brands people remember.</h2>
       <svg ref={svgRef} className="about-smil-copy" viewBox="0 0 1440 900" aria-hidden="true">
         {ROWS.map((row) => (
