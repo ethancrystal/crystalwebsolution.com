@@ -1,10 +1,12 @@
-// See app/login/layout.jsx — noindex rationale. Signup is a thin (30-word)
-// form page that inherited the homepage title/description verbatim.
+// See app/login/layout.jsx. The noindex was removed here on 2026-09-12 at the
+// site owner's request, together with the Disallow in app/robots.js.
+//
+// Caveat on record: signup is a thin (30-word) form page that originally
+// inherited the homepage title/description verbatim.
 export const metadata = {
   title: 'Create your account',
   description: 'Create a CD Sportswear INC client or employee account.',
   alternates: { canonical: '/signup' },
-  robots: { index: false, follow: false },
 };
 
 export default function SignupLayout({ children }) {
