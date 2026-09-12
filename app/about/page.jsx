@@ -10,24 +10,28 @@ import { REVIEW_STATS } from '../../lib/reviews';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
-const TITLE = 'About';
+// Exact <title> string specified by the site owner on 2026-09-11, after
+// Ubersuggest flagged the generic one-word title this page was emitting.
+// Declared absolute so the root layout's `%s | <brand>` title template does
+// not append the studio name a second time.
+const META_TITLE = 'CD Sportswear Inc— Web Design & Branding Studio';
 const DESCRIPTION =
   'CD Sportswear INC is a digital studio designing websites, brand systems, motion, and AI automation — clarity, craft, and impact since 2016.';
 
 export const metadata = {
-  title: TITLE,
+  title: { absolute: META_TITLE },
   description: DESCRIPTION,
   alternates: { canonical: '/about' },
   openGraph: {
     type: 'website',
     url: absoluteUrl('/about'),
-    title: `${TITLE} | ${SITE.name}`,
+    title: META_TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${TITLE} | ${SITE.name}`,
+    title: META_TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
