@@ -4,6 +4,7 @@ import SectionReveal from '../SectionReveal';
 import Magnetic from '../Magnetic';
 import ContactForm from '../marketing/ContactForm';
 import SectionSkeleton from '../ui/section-skeleton';
+import Link from 'next/link';
 import { SITE } from '../../lib/site';
 
 // Contact deliberately closes quietly. The hero owns the crystal and its
@@ -56,9 +57,13 @@ export default function Contact() {
           <p>Also Located in {SITE.citySecondary}</p>
           <p>Web, brand &amp; automation</p>
         </div>
-        <p className="footer-bottom">
-          © {new Date().getFullYear()} {SITE.name}. {SITE.tagline}
-        </p>
+        <div className="footer-bottom">
+          <p>© {new Date().getFullYear()} {SITE.name}. {SITE.tagline}</p>
+          <div className="footer-legal">
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
+          </div>
+        </div>
       </SectionReveal>
     </section>
   );

@@ -5,6 +5,23 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.38 — 2026-09-13
+
+Homepage footer was missing the Privacy/Terms links every subpage footer
+(`components/marketing/MarketingFooter.jsx`) already carries — the
+homepage's footer lives separately in `components/sections/Contact.jsx`
+(the scroll-driven experience doesn't mount `MarketingFooter`), so it never
+inherited them.
+
+- Added a `.footer-legal` row (Privacy, Terms) next to the copyright line
+  in the homepage footer, matching the existing `.mkt-footer-legal`
+  pattern used on subpages.
+- `.footer-bottom` (`app/styles/contact.css`) now lays the copyright line
+  and the legal links out with `flex`/`space-between`, wrapping to a
+  stacked layout under the existing 760px breakpoint — verified at both
+  desktop and 390px mobile width.
+- No changes to `SITE.name`/`SITE.email`, motion, or CRM behaviour.
+
 ## v1.37 — 2026-09-11
 
 Owner-approved cutover of two live-database references that still named
