@@ -42,7 +42,7 @@ function runDryRun() {
 test('test-user provisioning script exposes expected dry-run output and never prints secrets', async () => {
   const script = await readFile('scripts/provision-crm-test-users.mjs', 'utf8');
 
-  assert.match(script, /ethan@crystalwebsolution\.com/);
+  assert.match(script, /ethan@cdsportswearinc\.com/);
   assert.match(script, /ethan\+employee@crystalwebsolution\.com/);
   assert.match(script, /ethan\+client@crystalwebsolution\.com/);
   assert.match(script, /--dry-run/);
@@ -50,7 +50,7 @@ test('test-user provisioning script exposes expected dry-run output and never pr
   assert.doesNotMatch(script, /password\s*[:=]\s*['"][^'"]+['"]/i);
 
   const { stdout } = await runDryRun();
-  assert.match(stdout, /ethan@crystalwebsolution\.com/);
+  assert.match(stdout, /ethan@cdsportswearinc\.com/);
   assert.match(stdout, /ethan\+employee@crystalwebsolution\.com/);
   assert.match(stdout, /ethan\+client@crystalwebsolution\.com/);
   assert.match(stdout, /\[dry-run\]/);
