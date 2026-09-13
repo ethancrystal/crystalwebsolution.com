@@ -11,6 +11,9 @@ import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
 const TITLE = 'Services';
+// Exact <title> flagged by Ubersuggest and specified by MJ (2026-09-11). Wrapped
+// in `absolute` so the root layout's `%s | <brand>` template does not append to it.
+const SEO_TITLE = 'Web Design, Branding & AI Automation | CD Sportswear';
 const DESCRIPTION =
   'CD Sportswear INC designs and builds websites, brand systems, motion, and AI and workflow automation — focused offers, each owned end to end.';
 
@@ -34,19 +37,19 @@ const SERVICES_FAQ = [
 ];
 
 export const metadata = {
-  title: TITLE,
+  title: { absolute: SEO_TITLE },
   description: DESCRIPTION,
   alternates: { canonical: '/services' },
   openGraph: {
     type: 'website',
     url: absoluteUrl('/services'),
-    title: `${TITLE} | ${SITE.name}`,
+    title: SEO_TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${TITLE} | ${SITE.name}`,
+    title: SEO_TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
