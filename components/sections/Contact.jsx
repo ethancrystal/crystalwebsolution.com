@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import SectionReveal from '../SectionReveal';
 import Magnetic from '../Magnetic';
 import ContactForm from '../marketing/ContactForm';
@@ -58,6 +59,10 @@ export default function Contact() {
         </div>
         <p className="footer-bottom">
           © {new Date().getFullYear()} {SITE.name}. {SITE.tagline}
+          <span className="footer-legal">
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/terms">Terms &amp; Conditions</Link>
+          </span>
         </p>
       </SectionReveal>
     </section>
