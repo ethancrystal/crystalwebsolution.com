@@ -11,16 +11,16 @@
 // The first URL argument derives the host. With --dry-run, the payload is
 // printed to stdout and nothing is sent.
 
-import { readFileSync, readdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+const fs = require('fs');
+const path = require('path');
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const PUBLIC_DIR = join(__dirname, '..', '..', 'public');
+const __dirname = __dirname || path.dirname(new URL(import.meta.url).pathname).replace(/^\/(\w[\w\-]*)\//, 'C:\\'));
+const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
+const PUBLIC_DIR = path.join(PROJECT_ROOT, 'public');
 
 function findKeyFile() {
-  const entries = readdirSync(PUBLIC_DIR);
-  const match = entries.find((name) => /^[0-9a-f]{32}\.txt$/.test(name));
+  const entries = fs.readdirSync(PUBLIC_DIR);
+  const match = entries.find(function (name) { return /^[0-9a-f]{32}\.txt$/.test(name); });
   if (!match) {
     throw new Error('No IndexNow key file found in public/ (expected <32-hex>.txt)');
   }
@@ -28,20 +28,20 @@ function findKeyFile() {
 }
 
 function readKey(fileName) {
-  return readFileSync(join(PUBLIC_DIR, fileName), 'utf8').trim();
+  return fs.readFileSync(path.join(PUBLIC_DIR, fileName), 'utf8').trim();
 }
 
 function deriveHost(firstUrl) {
   const parsed = new URL(firstUrl);
-  return `${parsed.protocol}//${parsed.host}`;
+  return parsed.protocol + '//' + parsed.host;
 }
 
 function buildPayload(host, key, keyLocation, urlList) {
   return {
-    host,
-    key,
-    keyLocation,
-    urlList: urlList.filter((url) => url.startsWith(host)),
+    host: host,
+    key: key,
+    keyLocation: keyLocation,
+    urlList: urlList.filter(function (url) { return url.startsWith(host); })
   };
 }
 
@@ -58,7 +58,7 @@ async function sendPing(payload) {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`IndexNow returned ${response.status} ${response.statusText}: ${text}`);
+    throw new Error('IndexNow returned ' + response.status + ' ' + response.statusText + ': ' + text);
   }
 
   return response;
@@ -67,7 +67,7 @@ async function sendPing(payload) {
 function parseArgs(argv) {
   const args = argv.slice(2);
   const dryRun = args.includes('--dry-run');
-  const urls = args.filter((a) => a !== '--dry-run');
+  const urls = args.filter(function (a) { return a !== '--dry-run'; });
 
   if (urls.length === 0) {
     console.error('Usage: node scripts/seo/indexnow-ping.mjs [--dry-run] <url> [<url> ...]');
@@ -75,7 +75,7 @@ function parseArgs(argv) {
     process.exit(1);
   }
 
-  return { dryRun, urls };
+  return { dryRun: dryRun, urls: urls };
 }
 
 async function main() {
@@ -83,24 +83,24 @@ async function main() {
   const keyFile = findKeyFile();
   const key = readKey(keyFile);
   const host = deriveHost(urls[0]);
-  const keyLocation = `${host}/public/${keyFile}`;
+  const keyLocation = host + '/public/' + keyFile;
   const payload = buildPayload(host, key, keyLocation, urls);
 
   if (dryRun) {
     console.log('--- IndexNow payload (dry run) ---');
     printPayload(payload);
     console.log('--- End payload ---');
-    console.log(`Key file: public/${keyFile}`);
-    console.log(`urlList: ${payload.urlList.length} URL(s)`);
+    console.log('Key file: public/' + keyFile);
+    console.log('urlList: ' + payload.urlList.length + ' URL(s)');
     return;
   }
 
-  console.log(`Pinging IndexNow for ${payload.urlList.length} URL(s) on ${host} ...`);
+  console.log('Pinging IndexNow for ' + payload.urlList.length + ' URL(s) on ' + host + ' ...');
   const response = await sendPing(payload);
-  console.log(`IndexNow responded ${response.status} ${response.statusText}`);
+  console.log('IndexNow responded ' + response.status + ' ' + response.statusText);
 }
 
-main().catch((err) => {
+main().catch(function (err) {
   console.error(err);
   process.exit(1);
 });
