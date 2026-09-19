@@ -98,6 +98,19 @@ test('safeHref admits only navigable schemes', () => {
   assert.equal(safeHref(null), null);
 });
 
+test('safeHref rewrites owned-host absolute URLs to site-relative paths', async () => {
+  const { SITE_ORIGIN, SITE_HOST, toSitePath } = await import('../lib/seo.mjs');
+
+  assert.equal(toSitePath(`${SITE_ORIGIN}/services/web-design`), '/services/web-design');
+  assert.equal(toSitePath(`https://${SITE_HOST}/services/branding`), '/services/branding');
+  assert.equal(toSitePath('https://cdsportswearusa.com/process'), '/process');
+  assert.equal(toSitePath('https://crystalwebsolution.com/contact'), '/contact');
+  assert.equal(toSitePath('https://example.test/elsewhere'), 'https://example.test/elsewhere');
+
+  assert.equal(safeHref('https://cdsportswearinc.com/services/web-design'), '/services/web-design');
+  assert.equal(safeHref(`${SITE_ORIGIN}/blog/web-development-rfp-guide`), '/blog/web-development-rfp-guide');
+});
+
 test('a link with an unsafe href degrades to its own text', () => {
   const tokens = parseInline('[click me](javascript:alert)');
 

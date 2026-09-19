@@ -7,6 +7,7 @@ import CaseNavRail from '../../../components/marketing/CaseNavRail';
 import SectionReveal from '../../../components/SectionReveal';
 import BreadcrumbSchema from '../../../components/marketing/BreadcrumbSchema';
 import { PROJECTS, getProject } from '../../../lib/projects';
+import { getServicePageBySlug } from '../../../lib/servicePages.mjs';
 import { SITE } from '../../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../../lib/seo.mjs';
 
@@ -39,20 +40,24 @@ export async function generateMetadata({ params }) {
     ? `${project.summary.slice(0, 157).trimEnd()}…`
     : project.summary;
 
+  const titleStem = `${project.title} — ${project.category}`;
+  const brandedTitle = `${titleStem} | ${SITE.name}`;
+  const titleRepeatsBrand = project.title === SITE.name;
+
   return {
-    title: `${project.title} — ${project.category}`,
+    title: titleRepeatsBrand ? { absolute: titleStem } : titleStem,
     description,
     alternates: { canonical: `/work/${project.slug}` },
     openGraph: {
       type: 'article',
-      title: `${project.title} — ${project.category} | ${SITE.name}`,
+      title: titleRepeatsBrand ? titleStem : brandedTitle,
       description,
       url: absoluteUrl(`/work/${project.slug}`),
       images: [{ url: SOCIAL_IMAGE_PATH }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${project.title} — ${project.category} | ${SITE.name}`,
+      title: titleRepeatsBrand ? titleStem : brandedTitle,
       description,
       images: [{ url: SOCIAL_IMAGE_PATH }],
     },
@@ -68,6 +73,9 @@ export default async function CaseStudy({ params }) {
   const prev = PROJECTS[(index - 1 + PROJECTS.length) % PROJECTS.length];
   const next = PROJECTS[(index + 1) % PROJECTS.length];
   const beats = beatsFor(project.body);
+  const relatedServices = (project.relatedServiceSlugs || [])
+    .map((slug) => getServicePageBySlug(slug))
+    .filter(Boolean);
 
   return (
     <MarketingShell>
@@ -110,6 +118,16 @@ export default async function CaseStudy({ params }) {
         </SectionReveal>
 
         <CaseNavRail prev={prev} next={next} />
+        {relatedServices.map((service) => (
+          <Link key={service.slug} href={`/services/${service.slug}`} className="case-next">
+            <span className="eyebrow">Related service</span>
+            <span className="case-next-title">{service.title} →</span>
+          </Link>
+        ))}
+        <Link href="/contact" className="case-next">
+          <span className="eyebrow">Start here</span>
+          <span className="case-next-title">Send a brief →</span>
+        </Link>
       </article>
       <BreadcrumbSchema
         trail={[

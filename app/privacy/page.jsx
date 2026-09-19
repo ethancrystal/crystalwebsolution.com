@@ -9,6 +9,7 @@ import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 const TITLE = 'Privacy Policy';
 const DESCRIPTION =
   'How CD Sportswear INC collects, uses, and protects your information when you visit our site or use our services.';
+const LAST_UPDATED = 'September 11, 2026';
 
 export const metadata = {
   title: TITLE,
@@ -38,7 +39,7 @@ export default function PrivacyPage() {
         lede="How we collect, use, and protect your information."
       />
 
-      <ContentSection eyebrow="Effective" title={`Last updated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`}>
+      <ContentSection eyebrow="Effective" title={`Last updated: ${LAST_UPDATED}`}>
         <p className="mkt-prose">
           This privacy policy describes how {SITE.name} collects, uses, and protects your personal
           information when you visit our website or use our services. We respect your privacy and are

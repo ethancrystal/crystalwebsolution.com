@@ -99,6 +99,16 @@ test('related services point only at valid existing slugs', () => {
   });
 });
 
+test('related work slugs point only at real case studies', async () => {
+  const { PROJECTS } = await import('../lib/projects.js');
+  const allowed = new Set(PROJECTS.map((project) => project.slug));
+  SERVICE_PAGES.forEach((page) => {
+    (page.relatedWorkSlugs || []).forEach((slug) => {
+      assert.ok(allowed.has(slug), `${page.slug} links to unknown work ${slug}`);
+    });
+  });
+});
+
 test('service content contains no banned placeholder/fluff copy', () => {
   SERVICE_PAGES.forEach((page) => {
     const blob = JSON.stringify(page);
@@ -162,7 +172,7 @@ test('marketing navigation links resolve to real routes', () => {
   // lib/site.js is an ESM-syntax .js file consumed by the Next bundler, not
   // directly by Node, so read its source like the other contract tests do.
   const siteSource = readFileSync(new URL('../lib/site.js', import.meta.url), 'utf8');
-  ['/work', '/services', '/process', '/reviews', '/about', '/contact'].forEach((href) => {
+  ['/work', '/services', '/blog', '/process', '/reviews', '/about', '/contact'].forEach((href) => {
     assert.ok(siteSource.includes(`href: '${href}'`), `SITE.nav should include ${href}`);
   });
 });

@@ -1,6 +1,6 @@
 # SEO operations — repository memory
 
-This directory is the operating memory for the CD Sportswear USA SEO programme.
+This directory is the operating memory for the CD Sportswear INC SEO programme.
 It replaced the Notion archive on 2026-09-02 (MJ's decision). Everything the
 automated daily run needs to know lives here, and everything it produces lands
 here, so the same reviewed-PR gate that protects the site protects the plan.
