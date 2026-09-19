@@ -11,15 +11,17 @@
 // The first URL argument derives the host. With --dry-run, the payload is
 // printed to stdout and nothing is sent.
 
-const fs = require('fs');
-const path = require('path');
+import { readdirSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const __dirname = __dirname || path.dirname(new URL(import.meta.url).pathname).replace(/^\/(\w[\w\-]*)\//, 'C:\\'));
-const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
-const PUBLIC_DIR = path.join(PROJECT_ROOT, 'public');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const PROJECT_ROOT = resolve(__dirname, '..', '..');
+const PUBLIC_DIR = join(PROJECT_ROOT, 'public');
 
 function findKeyFile() {
-  const entries = fs.readdirSync(PUBLIC_DIR);
+  const entries = readdirSync(PUBLIC_DIR);
   const match = entries.find(function (name) { return /^[0-9a-f]{32}\.txt$/.test(name); });
   if (!match) {
     throw new Error('No IndexNow key file found in public/ (expected <32-hex>.txt)');
@@ -28,7 +30,7 @@ function findKeyFile() {
 }
 
 function readKey(fileName) {
-  return fs.readFileSync(path.join(PUBLIC_DIR, fileName), 'utf8').trim();
+  return readFileSync(join(PUBLIC_DIR, fileName), 'utf8').trim();
 }
 
 function deriveHost(firstUrl) {
