@@ -1,53 +1,39 @@
 #!/usr/bin/env node
 // IndexNow ping for CD Sportswear INC.
-// Generates/updates the IndexNow key file and POSTs {host, key, keyLocation, urlList}
-// to https://api.indexnow.org/indexnow for the URLs passed on the command line.
+// Reads the 32-char hex key from public/<key>.txt and POSTs
+// { host, key, keyLocation, urlList } to https://api.indexnow.org/indexnow
+// for the URLs passed on the command line.
 //
 // Usage:
-//   node scripts/seo/indexnow-ping.mjs https://www.cdsportswearinc.com https://www.cdsportswearinc.com/foo https://www.cdsportswearinc.com/bar
-//   node scripts/seo/indexnow-ping.mjs --dry-run https://www.cdsportswearinc.com https://www.cdsportswearinc.com/foo
+//   node scripts/seo/indexnow-ping.mjs https://www.cdsportswearinc.com/foo https://www.cdsportswearinc.com/bar
+//   node scripts/seo/indexnow-ping.mjs --dry-run https://www.cdsportswearinc.com/foo
 //
-// The first positional argument is always the host; every subsequent positional
-// argument is a URL to include in urlList. With --dry-run, the payload is
+// The first URL argument derives the host. With --dry-run, the payload is
 // printed to stdout and nothing is sent.
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = join(__dirname, '..', '..');
-const KEY_FILE = join(PROJECT_ROOT, 'public');
+const PUBLIC_DIR = join(__dirname, '..', '..', 'public');
 
-// IndexNow key: a 32-character lowercase hex string stored as
-// public/<key>.txt. Generate once if missing.
-function generateKey() {
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-function keyFileName(key) {
-  return `${key}.txt`;
-}
-
-function ensureKeyFile() {
-  const files = existsSync(KEY_FILE)
-    ? readFileSync(KEY_FILE, 'utf8').split(/\r?\n).filter(Boolean)
-    : [];
-  // Find any existing 32-char-hex .txt file in public/
-  const existing = files.find((f) => /^[0-9a-f]{32}\.txt$/.test(f));
-  if (existing) {
-    const key = existing.replace(/\.txt$/, '');
-    return { key, fileName: existing, exists: true };
+function findKeyFile() {
+  const entries = readdirSync(PUBLIC_DIR);
+  const match = entries.find((name) => /^[0-9a-f]{32}\.txt$/.test(name));
+  if (!match) {
+    throw new Error('No IndexNow key file found in public/ (expected <32-hex>.txt)');
   }
-  const key = generateKey();
-  const fileName = keyFileName(key);
-  const fullPath = join(KEY_FILE, fileName);
-  writeFileSync(fullPath, key, 'utf8');
-  return { key, fileName, exists: false };
+  return match;
+}
+
+function readKey(fileName) {
+  return readFileSync(join(PUBLIC_DIR, fileName), 'utf8').trim();
+}
+
+function deriveHost(firstUrl) {
+  const parsed = new URL(firstUrl);
+  return `${parsed.protocol}//${parsed.host}`;
 }
 
 function buildPayload(host, key, keyLocation, urlList) {
@@ -81,38 +67,30 @@ async function sendPing(payload) {
 function parseArgs(argv) {
   const args = argv.slice(2);
   const dryRun = args.includes('--dry-run');
-  const positional = args.filter((a) => a !== '--dry-run');
+  const urls = args.filter((a) => a !== '--dry-run');
 
-  if (positional.length < 1) {
-    console.error('Usage: node scripts/seo/indexnow-ping.mjs [--dry-run] <host> <url> [<url> ...]');
-    console.error('  host   - the site host, e.g. https://www.cdsportswearinc.com');
-    console.error('  url    - one or more URLs to ping (must start with host)');
+  if (urls.length === 0) {
+    console.error('Usage: node scripts/seo/indexnow-ping.mjs [--dry-run] <url> [<url> ...]');
+    console.error('  url - one or more URLs to ping (first URL derives the host)');
     process.exit(1);
   }
 
-  const host = positional[0];
-  const urlList = positional.slice(1);
-  return { dryRun, host, urlList };
+  return { dryRun, urls };
 }
 
 async function main() {
-  const { dryRun, host, urlList } = parseArgs(process.argv);
-
-  if (!host.startsWith('http://') && !host.startsWith('https://')) {
-    console.error('Host must start with http:// or https://');
-    process.exit(1);
-  }
-
-  const { key, fileName, exists } = ensureKeyFile();
-  const keyLocation = `${host}/public/${fileName}`;
-
-  const payload = buildPayload(host, key, keyLocation, urlList);
+  const { dryRun, urls } = parseArgs(process.argv);
+  const keyFile = findKeyFile();
+  const key = readKey(keyFile);
+  const host = deriveHost(urls[0]);
+  const keyLocation = `${host}/public/${keyFile}`;
+  const payload = buildPayload(host, key, keyLocation, urls);
 
   if (dryRun) {
     console.log('--- IndexNow payload (dry run) ---');
     printPayload(payload);
     console.log('--- End payload ---');
-    console.log(`Key file: public/${fileName} (${exists ? 'existing' : 'created'})`);
+    console.log(`Key file: public/${keyFile}`);
     console.log(`urlList: ${payload.urlList.length} URL(s)`);
     return;
   }

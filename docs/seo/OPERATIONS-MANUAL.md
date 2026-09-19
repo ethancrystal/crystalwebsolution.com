@@ -3,11 +3,11 @@
 > **v3 — 2026-09-10.** The production domain moved again: `cdsportswearusa.com`
 > → `cdsportswearinc.com` (PR #174, merged 2026-09-03). The Ubersuggest project
 > this manual named was deleted and replaced. The Linear team *Crystal Web
-> Solution* is no longer present in the connected workspace, so the `CRY-*`
+> Solution* is no longer present in the connected workspace, so the `CRY-*`\+
 > issue queue cannot be read or written by the run. Everything in §1 was
 > re-verified live on 2026-09-10; §12 records the migration and what it costs.
 >
-> v2 (2026-09-02) was a reconstruction from Linear, the `crystal-command`
+> v2 (2026-09-02) was a reconstruction from Linear, the `crystal-command`\+
 > skill, the scheduled task's prompt, the repository and the 2026-09-01/02
 > runs, after Notion was dropped as memory. Sections marked **[proposed]** were
 > never in a primary source and are still awaiting MJ's confirmation.
@@ -58,12 +58,12 @@ the project in §1 and read `google_analytics_profile`. Also run
 
 If `get_project` 404s, the project has been replaced again: call
 `list_projects`, use the project whose `domain` matches the live host, and
-record the new ID here in the same run. Do not create a replacement project —
+record the new ID here in the same run. Do not create a replacement project —\-
 that is an approval gate (§4).
 
 If Ubersuggest is unauthenticated or returns 401/403 on `auth_status`: stop
 data gathering, write a short run log naming the exact call that failed, and
-end. Never invent data. A 403 on a single data call after `auth_status`
+end. Never invent data. A 403 on a single data call after `auth_status`\+
 succeeded is **not** an auth failure — it may be a rate or plan limit on that
 endpoint. Record which call failed, do not silently substitute another metric
 for it, and retry next run.
@@ -94,17 +94,15 @@ Current mapped set. Figures: Ubersuggest `keyword_overview`, US 2840, pulled
 |---|---|---|---|---|---|---|
 | Now | `rfp web development` | 260 | 13 | $15.25 | `/blog/web-development-rfp-guide` | **Live** since 2026-09-03 |
 | Now | `website development rfp` | 260 | 13 | $11.98 | `/blog/web-development-rfp-guide` | **Live** since 2026-09-03 |
-| Parked | `hire a shopify developer` | 880 | 8 | $25.41 | `/hire/shopify-developer` | **Not built, 2026-09-19.** Demand remains; Shopify is not a live service. See `KEYWORD-REGISTRY.md` Parked |
-| Parked | `hire shopify developer` | 880 | **37** | $31.06 | `/hire/shopify-developer` | Same pair. Difficulty 26 → 37 since 2026-09-02 |
-| Next | `web development northern virginia` | 260 | 9 | $18.00 | `/northern-virginia-web-development` | Not built. Local-first was superseded; do not ship without MJ reversing §3 |
+| Now | `hire a shopify developer` | 880 | 8 | $25.41 | `/hire/shopify-developer` | Not built |
+| Now | `hire shopify developer` | 880 | **37** | $31.06 | `/hire/shopify-developer` | Not built. Difficulty 26 → 37 since 2026-09-02 |
+| Next | `web development northern virginia` | 260 | 9 | $18.00 | `/northern-virginia-web-development` | Not built |
 | Monitor | `ai automation agency` | 4,400 | **40** | $17.80 | `/services/ai-automation` | Exists. Difficulty 35 → 40 since 2026-09-02 |
 | Monitor | `branding and web design` | 590 | 17 | $18.18 | `/blog/branding-and-web-design-studio` | **Live** since 2026-09-06 |
 | Monitor | `web design manassas va` | 20 | 5 | $0 | `/blog/web-design-manassas-va` | **Live** since 2026-09-06. Conflicts with this section — see above |
 
 `hire a shopify developer` has a volatile monthly series (210–1,900 over 13
-months; 880 is the smoothed figure). Treat volume as directional. The 2026-09-19
-audit parked the pair rather than building the landing: the live service
-taxonomy (`lib/servicePages.mjs`) does not include Shopify.
+months; 880 is the smoothed figure). Treat volume as directional.
 
 `/blog/how-much-does-ai-automation-cost` is live but has **no viable target
 term**: `how much does ai automation cost` returns 0/mo and `ai automation
@@ -124,8 +122,8 @@ to match in **PR #190**, opened via the Zapier-connected GitHub account
 (`ethancrystal`) after the MCP GitHub connector's write access continued to
 403 — see the note on that connector in §11 item 2, now partially superseded:
 Zapier is a working alternative for this account, at least for branches, file
-writes and PRs. Two things were deliberately left alone in #190: `SITE.email`
-/ the Resend sending domain (`tests/email.test.mjs` pins `cdsportswearusa.com`
+writes and PRs. Two things were deliberately left alone in #190: `SITE.email`/
+the Resend sending domain (`tests/email.test.mjs` pins `cdsportswearusa.com`\-
 as a contract, almost certainly for verified SPF/DKIM — changing it needs a
 newly verified domain first) and the verbatim customer review in
 `lib/reviews.js` that names the old brand — it is a real client's quoted
@@ -136,14 +134,14 @@ alone does not change the web-design positioning it was seeded against.
 
 - Send outreach email or any message
 - Buy links, sponsored posts, or paid placements — **including memberships and
-  directory listings whose fee buys the placement** (see `backlinks/prospects.md`)
+  directory listings whose fee buys the placement** (see `backlinks/prospects.md`)\+
 - Submit directory listings in bulk
 - **Merge any PR** — `main` deploys to production
 - Flip a blog post to `published`
 - Publish content anywhere outside the repo PR flow
 - File a disavow
 - Create, rewrite or delete an Ubersuggest project or its tracked-keyword set
-  (adding keywords to an existing project, once MJ has named them, is fine)
+  (adding keywords to an existing project, once MJ has named them, is fine)\+
 - Change the production domain, its DNS, or its redirects
 
 The run **may freely**: create and update files under `docs/seo/`, open PRs,
@@ -159,7 +157,7 @@ Check the most recent `runs/YYYY-MM-DD.md` to see which lane ran last.
   `approved: false`. Code pages (e.g. `/hire/shopify-developer`) go to a PR
   on `seo/<slug>` following `CLAUDE.md`. Never publish in the same run a
   draft was written.
-- **Backlinks** — pull `backlinks_overview`, `backlinks`, `linking_domains`
+- **Backlinks** — pull `backlinks_overview`, `backlinks`, `linking_domains`\+
   for `cdsportswearinc.com` **and** for `cdsportswearusa.com` while the dead
   domain still attracts links; score referring domains; check every new one
   against `backlinks/pbn-watch.md`; research 5–10 new prospects with named
@@ -179,13 +177,13 @@ exists). Publication work counts as the day's artifact.
 
 ## 6. Daily routine (Mode B) — carried from `crystal-command`
 
-1. GA4 collecting? (Realtime, or Ubersuggest `google_analytics_profile`).
+1. GA4 collecting? (Realtime, or Ubersuggest `google_analytics_profile`).\-
    A silent tag is the top failure mode.
 2. Search Console: new impressions, indexing errors, coverage drops.
 3. `generate_lead` conversions since yesterday — real inbound briefs.
 4. Anything blocked in the issue tracker.
 
-Weekly: `domain_overview` diffed against last week; content pipeline status;
+Weekly: `domain_overview` diffed against last week; content pipeline status;\+
 new/lost referring domains with the PBN check; registry update. Monthly:
 non-brand growth, landing-page performance, conversions, referring domains,
 anchor mix, competitor gap — reported as *qualified impressions → qualified
@@ -195,10 +193,10 @@ count alone.
 ## 7. The old domain — decided 2026-09-02
 
 `crystalwebsolution.com` received a PBN link blast between 2026-08-16 and
-2026-08-27 (~32 referring domains, one template, casino/PLR/fake-news shells).
+2026-08-27 (~32 referring domains, one template, casino/PLR/fake-news shells).\+
 MJ confirmed nobody bought a backlink package. Decision: **leave it dark.**
 
-- Do not repair the DNS delegation (split Cloudflare/Vercel, all SERVFAIL).
+- Do not repair the DNS delegation (split Cloudflare/Vercel, all SERVFAIL).\+
 - Remove it from the Vercel project (MJ action).
 - Keep the registration — do not let a spammed domain drop.
 - No disavow; there is nothing to disavow for.
@@ -280,10 +278,10 @@ Three production hosts in eight days. The honest consequences, 2026-09-10:
   2026-08-27 → 2026-09-03 window keeps its address, and the RFP guide, which
   went live 2026-09-03, straddles the move.
 - **The only inbound links either domain has are spam.** 6 backlinks / 3
-referring domains reported on the dead host, of which 5 were individually
-returned and all 5 match one link-selling template (the 6th was not returned
-by the `backlinks` call); 0 backlinks and 0 referring domains on the live
-host (Ubersuggest, 2026-09-10).
+  referring domains reported on the dead host, of which 5 were individually
+  returned and all 5 match one link-selling template (the 6th was not returned
+  by the `backlinks` call); 0 backlinks and 0 referring domains on the live
+  host (Ubersuggest, 2026-09-10).
 
 ### llms.txt maintenance
 
