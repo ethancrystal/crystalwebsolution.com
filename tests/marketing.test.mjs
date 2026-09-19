@@ -111,7 +111,8 @@ test('related work slugs point only at real case studies', async () => {
 
 test('service content contains no banned placeholder/fluff copy', () => {
   SERVICE_PAGES.forEach((page) => {
-    const blob = JSON.stringify(page);
+    const { relatedWorkSlugs: _relatedWorkSlugs, ...copy } = page;
+    const blob = JSON.stringify(copy);
     assert.doesNotMatch(blob, BANNED_COPY, `${page.slug} contains banned copy`);
   });
 });

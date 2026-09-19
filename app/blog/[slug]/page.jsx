@@ -83,7 +83,7 @@ export async function generateMetadata({ params }) {
   return {
     title,
     description,
-    alternates: { canonical },
+    alternates: { canonical: canonical },
     openGraph: {
       type: 'article',
       url: absoluteUrl(canonical),
