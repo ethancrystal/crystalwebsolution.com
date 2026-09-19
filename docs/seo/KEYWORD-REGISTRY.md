@@ -25,7 +25,7 @@ serves 404 (WebFetch on apex and `www`, 2026-09-10) — Operations Manual §12.
 | hire a shopify developer | 880 | 8 | $25.41 | — | /hire/shopify-developer | not built | Now | yes | 2026-09-10 |
 | hire shopify developer | 880 | 37 | $31.06 | navigational | /hire/shopify-developer | not built | Now | yes | 2026-09-10 |
 | web development northern virginia | 260 | 9 | $18.00 | — | /northern-virginia-web-development | not built | Next | yes | 2026-09-10 |
-| ai automation agency | 4,400 | 40 | $17.80 | navigational | /services/ai-automation | exists — in `/sitemap.xml`, not fetched | Monitor | yes | 2026-09-10 |
+| ai automation agency | 4,400 | 40 | $17.80 | navigational | /services/ai-automation | **live, verified 2026-09-19** | Monitor | yes | 2026-09-10 |
 | branding and web design | 590 | 17 | $18.18 | commercial | /blog/branding-and-web-design-studio | **live 2026-09-06** | Monitor | yes | 2026-09-10 |
 | web design manassas va | 20 | 5 | $0.00 | — | /blog/web-design-manassas-va | **live 2026-09-06** | Monitor | **no** | 2026-09-10 |
 
