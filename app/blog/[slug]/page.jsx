@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { getPublishedPost } from '../../../lib/crm/blog';
+import { getPublishedPost, listPublishedPosts } from '../../../lib/crm/blog';
 import { readingTimeMinutes } from '../../../lib/crm/blog-contract.mjs';
 import { SITE } from '../../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../../lib/seo.mjs';
@@ -20,6 +20,35 @@ function isoDate(value) {
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
 }
+
+const RELATED_BY_SLUG = {
+  'web-development-rfp-guide': [
+    { href: '/services/web-development', title: 'Custom React & Next.js development' },
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+    { href: '/process', title: 'How we work' },
+  ],
+  'branding-and-web-design-studio': [
+    { href: '/services/branding', title: 'Branding systems' },
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+    { href: '/services/logo-design', title: 'Custom logo and brand systems' },
+  ],
+  'how-much-does-ai-automation-cost': [
+    { href: '/services/ai-automation', title: 'AI automation for business' },
+    { href: '/services/workflow-automation', title: 'Workflow automation' },
+    { href: '/contact', title: 'Send a brief' },
+  ],
+  'web-design-manassas-va': [
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+    { href: '/embroidery-screen-printing-web-design', title: 'Web design for embroidery shops' },
+    { href: '/contact', title: 'Send a brief' },
+  ],
+};
+
+const DEFAULT_RELATED = [
+  { href: '/services', title: 'Services' },
+  { href: '/work', title: 'Selected work' },
+  { href: '/contact', title: 'Send a brief' },
+];
 
 function formatDate(value) {
   if (!value) return null;
@@ -54,7 +83,7 @@ export async function generateMetadata({ params }) {
   return {
     title,
     description,
-    alternates: { canonical },
+    alternates: { canonical: canonical },
     openGraph: {
       type: 'article',
       url: absoluteUrl(canonical),
@@ -81,6 +110,10 @@ export default async function BlogPostPage({ params }) {
   if (!post) notFound();
 
   const readingTime = readingTimeMinutes(post.body);
+  const relatedLinks = RELATED_BY_SLUG[post.slug] || DEFAULT_RELATED;
+  const otherPosts = (await listPublishedPosts())
+    .filter((entry) => entry.slug !== post.slug)
+    .slice(0, 3);
 
   const articleSchema = {
     '@context': 'https://schema.org',
@@ -140,6 +173,35 @@ export default async function BlogPostPage({ params }) {
 
           <PostBody body={post.body} />
         </article>
+
+        <section className="blog-article-continue" aria-label="Continue">
+          {otherPosts.length > 0 ? (
+            <>
+              <p className="eyebrow">More from the studio</p>
+              <ul className="mkt-related">
+                {otherPosts.map((entry) => (
+                  <li key={entry.slug}>
+                    <Link href={`/blog/${entry.slug}`} className="mkt-related-link">
+                      <span className="mkt-related-title">{entry.title}</span>
+                      <span className="mkt-related-arrow" aria-hidden="true">→</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          <p className="eyebrow">Next</p>
+          <ul className="mkt-related">
+            {relatedLinks.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="mkt-related-link">
+                  <span className="mkt-related-title">{link.title}</span>
+                  <span className="mkt-related-arrow" aria-hidden="true">→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <nav className="blog-article-footer" aria-label="Blog navigation">
           <Link className="blog-back-link" href="/blog">
