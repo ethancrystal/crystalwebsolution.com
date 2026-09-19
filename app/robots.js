@@ -34,6 +34,41 @@ export default function robots() {
           '/api/',
         ],
       },
+      {
+        // Explicitly allow AI search and answer-engine crawlers.
+        // These inherit from '*' already, but listing them here makes the
+        // policy deliberate and readable (cds-seo-operator, AI-visibility lane).
+        userAgent: 'GPTBot',
+        allow: '/',
+      },
+      {
+        userAgent: 'OAI-SearchBot',
+        allow: '/',
+      },
+      {
+        userAgent: 'ChatGPT-User',
+        allow: '/',
+      },
+      {
+        userAgent: 'ClaudeBot',
+        allow: '/',
+      },
+      {
+        userAgent: 'PerplexityBot',
+        allow: '/',
+      },
+      {
+        userAgent: 'Bingbot',
+        allow: '/',
+      },
+      {
+        userAgent: 'Applebot',
+        allow: '/',
+      },
+      {
+        userAgent: 'Google-Extended',
+        allow: '/',
+      },
     ],
     sitemap: `${SITE_ORIGIN}/sitemap.xml`,
     host: SITE_ORIGIN,
