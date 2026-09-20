@@ -20,30 +20,30 @@ serves 404 (WebFetch on apex and `www`, 2026-09-10) — Operations Manual §12.
 
 | Keyword | Vol/mo | Diff | CPC | Intent | Target URL | Page state | Tier | Tracked? | Pulled |
 |---|---|---|---|---|---|---|---|---|---|
-| rfp web development | 260 | 13 | $15.25 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-10 |
+| rfp web development | 260 | 13 | $13.83 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-23 |
 | website development rfp | 260 | 13 | $11.98 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-10 |
 | web development northern virginia | 260 | 9 | $18.00 | — | /northern-virginia-web-development | not built | Next | yes | 2026-09-10 |
-| ai automation agency | 4,400 | 40 | $17.80 | navigational | /services/ai-automation | exists — in `/sitemap.xml`, not fetched | Monitor | yes | 2026-09-10 |
+| ai automation agency | 4,400 | 33 | $17.80 | navigational | /services/ai-automation | exists — in `/sitemap.xml` | Monitor | yes | 2026-09-23 |
 | branding and web design | 590 | 17 | $18.18 | commercial | /blog/branding-and-web-design-studio | **live 2026-09-06** | Monitor | yes | 2026-09-10 |
 | web design manassas va | 20 | 5 | $0.00 | — | /blog/web-design-manassas-va | **live 2026-09-06** | Monitor | **no** | 2026-09-10 |
+| how to write a web design rfp | 140 | 22 | $10.25 | informational | /blog/how-to-write-a-web-design-rfp | draft (approved: false) | Now | **no** | 2026-09-24 |
 
-Five of the six mapped rows are tracked in the project. `web design manassas va` is not:
-it was parked on 2026-09-02 as part of the superseded local-first ladder, and
-then a post shipped against it on 2026-09-06. It is recorded here as mapped
-because the page exists, not because the strategy changed — Operations Manual
-§3 flags the contradiction for MJ. If MJ wants it tracked, adding it to the
-project needs MJ's explicit yes (§4).
+Seven mapped rows. Six tracked in the project. `web design manassas va` and `how to write a web design rfp` are not tracked — adding either needs MJ's explicit yes (Operations Manual §4).
 
-## Drift since 2026-09-02 (all re-pulled 2026-09-10, US 2840)
+## Drift since 2026-09-10 (all re-pulled 2026-09-24, US 2840)
 
-| Keyword | Was | Now | Note |
+| Keyword | Was (2026-09-10) | Now (2026-09-24) | Note |
 |---|---|---|---|
-| hire shopify developer | diff 26 | **diff 37** | Volume 880 and CPC $31.06 unchanged. The harder half of the Shopify pair got harder |
-| ai automation agency | diff 35 | **diff 40** | 38 on 2026-08-21, 35 on 2026-09-02, 40 now. Oscillating, trending up. Volume 4,400 unchanged |
-| hire a shopify developer | diff 8 | diff 8 | Unchanged |
-| rfp web development | diff 13 | diff 13 | Unchanged |
-| website development rfp | diff 13 | diff 13 | Unchanged |
-| web development northern virginia | diff 9 | diff 9 | Unchanged |
+| rfp web development | diff 13, CPC $15.25 | diff 13, CPC $13.83 | Difficulty stable. CPC down ~9%. Volume 260 stable. |
+| website development rfp | diff 13, CPC $11.98 | not re-pulled | — |
+| web development northern virginia | diff 9 | not re-pulled | — |
+| ai automation agency | diff 40 | **diff 33** | **Significant drop**: 38 (2026-08-21) → 35 (2026-09-02) → 40 (2026-09-10) → **33 now**. Volume 4,400 stable. Now at lowest difficulty since tracking began. |
+| hire a shopify developer | diff 8 | not re-pulled | Parked 2026-09-19 |
+| hire shopify developer | diff 37 | not re-pulled | Parked 2026-09-19 |
+| websites designers | diff 33 | diff 33 | Stable. Volume 27,100 stable. CPC $21.50 stable. |
+| digital marketing agency | diff 82 | diff 82 | Stable. Volume 49,500 stable. CPC $14.92 stable. |
+| logo design | diff 75 | diff 75 | Stable. Volume 40,500 stable. CPC $8.17 stable. |
+| seo agency near me | diff 57 | diff 57 | Stable. Volume 22,200 stable. CPC $28.51 stable. |
 
 **Shopify pair parked 2026-09-19** (see Parked). Volume/difficulty still
 favour a page, but Shopify is not in the live eight-service list
@@ -51,7 +51,18 @@ favour a page, but Shopify is not in the live eight-service list
 would be a thin commercial URL for a service the studio does not currently
 offer. Do not un-park without MJ confirming Shopify is a sold offer.
 
-`ai automation agency` remains Monitor-only. Recheck both next Keywords lane.
+`ai automation agency` difficulty dropped to 33 — now more reachable. Remains Monitor-only (pillar page exists but no supporting cluster yet). Recheck next Keywords lane.
+
+### Pillar head terms (STRATEGY.md §3) — verified 2026-09-24
+
+| Theme | Pillar URL | Primary head term | Vol/mo | Diff | CPC | Intent | Matches STRATEGY.md? |
+|---|---|---|---|---|---|---|---|
+| 1. Web design / redesign | /services/web-design | websites designers | 27,100 | 33 | $21.50 | Commercial | ✅ Exact |
+| 2. Digital marketing | /services/digital-marketing | digital marketing agency | 49,500 | 82 | $14.92 | Navigational | ✅ Exact |
+| 3. Logo / branding | /services/logo-design + /services/branding | logo design | 40,500 | 75 | $8.17 | Commercial | ✅ Exact |
+| 4. SEO / CRO | /services/seo | seo agency near me | 22,200 | 57 | $28.51 | Commercial | ✅ Exact |
+
+All four pillar head terms match the STRATEGY.md table exactly (US 2840, 2026-09-24).
 
 ## Tracked in the project but NOT mapped — 47 terms
 
@@ -66,7 +77,7 @@ in exactly one row.
 |---|---|---|---|
 | Digital marketing agency | 17 | agency marketing digital · digital agency marketing · digital marketers · digital marketing advertising agency · digital marketing agency · digital marketing agency near me · digital marketing and advertising agency · digital marketing businesses · digital marketing co · digital marketing company · digital marketing firms · digital marketing near me · digital marketing services · internet marketing service · marketing agency digital · marketing agency near me · social marketing agencies | /services/digital-marketing — one page cannot carry 17 terms; pick one head term and one long-tail at most |
 | Logo and brand identity | 14 | and logo design · brand identity design · branding and brand identity · branding and identity design · branding identity · design logo design · designer logo design · identity design branding · logo & branding · logo and branding · logo design · logo design services · logos and designs · logotype design | /services/logo-design and /services/branding — the cluster spans two existing pages and must be split before either is targeted |
-| SEO | 6 | digital marketing seo · marketing and seo · search engine optimisation companies · search engine optimization agencies · search engine optimization in digital marketing · seo agency near me | **No SEO service page exists** — none of the eight `/services/*` URLs enumerated in `/sitemap.xml` is an SEO page (WebFetch, 2026-09-10). Do not target until one does |
+| SEO | 6 | digital marketing seo · marketing and seo · search engine optimisation companies · search engine optimization agencies · search engine optimization in digital marketing · seo agency near me | **SEO service page now exists** — `/services/seo` is live in `/sitemap.xml` and codebase. The cluster can now be mapped, but head term stays on pillar; pick ≤1 long-tail for a supporting page. |
 | Web design and redesign | 6 | web designing near me · website builders for small business · website redesign near me · website redesign services · websites designers · websites designing | /services/web-design |
 | Conversion | 3 | conversion optimization · conversion rate optimisation · optimize for conversions | No page. Belongs as a section of a service page, not as a target |
 | Other | 1 | native mobile application development | No page, and the studio's own service list does not advertise native mobile |
