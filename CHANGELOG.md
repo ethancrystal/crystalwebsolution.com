@@ -1,3 +1,16 @@
+## v1.42 — 2026-09-20
+
+SEO content lane: publish-ready web-design-RFP blog draft for the /services/web-design pillar.
+
+- **Content** — Added `docs/seo/drafts/blog/how-to-write-a-web-design-rfp.md`:
+  a complete, publish-ready web-design-RFP writer's guide with copy-paste template, 6-criterion
+  scorecard, "before you send it" checklist, and call questions. Target keywords `web design rfp`
+  and `how to write a web design rfp` (both added to KEYWORD-REGISTRY.md; figures unavailable until
+  tracked in the Ubersuggest project). Supports the `/services/web-design` pillar (Theme 1) and
+  cross-links to the existing `/blog/web-development-rfp-guide`. `approved: false` — MJ-only gate.
+- **Keywords** — Registered two new mapped rows in KEYWORD-REGISTRY.md. No volume/difficulty/CPC
+  figures claimed; both marked unavailable pending tracking in project `109eb168…` (needs MJ's yes).
+
 ## v1.41 — 2026-09-20
 
 Clean up stale identity, domain, and migration claims across agent
