@@ -1,5 +1,14 @@
 # CLAUDE.md
 
+## Identity
+
+Three names that must not be confused:
+- **Repo** (GitHub): `ethancrystal/crystalwebsolution.com`
+- **Business**: CD Sportswear INC
+- **Live domain**: `https://www.cdsportswearinc.com`
+
+`crystalwebsolution.com` is the repo name **and** a retired domain (see §Environments). It is not a business name and not the current domain. `cdsportswearusa.com` is another retired domain. Neither should appear as a business identifier or a live URL anywhere in the repo.
+
 ## Goal
 
 Continuously polish this site's animations, CRM workflows, and design for full visual coherence without ever breaking the live build or changing its current look, feel, or functionality. Keep the codebase lean by auditing for unused or orphaned files, always confirming with the owner before deleting anything. Every change stays accessible (respects reduced motion), production-ready, and gets committed to GitHub as the final step.
@@ -13,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-CD Sportswear USA is a Next.js 15 / React 19 application containing a dark,
+CD Sportswear INC is a Next.js 15 / React 19 application containing a dark,
 cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
 The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM
 scrolls over it while a virtual camera flies through one continuous 3D space
@@ -28,29 +37,11 @@ assets and compatibility URLs. CRM routes live under `/login`, `/dashboard`,
 
 **`main` is the production branch.** Vercel's Production Branch setting is
 `main` (verified against the Vercel API 2026-08-15): every merge into `main`
-auto-deploys to the Production environment. **The production custom domain
-is cdsportswearinc.com, confirmed 2026-09-03** (owner-confirmed intentional;
-`lib/seo.mjs`'s `SITE_ORIGIN` and this line are the only records of it —
-there is no PR or migration documenting the switch). Two domains have now
-retired the same way, at the Vercel/DNS layer, outside git, with no other
-trace in this repo:
-
-- `crystalwebsolution.com` (the domain this repo is named for) — dark since
-  before 2026-08-27, registration intact, DNS delegation broken (SERVFAIL).
-  See `docs/seo/` (once merged) for the PBN-spam finding that makes leaving
-  it dark deliberate.
-- `cdsportswearusa.com` (production 2026-08-27 to sometime before
-  2026-09-03) — DNS still resolves to Vercel's edge IPs, but the domain is
-  no longer attached to the Vercel project, so every request there returns
-  `DEPLOYMENT_NOT_FOUND`. **Nobody has 301'd it to the current domain**, so
-  whatever backlinks or rankings it built up in its ~1 week of life are
-  decaying unredirected — the same equity-loss risk `crystalwebsolution.com`
-  already illustrates once. Re-attaching it in Vercel → Settings → Domains
-  as a redirect to cdsportswearinc.com is an open owner action, not yet done.
+auto-deploys to the Production environment. **The production host is `https://www.cdsportswearinc.com`** (apex 308-redirects to `www`, verified 2026-09-03). `lib/seo.mjs`'s `SITE_ORIGIN` is the single record of this host. Two previous domains retired without redirects: `cdsportswearusa.com` (production 2026-08-27 to 2026-09-03, now returns DEPLOYMENT_NOT_FOUND) and `crystalwebsolution.com` (dark since before 2026-08-27). Re-attaching either as a redirect to `www.cdsportswearinc.com` is an open owner action — unredirected backlinks decay. See `docs/seo/` for the PBN-spam finding that makes the `crystalwebsolution.com` state deliberate.
 
 **Treat the live domain as something to re-verify (`curl -I` the apex and
 `www` host), not trust indefinitely** — it has now moved twice without a
-code change to announce it. Known related gaps as of 2026-09-11:
+code change to announce it. **Known related gaps — last confirmed 2026-09-11, owner to re-verify current status:**
 
 - `NEXT_PUBLIC_APP_URL` in Vercel's Production environment variables
   (feeds every auth/invite/reset link and the CRM notification worker's
@@ -60,10 +51,7 @@ code change to announce it. Known related gaps as of 2026-09-11:
   changing the variable alone does nothing until Production is rebuilt.
 - Supabase Auth's dashboard `SITE_URL`. The repo allow-list in
   `supabase/config.toml` was updated in v1.36.
-- Applying migration `0042` to the live database (checked in as of v1.37).
-  Until applied, `pg_cron`'s `drain-crm-outbox` job still POSTs to the
-  dark `crystalwebsolution.com` host if `0025` ran, and
-  `public.pinned_admin_email()` still returns `ethan@crystalwebsolution.com`.
+- Migration `0042` (`0042_repoint_cron_and_pinned_admin.sql`) is checked in (v1.37) but whether it has been applied to the live database is unknown — verify via Supabase MCP. If not yet applied, `pg_cron`'s `drain-crm-outbox` job may still POST to the old host and `public.pinned_admin_email()` may return the old email.
 - Mailbox and Resend domain verification for `cdsportswearinc.com`:
   `SITE.email` and the Resend sender in `lib/email/resend.js` already
   moved in v1.35; DNS/mailbox/Resend verification is still owner-side.
@@ -83,13 +71,12 @@ a PR into `main` IS deploying to production.
 **CRM visibility is an env var, not a branch.** Whether the CRM is publicly
 reachable is controlled by `NEXT_PUBLIC_CRM_ENABLED`
 (`lib/crmFlag.js`), set in Vercel's Project Settings -> Environment
-Variables for the Production environment: it gates whether `middleware.js`
+Variables for the Production environment: it gates whether the edge middleware
 redirects `/admin`, `/dashboard`, `/team`, `/login*`, `/signup`,
 `/forgot-password` straight home, and whether `components/Nav.jsx` /
-`Menu.jsx` show the Log in / Client access links. **As of 2026-08-27 the CRM
-is launched** — it is publicly reachable in Production, not pre-launch/
-hidden. This was last directly verified by HTTP-checking the live site on
-2026-08-27; several merges to `main` have deployed since, so re-verify
+`Menu.jsx` show the Log in / Client access links. **The CRM is launched** (publicly reachable in Production), but
+last directly verified by HTTP-checking the live site on 2026-08-27;
+several merges to `main` have deployed since, so re-verify
 (`curl` the portal login routes, or check the flag's value in Vercel) rather
 than trusting this line indefinitely — it documents a decision, not a
 continuously-monitored state. To hide it again, set the flag to `false` and

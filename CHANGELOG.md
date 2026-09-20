@@ -1,3 +1,37 @@
+## v1.41 — 2026-09-20
+
+Clean up stale identity, domain, and migration claims across agent
+instruction files and the CRM feature flag comment.
+
+- **Identity disambiguation** — CLAUDE.md and AGENTS.md now explicitly
+  distinguish repo name (`ethancrystal/crystalwebsolution.com`), business
+  name (CD Sportswear INC), and live domain
+  (`https://www.cdsportswearinc.com`). `crystalwebsolution.com` is
+  a retired domain, not a business name or current URL.
+- **Business name fix** — `CD Sportswear USA` corrected to `CD Sportswear INC`
+  in CLAUDE.md, AGENTS.md, and MEMORY.md project-overview sections
+  (matching `lib/site.js` `name: 'CD Sportswear INC'`).
+- **Migration count** — AGENTS.md and MEMORY.md updated from `0001` through
+  `0023` to `0001` through `0042` (verified against `supabase/migrations/`).
+- **Stale migration 0024 entry** removed from MEMORY.md.
+- **Deployment target** — MEMORY.md §4 corrected from `crystalwebsolution.com`
+  to `https://www.cdsportswearinc.com`.
+- **AGENTS.md gaps filled** — added missing commands (`pnpm test:db`,
+  `pnpm crm:verify`, `pnpm crm:provision-test-users`, `pnpm livecheck`),
+  `lib/seo.mjs` canonical-origin documentation, `www.cdsportswearinc.com`
+  host convention, `docker-ci.yml` reference (was `docker-publish.yml`),
+  and SEO agent (Hermes) section.
+- **Gap labeling** — CLAUDE.md gap claims now labeled as
+  `last confirmed 2026-09-11, owner to re-verify` instead of
+  presented as current facts. Migration `0042` claim is conditional
+  (verified applied to live DB is unknown).
+- **Retired domain block** — CLAUDE.md condensed ~25 lines of domain
+  transition history into a single factual sentence.
+- **lib/crmFlag.js** — comment updated to reflect CRM launched
+  2026-08-27 instead of `still in progress`.
+- **middleware.js** — CLAUDE.md reference corrected from literal
+  `middleware.js` file to conceptual `edge middleware`.
+
 # Changelog
 
 Every production deploy of crystalwebsolution.com gets one entry here, newest
