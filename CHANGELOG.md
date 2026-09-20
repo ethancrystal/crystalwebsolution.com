@@ -5,6 +5,23 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.39 — 2026-09-22
+
+SEO lane completion pass: keyword registry refresh, low-hanging fruit bank,
+content and technical audit run logs, and AI visibility hero visual.
+
+- **Keywords** — Reconciled 54 Ubersuggest keywords with the 25-keyword
+  registry. Updated KEYWORD-REGISTRY.md with fresh pillar verification
+  (ai automation agency diff 40→33) and 183-term low-hanging fruit bank
+  across all four themes.
+- **Content** — Added `docs/seo/drafts/blog/how-to-write-a-web-design-rfp.md`
+  (diff 22, CPC $10.25) and technical SEO audit checklist draft.
+- **Backlinks** — Rewrote prospects.md with 12 scored prospects; documented
+  easyrank.link Signature B escalation.
+- **Technical** — Full audit: no regressions; llms.txt, IndexNow key, and
+  AI-crawler robots rules confirmed stable.
+- **Visual** — Added AI visibility hero visual for CWS site testing.
+
 ## v1.38 — 2026-09-19
 
 Evidence-based SEO audit pass. Extends the existing `lib/seo.mjs` origin
