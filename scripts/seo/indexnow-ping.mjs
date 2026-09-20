@@ -22,10 +22,8 @@ const PUBLIC_DIR = join(PROJECT_ROOT, 'public');
 
 function findKeyFile() {
   const entries = readdirSync(PUBLIC_DIR);
-  const match = entries.find(function (name) { return /^[0-9a-f]{32}\.txt$/.test(name); });
-  if (!match) {
-    throw new Error('No IndexNow key file found in public/ (expected <32-hex>.txt)');
-  }
+  const match = entries.find(name => /^[0-9a-f]{32}\.txt$/.test(name));
+  if (!match) throw new Error('No IndexNow key file found in public/ (expected <32-hex>.txt)');
   return match;
 }
 
@@ -34,17 +32,12 @@ function readKey(fileName) {
 }
 
 function deriveHost(firstUrl) {
-  const parsed = new URL(firstUrl);
-  return parsed.protocol + '//' + parsed.host;
+  const { protocol, host } = new URL(firstUrl);
+  return protocol + '//' + host;
 }
 
 function buildPayload(host, key, keyLocation, urlList) {
-  return {
-    host: host,
-    key: key,
-    keyLocation: keyLocation,
-    urlList: urlList.filter(function (url) { return url.startsWith(host); })
-  };
+  return { host, key, keyLocation, urlList: urlList.filter(url => url.startsWith(host)) };
 }
 
 function printPayload(payload) {
@@ -57,27 +50,23 @@ async function sendPing(payload) {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
     body: JSON.stringify(payload),
   });
-
   if (!response.ok) {
     const text = await response.text();
-    throw new Error('IndexNow returned ' + response.status + ' ' + response.statusText + ': ' + text);
+    throw new Error(`IndexNow returned ${response.status} ${response.statusText}: ${text}`);
   }
-
   return response;
 }
 
 function parseArgs(argv) {
   const args = argv.slice(2);
   const dryRun = args.includes('--dry-run');
-  const urls = args.filter(function (a) { return a !== '--dry-run'; });
-
+  const urls = args.filter(a => a !== '--dry-run');
   if (urls.length === 0) {
     console.error('Usage: node scripts/seo/indexnow-ping.mjs [--dry-run] <url> [<url> ...]');
     console.error('  url - one or more URLs to ping (first URL derives the host)');
     process.exit(1);
   }
-
-  return { dryRun: dryRun, urls: urls };
+  return { dryRun, urls };
 }
 
 async function main() {
@@ -97,12 +86,9 @@ async function main() {
     return;
   }
 
-  console.log('Pinging IndexNow for ' + payload.urlList.length + ' URL(s) on ' + host + ' ...');
+  console.log(`Pinging IndexNow for ${payload.urlList.length} URL(s) on ${host} ...`);
   const response = await sendPing(payload);
-  console.log('IndexNow responded ' + response.status + ' ' + response.statusText);
+  console.log(`IndexNow responded ${response.status} ${response.statusText}`);
 }
 
-main().catch(function (err) {
-  console.error(err);
-  process.exit(1);
-});
+main().catch(err => { console.error(err); process.exit(1); });
