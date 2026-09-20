@@ -73,7 +73,7 @@ test('cyan-silver family modules restyle React Bits ports to site tokens', () =>
   assert.match(acid, /#59f3ff/);
   assert.match(acid, /#eaf2ff/);
   assert.match(acid, /removeEventListener/);
-  assert.match(dots, /59, 243, 255/);
+  assert.match(dots, /89, 243, 255/);
   assert.match(dots, /196, 205, 220/);
   assert.match(dots, /removeEventListener/);
   assert.match(terminal, /0\.34901960784313724, 0\.9529411764705882, 1/);

@@ -39,7 +39,6 @@ function DotField() {
     let glowOpacity = 0;
     let engagement = 0;
     let raf = 0;
-    let frameCount = 0;
     let resizeTimer = 0;
 
     function buildDots(w, h) {
@@ -93,7 +92,6 @@ function DotField() {
     const speedInterval = setInterval(updateMouseSpeed, 20);
 
     function tick() {
-      frameCount += 1;
       const { w, h } = size;
       const len = dots.length;
       const targetEngagement = Math.min(mouse.speed / 5, 1);
