@@ -6,6 +6,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SERVICES } from '../lib/services.mjs';
+import { SERVICE_PAGES } from '../lib/servicePages.mjs';
 import { SERVICE_SIGNAL_META } from '../lib/serviceSignals.mjs';
 import {
   createSignalGeometries,
@@ -45,10 +46,30 @@ test('all 8 signals have motion metadata (rotSpeed / wireframe) and match the ra
     assert.ok(meta, `signal ${signal} must have motion metadata`);
     assert.ok(typeof meta.rotSpeed === 'number' && meta.rotSpeed > 0, 'rotSpeed must be a positive number');
   }
-  // The motion set is exactly the 8 homepage signals — no drift.
-  assert.equal(Object.keys(SERVICE_SIGNAL_META).length, SIGNAL_COUNT);
+  // The motion set is exactly the 8 homepage signals plus the standalone
+  // inner-page pillars (lib/servicePages.mjs `standalone: true`) — no drift.
+  const standaloneSignals = SERVICE_PAGES.filter((p) => p.standalone).map((p) => p.signal);
+  const railSignals = SERVICES.map(({ signal }) => signal);
+  assert.deepEqual(
+    Object.keys(SERVICE_SIGNAL_META).sort(),
+    [...railSignals, ...standaloneSignals].sort(),
+  );
   for (const { signal } of SERVICES) {
     assert.ok(SERVICE_SIGNAL_META[signal], `signal ${signal} present in meta`);
+  }
+});
+
+test('standalone pillar signals get an inner-page geometry but never join the rail', () => {
+  const standalone = SERVICE_PAGES.filter((p) => p.standalone);
+  assert.ok(standalone.length >= 1, 'expected at least the seo pillar');
+  const ordered = createSignalGeometries();
+  assert.equal(ordered.length, SIGNAL_COUNT, 'rail must stay at SERVICES.length');
+  for (const { signal } of standalone) {
+    assert.ok(!SERVICES.some((s) => s.signal === signal), `${signal} must not be a SERVICES signal`);
+    const geometry = getSignalGeometry(signal);
+    assert.ok(geometry?.attributes?.position?.count > 0, `${signal} geometry must be non-empty`);
+    assert.ok(!ordered.includes(geometry), `${signal} geometry must not be in the rail array`);
+    assert.ok(SERVICE_SIGNAL_META[signal]?.rotSpeed > 0, `${signal} needs motion metadata`);
   }
 });
 

@@ -5,6 +5,28 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.39 — 2026-09-19
+
+SEO service page: `/services/seo`, the pillar for theme 4 of
+`docs/seo/STRATEGY.md` (head term "search engine optimization agencies";
+"seo agency near me" secondary on the same page). No homepage or WebGL rail
+change — the page is a **standalone** entry in `lib/servicePages.mjs`, not
+a ninth `SERVICES` signal, so the homepage keeps eight rows and eight rail
+instruments.
+
+- **`/services/seo`** — rendered by the existing `/services/[slug]` template
+  with a full content entry; conversion rate optimization is a capability,
+  a deliverable, a process step and an FAQ item of this page, not its own
+  page. Listed as "09 · SEO" on `/services` and in `/sitemap.xml` via
+  `SERVICE_PAGE_SLUGS`; Service / Breadcrumb / FAQ schema as the other eight.
+- **Internal links** — Web Design and Digital Marketing gain SEO in their
+  related services, so the pillar is not an orphan.
+- **Emblems** — a hand-drawn "results ladder" SVG glyph and a page-only 3D
+  "beacon" geometry (`getSignalGeometry('seo')`); `createSignalGeometries()`
+  (the rail) is unchanged at `SERVICES.length`.
+- **Tests** — `RAIL_SERVICE_PAGES` export; marketing tests split rail parity
+  (8) from the full page list (9) and assert the pillar has ≥2 inbound links.
+
 ## v1.38 — 2026-09-19
 
 Evidence-based SEO audit pass. Extends the existing `lib/seo.mjs` origin
