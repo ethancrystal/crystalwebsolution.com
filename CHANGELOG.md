@@ -5,6 +5,25 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.40 — 2026-09-20
+
+Test-contract fix: `main` was silently red. PR #204 (`build(deps): bump next
+from 15.5.24 to 16.3.5`) merged directly into `main` without updating
+`tests/crm/next15-upgrade.test.mjs`, which asserts Next's major version is
+15 — so `pnpm test` has been failing on `main` since that merge, and
+`VERSION`/`CHANGELOG.md` were not bumped for it either (a second miss of
+the rule in `VERSIONING.md`).
+
+Next 16.3.5 is already live in production (deployed via Vercel off `main`),
+so this is not a revert: verified full `pnpm test`, `pnpm test:marketing`
+(36/36), and `pnpm build` all pass clean under Next 16 with no other
+regressions, then updated the contract test to pin major version 16 instead
+of 15.
+
+- **`tests/crm/next15-upgrade.test.mjs`** — asserts `next` major version 16
+  (was 15); test description updated to match. `react`/`react-dom` (19) and
+  `@react-three/fiber` (9) assertions unchanged.
+
 ## v1.39 — 2026-09-19
 
 SEO service page: `/services/seo`, the pillar for theme 4 of
