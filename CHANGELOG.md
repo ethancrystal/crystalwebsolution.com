@@ -5,6 +5,17 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.40 — 2026-09-20
+
+Animated backgrounds on inner marketing pages. Homepage WebGL crystal journey
+is unchanged. Login / signup already used these modules.
+
+- **Stage** — `SubpageExperience` mounts `DarkPageBackground` (prism,
+  ripple-grid, liquid-ether) instead of the idle Crystal canvas, which was
+  hidden behind an opaque page fill.
+- **Fill** — `.mkt-shell` and `.subpage` no longer paint solid `--bg`, so the
+  procedural stage reads through pitch-black heroes. Auth routes untouched.
+
 ## v1.39 — 2026-09-19
 
 SEO service page: `/services/seo`, the pillar for theme 4 of
