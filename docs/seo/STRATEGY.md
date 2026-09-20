@@ -30,6 +30,27 @@ this as a 12–24 month programme. Flat rankings in the first two quarters are
 **expected**, not a failure signal; the kill criteria in §6 are what decide
 whether an approach is wrong.
 
+**Goal criterion (ratified by MJ, 2026-09-19).** Success is *qualified inbound
+inquiries from organic search*, not rankings. A qualified organic inquiry is a
+new contact-form submission or CRM contact/deal whose GA4 session
+source/medium is `google/organic` or `bing/organic`, asking for a service on
+the live `/services/*` list (or `/services/seo` once it ships). Targets,
+clock starting at the 2026-09-03 relaunch:
+
+| Checkpoint | Date | Target |
+|---|---|---|
+| T+90 | 2026-12-02 | ≥ 1 qualified organic inquiry (proves the funnel end to end) |
+| T+180 | 2027-03-02 | ≥ 5 qualified organic inquiries per month |
+| T+365 | 2027-09-03 | ≥ 15 qualified organic inquiries per month |
+
+Leading indicators — GSC impressions and clicks per pillar, positions per §6 —
+are reported but never substituted for the goal. Source of truth is GA4
+`generate_lead` on property `552972119` filtered to organic, plus the CRM;
+until an agent has API access it writes "goal metric: unavailable this run"
+and never estimates inquiries. A missed T+180 target triggers the §6 audits,
+not a strategy change; a missed T+365 target is escalated to MJ as a strategy
+question. Every run log opens with progress against this criterion.
+
 ## 2. Positioning — what the pages are allowed to say
 
 - National / remote. Never write a location page for a place the business
