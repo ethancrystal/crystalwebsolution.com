@@ -251,6 +251,13 @@ move together.
   reachable from signup, invite, or role-change paths. Don't add a UI that
   offers `admin` as an assignable role — it can only fail at the database.
 
+## Cursor project skills
+
+Reusable agent skills live in `.cursor/skills/` (one folder per skill, each
+with `SKILL.md`). Inventory: `.cursor/skills/README.md` and
+`docs/PLUGINS-AND-SKILLS.md`. SEO, keyword, and blog skills in that tree do
+**not** override `docs/seo/STRATEGY.md`.
+
 ## Planning docs (not yet implemented)
 
 `TRIONN-ADAPTATION.md` and `TRIONN-SCREENSHOT-ANNOTATIONS.md` are research/
