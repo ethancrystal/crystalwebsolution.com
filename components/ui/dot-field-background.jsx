@@ -10,8 +10,8 @@ import { useEffect, useId, useRef } from 'react';
 // covers the canvas.
 
 const TWO_PI = Math.PI * 2;
-const GRADIENT_FROM = 'rgba(89, 243, 255, 0.42)';
-const GRADIENT_TO = 'rgba(196, 205, 220, 0.22)';
+const GRADIENT_FROM = 'rgba(89, 243, 255, 0.58)';
+const GRADIENT_TO = 'rgba(196, 205, 220, 0.34)';
 const GLOW_COLOR = '#59f3ff';
 
 function DotField() {

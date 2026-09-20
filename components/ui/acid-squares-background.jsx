@@ -116,12 +116,18 @@ function AcidSquares() {
     const container = containerRef.current;
     if (!container) return undefined;
 
-    const renderer = new Renderer({
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2)
-    });
+    let renderer;
+    try {
+      renderer = new Renderer({
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: false,
+        dpr: Math.min(window.devicePixelRatio || 1, 2)
+      });
+    } catch {
+      return undefined;
+    }
+    if (!renderer?.gl) return undefined;
 
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);

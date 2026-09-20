@@ -204,11 +204,17 @@ function FaultyTerminal() {
     const ctn = containerRef.current;
     if (!ctn) return undefined;
 
-    const renderer = new Renderer({
-      dpr: Math.min(window.devicePixelRatio || 1, 2),
-      alpha: false,
-      antialias: false
-    });
+    let renderer;
+    try {
+      renderer = new Renderer({
+        dpr: Math.min(window.devicePixelRatio || 1, 2),
+        alpha: false,
+        antialias: false
+      });
+    } catch {
+      return undefined;
+    }
+    if (!renderer?.gl) return undefined;
     const gl = renderer.gl;
     gl.clearColor(0.01568627450980392, 0.023529411764705882, 0.047058823529411764, 1);
 

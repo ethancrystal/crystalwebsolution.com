@@ -189,12 +189,14 @@ export default function LetterGlitchBackground() {
         }
         .letter-glitch-bg :global(canvas) {
           display: block;
+          opacity: 0.34;
         }
         .letter-glitch-bg :global(.letter-glitch-vignette) {
           position: absolute;
           inset: 0;
           pointer-events: none;
-          background: radial-gradient(circle, rgba(4, 6, 12, 0) 52%, rgba(4, 6, 12, 0.92) 100%);
+          background:
+            radial-gradient(circle at 50% 28%, rgba(4, 6, 12, 0.78) 0%, rgba(4, 6, 12, 0.28) 38%, rgba(4, 6, 12, 0.94) 100%);
         }
         @media (prefers-reduced-motion: reduce), (max-width: 767px) {
           .letter-glitch-bg {
