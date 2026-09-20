@@ -2,6 +2,13 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
+## SEO work — read `docs/seo/STRATEGY.md` first
+
+Any task that touches SEO, keywords, blog posts, service pages, backlinks or
+`docs/seo/` is governed by the one-page strategy in `docs/seo/STRATEGY.md`
+(then `docs/seo/OPERATIONS-MANUAL.md` for mechanics). It applies to every
+agent. Never merge a PR, send a message, or buy anything — those are MJ's.
+
 ## Project overview
 
 CD Sportswear USA is a Next.js 15 / React 19 application containing a dark, cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
@@ -146,6 +153,10 @@ move together.
 - Data-access paths coexist: Project delivery reads go through `lib/crm/projects.js` against the `lib/crm/project-contract.mjs` contract shape (Centralized `TASK_PRIORITIES`, `TASK_STATUSES`, etc.); writes use `'use server'` actions in `app/actions/project-actions.js`. Other tables (companies/contacts/deals/tasks/users) query tables directly via browser client, scoped by RLS.
 - Roles are database-enforced; `handle_new_user()` defaults accounts to `client`; `requested_staff_access` is resolved by admins; `admin` role is pinned by database trigger to prevent unauthorized signup/invite modification.
 - Project attachments use reservation/finalization hooks (`reserve_project_attachment` / `finalize_project_attachment`) linking to Supabase storage. See `docs/CRM-OPERATIONS.md` and `docs/ux/` for CRM details.
+
+## Cursor project skills
+
+Reusable agent skills live in `.cursor/skills/` (one folder per skill, each with `SKILL.md`). Inventory: `.cursor/skills/README.md` and `docs/PLUGINS-AND-SKILLS.md`. SEO, keyword, and blog skills in that tree do **not** override `docs/seo/STRATEGY.md`.
 
 ## Planning docs (not yet implemented)
 

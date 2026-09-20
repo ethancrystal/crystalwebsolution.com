@@ -7,7 +7,7 @@ import DarkPageBackground from '../../components/ui/dark-page-background';
 export default function LoginPage() {
   return (
     <div className="crm-auth-container">
-      <DarkPageBackground interactive="prism" />
+      <DarkPageBackground interactive="faulty-terminal" />
       <div className="crm-auth-card">
         <Link href="/" className="crm-auth-mark" aria-label={`${SITE.name} home`}>
           <img className="crm-auth-logo" src={SITE.logoPath} alt={SITE.name} width={SITE.logoWidth} height={SITE.logoHeight} />

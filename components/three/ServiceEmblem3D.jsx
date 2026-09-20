@@ -37,6 +37,8 @@ const SIGNAL_BLURB = {
   motion: 'Your story sits still while competitors move, and attention moves on — so we add motion that guides the eye to the one thing that matters.',
   ai: 'AI is either a buzzword in your copy or a black box nobody trusts — so we wire practical, explainable automation into the work you already do.',
   workflow: 'Your team reinvents the hand-off on every project and momentum dies in the gaps — so we design the workflow once, clearly, and let it scale.',
+  // Standalone /services/seo pillar (not a homepage rail signal).
+  seo: 'You rank for your own name and nothing a buyer types — so we build the pages, links and fixes that put the service you sell in front of the search that wants it.',
 };
 
 function EmblemMesh({ signal, onHover }) {

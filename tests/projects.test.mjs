@@ -25,3 +25,15 @@ test('selected work uses the five authorized clients plus the CWS self-study', (
     'CD Sportswear INC',
   ]);
 });
+
+test('selected work maps each case study to existing service pages', async () => {
+  const { SERVICE_PAGE_SLUGS } = await import('../lib/servicePages.mjs');
+  const allowed = new Set(SERVICE_PAGE_SLUGS);
+
+  for (const project of PROJECTS) {
+    assert.ok(Array.isArray(project.relatedServiceSlugs) && project.relatedServiceSlugs.length >= 1, `${project.slug} needs relatedServiceSlugs`);
+    for (const slug of project.relatedServiceSlugs) {
+      assert.ok(allowed.has(slug), `${project.slug} maps to unknown service ${slug}`);
+    }
+  }
+});
