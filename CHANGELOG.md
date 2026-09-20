@@ -5,6 +5,75 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.41 — 2026-09-20
+
+**Version note:** this branch was cut before `v1.38` (SEO audit,
+`15787f4`) and `v1.39` (SEO service page, `708ecc7`) merged to `main`, so
+this entry originally numbered itself `v1.38` — reused. Renumbered to
+`v1.41` (`main` is at `v1.39`; open PR #207 claims `v1.40`). Re-check
+against `CHANGELOG.md`'s head on `main` before merging — if something
+else lands first, this needs bumping again per `VERSIONING.md`.
+
+Two pieces of work land together because they shared this branch/checkout:
+
+**1. New page: `/hire/shopify-developer`** (content lane, committed
+`d56f22c`, 2026-09-16 run). Targets the keyword pair "hire a shopify
+developer" / "hire shopify developer", modeled on the existing
+`/embroidery-screen-printing-web-design` page. Adds the route to
+`app/sitemap.js` and updates `docs/seo/KEYWORD-REGISTRY.md`. Content-lane
+pages don't carry their own version bump per this repo's convention; this
+entry covers it only because it rides in the same PR as the code-lane
+change below.
+
+**2. `/process` opens on a WebGPU "shape waves" hero:** the headline is
+cut out of an interactive dot field (React Bits' ShapeWaves, ported into
+`components/marketing/ShapeWaves.jsx`). Copy is unchanged — "From idea to
+outcome, without the limbo." plus the same lede.
+
+- **New dependency `vgpu@^0.3.1`** (the WebGPU helper ShapeWaves is built
+  on; the same range React Bits pins). `0.4+` adds a `three >=0.180` peer
+  dependency that conflicts with this repo's `three ^0.169`, so stay on
+  `0.3.x` until `three` is upgraded. `pnpm-lock.yaml` must be regenerated
+  with `pnpm install` before this ships — Vercel installs with
+  `--frozen-lockfile`.
+- **`components/marketing/ProcessHero.jsx`** — progressive enhancement:
+  SSR and first paint show the real H1 over a CSS dot lattice
+  (`data-mode="static"`); after mount, when `useRenderQuality` allows
+  animation (eco tier stays static, same gate as `IdleScene`) and
+  `navigator.gpu` exists, ShapeWaves mounts client-only and the H1 fades
+  to opacity 0 (still in the accessibility tree) as the field fades in.
+  Any GPU error drops back to the static stage. Reduced motion freezes the
+  field on one frame and skips the intro.
+- **ShapeWaves changes vs. upstream** (each marked `// CWS:` in the file):
+  no CSS import (rules live in `app/styles/shape-waves.css`, imported from
+  `globals.css`); a `wrap` prop that word-wraps the mask text into the
+  largest font that fits the box instead of shrinking one long line; an
+  `onReady` callback for the cross-fade; `wrapWidth`/`wrapHeight`/`lineHeight`
+  props; and device-loss hardening — upstream only try/catches its
+  `frame()` call, so a GPU device lost after the first frame threw from
+  `params.set()` inside the rAF callback and silently left a blank stage
+  with the H1 already faded. `device.lost` is now observed and every GPU
+  entry point is guarded, so the loss reaches `onError` and the static
+  stage comes back (verified by destroying the device in a headless run).
+- Field uses the site tokens (`--cyan` `#59f3ff` on `--bg` `#04060c`,
+  hover white) and the display font resolved from `--font-display`
+  (Space Grotesk 500), so the cut-out matches every other heading.
+- Stage is full-bleed, 600px tall on desktop and 420px below 768px
+  (6px cells there so the four-line mobile headline stays legible).
+- `pnpm-workspace.yaml`'s `allowBuilds` had unresolved placeholder text
+  (`"set this to true or false"`) for `@vgpu/adapter-node` and `webgpu`
+  from an earlier run, which failed `pnpm build`'s deps-status check.
+  Neither package is imported anywhere in this repo (only `vgpu` itself
+  is, client-side, via the dynamic `ShapeWaves` import) — set both to
+  `false`; no native build step is needed.
+- No CRM, homepage, or other route changes beyond `/process` and the new
+  `/hire/shopify-developer` page above.
+- **Build verified against this branch's own base** (`885573b`, pre-#204)
+  on Next 15.5.23 — `pnpm build` (60/60 static pages) and `pnpm test` /
+  `pnpm test:marketing` (497 + 36 tests) all green. Not yet verified
+  against current `main`, which is on Next 16.3.5 (`#204`) and reported
+  red by open PR #207; rebase and re-verify before merging.
+
 ## v1.37 — 2026-09-11
 
 Owner-approved cutover of two live-database references that still named
