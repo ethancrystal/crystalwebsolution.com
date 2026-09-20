@@ -4,6 +4,7 @@ import ContentSection from './ContentSection';
 import ContactForm from './ContactForm';
 import ServiceEmblem from './ServiceEmblem';
 import { getRelatedServices } from '../../lib/servicePages.mjs';
+import { getProject } from '../../lib/projects';
 import { SITE } from '../../lib/site';
 
 // ServicePage renders one full service record from lib/servicePages.mjs.
@@ -11,6 +12,9 @@ import { SITE } from '../../lib/site';
 // component. No homepage WebGL runtime is imported.
 export default function ServicePage({ page }) {
   const related = getRelatedServices(page);
+  const relatedWork = (page.relatedWorkSlugs || [])
+    .map((slug) => getProject(slug))
+    .filter(Boolean);
 
   return (
     <article className="mkt-service">
@@ -104,10 +108,23 @@ export default function ServicePage({ page }) {
         </ContentSection>
       )}
 
-      <ContentSection eyebrow="See our work" title="Every project, one standard">
-        <Link href="/work" className="mkt-related-link">
-          <span className="mkt-related-title">See the work →</span>
-        </Link>
+      <ContentSection eyebrow="See our work" title={relatedWork.length ? 'Related projects' : 'Every project, one standard'}>
+        <ul className="mkt-related">
+          {relatedWork.map((project) => (
+            <li key={project.slug}>
+              <Link href={`/work/${project.slug}`} className="mkt-related-link">
+                <span className="mkt-related-title">{project.title} — {project.category}</span>
+                <span className="mkt-related-arrow" aria-hidden="true">→</span>
+              </Link>
+            </li>
+          ))}
+          <li>
+            <Link href="/work" className="mkt-related-link">
+              <span className="mkt-related-title">{relatedWork.length ? 'All selected work' : 'See the work →'}</span>
+              <span className="mkt-related-arrow" aria-hidden="true">→</span>
+            </Link>
+          </li>
+        </ul>
       </ContentSection>
 
       <ContentSection eyebrow="Start" title="Let’s talk">

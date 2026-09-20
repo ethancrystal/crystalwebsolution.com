@@ -5,6 +5,61 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.39 — 2026-09-19
+
+SEO service page: `/services/seo`, the pillar for theme 4 of
+`docs/seo/STRATEGY.md` (head term "search engine optimization agencies";
+"seo agency near me" secondary on the same page). No homepage or WebGL rail
+change — the page is a **standalone** entry in `lib/servicePages.mjs`, not
+a ninth `SERVICES` signal, so the homepage keeps eight rows and eight rail
+instruments.
+
+- **`/services/seo`** — rendered by the existing `/services/[slug]` template
+  with a full content entry; conversion rate optimization is a capability,
+  a deliverable, a process step and an FAQ item of this page, not its own
+  page. Listed as "09 · SEO" on `/services` and in `/sitemap.xml` via
+  `SERVICE_PAGE_SLUGS`; Service / Breadcrumb / FAQ schema as the other eight.
+- **Internal links** — Web Design and Digital Marketing gain SEO in their
+  related services, so the pillar is not an orphan.
+- **Emblems** — a hand-drawn "results ladder" SVG glyph and a page-only 3D
+  "beacon" geometry (`getSignalGeometry('seo')`); `createSignalGeometries()`
+  (the rail) is unchanged at `SERVICES.length`.
+- **Tests** — `RAIL_SERVICE_PAGES` export; marketing tests split rail parity
+  (8) from the full page list (9) and assert the pillar has ≥2 inbound links.
+
+## v1.38 — 2026-09-19
+
+Evidence-based SEO audit pass. Extends the existing `lib/seo.mjs` origin
+architecture; does not add a second metadata or schema system. No homepage
+or WebGL visual change.
+
+- **Canonical host hygiene** — `toSitePath()` rewrites owned-host absolute
+  URLs (www, apex, retired `cdsportswearusa.com`, hijacked
+  `crystalwebsolution.com`) to site-relative paths. Blog markdown `safeHref`
+  uses it so published posts that still link the apex or a retired domain
+  do not send crawlers through a 308, a 404, or the Slot Gacor spam site
+  currently answering `crystalwebsolution.com`.
+- **Internal linking** — Blog added to `SITE.nav` and the marketing footer.
+  Service pages that have matching case studies now link them; case studies
+  link related services and Contact. Blog posts link the matching service
+  cluster plus other published posts. `/blog` listing gains a Contact CTA.
+- **Auth OG URLs** — `/login` and `/signup` now emit their own `og:url`
+  instead of inheriting the homepage URL.
+- **404 robots** — `app/not-found.jsx` is the single `noindex, nofollow`
+  signal for missing URLs (production currently emits both `noindex` and
+  the root layout's `index, follow`).
+- **Legal dates** — Privacy and Terms use a fixed `LAST_UPDATED` instead of
+  `new Date()` at render.
+- **Sentry CSP** — `connect-src` allows `https://*.ingest.us.sentry.io` so
+  client envelopes are not blocked (still absent on the live CSP as of
+  2026-09-19).
+- **Shopify landing** — `/hire/shopify-developer` is **not** built. Keyword
+  demand remains, but Shopify is not in the live service list. Parked in
+  `docs/seo/KEYWORD-REGISTRY.md`. Details in `docs/seo/runs/2026-09-19.md`.
+
+No invented rankings, traffic, or case-study outcomes. Measurement (GSC/GA4)
+remains Mode A — not live to this run.
+
 ## v1.37 — 2026-09-11
 
 Owner-approved cutover of two live-database references that still named

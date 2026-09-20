@@ -18,6 +18,7 @@ export default function MarketingFooter() {
           <p className="mkt-footer-label">Explore</p>
           <Link href="/work">Work</Link>
           <Link href="/services">Services</Link>
+          <Link href="/blog">Blog</Link>
           <Link href="/process">Process</Link>
           <Link href="/reviews">Reviews</Link>
           <Link href="/about">About</Link>

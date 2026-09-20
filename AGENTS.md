@@ -2,6 +2,13 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
+## SEO work — read `docs/seo/STRATEGY.md` first
+
+Any task that touches SEO, keywords, blog posts, service pages, backlinks or
+`docs/seo/` is governed by the one-page strategy in `docs/seo/STRATEGY.md`
+(then `docs/seo/OPERATIONS-MANUAL.md` for mechanics). It applies to every
+agent. Never merge a PR, send a message, or buy anything — those are MJ's.
+
 ## Project overview
 
 CD Sportswear USA is a Next.js 15 / React 19 application containing a dark, cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.

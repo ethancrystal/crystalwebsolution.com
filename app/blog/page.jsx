@@ -149,6 +149,22 @@ export default async function BlogIndexPage() {
             </ul>
           </section>
         )}
+
+        <section className="blog-close" aria-labelledby="blog-close-title">
+          <p className="eyebrow">
+            <SectionReveal as="span" direction="left">
+              Start a project
+            </SectionReveal>
+          </p>
+          <SectionReveal as="h2" id="blog-close-title" direction="left" delay={0.05}>
+            Brief us the problem, not the service.
+          </SectionReveal>
+          <SectionReveal as="p" direction="up" delay={0.1}>
+            <Link href="/contact">Send a brief</Link>
+            {' · '}
+            <Link href="/services">Browse services</Link>
+          </SectionReveal>
+        </section>
       </main>
     </MarketingShell>
   );

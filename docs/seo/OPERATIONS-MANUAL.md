@@ -1,5 +1,14 @@
 # Operations Manual — Automated Daily Run
 
+> **v3.2 — 2026-09-19. Strategy is now ruled by [`STRATEGY.md`](./STRATEGY.md).**
+> MJ resolved the §3 / §11-item-6 split: the site targets the **broad head
+> terms**, reached through one pillar URL per theme plus supporting cluster
+> pages. Read `STRATEGY.md` first; where it and this manual disagree on
+> strategy, `STRATEGY.md` wins. This manual remains authoritative for systems,
+> IDs, mode logic and run mechanics. Ubersuggest project `109eb168…` now
+> reports `google_analytics_profile` `552972119` (25/125 keywords, 2/5
+> competitors, `get_project` 2026-09-19), so §2 flips the run to **Mode B**.
+
 > **v3 — 2026-09-10.** The production domain moved again: `cdsportswearusa.com`
 > → `cdsportswearinc.com` (PR #174, merged 2026-09-03). The Ubersuggest project
 > this manual named was deleted and replaced. The Linear team *Crystal Web
@@ -94,15 +103,17 @@ Current mapped set. Figures: Ubersuggest `keyword_overview`, US 2840, pulled
 |---|---|---|---|---|---|---|
 | Now | `rfp web development` | 260 | 13 | $15.25 | `/blog/web-development-rfp-guide` | **Live** since 2026-09-03 |
 | Now | `website development rfp` | 260 | 13 | $11.98 | `/blog/web-development-rfp-guide` | **Live** since 2026-09-03 |
-| Now | `hire a shopify developer` | 880 | 8 | $25.41 | `/hire/shopify-developer` | Not built |
-| Now | `hire shopify developer` | 880 | **37** | $31.06 | `/hire/shopify-developer` | Not built. Difficulty 26 → 37 since 2026-09-02 |
-| Next | `web development northern virginia` | 260 | 9 | $18.00 | `/northern-virginia-web-development` | Not built |
+| Parked | `hire a shopify developer` | 880 | 8 | $25.41 | `/hire/shopify-developer` | **Not built, 2026-09-19.** Demand remains; Shopify is not a live service. See `KEYWORD-REGISTRY.md` Parked |
+| Parked | `hire shopify developer` | 880 | **37** | $31.06 | `/hire/shopify-developer` | Same pair. Difficulty 26 → 37 since 2026-09-02 |
+| Next | `web development northern virginia` | 260 | 9 | $18.00 | `/northern-virginia-web-development` | Not built. Local-first was superseded; do not ship without MJ reversing §3 |
 | Monitor | `ai automation agency` | 4,400 | **40** | $17.80 | `/services/ai-automation` | Exists. Difficulty 35 → 40 since 2026-09-02 |
 | Monitor | `branding and web design` | 590 | 17 | $18.18 | `/blog/branding-and-web-design-studio` | **Live** since 2026-09-06 |
 | Monitor | `web design manassas va` | 20 | 5 | $0 | `/blog/web-design-manassas-va` | **Live** since 2026-09-06. Conflicts with this section — see above |
 
 `hire a shopify developer` has a volatile monthly series (210–1,900 over 13
-months; 880 is the smoothed figure). Treat volume as directional.
+months; 880 is the smoothed figure). Treat volume as directional. The 2026-09-19
+audit parked the pair rather than building the landing: the live service
+taxonomy (`lib/servicePages.mjs`) does not include Shopify.
 
 `/blog/how-much-does-ai-automation-cost` is live but has **no viable target
 term**: `how much does ai automation cost` returns 0/mo and `ai automation
@@ -254,7 +265,7 @@ be evidenced either way.
 | 3 | **Restore an issue queue.** The Linear team *Crystal Web Solution* is not present in the workspace this run can reach — `list_teams` returns only `TMS` (2026-09-10); deleted or different workspace is unknown | The run has nowhere to file findings. `CRY-17…30` history is unreachable |
 | 4 | **Connect GA4 and Search Console** to Ubersuggest project `109eb168…`, on the **`cdsportswearinc.com`** property | Until then every run is Mode A and no page can be verified past T+0 |
 | 5 | **Install the blog publish workflow** at `.github/workflows/seo-publish-blog.yml` (the file is parked at `docs/seo/seo-publish-blog.yml.pending`) and add its repo secrets | `.github/workflows/` still contains only `docker-ci.yml` (2026-09-10). The pipeline built on 2026-09-02 has never run |
-| 6 | **Rule on the strategy split in §3**: 54 broad head terms tracked vs. the specificity strategy, and the Manassas post vs. the parked local ladder | The registry cannot map keywords to URLs until this is settled |
+| 6 | ~~Rule on the strategy split in §3.~~ **RESOLVED 2026-09-19** — broad head terms via pillar + cluster; see `STRATEGY.md` §3. The Manassas post stays live as a supporting page but local terms are never a pillar | — |
 | 7 | ~~Settle the brand name.~~ **RESOLVED 2026-09-11** — CD Sportswear INC, shipped in PR #190 (open, awaiting MJ's merge) | — |
 | 8 | Name the Supabase Storage bucket for cover images (`SEO_BLOG_COVERS_BUCKET`) | Blocks cover images on drafts |
 | 9 | Submit the four live blog URLs in Search Console once #4 exists | They are in the sitemap; nothing else can be done without the property |

@@ -49,6 +49,7 @@ test('global content publishes authorized studio facts and contact details', () 
   assert.equal(SITE.cityCompact, 'Manassas, VA + Sharjah, DXB');
   assert.deepEqual(SITE.socials, []);
   assert.ok(SITE.nav.some((item) => item.href === '/reviews'));
+  assert.ok(SITE.nav.some((item) => item.href === '/blog'));
 });
 
 test('review attribution keeps the published towing company spelling', () => {
