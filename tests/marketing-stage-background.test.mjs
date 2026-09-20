@@ -14,9 +14,10 @@ test('inner marketing pages mount the auth-family animated stage, not the idle c
 
   assert.match(shell, /DarkPageBackground/);
   assert.match(shell, /marketingStageBackground/);
-  assert.match(shell, /prism/);
-  assert.match(shell, /ripple-grid/);
-  assert.match(shell, /liquid-ether/);
+  assert.match(shell, /acid-squares/);
+  assert.match(shell, /dot-field/);
+  assert.match(shell, /faulty-terminal/);
+  assert.match(shell, /letter-glitch/);
   assert.doesNotMatch(shell, /IdleScene/);
 
   // Homepage keeps the WebGL crystal journey.
@@ -24,12 +25,12 @@ test('inner marketing pages mount the auth-family animated stage, not the idle c
   assert.doesNotMatch(experience, /DarkPageBackground/);
 });
 
-test('scene variants map onto distinct background modules', () => {
+test('scene variants map onto distinct cyan-silver background modules', () => {
   const shell = read('components/marketing/SubpageExperience.jsx');
-  assert.match(shell, /about:\s*'prism'/);
-  assert.match(shell, /services:\s*'ripple-grid'/);
-  assert.match(shell, /process:\s*'ripple-grid'/);
-  assert.match(shell, /contact:\s*'liquid-ether'/);
+  assert.match(shell, /about:\s*'acid-squares'/);
+  assert.match(shell, /services:\s*'dot-field'/);
+  assert.match(shell, /process:\s*'faulty-terminal'/);
+  assert.match(shell, /contact:\s*'letter-glitch'/);
 });
 
 test('marketing page fills stay transparent so the stage is visible', () => {
@@ -44,8 +45,11 @@ test('marketing page fills stay transparent so the stage is visible', () => {
   assert.match(css, /\.mkt-hero\s*\{[^}]*min-height/s);
 });
 
-test('auth pages already carry the same modules and are left in place', () => {
-  assert.match(read('app/login/page.jsx'), /interactive="prism"/);
-  assert.match(read('app/signup/page.jsx'), /interactive="ripple-grid"/);
-  assert.match(read('app/forgot-password/page.jsx'), /interactive="liquid-ether"/);
+test('auth pages share the same cyan-silver family', () => {
+  assert.match(read('app/login/page.jsx'), /interactive="faulty-terminal"/);
+  assert.match(read('app/signup/page.jsx'), /interactive="dot-field"/);
+  assert.match(read('app/forgot-password/page.jsx'), /interactive="letter-glitch"/);
+  assert.match(read('components/auth/PortalLoginForm.jsx'), /interactive="faulty-terminal"/);
+  assert.match(read('app/auth/reset-password/page.jsx'), /interactive="letter-glitch"/);
+  assert.match(read('app/auth/confirm/page.jsx'), /interactive="letter-glitch"/);
 });
