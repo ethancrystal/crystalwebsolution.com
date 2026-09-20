@@ -5,6 +5,17 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
+## v1.40 — 2026-09-20
+
+Install 37 Cursor agent skills under `.cursor/skills/` (playbooks only; no
+runtime or visual change). SEO skills stay subordinate to
+`docs/seo/STRATEGY.md`.
+
+- **Skills** — one folder per pack with `SKILL.md`; inventory in
+  `.cursor/skills/README.md` and `docs/PLUGINS-AND-SKILLS.md`.
+- **Omitted** — third-party journalism bundled with `columnist` (copyright);
+  `__MACOSX` / `__pycache__` junk from the archives.
+
 ## v1.39 — 2026-09-19
 
 SEO service page: `/services/seo`, the pillar for theme 4 of

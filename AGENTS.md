@@ -154,6 +154,10 @@ move together.
 - Roles are database-enforced; `handle_new_user()` defaults accounts to `client`; `requested_staff_access` is resolved by admins; `admin` role is pinned by database trigger to prevent unauthorized signup/invite modification.
 - Project attachments use reservation/finalization hooks (`reserve_project_attachment` / `finalize_project_attachment`) linking to Supabase storage. See `docs/CRM-OPERATIONS.md` and `docs/ux/` for CRM details.
 
+## Cursor project skills
+
+Reusable agent skills live in `.cursor/skills/` (one folder per skill, each with `SKILL.md`). Inventory: `.cursor/skills/README.md` and `docs/PLUGINS-AND-SKILLS.md`. SEO, keyword, and blog skills in that tree do **not** override `docs/seo/STRATEGY.md`.
+
 ## Planning docs (not yet implemented)
 
 `TRIONN-ADAPTATION.md` and `TRIONN-SCREENSHOT-ANNOTATIONS.md` are research/

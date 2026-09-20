@@ -83,5 +83,9 @@ supabase/.temp
 # Scratch repo-analysis clones (nested git repos, never commit)
 /.tmp-repo-analysis/
 
+# Skill-pack bytecode if an agent runs a bundled Python helper
+.cursor/skills/**/__pycache__/
+.cursor/skills/**/*.pyc
+
 .vercel
 .env*
