@@ -3,10 +3,11 @@
   position: relative;
   z-index: 1;
   min-height: 100vh;
+  /* Veil only — no opaque --bg fill. The previous solid last layer hid the
+     inner-page stage (IdleScene, now DarkPageBackground) behind pitch black. */
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(60, 108, 255, 0.12), transparent),
-    radial-gradient(900px 500px at 10% 110%, rgba(192, 132, 252, 0.08), transparent),
-    var(--bg);
+    radial-gradient(1200px 600px at 80% -10%, rgba(60, 108, 255, 0.08), transparent 72%),
+    radial-gradient(900px 500px at 10% 110%, rgba(192, 132, 252, 0.05), transparent 74%);
 }
 .work-index, .case, .reviews-index, .blog-index, .blog-post { padding: 18vh 8vw 12vh; max-width: 1200px; margin: 0 auto; }
 .case-back {

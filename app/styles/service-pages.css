@@ -57,7 +57,9 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
+  /* Transparent so DarkPageBackground (fixed, z-index 0) reads as the stage.
+     Body --bg remains the black base. Homepage Experience is unaffected. */
+  background: transparent;
 }
 .mkt-main { flex: 1 0 auto; }
 
@@ -112,6 +114,10 @@
 
 /* --- hero / sections --- */
 .mkt-hero, .mkt-section { padding: clamp(2.5rem, 7vw, 6rem) clamp(1.25rem, 5vw, 4rem); }
+.mkt-hero {
+  /* Give the procedural stage a beat under the title without moving type. */
+  min-height: min(68vh, 40rem);
+}
 .mkt-section--alt { background: linear-gradient(180deg, rgba(60,108,255,0.05), rgba(192,132,252,0.04)); }
 .mkt-section-inner { max-width: 78rem; margin: 0 auto; }
 .mkt-hero-title { margin-top: 0.4rem; }
