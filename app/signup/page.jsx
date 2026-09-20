@@ -49,7 +49,7 @@ export default function SignupPage() {
 
   return (
     <div className="crm-auth-container">
-      <DarkPageBackground interactive="ripple-grid" />
+      <DarkPageBackground interactive="dot-field" />
       <div className="crm-auth-card">
         <Link href="/" className="crm-auth-mark" aria-label={`${SITE.name} home`}>
           <img className="crm-auth-logo" src={SITE.logoPath} alt={SITE.name} width={SITE.logoWidth} height={SITE.logoHeight} />

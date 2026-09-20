@@ -7,14 +7,19 @@ about to be, if the PR hasn't merged yet).
 
 ## v1.40 — 2026-09-20
 
-Install 37 Cursor agent skills under `.cursor/skills/` (playbooks only; no
-runtime or visual change). SEO skills stay subordinate to
-`docs/seo/STRATEGY.md`.
+Animated backgrounds on inner marketing pages and auth. Homepage WebGL
+crystal journey is unchanged.
 
-- **Skills** — one folder per pack with `SKILL.md`; inventory in
-  `.cursor/skills/README.md` and `docs/PLUGINS-AND-SKILLS.md`.
-- **Omitted** — third-party journalism bundled with `columnist` (copyright);
-  `__MACOSX` / `__pycache__` junk from the archives.
+- **Stage** — `SubpageExperience` mounts `DarkPageBackground` instead of the
+  idle Crystal canvas, which was hidden behind an opaque page fill.
+- **Family** — Acid Squares, Dot Field, Faulty Terminal, and Letter Glitch
+  (React Bits JS-CSS ports) restyled to cyan / silver / black-blue. About
+  uses acid-squares, services uses dot-field, process uses faulty-terminal,
+  contact uses letter-glitch. Login / portal use the CRT terminal; signup
+  uses the dot field; forgot / reset / confirm use letter glitch. Prism,
+  ripple-grid, and liquid-ether stay registered as fallbacks.
+- **Fill** — `.mkt-shell` and `.subpage` no longer paint solid `--bg`, so the
+  procedural stage reads through pitch-black heroes.
 
 ## v1.39 — 2026-09-19
 
