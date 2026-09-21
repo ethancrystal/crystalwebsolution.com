@@ -29,6 +29,7 @@ serves 404 (WebFetch on apex and `www`, 2026-09-10) — Operations Manual §12.
 || web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
 || how to write a web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
 || business of web design | 2,400 | 7 | $22.63 | informational | /blog/business-of-web-design | draft 2026-09-22 | Next | no | 2026-09-22 |
+|| product page design | 260 | 39 | $5.11 | informational | /blog/product-page-design | draft 2026-09-23 | Next | no | 2026-09-23 |
 
 Five of the six mapped rows are tracked in the project. `web design manassas va` is not:
 it was parked on 2026-09-02 as part of the superseded local-first ladder, and
@@ -42,7 +43,7 @@ project needs MJ's explicit yes (§4).
 | Keyword | Was | Now | Note |
 |---|---|---|---|
 | hire shopify developer | diff 26 | **diff 37** | Volume 880 and CPC $31.06 unchanged. The harder half of the Shopify pair got harder |
-| ai automation agency | diff 35 | **diff 40** | 38 on 2026-08-21, 35 on 2026-09-02, 40 now. Oscillating, trending up. Volume 4,400 unchanged |
+|| ai automation agency | diff 40 | **diff 33** | 38 on 2026-08-21, 35 on 2026-09-02, 40 on 2026-09-10, 33 now. Oscillating, now trending down. Volume 4,400 unchanged |
 | hire a shopify developer | diff 8 | diff 8 | Unchanged |
 | rfp web development | diff 13 | diff 13 | Unchanged |
 | website development rfp | diff 13 | diff 13 | Unchanged |
