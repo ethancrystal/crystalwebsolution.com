@@ -1,7 +1,7 @@
 # Plugins & Skills Reference
 
-**Date:** 2026-08-14  
-**Purpose:** Document all plugins, skills, and tooling used by coding agents (Claude Code, Codex) for compatibility with Builder.io and Agnes AI.
+**Date:** 2026-09-20  
+**Purpose:** Document all plugins, skills, and tooling used by coding agents (Claude Code, Codex, Cursor) for compatibility with Builder.io and Agnes AI.
 
 ---
 
@@ -44,7 +44,53 @@
 | `using-git-worktrees` | worktree, isolate, branch | Git worktree management |
 | `verification-before-completion` | verify, check, confirm | Verify before claiming done |
 
-### 1.3 Available Subagents
+### 1.3 Cursor project skills (`.cursor/skills/`)
+
+Installed 2026-09-20 from uploaded skill archives. Each skill is a folder with a `SKILL.md`. Inventory and precedence notes live in `.cursor/skills/README.md`.
+
+SEO / keyword / blog skills in this tree **do not** override `docs/seo/STRATEGY.md`.
+
+| Skill | Purpose |
+|-------|---------|
+| `claude-md-improver` | Audit and improve `CLAUDE.md` |
+| `code-mentor` | Programming tutor / review / practice |
+| `code-vuln-audit` | Secret leaks, dependency and common-vuln scan |
+| `codebase-archaeologist` | Deep architecture extract from a repo |
+| `columnist` | Longform voice-driven essays (third-party canon omitted) |
+| `comparison-article-writer` | X vs Y comparison articles |
+| `competitor-analysis` | Competitor SEO/GEO |
+| `content-gap-analysis` | Content gaps vs competitors |
+| `conventional-commit-gen` | Conventional Commits from a diff |
+| `dispatching-parallel-agents` | Parallelize independent tasks |
+| `failure-debugger` | Systematic debugging of hard failures |
+| `google-blog-policy` | Google Search blog-content policy gate |
+| `keyword-research` | Keyword research workbook |
+| `market-research-brief` | Market insight reports |
+| `modular-refactor-planner` | Directory-level refactor plans |
+| `motion-graphics` | Kinetic type and logo motion |
+| `muapi-3d-logo-animation` | 2D logo to cinematic 3D |
+| `multi-agent-code-review` | Multi-reviewer synthesis |
+| `nextjs-supabase-modular-refactor` | Incremental Next.js + Supabase modularization |
+| `nextjs-supabase-refactor` | Extract mixed UI/data/auth files |
+| `principal-animator` | Web animation (Three.js, GSAP, CSS/SVG) |
+| `project-flow-creator` | Project-flow pipeline wrapper |
+| `project-flow-documenter` | Project-flow Markdown from scan artifacts |
+| `project-flow-roadmap` | Source-reconciled flow + roadmap |
+| `prompt-engineer` | LLM prompt authoring and eval |
+| `proposal-forecaster` | Proposal + forecast from historical numbers |
+| `railway-deploy` | Railway GraphQL deploy/ops |
+| `repo-intelligence-mapper` | Architecture map of an unfamiliar repo |
+| `repo-scanner` | GitHub API repo scan |
+| `scrapling` | Page fetch/parse with Scrapling |
+| `seo-aeo-best-practices` | Metadata, schema, sitemaps, AEO |
+| `seo-audit` | Evidence-led SEO audit reports |
+| `seo-competitor-analysis` | Organic competitor reports |
+| `seo-content-writer` | Keyword-optimized articles |
+| `sequential-thinking` | Structured deep reasoning |
+| `sql-optimization-patterns` | Query, index, EXPLAIN |
+| `systems-designer` | Operational system design |
+
+### 1.4 Available Subagents
 
 | Subagent | Purpose | Use When |
 |----------|---------|----------|
@@ -210,7 +256,7 @@ $crystal-web-review
 
 | Skill | Depends On |
 |-------|------------|
-| `crystal-web-review` | All other skills (orchestrator) |
+| `crystal-web-review` | All other Agnes skills (orchestrator) |
 | `crm-audit` | `crm-migration` (for fixing issues) |
 | `marketing-visual` | `performance-profile` (for optimization) |
 | `design-system-audit` | `accessibility-audit` (contrast checks) |

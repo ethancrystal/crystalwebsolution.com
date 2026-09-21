@@ -88,6 +88,24 @@ const GLYPHS = {
       </line>
     </>
   ),
+  // 09 / SEO — a results ladder: three result bars, the top one climbing,
+  // with a magnifier at the top-left. Standalone pillar page only (not in
+  // the homepage rail).
+  seo: (
+    <>
+      <circle cx="19" cy="19" r="7" className="em-stroke" />
+      <line x1="24" y1="24" x2="30" y2="30" className="em-stroke" strokeLinecap="round" />
+      <line x1="34" y1="18" x2="52" y2="18" className="em-stroke em-accent" strokeLinecap="round">
+        <animate attributeName="y1" dur="3s" repeatCount="indefinite" values="18;16;18" />
+        <animate attributeName="y2" dur="3s" repeatCount="indefinite" values="18;16;18" />
+      </line>
+      <line x1="16" y1="38" x2="52" y2="38" className="em-stroke em-faint" strokeLinecap="round" />
+      <line x1="16" y1="48" x2="44" y2="48" className="em-stroke em-faint" strokeLinecap="round" />
+      <polyline points="46,14 50,10 54,14" className="em-stroke em-accent" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <animate attributeName="opacity" dur="3s" repeatCount="indefinite" values="0.4;1;0.4" />
+      </polyline>
+    </>
+  ),
   workflow: (
     <>
       <rect x="12" y="26" width="40" height="12" rx="6" className="em-stroke" />

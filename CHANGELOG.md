@@ -1,3 +1,37 @@
+## v1.41 — 2026-09-20
+
+Clean up stale identity, domain, and migration claims across agent
+instruction files and the CRM feature flag comment.
+
+- **Identity disambiguation** — CLAUDE.md and AGENTS.md now explicitly
+  distinguish repo name (`ethancrystal/crystalwebsolution.com`), business
+  name (CD Sportswear INC), and live domain
+  (`https://www.cdsportswearinc.com`). `crystalwebsolution.com` is
+  a retired domain, not a business name or current URL.
+- **Business name fix** — `CD Sportswear USA` corrected to `CD Sportswear INC`
+  in CLAUDE.md, AGENTS.md, and MEMORY.md project-overview sections
+  (matching `lib/site.js` `name: 'CD Sportswear INC'`).
+- **Migration count** — AGENTS.md and MEMORY.md updated from `0001` through
+  `0023` to `0001` through `0042` (verified against `supabase/migrations/`).
+- **Stale migration 0024 entry** removed from MEMORY.md.
+- **Deployment target** — MEMORY.md §4 corrected from `crystalwebsolution.com`
+  to `https://www.cdsportswearinc.com`.
+- **AGENTS.md gaps filled** — added missing commands (`pnpm test:db`,
+  `pnpm crm:verify`, `pnpm crm:provision-test-users`, `pnpm livecheck`),
+  `lib/seo.mjs` canonical-origin documentation, `www.cdsportswearinc.com`
+  host convention, `docker-ci.yml` reference (was `docker-publish.yml`),
+  and SEO agent (Hermes) section.
+- **Gap labeling** — CLAUDE.md gap claims now labeled as
+  `last confirmed 2026-09-11, owner to re-verify` instead of
+  presented as current facts. Migration `0042` claim is conditional
+  (verified applied to live DB is unknown).
+- **Retired domain block** — CLAUDE.md condensed ~25 lines of domain
+  transition history into a single factual sentence.
+- **lib/crmFlag.js** — comment updated to reflect CRM launched
+  2026-08-27 instead of `still in progress`.
+- **middleware.js** — CLAUDE.md reference corrected from literal
+  `middleware.js` file to conceptual `edge middleware`.
+
 # Changelog
 
 Every production deploy of crystalwebsolution.com gets one entry here, newest
@@ -5,22 +39,43 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
-## v1.39 — 2026-09-22
+## v1.40 — 2026-09-20
 
-SEO lane completion pass: keyword registry refresh, low-hanging fruit bank,
-content and technical audit run logs, and AI visibility hero visual.
+Animated backgrounds on inner marketing pages and auth. Homepage WebGL
+crystal journey is unchanged.
 
-- **Keywords** — Reconciled 54 Ubersuggest keywords with the 25-keyword
-  registry. Updated KEYWORD-REGISTRY.md with fresh pillar verification
-  (ai automation agency diff 40→33) and 183-term low-hanging fruit bank
-  across all four themes.
-- **Content** — Added `docs/seo/drafts/blog/how-to-write-a-web-design-rfp.md`
-  (diff 22, CPC $10.25) and technical SEO audit checklist draft.
-- **Backlinks** — Rewrote prospects.md with 12 scored prospects; documented
-  easyrank.link Signature B escalation.
-- **Technical** — Full audit: no regressions; llms.txt, IndexNow key, and
-  AI-crawler robots rules confirmed stable.
-- **Visual** — Added AI visibility hero visual for CWS site testing.
+- **Stage** — `SubpageExperience` mounts `DarkPageBackground` instead of the
+  idle Crystal canvas, which was hidden behind an opaque page fill.
+- **Family** — Acid Squares, Dot Field, Faulty Terminal, and Letter Glitch
+  (React Bits JS-CSS ports) restyled to cyan / silver / black-blue. About
+  uses acid-squares, services uses dot-field, process uses faulty-terminal,
+  contact uses letter-glitch. Login / portal use the CRT terminal; signup
+  uses the dot field; forgot / reset / confirm use letter glitch. Prism,
+  ripple-grid, and liquid-ether stay registered as fallbacks.
+- **Fill** — `.mkt-shell` and `.subpage` no longer paint solid `--bg`, so the
+  procedural stage reads through pitch-black heroes.
+
+## v1.39 — 2026-09-19
+
+SEO service page: `/services/seo`, the pillar for theme 4 of
+`docs/seo/STRATEGY.md` (head term "search engine optimization agencies";
+"seo agency near me" secondary on the same page). No homepage or WebGL rail
+change — the page is a **standalone** entry in `lib/servicePages.mjs`, not
+a ninth `SERVICES` signal, so the homepage keeps eight rows and eight rail
+instruments.
+
+- **`/services/seo`** — rendered by the existing `/services/[slug]` template
+  with a full content entry; conversion rate optimization is a capability,
+  a deliverable, a process step and an FAQ item of this page, not its own
+  page. Listed as "09 · SEO" on `/services` and in `/sitemap.xml` via
+  `SERVICE_PAGE_SLUGS`; Service / Breadcrumb / FAQ schema as the other eight.
+- **Internal links** — Web Design and Digital Marketing gain SEO in their
+  related services, so the pillar is not an orphan.
+- **Emblems** — a hand-drawn "results ladder" SVG glyph and a page-only 3D
+  "beacon" geometry (`getSignalGeometry('seo')`); `createSignalGeometries()`
+  (the rail) is unchanged at `SERVICES.length`.
+- **Tests** — `RAIL_SERVICE_PAGES` export; marketing tests split rail parity
+  (8) from the full page list (9) and assert the pillar has ≥2 inbound links.
 
 ## v1.38 — 2026-09-19
 

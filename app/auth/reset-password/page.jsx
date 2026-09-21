@@ -79,7 +79,7 @@ function ResetPasswordForm({ copy }) {
 
   return (
     <div className="crm-login-container">
-      <DarkPageBackground interactive="liquid-ether" />
+      <DarkPageBackground interactive="letter-glitch" />
       <div className="crm-login-card">
         <h1>{copy.heading}</h1>
         <p>{copy.lead}</p>
