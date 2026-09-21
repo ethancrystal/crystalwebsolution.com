@@ -20,12 +20,12 @@ serves 404 (WebFetch on apex and `www`, 2026-09-10) — Operations Manual §12.
 
 | Keyword | Vol/mo | Diff | CPC | Intent | Target URL | Page state | Tier | Tracked? | Pulled |
 |---|---|---|---|---|---|---|---|---|---|
-|| rfp web development | 260 | 13 | $15.25 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-10 |
-|| website development rfp | 260 | 13 | $11.98 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-10 |
-|| web development northern virginia | 260 | 9 | $18.00 | — | /northern-virginia-web-development | not built | Next | yes | 2026-09-10 |
-|| ai automation agency | 4,400 | 40 | $17.80 | navigational | /services/ai-automation | exists — in `/sitemap.xml`, not fetched | Monitor | yes | 2026-09-10 |
-|| branding and web design | 590 | 17 | $18.18 | commercial | /blog/branding-and-web-design-studio | **live 2026-09-06** | Monitor | yes | 2026-09-10 |
-|| web design manassas va | 20 | 5 | $0.00 | — | /blog/web-design-manassas-va | **live 2026-09-06** | Monitor | **no** | 2026-09-10 |
+|| rfp web development | 260 | 18 | $13.83 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-23 |
+|| website development rfp | 260 | 15 | $13.83 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-23 |
+|| web development northern virginia | 260 | 9 | $17.99 | — | /northern-virginia-web-development | not built | Next | yes | 2026-09-23 |
+|| ai automation agency | 4,400 | 33 | $17.80 | navigational | /services/ai-automation | exists — in `/sitemap.xml`, not fetched | Monitor | yes | 2026-09-23 |
+|| branding and web design | 590 | 17 | $18.18 | commercial | /blog/branding-and-web-design-studio | **live 2026-09-06** | Monitor | yes | 2026-09-23 |
+|| web design manassas va | 20 | 5 | $0.00 | — | /blog/web-design-manassas-va | **live 2026-09-06** | Monitor | **no** | 2026-09-23 |
 || web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
 || how to write a web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
 || business of web design | 2,400 | 7 | $22.63 | informational | /blog/business-of-web-design | draft 2026-09-22 | Next | no | 2026-09-22 |
@@ -38,16 +38,16 @@ because the page exists, not because the strategy changed — Operations Manual
 §3 flags the contradiction for MJ. If MJ wants it tracked, adding it to the
 project needs MJ's explicit yes (§4).
 
-## Drift since 2026-09-02 (all re-pulled 2026-09-10, US 2840)
+## Drift since 2026-09-02 (re-pulled 2026-09-10 and 2026-09-23, US 2840)
 
 | Keyword | Was | Now | Note |
 |---|---|---|---|
-| hire shopify developer | diff 26 | **diff 37** | Volume 880 and CPC $31.06 unchanged. The harder half of the Shopify pair got harder |
-|| ai automation agency | diff 40 | **diff 33** | 38 on 2026-08-21, 35 on 2026-09-02, 40 on 2026-09-10, 33 now. Oscillating, now trending down. Volume 4,400 unchanged |
-| hire a shopify developer | diff 8 | diff 8 | Unchanged |
-| rfp web development | diff 13 | diff 13 | Unchanged |
-| website development rfp | diff 13 | diff 13 | Unchanged |
-| web development northern virginia | diff 9 | diff 9 | Unchanged |
+|| hire shopify developer | diff 26 | **diff 37** | Volume 880 and CPC $31.06 unchanged. The harder half of the Shopify pair got harder |
+|| ai automation agency | diff 40 | **diff 33** | 38 on 2026-08-21, 35 on 2026-09-02, 40 on 2026-09-10, 33 on 2026-09-23. Oscillating, now trending down. Volume 4,400 unchanged |
+|| hire a shopify developer | diff 8 | diff 8 | Unchanged |
+|| rfp web development | diff 13 | **diff 18** | Up 5 since 2026-09-10. Volume 260 unchanged; CPC down $15.25 → $13.83. Now-tier live page — monitor |
+|| website development rfp | diff 13 | **diff 15** | Up 2 since 2026-09-10. Volume 260 unchanged; CPC up $11.98 → $13.83. Now-tier live page — monitor |
+|| web development northern virginia | diff 9 | diff 9 | Unchanged |
 
 **Shopify pair parked 2026-09-19** (see Parked). Volume/difficulty still
 favour a page, but Shopify is not in the live eight-service list
@@ -109,5 +109,5 @@ Figures in this table have not been re-validated since the dates shown.
 `the crystal web` — position 6, vol 40, resolved to `/work/crystal-web-solution`
 on crystalwebsolution.com (Ubersuggest, 2026-09-02). An accidental brand
 ranking on a retired domain. Not a target. The path `/work/crystal-web-solution`
-is still listed in the live site's `/sitemap.xml` (WebFetch, 2026-09-10); the
+is still listed in the live site's `/sitemap.xml` (WebFetch, 2026-09-23); the
 page itself was not fetched.
