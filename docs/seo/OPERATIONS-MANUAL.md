@@ -295,6 +295,38 @@ Three production hosts in eight days. The honest consequences, 2026-09-10:
   host (Ubersuggest, 2026-09-10).
 - **Any further domain change resets this again.** §4 now names it as a gate.
 
+### llms.txt maintenance
+
+`public/llms.txt` is the machine-readable summary of the site (llmstxt.org).
+**Update `public/llms.txt` whenever a URL is published, renamed, or removed** —
+add the new entry under the right section (`## Services`, `## Work`, `## Guides`,
+or `## Contact`) with its absolute URL and a one-line summary, and remove or
+relocate any entry whose URL no longer exists. The file must always cover every
+URL in `https://www.cdsportswearinc.com/sitemap.xml`. Verify with a fetch of
+`https://www.cdsportswearinc.com/llms.txt` after every change.
+
+### IndexNow
+
+**Run `scripts/seo/indexnow-ping.mjs` after every merge that adds or changes a URL.**
+
+- The IndexNow key is stored as `public/<key>.txt` — a 32-character lowercase hex string, one line, no trailing newline. Generate it once (`node -e "console.log(Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join(''))"`), write it to `public/<key>.txt`, and treat it as a secret only in the sense that it should not be edited casually — it is not an API token and is safe to commit.
+- `scripts/seo/indexnow-ping.mjs` reads the key from that file and POSTs `{ host, key, keyLocation, urlList }` to `https://api.indexnow.org/indexnow` for the URLs passed on the command line. Usage:
+
+  ```bash
+  node scripts/seo/indexnow-ping.mjs https://www.cdsportswearinc.com https://www.cdsportswearinc.com/new-page https://www.cdsportswearinc.com/updated-page
+  ```
+
+  Add `--dry-run` to print the payload without sending it:
+
+  ```bash
+  node scripts/seo/indexnow-ping.mjs --dry-run https://www.cdsportswearinc.com https://www.cdsportswearinc.com/new-page
+  ```
+
+- Ping the new or changed URLs only — do not re-ping the whole sitemap every time. The endpoint rejects URLs that do not start with the host, so `urlList` is filtered to URLs under `host` in the script.
+- `keyLocation` is `https://www.cdsportswearinc.com/public/<key>.txt` — the public path where IndexNow fetches the key to verify ownership.
+- If the ping returns non-2xx, record the status and body in the run log and retry once next run. Do not retry in the same run more than once.
+- Do **not** ping on merges that only touch docs, tests, configs, or other non-public routes. Ping only when a public URL is added, removed, or materially changed (new content, new slug, redirected-away slug).
+
 A `domain_overview` call for `cdsportswearinc.com` returned `HTTP 403` on
 2026-09-10 after several successful calls; the `backlinks_overview` figures
 above are what stood in for it. Retry next run.

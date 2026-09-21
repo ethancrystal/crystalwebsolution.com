@@ -1,3 +1,23 @@
+## v1.43 — 2026-09-21
+
+AI visibility + technical SEO assets (rebased from closed PR #201).
+
+- **AI-crawler robots rules** — `app/robots.js` now explicitly lists GPTBot,
+  OAI-SearchBot, ChatGPT-User, ClaudeBot, PerplexityBot, Bingbot, Applebot,
+  and Google-Extended with `allow: '/'`. All inherit from `*` already, but
+  listing them makes the policy deliberate and readable.
+- **llms.txt** — `public/llms.txt` machine-readable site summary (llmstxt.org)
+  covering all 30 public URLs: services, work, guides, contact.
+- **IndexNow** — `scripts/seo/indexnow-ping.mjs` reads the key from
+  `public/<key>.txt` and POSTs to `api.indexnow.org/indexnow`. Key generated:
+  `public/2aa3a082044a1c787011f08d0c31fd1f.txt`. `--dry-run` supported.
+- **SEO goal funnel** — `docs/seo/GOAL-FUNNEL.md` locks the qualified-organic-inquiry
+  metric and its measurement gap.
+- **Keyword data** — `docs/seo/low_hanging_*.json` (branding, logo-design,
+  web-design, web-development) estimated cluster terms for the four themes.
+- **Operations manual** — added llms.txt maintenance and IndexNow ping rules to
+  `docs/seo/OPERATIONS-MANUAL.md`.
+
 ## v1.41 — 2026-09-20
 
 Clean up stale identity, domain, and migration claims across agent
