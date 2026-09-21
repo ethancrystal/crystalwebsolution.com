@@ -20,14 +20,15 @@ serves 404 (WebFetch on apex and `www`, 2026-09-10) — Operations Manual §12.
 
 | Keyword | Vol/mo | Diff | CPC | Intent | Target URL | Page state | Tier | Tracked? | Pulled |
 |---|---|---|---|---|---|---|---|---|---|
-| rfp web development | 260 | 13 | $15.25 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-10 |
-| website development rfp | 260 | 13 | $11.98 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-10 |
-| web development northern virginia | 260 | 9 | $18.00 | — | /northern-virginia-web-development | not built | Next | yes | 2026-09-10 |
-| ai automation agency | 4,400 | 40 | $17.80 | navigational | /services/ai-automation | exists — in `/sitemap.xml`, not fetched | Monitor | yes | 2026-09-10 |
-| branding and web design | 590 | 17 | $18.18 | commercial | /blog/branding-and-web-design-studio | **live 2026-09-06** | Monitor | yes | 2026-09-10 |
-| web design manassas va | 20 | 5 | $0.00 | — | /blog/web-design-manassas-va | **live 2026-09-06** | Monitor | **no** | 2026-09-10 |
-| web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
-| how to write a web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
+|| rfp web development | 260 | 13 | $15.25 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-10 |
+|| website development rfp | 260 | 13 | $11.98 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-10 |
+|| web development northern virginia | 260 | 9 | $18.00 | — | /northern-virginia-web-development | not built | Next | yes | 2026-09-10 |
+|| ai automation agency | 4,400 | 40 | $17.80 | navigational | /services/ai-automation | exists — in `/sitemap.xml`, not fetched | Monitor | yes | 2026-09-10 |
+|| branding and web design | 590 | 17 | $18.18 | commercial | /blog/branding-and-web-design-studio | **live 2026-09-06** | Monitor | yes | 2026-09-10 |
+|| web design manassas va | 20 | 5 | $0.00 | — | /blog/web-design-manassas-va | **live 2026-09-06** | Monitor | **no** | 2026-09-10 |
+|| web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
+|| how to write a web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
+|| business of web design | 2,400 | 7 | $22.63 | informational | /blog/business-of-web-design | draft 2026-09-22 | Next | no | 2026-09-22 |
 
 Five of the six mapped rows are tracked in the project. `web design manassas va` is not:
 it was parked on 2026-09-02 as part of the superseded local-first ladder, and
