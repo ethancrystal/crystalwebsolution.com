@@ -1,22 +1,15 @@
-## v1.43 — 2026-09-21
+## v1.42 — 2026-09-20
 
-AI visibility + technical SEO assets (rebased from closed PR #201).
+SEO content lane: publish-ready web-design-RFP blog draft for the /services/web-design pillar.
 
-- **AI-crawler robots rules** — `app/robots.js` now explicitly lists GPTBot,
-  OAI-SearchBot, ChatGPT-User, ClaudeBot, PerplexityBot, Bingbot, Applebot,
-  and Google-Extended with `allow: '/'`. All inherit from `*` already, but
-  listing them makes the policy deliberate and readable.
-- **llms.txt** — `public/llms.txt` machine-readable site summary (llmstxt.org)
-  covering all 30 public URLs: services, work, guides, contact.
-- **IndexNow** — `scripts/seo/indexnow-ping.mjs` reads the key from
-  `public/<key>.txt` and POSTs to `api.indexnow.org/indexnow`. Key generated:
-  `public/2aa3a082044a1c787011f08d0c31fd1f.txt`. `--dry-run` supported.
-- **SEO goal funnel** — `docs/seo/GOAL-FUNNEL.md` locks the qualified-organic-inquiry
-  metric and its measurement gap.
-- **Keyword data** — `docs/seo/low_hanging_*.json` (branding, logo-design,
-  web-design, web-development) estimated cluster terms for the four themes.
-- **Operations manual** — added llms.txt maintenance and IndexNow ping rules to
-  `docs/seo/OPERATIONS-MANUAL.md`.
+- **Content** — Added `docs/seo/drafts/blog/how-to-write-a-web-design-rfp.md`:
+  a complete, publish-ready web-design-RFP writer's guide with copy-paste template, 6-criterion
+  scorecard, "before you send it" checklist, and call questions. Target keywords `web design rfp`
+  and `how to write a web design rfp` (both added to KEYWORD-REGISTRY.md; figures unavailable until
+  tracked in the Ubersuggest project). Supports the `/services/web-design` pillar (Theme 1) and
+  cross-links to the existing `/blog/web-development-rfp-guide`. `approved: false` — MJ-only gate.
+- **Keywords** — Registered two new mapped rows in KEYWORD-REGISTRY.md. No volume/difficulty/CPC
+  figures claimed; both marked unavailable pending tracking in project `109eb168…` (needs MJ's yes).
 
 ## v1.41 — 2026-09-20
 
