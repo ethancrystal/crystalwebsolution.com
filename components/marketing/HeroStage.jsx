@@ -7,18 +7,31 @@ const DarkPageBackground = dynamic(() => import('../ui/dark-page-background'), {
   ssr: false,
 });
 
-// Renders the cyan-silver animated stage scoped to the hero box only (see
-// .mkt-hero-stage in app/styles/service-pages.css, which overrides the
-// stage modules' own `position: fixed` to `position: absolute` so they fill
-// this container instead of the viewport). Pages outside the
-// MARKETING_STAGE_BACKGROUNDS whitelist (SubpageExperience.jsx) get a null
-// stage and render nothing here — no full-page or inner-page stage.
-export default function HeroStage() {
+/**
+ * The cyan-silver animated stage, scoped to the section that hosts it.
+ *
+ * `.mkt-hero-stage` in app/styles/service-pages.css overrides the stage
+ * modules' own `position: fixed` to `absolute`, so each one fills its host
+ * instead of the viewport, and dims them all through a single opacity knob.
+ *
+ * Pages outside MARKETING_STAGE_BACKGROUNDS (SubpageExperience.jsx) get a
+ * null stage and render nothing here.
+ *
+ * @param {Object} props
+ * @param {'fill'|'band'} [props.variant] `fill` (default) stretches to the
+ *   host section, for hosts that are a real hero box. `band` paints a fixed
+ *   height at the top, for pages whose first section is the whole article
+ *   and therefore has no hero-sized box to fill.
+ */
+export default function HeroStage({ variant = 'fill' }) {
   const stage = useStage();
   if (!stage) return null;
 
   return (
-    <div className="mkt-hero-stage" aria-hidden="true">
+    <div
+      className={`mkt-hero-stage${variant === 'band' ? ' mkt-hero-stage--band' : ''}`}
+      aria-hidden="true"
+    >
       <DarkPageBackground interactive={stage} />
     </div>
   );

@@ -20,10 +20,18 @@ import { StageProvider } from './StageContext';
 // dents and CRT flicker stay ambient so the headline keeps hierarchy.
 // Reduced-motion and small viewports fall back to the static overlay wash.
 export const MARKETING_STAGE_BACKGROUNDS = {
+  // Top-level pages.
   about: 'acid-squares',
   services: 'dot-field',
   process: 'faulty-terminal',
   contact: 'letter-glitch',
+  // Index and detail surfaces. Seven modules exist and the four above take
+  // one each, so `reviews` reuses dot-field — the quietest of the set, and
+  // the right register for a text-dense page.
+  'service-detail': 'prism',
+  work: 'ripple-grid',
+  blog: 'liquid-ether',
+  reviews: 'dot-field',
 };
 
 export function marketingStageBackground(sceneVariant) {

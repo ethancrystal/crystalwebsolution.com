@@ -132,6 +132,44 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  /* One knob for how loud every stage reads. The modules are authored at
+     demo strength; the brief for this site is a quiet field behind the type,
+     so they are dimmed here rather than in each module — auth pages and any
+     other full-viewport use keep full strength. */
+  opacity: 0.78;
+}
+
+/* Pages whose first section is the whole article (/work, the embroidery
+   pillar) have no hero box to fill, so the stage paints a fixed band at the
+   top of the container instead of stretching to the section's full height. */
+.mkt-hero-stage--band {
+  inset: 0 0 auto 0;
+  height: min(62vh, 34rem);
+}
+
+/* Hosts: any section that should carry a stage needs a stacking context and
+   clipping so the absolutely-positioned stage cannot escape it. */
+.mkt-hero,
+.blog-hero,
+.reviews-hero,
+.work-index,
+.case.mkt-inner {
+  position: relative;
+  isolation: isolate;
+}
+.blog-hero,
+.reviews-hero {
+  overflow: hidden;
+}
+/* Keep every direct child of a stage host above the stage — but never the
+   stage itself, or this rule would reset its `position: absolute` back to
+   `relative` and collapse it to zero height. */
+.blog-hero > *:not(.mkt-hero-stage),
+.reviews-hero > *:not(.mkt-hero-stage),
+.work-index > *:not(.mkt-hero-stage),
+.case.mkt-inner > *:not(.mkt-hero-stage) {
+  position: relative;
+  z-index: 1;
 }
 /* The stage modules (components/ui/*-background.jsx) are built to cover a
    full viewport with `position: fixed`, scoped via styled-jsx (its own

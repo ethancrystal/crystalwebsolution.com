@@ -33,18 +33,55 @@ test('the animated stage is scoped to the hero, not mounted shell-wide', () => {
   assert.doesNotMatch(experience, /DarkPageBackground/);
 });
 
-test('only the four top-level marketing pages get a stage; there is no fallback', () => {
+test('every stage page maps to a module, and there is no fallback', () => {
   const shell = read('components/marketing/SubpageExperience.jsx');
+  // Top-level pages.
   assert.match(shell, /about:\s*'acid-squares'/);
   assert.match(shell, /services:\s*'dot-field'/);
   assert.match(shell, /process:\s*'faulty-terminal'/);
   assert.match(shell, /contact:\s*'letter-glitch'/);
+  // Index and detail surfaces.
+  assert.match(shell, /'service-detail':\s*'prism'/);
+  assert.match(shell, /work:\s*'ripple-grid'/);
+  assert.match(shell, /blog:\s*'liquid-ether'/);
+  assert.match(shell, /reviews:\s*'dot-field'/);
 
-  // A page with no (or an unrecognized) sceneVariant must get no stage —
-  // the old `|| 'acid-squares'` fallback is exactly what leaked the stage
-  // onto service-detail, work, blog, reviews, privacy and terms pages.
+  // A page with no (or an unrecognized) sceneVariant must still get no
+  // stage — the old `|| 'acid-squares'` fallback is what leaked the stage
+  // onto every route in the first place.
   assert.doesNotMatch(shell, /\|\|\s*'acid-squares'/);
   assert.match(shell, /marketingStageBackground\(sceneVariant\)\s*\{\s*return MARKETING_STAGE_BACKGROUNDS\[sceneVariant\]\s*\?\?\s*null/);
+});
+
+test('the four added surfaces declare their variant and mount a stage', () => {
+  // /services/[slug] renders PageHero, which already carries HeroStage.
+  assert.match(read('app/services/[slug]/page.jsx'), /sceneVariant="service-detail"/);
+
+  for (const [file, variant] of [
+    ['app/blog/page.jsx', 'blog'],
+    ['app/reviews/page.jsx', 'reviews'],
+    ['app/work/page.jsx', 'work'],
+  ]) {
+    const source = read(file);
+    assert.match(source, new RegExp(`sceneVariant="${variant}"`));
+    assert.match(source, /<HeroStage/, `${file} declares a variant but never mounts HeroStage`);
+  }
+
+  // /work's first section is the whole index, so it uses the height-capped
+  // band rather than stretching to the section box.
+  assert.match(read('app/work/page.jsx'), /<HeroStage variant="band" \/>/);
+});
+
+test('detail routes the owner did not ask for still get no stage', () => {
+  for (const file of [
+    'app/work/[slug]/page.jsx',
+    'app/blog/[slug]/page.jsx',
+    'app/embroidery-screen-printing-web-design/page.jsx',
+    'app/privacy/page.jsx',
+    'app/terms/page.jsx',
+  ]) {
+    assert.doesNotMatch(read(file), /sceneVariant=/, `${file} unexpectedly requests a stage`);
+  }
 });
 
 test('privacy and terms no longer request a stage variant', () => {
@@ -74,6 +111,11 @@ test('the hero stage is boxed to .mkt-hero, not the viewport', () => {
   // force them back to absolute inside the hero box so they don't run the
   // full page height.
   assert.match(css, /\.mkt-hero-stage\s+\.acid-squares-bg[\s\S]*?position:\s*absolute\s*!important/);
+
+  // One dimming knob for every stage, and a height-capped band for hosts
+  // that are a whole article rather than a hero box.
+  assert.match(css, /\.mkt-hero-stage\s*\{[^}]*opacity:\s*0?\.\d+/s);
+  assert.match(css, /\.mkt-hero-stage--band\s*\{[^}]*height:\s*min\(/s);
 });
 
 test('auth pages share the same cyan-silver family and remain full-viewport', () => {

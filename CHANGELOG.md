@@ -1,3 +1,30 @@
+## v1.45 — 2026-09-22
+
+Extend the hero stage to the four index/detail surfaces the owner asked for,
+each with its own React Bits module, restyled to site tokens and dimmed to a
+single shared level.
+
+- **New stages** — `/services/[slug]` gets prism, `/work` ripple-grid, `/blog`
+  liquid-ether, `/reviews` dot-field. Seven modules exist and the four
+  top-level pages already take one each, so `reviews` reuses dot-field, the
+  quietest of the set and the right register for a text-dense page.
+- **Brand colors enforced at the source** — ripple-grid shipped vendor purple
+  `#8a5cff` and liquid-ether `['#5227FF','#89f7ff','#B497CF']`. Both now
+  default to site tokens (`--blue` `#3c6cff`, `--cyan` `#59f3ff`, `--muted`
+  `#8b98b8`), so no code path can render the demo palette. Prism gained a
+  `saturation` prop (defaulting to the vendor value, so existing behavior is
+  unchanged) and the wrapper pulls it to near-monochrome with a cyan hue
+  shift, low glow/bloom and a slow `timeScale`.
+- **One prominence knob** — `.mkt-hero-stage { opacity }` sets how loud every
+  stage reads, instead of editing each module. Full-viewport auth surfaces
+  are unaffected.
+- **Band variant** — `/work`'s first section is the entire index, so it has no
+  hero box to fill. `HeroStage variant="band"` paints a height-capped band at
+  the top of the container, fading into `--bg` before the project library.
+- **Scope** — `/work/[slug]`, `/blog/[slug]`, the embroidery pillar,
+  `/privacy` and `/terms` were not requested and still get no stage. The
+  no-fallback rule from v1.44 is unchanged and still covered by tests.
+
 ## v1.44 — 2026-09-22
 
 Scope the animated stage background to the hero on the four main marketing

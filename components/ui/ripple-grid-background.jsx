@@ -10,7 +10,7 @@ import { Renderer, Program, Triangle, Mesh } from 'ogl';
 // additionally from the cursor position when mouseInteraction is on.
 function RippleGrid({
   enableRainbow = false,
-  gridColor = '#ffffff',
+  gridColor = '#59f3ff',
   rippleIntensity = 0.05,
   gridSize = 10.0,
   gridThickness = 15.0,
@@ -286,7 +286,20 @@ void main() {
 export default function RippleGridBackground() {
   return (
     <div className="ripple-grid-bg" aria-hidden="true">
-      <RippleGrid gridColor="#8a5cff" />
+      {/* Brand-tuned: vendor ships #8a5cff (purple). Site cyan on --bg, with
+          the glow, ripple and opacity pulled down so the grid reads as a
+          quiet surface texture behind the type, not a light show. */}
+      <RippleGrid
+        gridColor="#59f3ff"
+        rippleIntensity={0.022}
+        gridSize={13.0}
+        gridThickness={9.0}
+        glowIntensity={0.045}
+        opacity={0.42}
+        vignetteStrength={2.6}
+        fadeDistance={1.35}
+        mouseInteractionRadius={0.8}
+      />
       <style jsx>{`
         .ripple-grid-bg {
           position: fixed;
