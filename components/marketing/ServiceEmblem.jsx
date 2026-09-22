@@ -10,7 +10,7 @@ const ServiceEmblem3D = dynamic(() => import('../three/ServiceEmblem3D'), {
 });
 
 // The per-service SMIL marks live in ServiceGlyph.jsx (single source of
-// truth, shared with the /services/[slug] hero via ServiceEmblemMark).
+// truth). The /services/[slug] hero uses the 3D emblem below instead.
 
 export default function ServiceEmblem({ signal, n, size = 64, variant = 'svg', className = '' }) {
   if (variant === '3d') {

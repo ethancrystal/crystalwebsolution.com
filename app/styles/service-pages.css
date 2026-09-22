@@ -434,15 +434,6 @@
 /* Hero placement: one large 3D emblem beside the page title. */
 .mkt-service-hero-emblem { width: clamp(120px, 22vw, 200px); height: clamp(120px, 22vw, 200px); margin-top: 1.25rem; }
 .mkt-emblem3d { width: 100%; height: 100%; min-height: 120px; position: relative; }
-/* The SMIL hero mark fills the same box the 3D canvas used, so sizing and
-   tooltip placement are unchanged. Inset slightly so strokes near the
-   viewBox edge are not clipped by the rounded container. */
-.mkt-emblem-mark__art {
-  display: block;
-  position: absolute;
-  inset: 6%;
-}
-.mkt-emblem-mark__art svg { width: 100%; height: 100%; overflow: visible; }
 
 /* Click-to-reveal blurb on the 3D service emblem (hero). */
 .mkt-em-tooltip-toggle {
