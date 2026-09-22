@@ -1,3 +1,30 @@
+## v1.47 — 2026-09-22
+
+Follow-up to v1.44 to v1.46 (#217). Both fixes below were pushed to that branch just after it
+merged, so neither shipped with it.
+
+- **Hero backgrounds covered only part of the hero** (owner report, most
+  visible on `/services`). Three stage modules, dot-field, letter-glitch and
+  ripple-grid, resized only when the window resized, and two of them pin
+  the canvas to fixed pixel sizes. Inside a hero the box keeps changing
+  height after mount as fonts load and reveals run. So the canvas stayed at
+  its first, smaller measurement. All three now watch their container with
+  a ResizeObserver, like the other four already did, and a test pins it for
+  all seven. The viewport-tuned `.alive-overlay` vignette also crushed the
+  hero's side edges, and its third glow sat dead centre. Both are
+  re-tuned inside the hero so the light spans the full width.
+- **Reduced motion now stops the animation, not just hides it.** A module
+  hidden with `display: none` still ran its requestAnimationFrame loop and
+  held a WebGL context. `DarkPageBackground` no longer mounts the module under
+  `(prefers-reduced-motion: reduce), (max-width: 767px)`, and it unmounts the
+  module if the preference changes mid-session. This covers auth pages too.
+- A shared diagonal "brand streak" across every hero was tried and then
+  removed at the owner's request. It does not ship.
+- **Service marks start still.** `ServiceGlyph`'s reduced-motion hook started at
+  `false`, so the SMIL marks could animate for one render before the visitor's
+  preference was read. It now starts at `true`, and motion turns on only after
+  matchMedia confirms it is allowed.
+
 ## v1.46 — 2026-09-22
 
 Make the service emblems mean something. The owner's read of the previous
@@ -29,23 +56,6 @@ opened on an abstract 3D object that said nothing about the service.
   duplicated. `vitest.setup.js` gains a `matchMedia` shim, matching its
   existing `ResizeObserver` one, so components that gate on reduced motion
   can render under jsdom.
-- **Hero backgrounds covered only part of the hero** (owner report, most
-  visible on `/services`). Three stage modules, dot-field, letter-glitch and
-  ripple-grid, resized only when the window resized, and two of them pin
-  the canvas to fixed pixel sizes. Inside a hero the box keeps changing
-  height after mount as fonts load and reveals run. So the canvas stayed at
-  its first, smaller measurement. All three now watch their container with
-  a ResizeObserver, like the other four already did, and a test pins it for
-  all seven. The viewport-tuned `.alive-overlay` vignette also crushed the
-  hero's side edges, and its third glow sat dead centre. Both are
-  re-tuned inside the hero so the light spans the full width.
-- **Reduced motion now stops the animation, not just hides it.** A module
-  hidden with `display: none` still ran its requestAnimationFrame loop and
-  held a WebGL context. `DarkPageBackground` no longer mounts the module under
-  `(prefers-reduced-motion: reduce), (max-width: 767px)`, and it unmounts the
-  module if the preference changes mid-session. This covers auth pages too.
-- A shared diagonal "brand streak" across every hero was tried and then
-  removed at the owner's request. It does not ship.
 - **Scope note** — an SVG-only hero variant was built and verified, then
   dropped the same day when the owner chose to keep React Three Fiber. Only
   the shared geometry, the sway, the SMIL glyphs and the blurb extraction
