@@ -46,3 +46,11 @@ describe('ServiceEmblem (SVG variant) reduced-motion handling', () => {
     expect(body).toMatch(/stripAnimations\(glyph\)/);
   });
 });
+
+describe('ServiceGlyph first render', () => {
+  it('starts static until matchMedia confirms motion is allowed', async () => {
+    const source = await readFile('components/marketing/ServiceGlyph.jsx', 'utf8');
+    // SMIL plays as soon as it mounts, so the initial state must be "reduced".
+    expect(source).toMatch(/const \[reduced, setReduced\] = useState\(true\);/);
+  });
+});

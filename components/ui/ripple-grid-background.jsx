@@ -199,6 +199,11 @@ void main() {
       mouseInfluenceRef.current = 0.0;
     };
 
+    // Track the container, not just the window: inside a marketing hero the
+    // box changes height after mount, and a window-only listener left the
+    // grid sized to its first measurement.
+    const ro = new ResizeObserver(resize);
+    ro.observe(containerRef.current);
     window.addEventListener('resize', resize);
     if (mouseInteraction) {
       containerRef.current.addEventListener('mousemove', handleMouseMove);
@@ -230,6 +235,7 @@ void main() {
     const container = containerRef.current;
     return () => {
       cancelAnimationFrame(animationFrameId);
+      ro.disconnect();
       window.removeEventListener('resize', resize);
       if (mouseInteraction && container) {
         container.removeEventListener('mousemove', handleMouseMove);

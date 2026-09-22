@@ -236,7 +236,11 @@ function stripAnimations(children) {
 // CSS, so a `prefers-reduced-motion` media query in globals.css can't gate
 // them - they have to be stripped from the render tree itself.
 export function useReducedMotion() {
-  const [reduced, setReduced] = useState(false);
+  // Start as "reduced" so the first render (and SSR) is static. SMIL starts
+  // playing the moment the elements mount, so defaulting to false would let a
+  // reduced-motion visitor see animation before the effect reads their
+  // preference. Motion is enabled only once matchMedia confirms it is allowed.
+  const [reduced, setReduced] = useState(true);
   useEffect(() => {
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
     setReduced(mql.matches);

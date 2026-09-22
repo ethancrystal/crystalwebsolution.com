@@ -36,9 +36,14 @@ browser at 1440x900 and green on CI.
 
 1. **`components/marketing/SubpageExperience.jsx`**
    - Remove the `<DarkPageBackground …/>` mount from the shell.
-   - Export a whitelist: `const STAGE_PAGES = new Set(['about','services','process','contact'])`
-     and change `marketingStageBackground(sceneVariant)` to return `null` when the variant
-     is not in `MARKETING_STAGE_BACKGROUNDS` (no acid-squares fallback).
+   - Gate on the variant map, not a separate route list. As shipped,
+     `marketingStageBackground(sceneVariant)` returns
+     `MARKETING_STAGE_BACKGROUNDS[sceneVariant] ?? null`, with no fallback.
+     The map is the route gate because every route declares its own variant
+     or none. `/services` uses `services` and `/services/[slug]` uses its own
+     `service-detail`, so an index and its detail pages can never collide.
+     `/privacy` and `/terms` pass no `sceneVariant` and get `null`.
+     `tests/marketing-stage-background.test.mjs` pins all three rules.
    - Provide the variant via a small React context (static config, not per-frame, so
      context is fine): `StageContext` with value `marketingStageBackground(sceneVariant)`.
      Put the context in a new client file `components/marketing/StageContext.jsx`
@@ -63,9 +68,13 @@ browser at 1440x900 and green on CI.
    .mkt-hero-stage .prism-bg,
    .mkt-hero-stage .ripple-grid-bg,
    .mkt-hero-stage .liquid-ether-bg,
-   .mkt-hero-stage .alive-overlay { position: absolute; }
+   .mkt-hero-stage .alive-overlay { position: absolute !important; }
    ```
-   Specificity (0,2,0) beats the styled-jsx (0,1,0) `position: fixed` rules. Verify each
+   Specificity alone does not settle this. styled-jsx appends its scope class to
+   each module's `position: fixed` rule, making it (0,2,0). That ties these
+   two-class selectors, and dynamic import makes source order unreliable. So
+   the shipped rule uses `!important`, confined to these descendant selectors so
+   the auth pages keep their full-viewport modules. Verify each
    module's outer wrapper class name with grep before finalising the list (the first four
    are confirmed: `acid-squares-bg`, `dot-field-bg`, `faulty-terminal-bg`, `letter-glitch-bg`).
    The canvases size themselves from the container's `getBoundingClientRect()`, so they will
@@ -93,8 +102,12 @@ browser at 1440x900 and green on CI.
   - `/services/logo-design` (or any service slug), `/work`, `/blog`, `/reviews`,
     `/privacy`, `/terms`: no canvas, no `.alive-overlay` in the DOM.
   - `/`: crystal scene unchanged.
-  - Reduced motion + mobile width: modules hide themselves (existing media rules); hero
-    still reads fine.
+  - Reduced motion + mobile width: hiding with CSS is not enough, because a
+    `display: none` module still runs its RAF loop and holds a WebGL context.
+    `DarkPageBackground` does not mount the module at all under
+    `(prefers-reduced-motion: reduce), (max-width: 767px)`, and unmounts it if the
+    preference flips mid-session. `tests/marketing/darkPageBackgroundGate.test.jsx`
+    covers both cases. Only the static `.alive-overlay` wash renders.
 - Screenshot proof for the recap, then commit and open the PR.
 
 ## Background choice (owner request, added 2026-09-22)

@@ -126,3 +126,18 @@ test('auth pages share the same cyan-silver family and remain full-viewport', ()
   assert.match(read('app/auth/reset-password/page.jsx'), /interactive="letter-glitch"/);
   assert.match(read('app/auth/confirm/page.jsx'), /interactive="letter-glitch"/);
 });
+
+test('every stage module tracks its container size, not just the window', () => {
+  // Inside a marketing hero the box changes height after mount (fonts load,
+  // reveal animations run, the band settles). Modules that only listened for
+  // window resize stayed at their first measurement and covered only part
+  // of the hero — the "background only in the middle" bug.
+  for (const name of [
+    'acid-squares', 'dot-field', 'faulty-terminal', 'letter-glitch',
+    'prism', 'ripple-grid', 'liquid-ether',
+  ]) {
+    const source = read(`components/ui/${name}-background.jsx`);
+    assert.match(source, /new ResizeObserver\(/, `${name} does not observe its container`);
+    assert.match(source, /\.disconnect\(\)/, `${name} never disconnects its ResizeObserver`);
+  }
+});
