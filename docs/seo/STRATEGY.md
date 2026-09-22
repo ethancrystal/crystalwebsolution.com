@@ -85,7 +85,7 @@ head term first, so the programme shows a signal earliest):
 | 1 | Web design / redesign | `/services/web-design` | `websites designers` — 27,100/mo · diff 33 · $21.50 · commercial | Pillar exists |
 | 2 | Digital marketing | `/services/digital-marketing` | `digital marketing agency` — 49,500/mo · diff 82 · $14.92 · navigational | Pillar exists |
 | 3 | Logo / branding | `/services/logo-design` (logo terms) and `/services/branding` (branding terms) | `logo design` — 40,500/mo · diff 75 · $8.17 · commercial | Pillars exist; the cluster is split across two pillars, never merged |
-| 4 | SEO / CRO | `/services/seo` | `search engine optimization agencies` — 33,100/mo · diff 60 · commercial (`seo agency near me`, 22,200/mo · diff 57, is secondary on this same page — "near me" is never a pillar) | **Pillar built in PR #203 (v1.39)**, awaiting merge. CRO terms are a *section* of this pillar, not their own target |
+| 4 | SEO / CRO | `/services/seo` | `search engine optimization agencies` — 33,100/mo · diff 60 · commercial (`seo agency near me`, 22,200/mo · diff 57, is secondary on this same page — "near me" is never a pillar) | **Pillar live** (Service 09; merged, in `lib/servicePages.mjs` and `/sitemap.xml`, verified 2026-09-22). CRO terms are a *section* of this pillar, not their own target |
 
 Rules that follow from the table:
 
@@ -178,9 +178,12 @@ the business can serve that searcher · merging anything · guessing a number.
   advise and may open PRs, but must check open PRs and today's run log first
   so two agents never open competing work.
 - Live pages that already count toward §3: `/services/web-design`,
-  `/services/digital-marketing`, `/services/logo-design`, `/services/branding`
-  (pillars); `/blog/web-development-rfp-guide`, `/blog/branding-and-web-design-studio`
-  (supporting; re-map them to their pillar in the registry).
+  `/services/digital-marketing`, `/services/logo-design`, `/services/branding`,
+  `/services/seo` (pillars — all four themes now have one);
+  `/blog/web-development-rfp-guide`, `/blog/branding-and-web-design-studio`
+  (supporting; re-map them to their pillar in the registry). Corrected
+  2026-09-22: the §3 table and this list both still described
+  `/services/seo` as unbuilt after it had shipped.
 - Unresolved, blocked on MJ: see `OPERATIONS-MANUAL.md` §11. The §3 strategy
   split listed there (item 6) is **resolved by this file**.
 
