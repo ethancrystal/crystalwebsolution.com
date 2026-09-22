@@ -1,11 +1,18 @@
 import SectionReveal from '../SectionReveal';
+import HeroStage from './HeroStage';
 
 // PageHero — the opening block for inner marketing pages. Reuses the existing
 // text-plate + eyebrow + page-title visual language so inner pages feel of a
 // piece with the homepage, without importing any homepage runtime.
+//
+// HeroStage renders the cyan-silver animated stage (only on the four
+// whitelisted top-level pages — see SubpageExperience.jsx) scoped to this
+// section, so the animation starts just below the nav and ends where the
+// next section begins, instead of running the full page height.
 export default function PageHero({ eyebrow, title, lede, children }) {
   return (
     <section className="mkt-hero">
+      <HeroStage />
       <div className="text-plate">
         {eyebrow && (
           <p className="eyebrow">

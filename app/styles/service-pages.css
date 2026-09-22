@@ -117,6 +117,85 @@
 .mkt-hero {
   /* Give the procedural stage a beat under the title without moving type. */
   min-height: min(68vh, 40rem);
+  /* Scope the animated stage to this section: it starts just below the nav
+     and ends here, never running behind section 2 and beyond. */
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.mkt-hero > .text-plate {
+  position: relative;
+  z-index: 1;
+}
+.mkt-hero-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* One knob for how loud every stage reads. The modules are authored at
+     demo strength; the brief for this site is a quiet field behind the type,
+     so they are dimmed here rather than in each module — auth pages and any
+     other full-viewport use keep full strength. */
+  opacity: 0.78;
+}
+
+/* Pages whose first section is the whole article (/work, the embroidery
+   pillar) have no hero box to fill, so the stage paints a fixed band at the
+   top of the container instead of stretching to the section's full height. */
+.mkt-hero-stage--band {
+  inset: 0 0 auto 0;
+  height: min(62vh, 34rem);
+}
+
+/* Hosts: any section that should carry a stage needs a stacking context and
+   clipping so the absolutely-positioned stage cannot escape it. */
+.mkt-hero,
+.blog-hero,
+.reviews-hero,
+.work-index,
+.case.mkt-inner {
+  position: relative;
+  isolation: isolate;
+}
+.blog-hero,
+.reviews-hero {
+  overflow: hidden;
+}
+/* Keep every direct child of a stage host above the stage — but never the
+   stage itself, or this rule would reset its `position: absolute` back to
+   `relative` and collapse it to zero height. */
+.blog-hero > *:not(.mkt-hero-stage),
+.reviews-hero > *:not(.mkt-hero-stage),
+.work-index > *:not(.mkt-hero-stage),
+.case.mkt-inner > *:not(.mkt-hero-stage) {
+  position: relative;
+  z-index: 1;
+}
+/* The stage modules (components/ui/*-background.jsx) are built to cover a
+   full viewport with `position: fixed`, scoped via styled-jsx (its own
+   generated class attaches to the same selector, so its specificity can tie
+   with an ordinary override here and source order isn't guaranteed once
+   these are dynamically imported). `!important` guarantees the hero-scoped
+   layout wins without editing each shared module, which stays correct for
+   the homepage/auth surfaces that still want the full-viewport version. */
+.mkt-hero-stage .acid-squares-bg,
+.mkt-hero-stage .dot-field-bg,
+.mkt-hero-stage .faulty-terminal-bg,
+.mkt-hero-stage .letter-glitch-bg,
+.mkt-hero-stage .prism-bg,
+.mkt-hero-stage .ripple-grid-bg,
+.mkt-hero-stage .liquid-ether-bg,
+.mkt-hero-stage .alive-overlay {
+  position: absolute !important;
+}
+/* Soft fade at the bottom of the hero so the stage doesn't cut off hard
+   against section 2. */
+.mkt-hero-stage::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 22%;
+  background: linear-gradient(to bottom, transparent, var(--bg));
 }
 .mkt-section--alt { background: linear-gradient(180deg, rgba(60,108,255,0.05), rgba(192,132,252,0.04)); }
 .mkt-section-inner { max-width: 78rem; margin: 0 auto; }

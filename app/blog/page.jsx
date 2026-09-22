@@ -5,6 +5,7 @@ import { SITE } from '../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import { safeJsonLd } from '../../lib/jsonLd.mjs';
 import MarketingShell from '../../components/marketing/MarketingShell';
+import HeroStage from '../../components/marketing/HeroStage';
 import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
@@ -79,7 +80,7 @@ export default async function BlogIndexPage() {
   };
 
   return (
-    <MarketingShell>
+    <MarketingShell sceneVariant="blog">
       <main className="blog-index mkt-inner">
         <BreadcrumbSchema trail={[{ name: BLOG_TITLE, path: '/blog' }]} />
         {posts.length > 0 ? (
@@ -90,6 +91,7 @@ export default async function BlogIndexPage() {
         ) : null}
 
         <section className="blog-hero" aria-labelledby="blog-title">
+          <HeroStage />
           <p className="eyebrow">
             <SectionReveal as="span" direction="left">
               Studio notes

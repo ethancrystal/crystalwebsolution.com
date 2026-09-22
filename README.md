@@ -12,7 +12,7 @@ reacts on click) — all copy, visuals and code here are original.
 
 ## Stack
 
-Next.js 15 (App Router, JSX) and React 19 power both the public experience and
+Next.js 16 (App Router, JSX) and React 19 power both the public experience and
 the authenticated CRM. The marketing surface uses React Three Fiber + drei,
 @react-three/postprocessing, GSAP + ScrollTrigger, Lenis, and SplitType. The
 CRM uses Supabase Auth/Postgres/Storage/RLS through bounded server actions.
@@ -74,8 +74,10 @@ The August 2026 lean-repository audit and exact keep/remove decisions are in
 - `/` and `/work/*` — public cinematic marketing experience and case studies.
 - `/login/*` — role-specific client, employee, and admin entry points.
 - `/dashboard`, `/team`, and `/admin` — Supabase-backed CRM portals.
-- `supabase/migrations/0001` through `0011` — canonical checked-in database
-  history; migration changes require database-aware verification.
+- `supabase/migrations/` — canonical checked-in database history, numbered
+  sequentially from `0001`. Always inspect the directory for the current
+  migration head rather than trusting a number written in docs; migration
+  changes require database-aware verification.
 
 ## What to look for at each scroll beat
 

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import MarketingShell from '../../components/marketing/MarketingShell';
+import HeroStage from '../../components/marketing/HeroStage';
 import WorkLibrary from '../../components/marketing/WorkLibrary';
 import SectionReveal from '../../components/SectionReveal';
 import FaqSchema from '../../components/marketing/FaqSchema';
@@ -52,8 +53,9 @@ export const metadata = {
 
 export default function WorkIndex() {
   return (
-    <MarketingShell>
+    <MarketingShell sceneVariant="work">
       <section className="work-index mkt-inner" aria-labelledby="work-title">
+        <HeroStage variant="band" />
         <p className="eyebrow"><SectionReveal as="span" direction="left">Selected work</SectionReveal></p>
         <SectionReveal as="h1" id="work-title" className="page-title" direction="left" delay={0.05}>
           Built around the real problem.

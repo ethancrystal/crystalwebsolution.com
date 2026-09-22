@@ -1,3 +1,110 @@
+## v1.46 — 2026-09-22
+
+Make the service emblems mean something. The owner's read of the previous
+set — "these blue shapes that each page has" — was fair: every service page
+opened on an abstract 3D object that said nothing about the service.
+
+- **Root cause was motion, not just shape** — `ServiceEmblem3D` spun each
+  form a full 360 degrees on Y. The forms were authored to be read face-on
+  (a viewport with a cursor, a layered stack), so half of every cycle showed
+  them edge-on, collapsed into an unreadable sliver. The spin is replaced by
+  a bounded sway (about 23 degrees of yaw, 7 of pitch; `rotSpeed` still sets
+  each signal's tempo). The form now always faces the reader and still reads
+  as a solid with depth on its edges. Scale 1.35 to 1.5.
+- **Forms rebuilt as literal objects** in `lib/serviceSignalGeometry.mjs`,
+  still procedural primitives, still one source of truth shared with the
+  homepage rail: browser window (web), `</>` (development), tag with eyelet
+  (brand), constructed mark in a ring (logo), megaphone (marketing), play
+  button (animation, still the one wireframe form), thickened node network
+  (ai), thickened relay with arrow (workflow), magnifying glass (seo). The
+  brand form took three tries: two card-stack versions fused into one blob
+  in a single flat colour; the tag works because its outline alone is
+  iconic, the same reason the magnifier and play button work.
+- **Inline SMIL marks redesigned** and moved to `components/marketing/
+  ServiceGlyph.jsx` (single source, shared by `ServiceEmblem`). Each shows the
+  service's value rather than decorating: a headline that writes itself and
+  a CTA that lands, a funnel that converts, a result that climbs to first.
+  Reduced-motion still strips SMIL from the tree.
+- **Tooltip copy extracted** to `lib/serviceSignalBlurbs.mjs` so it is not
+  duplicated. `vitest.setup.js` gains a `matchMedia` shim, matching its
+  existing `ResizeObserver` one, so components that gate on reduced motion
+  can render under jsdom.
+- **Scope note** — an SVG-only hero variant was built and verified, then
+  dropped the same day when the owner chose to keep React Three Fiber. Only
+  the shared geometry, the sway, the SMIL glyphs and the blurb extraction
+  ship.
+
+## v1.45 — 2026-09-22
+
+Extend the hero stage to the four index/detail surfaces the owner asked for,
+each with its own React Bits module, restyled to site tokens and dimmed to a
+single shared level.
+
+- **New stages** — `/services/[slug]` gets prism, `/work` ripple-grid, `/blog`
+  liquid-ether, `/reviews` dot-field. Seven modules exist and the four
+  top-level pages already take one each, so `reviews` reuses dot-field, the
+  quietest of the set and the right register for a text-dense page.
+- **Brand colors enforced at the source** — ripple-grid shipped vendor purple
+  `#8a5cff` and liquid-ether `['#5227FF','#89f7ff','#B497CF']`. Both now
+  default to site tokens (`--blue` `#3c6cff`, `--cyan` `#59f3ff`, `--muted`
+  `#8b98b8`), so no code path can render the demo palette. Prism gained a
+  `saturation` prop (defaulting to the vendor value, so existing behavior is
+  unchanged) and the wrapper pulls it to near-monochrome with a cyan hue
+  shift, low glow/bloom and a slow `timeScale`.
+- **One prominence knob** — `.mkt-hero-stage { opacity }` sets how loud every
+  stage reads, instead of editing each module. Full-viewport auth surfaces
+  are unaffected.
+- **Band variant** — `/work`'s first section is the entire index, so it has no
+  hero box to fill. `HeroStage variant="band"` paints a height-capped band at
+  the top of the container, fading into `--bg` before the project library.
+- **Scope** — `/work/[slug]`, `/blog/[slug]`, the embroidery pillar,
+  `/privacy` and `/terms` were not requested and still get no stage. The
+  no-fallback rule from v1.44 is unchanged and still covered by tests.
+
+## v1.44 — 2026-09-22
+
+Scope the animated stage background to the hero on the four main marketing
+pages; remove it from every inner page it had leaked onto.
+
+- **Bug fix** — the cyan/silver stage (acid-squares, dot-field,
+  faulty-terminal, letter-glitch) rendered `position: fixed`, so it covered
+  the full scroll height of any page through `SubpageExperience`, and a
+  silent `|| 'acid-squares'` fallback meant it also showed on pages with no
+  assigned variant: `/services/[slug]`, `/work`, `/work/[slug]`, `/blog`,
+  `/blog/[slug]`, `/reviews`, `/privacy`, `/terms`, and the embroidery
+  pillar page.
+- **Fix** — the stage now mounts inside `PageHero`'s `.mkt-hero` section via
+  a new `HeroStage` component and `StageContext`, with CSS that forces the
+  shared background modules to `position: absolute` inside `.mkt-hero-stage`
+  so each one fills the hero box and fades out before section 2, instead of
+  running the page's full height. `marketingStageBackground()` no longer
+  falls back to `acid-squares`; only `/about`, `/services`, `/process`, and
+  `/contact` (the four `MARKETING_STAGE_BACKGROUNDS` entries) get a stage.
+  `/privacy` and `/terms` no longer pass a `sceneVariant`. Homepage
+  (`Scene.jsx`/crystal journey) and auth pages are unchanged.
+- **Tests** — `tests/marketing-stage-background.test.mjs` rewritten to
+  assert the stage is hero-scoped, has no fallback, and privacy/terms
+  request no variant.
+- **Platform-version reconciliation** — `package.json` has run Next 16
+  (`^16.3.5`) since dependabot's #204, but the contract test still asserted
+  major `15`, so `pnpm test` exited 1 on `main`. Updated the assertion to 16
+  and renamed the file from `tests/crm/next15-upgrade.test.mjs` to
+  `tests/crm/next-platform-contract.test.mjs` so the name stops naming one
+  version. The same stale "Next.js 15" claim was corrected in the active docs:
+  `README.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `MEMORY.md` and
+  `docs/SENTRY-NEXTJS.md`. Dated plans under `docs/plans/` keep their Next 15
+  wording as historical record; the two most likely to mislead now carry a
+  historical note instead.
+- **README migration range** — replaced the stale `0001` through `0011`
+  statement (the directory head is `0042`, 43 files) with a pointer to inspect
+  the directory, matching the rule already stated in `CLAUDE.md`.
+- **Versioning note** — this release takes v1.44, not v1.43. The merge commit
+  `f0290ae` was titled `v1.43 — AI visibility + technical SEO assets (#212)`
+  and deployed under that name, but it bumped neither `VERSION` nor
+  `CHANGELOG.md`, so the files stayed at v1.42. v1.43 is therefore already
+  spent on a shipped deploy; reusing it would put two different deploys under
+  one name. There is intentionally no v1.43 entry below.
+
 ## v1.42 — 2026-09-20
 
 SEO content lane: publish-ready web-design-RFP blog draft for the /services/web-design pillar.

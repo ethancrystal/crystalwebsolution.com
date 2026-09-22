@@ -25,7 +25,10 @@ function Prism({
   inertia = 0.05,
   bloom = 1,
   suspendWhenOffscreen = true,
-  timeScale = 0.5
+  timeScale = 0.5,
+  // Vendor default is `transparent ? 1.5 : 1` (oversaturated, rainbow-ish).
+  // Exposed so the brand wrapper can pull it toward monochrome cyan.
+  saturation
 }) {
   const containerRef = useRef(null);
 
@@ -40,7 +43,7 @@ function Prism({
     const NOISE = Math.max(0.0, noise);
     const offX = offset?.x ?? 0;
     const offY = offset?.y ?? 0;
-    const SAT = transparent ? 1.5 : 1;
+    const SAT = saturation ?? (transparent ? 1.5 : 1);
     const SCALE = Math.max(0.001, scale);
     const HUE = hueShift || 0;
     const CFREQ = Math.max(0.0, colorFrequency || 1);
@@ -435,7 +438,8 @@ function Prism({
     hoverStrength,
     inertia,
     bloom,
-    suspendWhenOffscreen
+    suspendWhenOffscreen,
+    saturation
   ]);
 
   return <div className="prism-container" ref={containerRef} />;
@@ -445,7 +449,20 @@ function Prism({
 export default function PrismBackground() {
   return (
     <div className="prism-bg" aria-hidden="true">
-      <Prism />
+      {/* Brand-tuned: the vendor default is an oversaturated rainbow prism.
+          saturation pulls it to near-monochrome, hueShift lands the residue
+          on site cyan, and the low glow/bloom plus slow timeScale keep it an
+          ambient facet rather than a focal object. */}
+      <Prism
+        saturation={0.22}
+        hueShift={0.72}
+        colorFrequency={0.35}
+        glow={0.35}
+        bloom={0.4}
+        noise={0.25}
+        timeScale={0.22}
+        scale={4.2}
+      />
       <style jsx>{`
         .prism-bg {
           position: fixed;
