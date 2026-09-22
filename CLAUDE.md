@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-CD Sportswear INC is a Next.js 15 / React 19 application containing a dark,
+CD Sportswear INC is a Next.js 16 / React 19 application containing a dark,
 cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
 The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM
 scrolls over it while a virtual camera flies through one continuous 3D space

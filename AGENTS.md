@@ -14,12 +14,12 @@ agent. Never merge a PR, send a message, or buy anything — those are MJ's.
 
 ## Project overview
 
-CD Sportswear INC is a Next.js 15 / React 19 application containing a dark, cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
+CD Sportswear INC is a Next.js 16 / React 19 application containing a dark, cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
 
 1. **The Agency Experience**: The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM scrolls over it while a virtual camera flies through one continuous 3D space past a refracting crystal, service-signal instruments, an approach compass, procedural particles, and a morphing backdrop. Lab and Motion add DOM/CSS-3D card experiences over the same canvas. Marketing scene and project visuals are code-generated; `public/` serves standard brand assets.
 2. **The Client Collaboration CRM**: A secure portal system (`/login`, `/dashboard`, `/team`, and `/admin`) designed to **accommodate incoming and current clients and collaborate efficiently with them while their project is ongoing**.
 
-Stack: Next.js 15 (App Router, React 19, JSX, no TypeScript), React Three Fiber + drei, `@react-three/postprocessing`, GSAP + ScrollTrigger, Lenis (smooth scroll), SplitType, and Supabase. Plain global CSS with design tokens in `app/globals.css` — no Tailwind.
+Stack: Next.js 16 (App Router, React 19, JSX, no TypeScript), React Three Fiber + drei, `@react-three/postprocessing`, GSAP + ScrollTrigger, Lenis (smooth scroll), SplitType, and Supabase. Plain global CSS with design tokens in `app/globals.css` — no Tailwind.
 
 ## Commands
 

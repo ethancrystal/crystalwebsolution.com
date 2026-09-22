@@ -10,7 +10,7 @@ full picture in one read instead of re-discovering it the expensive way.
 
 - **Two halves:** (1) a cinematic one-page WebGL/scroll marketing site, (2)
   a Supabase-backed 3-role CRM (`client`/`project_manager`/`admin`) at
-  `/dashboard`, `/team`, `/admin`. Next.js 15 App Router, React 19, plain
+  `/dashboard`, `/team`, `/admin`. Next.js 16 App Router, React 19, plain
   JSX (no TS), no Tailwind, pnpm only.
 - **One canonical checkout:** `C:\Users\moizjmj\CD Sportswear USA`
   (mirrored 1:1 in WSL at `/home/moizjmj/CD Sportswear USA` — same repo,
@@ -40,7 +40,7 @@ full picture in one read instead of re-discovering it the expensive way.
 2. **The Client Collaboration CRM** — briefs, tasks, approvals,
    deliverables, a per-project message thread with email notifications.
 
-**Stack:** Next.js 15 App Router · React 19 · plain JSX (no TypeScript) ·
+**Stack:** Next.js 16 App Router · React 19 · plain JSX (no TypeScript) ·
 R3F + drei · `@react-three/postprocessing` · GSAP + ScrollTrigger · Lenis ·
 SplitType · Supabase (Auth/Postgres/Storage/RLS) · plain global CSS, tokens
 in `app/globals.css` (no Tailwind) · **pnpm only**.

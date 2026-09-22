@@ -22,6 +22,19 @@ pages; remove it from every inner page it had leaked onto.
 - **Tests** — `tests/marketing-stage-background.test.mjs` rewritten to
   assert the stage is hero-scoped, has no fallback, and privacy/terms
   request no variant.
+- **Platform-version reconciliation** — `package.json` has run Next 16
+  (`^16.3.5`) since dependabot's #204, but the contract test still asserted
+  major `15`, so `pnpm test` exited 1 on `main`. Updated the assertion to 16
+  and renamed the file from `tests/crm/next15-upgrade.test.mjs` to
+  `tests/crm/next-platform-contract.test.mjs` so the name stops naming one
+  version. The same stale "Next.js 15" claim was corrected in the active docs:
+  `README.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `MEMORY.md` and
+  `docs/SENTRY-NEXTJS.md`. Dated plans under `docs/plans/` keep their Next 15
+  wording as historical record; the two most likely to mislead now carry a
+  historical note instead.
+- **README migration range** — replaced the stale `0001` through `0011`
+  statement (the directory head is `0042`, 43 files) with a pointer to inspect
+  the directory, matching the rule already stated in `CLAUDE.md`.
 - **Versioning note** — this release takes v1.44, not v1.43. The merge commit
   `f0290ae` was titled `v1.43 — AI visibility + technical SEO assets (#212)`
   and deployed under that name, but it bumped neither `VERSION` nor

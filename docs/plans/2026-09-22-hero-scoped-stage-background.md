@@ -1,7 +1,8 @@
 # Plan: scope the animated stage background to the hero, main pages only
 
 Branch: `claude/background-animation-scope-ca6dad` (currently identical to `main`).
-Status: planned 2026-09-22, not yet implemented.
+Status: implemented 2026-09-22 in v1.44 (commit on this branch); verified in the
+browser at 1440x900 and green on CI.
 
 ## Findings (verified against live code)
 
