@@ -30,12 +30,14 @@ describe('ServiceEmblem (SVG variant) reduced-motion handling', () => {
   // itself, same as ServiceEmblem3D gates its useFrame tween above. This
   // guards against that gap regressing silently.
   it('reads matchMedia once in a useEffect and keeps it current via a change listener with teardown', async () => {
-    const source = await readFile('components/marketing/ServiceEmblem.jsx', 'utf8');
+    // The marks and their reduced-motion gate live in ServiceGlyph.jsx, which
+    // ServiceEmblem and the /services/[slug] hero mark both render.
+    const source = await readFile('components/marketing/ServiceGlyph.jsx', 'utf8');
     expect(source).toMatch(/useEffect\(\(\) => \{[\s\S]*?matchMedia\('\(prefers-reduced-motion: reduce\)'\)[\s\S]*?addEventListener\('change'[\s\S]*?return \(\) => [\s\S]*?removeEventListener\('change'/);
   });
 
   it("computes SvgMark's shouldAnimate from both the animate prop and the reduced-motion flag", async () => {
-    const source = await readFile('components/marketing/ServiceEmblem.jsx', 'utf8');
+    const source = await readFile('components/marketing/ServiceGlyph.jsx', 'utf8');
     const svgMarkMatch = source.match(/function SvgMark\(\{ signal, animate \}\) \{([\s\S]*?)\n\}/);
     expect(svgMarkMatch).not.toBeNull();
     const body = svgMarkMatch[1];

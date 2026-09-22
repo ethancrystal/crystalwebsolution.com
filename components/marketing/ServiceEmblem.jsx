@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import SvgMark from './ServiceGlyph';
 
 // Client-only: the R3F canvas must never render on the server.
 const ServiceEmblem3D = dynamic(() => import('../three/ServiceEmblem3D'), {
@@ -9,158 +9,8 @@ const ServiceEmblem3D = dynamic(() => import('../three/ServiceEmblem3D'), {
   loading: () => <span className="mkt-emblem mkt-emblem--placeholder" aria-hidden="true" />,
 });
 
-const VIEWBOX = '0 0 64 64';
-
-const GLYPHS = {
-  web: (
-    <>
-      <rect x="10" y="16" width="44" height="34" rx="4" className="em-stroke" />
-      <line x1="10" y1="24" x2="54" y2="24" className="em-stroke em-faint" />
-      <circle cx="15" cy="20" r="1.5" className="em-dot" />
-      <circle cx="20" cy="20" r="1.5" className="em-dot" />
-      <circle cx="25" cy="20" r="1.5" className="em-dot" />
-      <polyline points="16,44 26,34 34,40 48,26" className="em-stroke em-accent" fill="none">
-        <animate attributeName="points"
-          dur="4s" repeatCount="indefinite"
-          values="16,44 26,34 34,40 48,26; 16,44 26,40 34,32 48,24; 16,44 26,34 34,40 48,26" />
-      </polyline>
-    </>
-  ),
-  development: (
-    <>
-      <rect x="14" y="14" width="36" height="36" rx="3" className="em-stroke" />
-      <rect x="22" y="22" width="20" height="20" rx="2" className="em-stroke em-accent" fill="none">
-        <animateTransform attributeName="transform" type="rotate"
-          from="0 32 32" to="360 32 32" dur="9s" repeatCount="indefinite" />
-      </rect>
-      <line x1="32" y1="14" x2="32" y2="22" className="em-stroke em-faint" />
-      <line x1="32" y1="42" x2="32" y2="50" className="em-stroke em-faint" />
-    </>
-  ),
-  brand: (
-    <>
-      <circle cx="26" cy="30" r="14" className="em-stroke" />
-      <circle cx="40" cy="36" r="14" className="em-stroke em-accent" fill="none">
-        <animate attributeName="r" dur="3.5s" repeatCount="indefinite" values="14;15.5;14" />
-      </circle>
-      <circle cx="26" cy="30" r="4" className="em-dot" />
-    </>
-  ),
-  logo: (
-    <>
-      <rect x="16" y="16" width="32" height="32" rx="2" className="em-stroke" />
-      <path d="M24 40 L24 24 L40 24" className="em-stroke em-accent" fill="none" strokeLinecap="round">
-        <animate attributeName="opacity" dur="2.6s" repeatCount="indefinite" values="0.4;1;0.4" />
-      </path>
-      <path d="M40 24 L40 40 L24 40" className="em-stroke em-faint" fill="none" strokeLinecap="round" />
-    </>
-  ),
-  marketing: (
-    <>
-      <rect x="14" y="40" width="8" height="10" className="em-stroke em-faint" />
-      <rect x="28" y="32" width="8" height="18" className="em-stroke em-faint" />
-      <rect x="42" y="22" width="8" height="28" className="em-stroke em-accent">
-        <animate attributeName="height" dur="3s" repeatCount="indefinite" values="28;18;28" />
-        <animate attributeName="y" dur="3s" repeatCount="indefinite" values="22;32;22" />
-      </rect>
-      <polyline points="18,30 32,24 46,16" className="em-stroke em-accent" fill="none" />
-    </>
-  ),
-  motion: (
-    <>
-      <circle cx="32" cy="32" r="10" className="em-stroke" />
-      <circle cx="32" cy="32" r="20" className="em-stroke em-faint" fill="none" />
-      <circle r="3" className="em-dot" fill="currentColor">
-        <animateMotion dur="5s" repeatCount="indefinite" path="M32,12 a20,20 0 1,1 -0.1,0" />
-      </circle>
-      <line x1="32" y1="32" x2="32" y2="22" className="em-stroke em-accent" />
-    </>
-  ),
-  ai: (
-    <>
-      <circle cx="20" cy="22" r="4" className="em-stroke" />
-      <circle cx="44" cy="20" r="4" className="em-stroke" />
-      <circle cx="32" cy="44" r="4" className="em-stroke em-accent" />
-      <line x1="20" y1="22" x2="32" y2="44" className="em-stroke em-faint" />
-      <line x1="44" y1="20" x2="32" y2="44" className="em-stroke em-faint" />
-      <line x1="20" y1="22" x2="44" y2="20" className="em-stroke em-accent">
-        <animate attributeName="opacity" dur="2.4s" repeatCount="indefinite" values="0.3;1;0.3" />
-      </line>
-    </>
-  ),
-  // 09 / SEO — a results ladder: three result bars, the top one climbing,
-  // with a magnifier at the top-left. Standalone pillar page only (not in
-  // the homepage rail).
-  seo: (
-    <>
-      <circle cx="19" cy="19" r="7" className="em-stroke" />
-      <line x1="24" y1="24" x2="30" y2="30" className="em-stroke" strokeLinecap="round" />
-      <line x1="34" y1="18" x2="52" y2="18" className="em-stroke em-accent" strokeLinecap="round">
-        <animate attributeName="y1" dur="3s" repeatCount="indefinite" values="18;16;18" />
-        <animate attributeName="y2" dur="3s" repeatCount="indefinite" values="18;16;18" />
-      </line>
-      <line x1="16" y1="38" x2="52" y2="38" className="em-stroke em-faint" strokeLinecap="round" />
-      <line x1="16" y1="48" x2="44" y2="48" className="em-stroke em-faint" strokeLinecap="round" />
-      <polyline points="46,14 50,10 54,14" className="em-stroke em-accent" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <animate attributeName="opacity" dur="3s" repeatCount="indefinite" values="0.4;1;0.4" />
-      </polyline>
-    </>
-  ),
-  workflow: (
-    <>
-      <rect x="12" y="26" width="40" height="12" rx="6" className="em-stroke" />
-      <circle cx="18" cy="32" r="3" className="em-dot">
-        <animateMotion dur="4s" repeatCount="indefinite" path="M0,0 H40" />
-      </circle>
-      <path d="M44 22 L52 32 L44 42" className="em-stroke em-accent" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <animateTransform attributeName="transform" type="rotate"
-          from="0 48 32" to="360 48 32" dur="6s" repeatCount="indefinite" />
-      </path>
-    </>
-  ),
-};
-
-function stripAnimations(children) {
-  return React.Children.map(children, (child) => {
-    if (!React.isValidElement(child)) return child;
-    if (typeof child.type === 'string' && /^animate(Transform|Motion)?$/.test(child.type)) {
-      return null;
-    }
-    if (child.props && child.props.children) {
-      return React.cloneElement(child, {}, stripAnimations(child.props.children));
-    }
-    return child;
-  });
-}
-
-// SMIL <animate>/<animateTransform>/<animateMotion> elements run outside
-// CSS, so a `prefers-reduced-motion` media query in globals.css can't gate
-// them - they have to be stripped from the render tree itself, mirroring
-// how ServiceEmblem3D.jsx gates its useFrame rotation/glow.
-function useReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(mql.matches);
-    const onChange = (e) => setReduced(e.matches);
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
-  }, []);
-  return reduced;
-}
-
-function SvgMark({ signal, animate }) {
-  const reducedMotion = useReducedMotion();
-  const glyph = GLYPHS[signal] || GLYPHS.web;
-  const shouldAnimate = animate && !reducedMotion;
-  const content = shouldAnimate ? glyph : stripAnimations(glyph);
-  return (
-    <svg viewBox={VIEWBOX} width="100%" height="100%" role="presentation"
-      className={shouldAnimate ? 'mkt-emblem-svg' : 'mkt-emblem-svg mkt-emblem-svg--static'}>
-      {content}
-    </svg>
-  );
-}
+// The per-service SMIL marks live in ServiceGlyph.jsx (single source of
+// truth, shared with the /services/[slug] hero via ServiceEmblemMark).
 
 export default function ServiceEmblem({ signal, n, size = 64, variant = 'svg', className = '' }) {
   if (variant === '3d') {

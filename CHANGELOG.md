@@ -1,3 +1,39 @@
+## v1.46 — 2026-09-22
+
+Make the service emblems mean something. The owner's read of the previous
+set — "these blue shapes that each page has" — was fair: every service page
+opened on an abstract 3D object that said nothing about the service.
+
+- **Root cause was motion, not just shape** — `ServiceEmblem3D` spun each
+  form a full 360 degrees on Y. The forms were authored to be read face-on
+  (a viewport with a cursor, a layered stack), so half of every cycle showed
+  them edge-on, collapsed into an unreadable sliver. The spin is replaced by
+  a bounded sway (about 23 degrees of yaw, 7 of pitch; `rotSpeed` still sets
+  each signal's tempo). The form now always faces the reader and still reads
+  as a solid with depth on its edges. Scale 1.35 to 1.5.
+- **Forms rebuilt as literal objects** in `lib/serviceSignalGeometry.mjs`,
+  still procedural primitives, still one source of truth shared with the
+  homepage rail: browser window (web), `</>` (development), tag with eyelet
+  (brand), constructed mark in a ring (logo), megaphone (marketing), play
+  button (animation, still the one wireframe form), thickened node network
+  (ai), thickened relay with arrow (workflow), magnifying glass (seo). The
+  brand form took three tries: two card-stack versions fused into one blob
+  in a single flat colour; the tag works because its outline alone is
+  iconic, the same reason the magnifier and play button work.
+- **Inline SMIL marks redesigned** and moved to `components/marketing/
+  ServiceGlyph.jsx` (single source, shared by `ServiceEmblem`). Each shows the
+  service's value rather than decorating: a headline that writes itself and
+  a CTA that lands, a funnel that converts, a result that climbs to first.
+  Reduced-motion still strips SMIL from the tree.
+- **Tooltip copy extracted** to `lib/serviceSignalBlurbs.mjs` so it is not
+  duplicated. `vitest.setup.js` gains a `matchMedia` shim, matching its
+  existing `ResizeObserver` one, so components that gate on reduced motion
+  can render under jsdom.
+- **Scope note** — an SVG-only hero variant was built and verified, then
+  dropped the same day when the owner chose to keep React Three Fiber. Only
+  the shared geometry, the sway, the SMIL glyphs and the blurb extraction
+  ship.
+
 ## v1.45 — 2026-09-22
 
 Extend the hero stage to the four index/detail surfaces the owner asked for,
