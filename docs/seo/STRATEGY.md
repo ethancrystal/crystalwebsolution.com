@@ -53,8 +53,13 @@ question. Every run log opens with progress against this criterion.
 
 ## 2. Positioning — what the pages are allowed to say
 
-- National / remote. Never write a location page for a place the business
-  cannot demonstrably serve, and never fake local proof.
+- **National / remote by default.** A location page is allowed only as a
+  *cluster page beneath a pillar*, only for a metro the business demonstrably
+  serves from a real address (today: Manassas / Northern Virginia), and it
+  links up to its pillar like any other supporting page. No state-level pages,
+  and never one page per service per location — that is the doorway pattern
+  §7 rules out. Never write a location page for a place the business cannot
+  demonstrably serve, and never fake local proof. (Amended 2026-09-22.)
 - Services sold are the eight live `/services/*` pages plus SEO once §3 row 4
   ships. Do **not** build pages for services the site does not sell
   (Shopify, native mobile, and anything else absent from `lib/servicePages.mjs`).
@@ -96,6 +101,14 @@ Rules that follow from the table:
   buyer-stage phrasing; difficulty ≤ 30 preferred), and each must link to its
   pillar with descriptive anchor text. A supporting page with no viable
   narrow term is a sales asset, not a ranking play — record it as unmapped.
+- **Metro cluster pages are supporting pages, nothing more.** Same
+  difficulty ≤ 30 bar, same T+90 judgement, one metro term per URL, and
+  state-level and "near me" phrasings fold in as secondaries on that page
+  rather than earning their own. Added 2026-09-22 on the evidence that
+  `web development northern virginia` is 260/mo at difficulty 9, while
+  `web design virginia` is 70/mo at 26 and `branding agency northern virginia`
+  is 0/mo (Ubersuggest, US 2840, 2026-09-22, estimates; the registry carries
+  current figures).
 - **Build order inside a theme:** pillar exists and is complete → 3–5
   supporting pages → internal links wired both ways → then move to the next
   theme. Do not scatter one post per theme.
