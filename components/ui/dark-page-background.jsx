@@ -1,6 +1,7 @@
 'use client';
 // @ts-check
 
+import { useEffect, useState } from 'react';
 import AcidSquaresBackground from './acid-squares-background';
 import DotFieldBackground from './dot-field-background';
 import FaultyTerminalBackground from './faulty-terminal-background';
@@ -24,12 +25,38 @@ const INTERACTIVE_BACKGROUNDS = {
  * @param {'acid-squares'|'dot-field'|'faulty-terminal'|'letter-glitch'|'prism'|'ripple-grid'|'liquid-ether'} [props.interactive]
  * @returns {import('react').ReactElement}
  */
+// Same condition each module's own CSS uses to hide itself. Hiding is not
+// enough: a display:none module still runs its requestAnimationFrame loop and
+// holds a WebGL context. So the module is not mounted at all under this query,
+// which stops the loop and frees the context for reduced-motion visitors and
+// small screens. The static .alive-overlay wash still renders either way.
+const STAGE_OFF_QUERY = '(prefers-reduced-motion: reduce), (max-width: 767px)';
+
+/**
+ * true once the client has confirmed the animated module may run. Starts false
+ * so nothing animates before the preference is known (including during SSR on
+ * the auth pages, which import this directly rather than via next/dynamic).
+ * @returns {boolean}
+ */
+function useStageAllowed() {
+  const [allowed, setAllowed] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia(STAGE_OFF_QUERY);
+    const update = () => setAllowed(!mql.matches);
+    update();
+    mql.addEventListener('change', update);
+    return () => mql.removeEventListener('change', update);
+  }, []);
+  return allowed;
+}
+
 export default function DarkPageBackground({ interactive = 'acid-squares' }) {
   const Interactive = INTERACTIVE_BACKGROUNDS[interactive] ?? AcidSquaresBackground;
+  const stageAllowed = useStageAllowed();
 
   return (
     <>
-      <Interactive />
+      {stageAllowed && <Interactive />}
       <div className="alive-overlay" aria-hidden="true">
         <div className="alive-orb alive-orb-1" />
         <div className="alive-orb alive-orb-2" />

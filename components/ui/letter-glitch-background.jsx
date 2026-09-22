@@ -148,6 +148,13 @@ function LetterGlitch() {
       }, 100);
     };
 
+    // Track the container, not just the window. Inside a marketing hero the box
+    // keeps changing height after mount (fonts, reveal animations, the band
+    // settling), and a window-only listener left the canvas at its first,
+    // smaller size, covering only part of the hero.
+    const ro = new ResizeObserver(handleResize);
+    if (canvas.parentElement) ro.observe(canvas.parentElement);
+
     resizeCanvas();
     raf = requestAnimationFrame(animate);
     window.addEventListener('resize', handleResize);
@@ -155,6 +162,7 @@ function LetterGlitch() {
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(resizeTimer);
+      ro.disconnect();
       window.removeEventListener('resize', handleResize);
     };
   }, []);

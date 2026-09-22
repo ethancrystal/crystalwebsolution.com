@@ -188,6 +188,23 @@
 .mkt-hero-stage .alive-overlay {
   position: absolute !important;
 }
+/* The .alive-overlay in dark-page-background.jsx is tuned for a full
+   viewport. Inside a ~600px hero its vignette crushed the left and right
+   edges and its third orb sat dead centre, so every stage read as a pool of
+   light "only in the middle". Inside the hero: a wider, lighter vignette and
+   the third orb moved to the right so light spans the whole width. */
+.mkt-hero-stage .alive-vignette {
+  background: radial-gradient(
+    ellipse 125% 115% at 50% 40%,
+    transparent 58%,
+    rgba(4, 6, 12, 0.32) 100%
+  );
+}
+.mkt-hero-stage .alive-orb-3 {
+  left: 84%;
+  top: 34%;
+}
+
 /* Soft fade at the bottom of the hero so the stage doesn't cut off hard
    against section 2. */
 .mkt-hero-stage::after {
