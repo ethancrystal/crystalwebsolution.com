@@ -13,7 +13,7 @@ import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 const TITLE = 'Services';
 // Exact <title> flagged by Ubersuggest and specified by MJ (2026-09-11). Wrapped
 // in `absolute` so the root layout's `%s | <brand>` template does not append to it.
-const SEO_TITLE = 'Web Design, Branding & AI Automation | CD Sportswear';
+const SEO_TITLE = 'Connected Services — CD Sportswear INC';
 const DESCRIPTION =
   'CD Sportswear INC designs and builds websites, brand systems, motion, and AI and workflow automation — focused offers, each owned end to end.';
 

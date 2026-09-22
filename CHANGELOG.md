@@ -1,8 +1,15 @@
-## v1.46 — 2026-09-22
+## v1.47 — 2026-09-22
 
-Make the service emblems mean something. The owner's read of the previous
-set — "these blue shapes that each page has" — was fair: every service page
-opened on an abstract 3D object that said nothing about the service.
+Fix brand drift in 4 marketing-page SEO_TITLE strings. Three pages spelled the
+brand "CD Sportswear Inc" (lowercase "inc") or "CD Sportswear" (missing INC)
+in their `<title>`; the /services hub title also carried three pillar head terms
+into a non-pillar page. All four now use the exact brand "CD Sportswear INC"
+with a spaced em dash and topic-first ordering, and the /services hub title no
+longer competes with its pillar pages.
+
+Changed: app/about/page.jsx, app/contact/page.jsx, app/blog/page.jsx,
+app/services/page.jsx.
+
 
 - **Root cause was motion, not just shape** — `ServiceEmblem3D` spun each
   form a full 360 degrees on Y. The forms were authored to be read face-on
