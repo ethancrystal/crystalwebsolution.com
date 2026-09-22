@@ -53,8 +53,13 @@ question. Every run log opens with progress against this criterion.
 
 ## 2. Positioning — what the pages are allowed to say
 
-- National / remote. Never write a location page for a place the business
-  cannot demonstrably serve, and never fake local proof.
+- **National / remote by default.** A location page is allowed only as a
+  *cluster page beneath a pillar*, only for a metro the business demonstrably
+  serves from a real address (today: Manassas / Northern Virginia), and it
+  links up to its pillar like any other supporting page. No state-level pages,
+  and never one page per service per location — that is the doorway pattern
+  §7 rules out. Never write a location page for a place the business cannot
+  demonstrably serve, and never fake local proof. (Amended 2026-09-22.)
 - Services sold are the eight live `/services/*` pages plus SEO once §3 row 4
   ships. Do **not** build pages for services the site does not sell
   (Shopify, native mobile, and anything else absent from `lib/servicePages.mjs`).
@@ -80,7 +85,7 @@ head term first, so the programme shows a signal earliest):
 | 1 | Web design / redesign | `/services/web-design` | `websites designers` — 27,100/mo · diff 33 · $21.50 · commercial | Pillar exists |
 | 2 | Digital marketing | `/services/digital-marketing` | `digital marketing agency` — 49,500/mo · diff 82 · $14.92 · navigational | Pillar exists |
 | 3 | Logo / branding | `/services/logo-design` (logo terms) and `/services/branding` (branding terms) | `logo design` — 40,500/mo · diff 75 · $8.17 · commercial | Pillars exist; the cluster is split across two pillars, never merged |
-| 4 | SEO / CRO | `/services/seo` | `search engine optimization agencies` — 33,100/mo · diff 60 · commercial (`seo agency near me`, 22,200/mo · diff 57, is secondary on this same page — "near me" is never a pillar) | **Pillar built in PR #203 (v1.39)**, awaiting merge. CRO terms are a *section* of this pillar, not their own target |
+| 4 | SEO / CRO | `/services/seo` | `search engine optimization agencies` — 33,100/mo · diff 60 · commercial (`seo agency near me`, 22,200/mo · diff 57, is secondary on this same page — "near me" is never a pillar) | **Pillar live** (Service 09; merged, in `lib/servicePages.mjs` and `/sitemap.xml`, verified 2026-09-22). CRO terms are a *section* of this pillar, not their own target |
 
 Rules that follow from the table:
 
@@ -96,6 +101,14 @@ Rules that follow from the table:
   buyer-stage phrasing; difficulty ≤ 30 preferred), and each must link to its
   pillar with descriptive anchor text. A supporting page with no viable
   narrow term is a sales asset, not a ranking play — record it as unmapped.
+- **Metro cluster pages are supporting pages, nothing more.** Same
+  difficulty ≤ 30 bar, same T+90 judgement, one metro term per URL, and
+  state-level and "near me" phrasings fold in as secondaries on that page
+  rather than earning their own. Added 2026-09-22 on the evidence that
+  `web development northern virginia` is 260/mo at difficulty 9, while
+  `web design virginia` is 70/mo at 26 and `branding agency northern virginia`
+  is 0/mo (Ubersuggest, US 2840, 2026-09-22, estimates; the registry carries
+  current figures).
 - **Build order inside a theme:** pillar exists and is complete → 3–5
   supporting pages → internal links wired both ways → then move to the next
   theme. Do not scatter one post per theme.
@@ -165,9 +178,12 @@ the business can serve that searcher · merging anything · guessing a number.
   advise and may open PRs, but must check open PRs and today's run log first
   so two agents never open competing work.
 - Live pages that already count toward §3: `/services/web-design`,
-  `/services/digital-marketing`, `/services/logo-design`, `/services/branding`
-  (pillars); `/blog/web-development-rfp-guide`, `/blog/branding-and-web-design-studio`
-  (supporting; re-map them to their pillar in the registry).
+  `/services/digital-marketing`, `/services/logo-design`, `/services/branding`,
+  `/services/seo` (pillars — all four themes now have one);
+  `/blog/web-development-rfp-guide`, `/blog/branding-and-web-design-studio`
+  (supporting; re-map them to their pillar in the registry). Corrected
+  2026-09-22: the §3 table and this list both still described
+  `/services/seo` as unbuilt after it had shipped.
 - Unresolved, blocked on MJ: see `OPERATIONS-MANUAL.md` §11. The §3 strategy
   split listed there (item 6) is **resolved by this file**.
 
