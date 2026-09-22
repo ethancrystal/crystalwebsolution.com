@@ -390,3 +390,37 @@
 
 /* Grid card emblem: small static SVG mark above the title. */
 .mkt-service-card-emblem { width: 44px; height: 44px; margin-bottom: 0.75rem; }
+
+
+/* ===================================================================
+   Service detail pages — related-work grid and capability cards
+   (components/marketing/ServicePage.jsx). Visuals reuse ProjectVisual,
+   the same palette-driven procedural tile /work and the case studies
+   use — no image assets. Hover mirrors .work-row-visual.
+   =================================================================== */
+.mkt-work-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+.mkt-work-card-link { display: block; color: inherit; text-decoration: none; }
+.mkt-work-card-link .project-visual { transition: transform 0.3s ease, border-color 0.3s ease; }
+.mkt-work-card-link:hover .project-visual,
+.mkt-work-card-link:focus-visible .project-visual {
+  transform: scale(1.015);
+  border-color: rgba(89, 243, 255, 0.5);
+}
+.mkt-work-card-meta { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.9rem; }
+.mkt-work-card-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--ink); }
+.mkt-work-card-category { font-size: 0.85rem; color: var(--muted); }
+
+.mkt-principles--service { margin-top: 0.5rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-work-card-link .project-visual { transition: none; }
+  .mkt-work-card-link:hover .project-visual,
+  .mkt-work-card-link:focus-visible .project-visual { transform: none; }
+}

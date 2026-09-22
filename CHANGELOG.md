@@ -1,3 +1,23 @@
+## v1.44 — 2026-09-22
+
+Service pillars carry their head terms, and every /services/* page gains visual proof.
+
+- **SEO** — `/services/branding`, `/services/logo-design` and `/services/digital-marketing` now
+  carry their KEYWORD-REGISTRY head term in `seoTitle`, `h1`, `metaDescription` and the opening
+  line: `brand identity design` (18,100/mo), `logo design` (40,500/mo) and `digital marketing
+  agency` (49,500/mo). The `SEO_SHIP_TABLE` contract in `tests/marketing.test.mjs` was updated in
+  the same commit. `hero` is untouched on every page — it is asserted equal to the homepage
+  `SERVICES[].desc`, so changing it would move the homepage and the 3D rail.
+- **Design** — `components/marketing/ServicePage.jsx`: related projects render as a
+  `ProjectVisual` tile grid instead of text rows (the same palette-driven procedural visual
+  `/work` and the case studies use — no image assets); capabilities render as
+  `.mkt-principles` cards with their detail sentence instead of a bullet list; a
+  `ServiceThreadArc` divider marks the hand-off into the contact section. All nine service
+  pages inherit this from the shared template.
+- **Note** — `/services/web-design` is deliberately unchanged: theme 1's head term
+  `websites designers` is a malformed plural that cannot be placed in a title or H1 without
+  hurting the page. Pending MJ's ruling on replacing it.
+
 ## v1.42 — 2026-09-20
 
 SEO content lane: publish-ready web-design-RFP blog draft for the /services/web-design pillar.
