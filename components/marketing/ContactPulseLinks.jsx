@@ -4,8 +4,9 @@ import { blast } from '../../lib/pulse';
 import { SITE } from '../../lib/site';
 
 // Direct-contact links for the Contact page. Hovering/focusing a link still
-// writes the shared pulse singleton (homepage Crystal reads it). Inner pages
-// use DarkPageBackground modules, not an idle Crystal.
+// writes the shared pulse singleton (homepage Crystal reads it). The
+// Contact hero uses a DarkPageBackground module (letter-glitch), not an
+// idle Crystal.
 export default function ContactPulseLinks() {
   return (
     <ul className="mkt-contact-direct">

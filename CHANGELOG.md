@@ -1,3 +1,34 @@
+## v1.44 — 2026-09-22
+
+Scope the animated stage background to the hero on the four main marketing
+pages; remove it from every inner page it had leaked onto.
+
+- **Bug fix** — the cyan/silver stage (acid-squares, dot-field,
+  faulty-terminal, letter-glitch) rendered `position: fixed`, so it covered
+  the full scroll height of any page through `SubpageExperience`, and a
+  silent `|| 'acid-squares'` fallback meant it also showed on pages with no
+  assigned variant: `/services/[slug]`, `/work`, `/work/[slug]`, `/blog`,
+  `/blog/[slug]`, `/reviews`, `/privacy`, `/terms`, and the embroidery
+  pillar page.
+- **Fix** — the stage now mounts inside `PageHero`'s `.mkt-hero` section via
+  a new `HeroStage` component and `StageContext`, with CSS that forces the
+  shared background modules to `position: absolute` inside `.mkt-hero-stage`
+  so each one fills the hero box and fades out before section 2, instead of
+  running the page's full height. `marketingStageBackground()` no longer
+  falls back to `acid-squares`; only `/about`, `/services`, `/process`, and
+  `/contact` (the four `MARKETING_STAGE_BACKGROUNDS` entries) get a stage.
+  `/privacy` and `/terms` no longer pass a `sceneVariant`. Homepage
+  (`Scene.jsx`/crystal journey) and auth pages are unchanged.
+- **Tests** — `tests/marketing-stage-background.test.mjs` rewritten to
+  assert the stage is hero-scoped, has no fallback, and privacy/terms
+  request no variant.
+- **Versioning note** — this release takes v1.44, not v1.43. The merge commit
+  `f0290ae` was titled `v1.43 — AI visibility + technical SEO assets (#212)`
+  and deployed under that name, but it bumped neither `VERSION` nor
+  `CHANGELOG.md`, so the files stayed at v1.42. v1.43 is therefore already
+  spent on a shipped deploy; reusing it would put two different deploys under
+  one name. There is intentionally no v1.43 entry below.
+
 ## v1.42 — 2026-09-20
 
 SEO content lane: publish-ready web-design-RFP blog draft for the /services/web-design pillar.

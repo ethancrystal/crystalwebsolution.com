@@ -117,6 +117,47 @@
 .mkt-hero {
   /* Give the procedural stage a beat under the title without moving type. */
   min-height: min(68vh, 40rem);
+  /* Scope the animated stage to this section: it starts just below the nav
+     and ends here, never running behind section 2 and beyond. */
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.mkt-hero > .text-plate {
+  position: relative;
+  z-index: 1;
+}
+.mkt-hero-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+/* The stage modules (components/ui/*-background.jsx) are built to cover a
+   full viewport with `position: fixed`, scoped via styled-jsx (its own
+   generated class attaches to the same selector, so its specificity can tie
+   with an ordinary override here and source order isn't guaranteed once
+   these are dynamically imported). `!important` guarantees the hero-scoped
+   layout wins without editing each shared module, which stays correct for
+   the homepage/auth surfaces that still want the full-viewport version. */
+.mkt-hero-stage .acid-squares-bg,
+.mkt-hero-stage .dot-field-bg,
+.mkt-hero-stage .faulty-terminal-bg,
+.mkt-hero-stage .letter-glitch-bg,
+.mkt-hero-stage .prism-bg,
+.mkt-hero-stage .ripple-grid-bg,
+.mkt-hero-stage .liquid-ether-bg,
+.mkt-hero-stage .alive-overlay {
+  position: absolute !important;
+}
+/* Soft fade at the bottom of the hero so the stage doesn't cut off hard
+   against section 2. */
+.mkt-hero-stage::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 22%;
+  background: linear-gradient(to bottom, transparent, var(--bg));
 }
 .mkt-section--alt { background: linear-gradient(180deg, rgba(60,108,255,0.05), rgba(192,132,252,0.04)); }
 .mkt-section-inner { max-width: 78rem; margin: 0 auto; }

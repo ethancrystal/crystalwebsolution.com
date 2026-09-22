@@ -1,20 +1,20 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import SmoothScroll from '../SmoothScroll';
 import FocusVeil from '../FocusVeil';
 import ScrollProgress from '../ScrollProgress';
 import SubpageNav from './SubpageNav';
 import MarketingFooter from './MarketingFooter';
+import { StageProvider } from './StageContext';
 
-const DarkPageBackground = dynamic(() => import('../ui/dark-page-background'), {
-  ssr: false,
-});
-
-// Inner marketing pages sit on a fixed procedural stage instead of the
-// homepage crystal. Auth uses the same cyan / silver / black family
-// (acid-squares, dot-field, faulty-terminal, letter-glitch). Homepage
-// Experience.jsx is unchanged.
+// Inner marketing pages share the homepage scroll/focus/nav chrome, but not
+// its WebGL crystal (Experience.jsx / Scene.jsx are untouched by this file).
+// Only the four top-level marketing pages below get the cyan / silver /
+// black animated stage (acid-squares, dot-field, faulty-terminal,
+// letter-glitch), and only inside their hero — see HeroStage.jsx and
+// PageHero.jsx. Every other route that renders through this shell (service
+// detail pages, work, blog, reviews, privacy, terms) gets a plain, static
+// hero with no stage.
 //
 // Animation brief: a slow, dim, brand-token field behind the type. Cursor
 // dents and CRT flicker stay ambient so the headline keeps hierarchy.
@@ -27,22 +27,23 @@ export const MARKETING_STAGE_BACKGROUNDS = {
 };
 
 export function marketingStageBackground(sceneVariant) {
-  return MARKETING_STAGE_BACKGROUNDS[sceneVariant] || 'acid-squares';
+  return MARKETING_STAGE_BACKGROUNDS[sceneVariant] ?? null;
 }
 
 export default function SubpageExperience({ children, sceneVariant }) {
   return (
     <SmoothScroll>
-      <div className="mkt-shell subpage-shell">
-        <DarkPageBackground interactive={marketingStageBackground(sceneVariant)} />
-        <FocusVeil />
-        <SubpageNav />
-        <ScrollProgress />
-        <main className="mkt-main page subpage subpage-page">
-          {children}
-        </main>
-        <MarketingFooter />
-      </div>
+      <StageProvider stage={marketingStageBackground(sceneVariant)}>
+        <div className="mkt-shell subpage-shell">
+          <FocusVeil />
+          <SubpageNav />
+          <ScrollProgress />
+          <main className="mkt-main page subpage subpage-page">
+            {children}
+          </main>
+          <MarketingFooter />
+        </div>
+      </StageProvider>
     </SmoothScroll>
   );
 }
