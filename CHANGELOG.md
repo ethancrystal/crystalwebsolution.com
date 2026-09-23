@@ -1,3 +1,25 @@
+## v1.50 — 2026-09-23
+
+Install the blog publish workflow. It was built in v1.25 but never installed.
+
+- **`docs/seo/seo-publish-blog.yml.pending` moves to
+  `.github/workflows/seo-publish-blog.yml`.** On every push to `main` that
+  touches `docs/seo/drafts/blog/**` or `scripts/seo/publish-blog-drafts.mjs`,
+  it runs the publish script. The script upserts drafts marked
+  `approved: true` into `blog_posts` as `status: draft`. It never publishes,
+  and it never overwrites a row that is already published. A person still
+  takes each post live from `/admin/blog`. It can also be run by hand from
+  the Actions tab, where it defaults to a dry run.
+- The `dry_run` input and the event name now reach the shell through `env:`
+  instead of being written into the script text.
+- The repo secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) and the
+  `SEO_BLOG_COVERS_BUCKET` variable were already set, so the workflow is live
+  as soon as this merges. Merging it does not trigger a run, because the
+  workflow file is not in its own `paths` filter.
+- **Known gap:** the `blog-covers` bucket that `SEO_BLOG_COVERS_BUCKET` names
+  does not exist in Supabase. No draft uses a cover image yet. Details are in
+  `docs/seo/OPERATIONS-MANUAL.md` item 8.
+
 ## v1.49 — 2026-09-23
 
 Blog draft for Jira KAN-11, under SEO theme 2 (digital marketing). This is
