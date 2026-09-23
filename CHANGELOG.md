@@ -1,3 +1,25 @@
+## v1.49 — 2026-09-23
+
+Blog draft for Jira KAN-11, under SEO theme 2 (digital marketing). This is
+docs only, with no route or code change.
+
+- **`docs/seo/drafts/blog/sportswear-marketing-strategy.md`**, marked
+  `approved: false`. It's a B2B sportswear marketing strategy for brands that
+  sell to teams, clubs, schools and wholesale buyers. It covers the buying
+  committee, planning backwards from the season calendar, the reorder path,
+  how to show decoration work, channel choice and measurement. It targets
+  `sportswear marketing strategy` (390/mo, difficulty 27) and
+  `sportswear marketing plan` (50/mo, difficulty 24), both from Ubersuggest in
+  the US on 2026-09-23. The SERP is informational (Forbes, Deloitte,
+  launchmetrics), and one DA-14 agency blog ranks #8. It links internally to
+  `/services/digital-marketing`, `/services/seo`,
+  `/embroidery-screen-printing-web-design`, `/blog/web-development-rfp-guide`
+  and `/contact`. It contains no statistics, client names or outcomes.
+- Both keywords are added to `docs/seo/KEYWORD-REGISTRY.md`, mapped to
+  `/blog/sportswear-marketing-strategy`.
+- The publish pipeline only upserts drafts with `approved: true`, so this
+  lands nowhere until MJ approves it.
+
 ## v1.48 — 2026-09-23
 
 SEO internal links and IndexNow fixes from Jira KAN-12 and KAN-15.
