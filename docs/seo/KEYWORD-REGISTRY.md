@@ -28,6 +28,8 @@ serves 404 (WebFetch on apex and `www`, 2026-09-10) — Operations Manual §12.
 | web design manassas va | 20 | 5 | $0.00 | — | /blog/web-design-manassas-va | **live 2026-09-06** | Monitor | **no** | 2026-09-10 |
 | web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
 | how to write a web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
+| sportswear marketing strategy | 390 | 27 | $6.34 | informational | /blog/sportswear-marketing-strategy | draft 2026-09-23 (KAN-11) | Next | no | 2026-09-23 |
+| sportswear marketing plan | 50 | 24 | $0.00 | informational | /blog/sportswear-marketing-strategy | draft 2026-09-23 (KAN-11) | Next | no | 2026-09-23 |
 
 Five of the six mapped rows are tracked in the project. `web design manassas va` is not:
 it was parked on 2026-09-02 as part of the superseded local-first ladder, and
