@@ -37,6 +37,16 @@ const RELATED_BY_SLUG = {
     { href: '/services/workflow-automation', title: 'Workflow automation' },
     { href: '/contact', title: 'Send a brief' },
   ],
+  'ai-automation-agency': [
+    { href: '/services/ai-automation', title: 'AI automation for business' },
+    { href: '/services/workflow-automation', title: 'Workflow automation' },
+    { href: '/blog/how-much-does-ai-automation-cost', title: 'How much does AI automation cost?' },
+  ],
+  'custom-react-nextjs-web-development': [
+    { href: '/services/web-development', title: 'Custom React & Next.js development' },
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+    { href: '/blog/web-development-rfp-guide', title: 'How to write a web development RFP' },
+  ],
   'web-design-manassas-va': [
     { href: '/services/web-design', title: 'Custom web design for brands' },
     { href: '/embroidery-screen-printing-web-design', title: 'Web design for embroidery shops' },

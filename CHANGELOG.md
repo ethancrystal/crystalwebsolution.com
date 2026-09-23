@@ -1,3 +1,31 @@
+## v1.48 — 2026-09-23
+
+SEO internal links and IndexNow fixes from Jira KAN-12 and KAN-15.
+
+- **Service pages now link back to their blog posts (KAN-12).** The blog
+  posts already linked to their service pillars, but no service page linked
+  to any post. `/services/branding` and `/services/logo-design` now link to
+  `/blog/branding-and-web-design-studio`. Web design, web development, AI
+  automation and workflow automation also link to their published posts. The
+  links sit in a "Further reading" section that reuses the existing
+  related-links markup, and the data is in `GUIDE_LINKS` in
+  `lib/servicePages.mjs`. `ai automation agency` is mapped to
+  `/services/ai-automation` in the keyword registry, so the anchor pointing at
+  `/blog/ai-automation-agency` avoids that term and doesn't make the post
+  compete with its own pillar.
+- **`/blog/ai-automation-agency` and `/blog/custom-react-nextjs-web-development`
+  get specific "Next" links (KAN-15).** They used to fall back to the generic
+  Services / Work / Contact set.
+- **Every IndexNow ping sent by `scripts/seo/indexnow-ping.mjs` had two
+  errors (KAN-15).** `host` was sent as `https://www.…` instead of a bare
+  hostname, and `keyLocation` pointed at `/public/<key>.txt`, which 404s
+  because Next.js serves `public/` at the root. The key file itself is live at
+  `/<key>.txt`. The payload now matches the IndexNow documentation. URLs are
+  filtered by exact origin, and the script only runs `main()` when it is
+  executed directly. IndexNow can answer 202 ("key validation pending"), so
+  the failures may never have shown up as errors.
+- New contract tests in `tests/seo-internal-links.test.mjs`.
+
 ## v1.47 — 2026-09-22
 
 Follow-up to v1.44 to v1.46 (#217). Both fixes below were pushed to that branch just after it
