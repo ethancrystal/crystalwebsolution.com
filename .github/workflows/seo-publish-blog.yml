@@ -54,8 +54,11 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SEO_BLOG_COVERS_BUCKET: ${{ vars.SEO_BLOG_COVERS_BUCKET }}
+          # Passed through env rather than interpolated into the script body.
+          EVENT_NAME: ${{ github.event_name }}
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$DRY_RUN" = "true" ]; then
             node scripts/seo/publish-blog-drafts.mjs --dry-run
           else
             node scripts/seo/publish-blog-drafts.mjs
