@@ -149,13 +149,13 @@ const SEO_SHIP_TABLE = [
   },
   {
     slug: 'branding',
-    seoTitle: 'Branding Studio for Companies',
-    h1: 'Branding systems that won’t blend in',
+    seoTitle: 'Brand Identity Design Services for Companies',
+    h1: 'Brand identity design that won’t blend in',
   },
   {
     slug: 'logo-design',
-    seoTitle: 'Custom Logo & Brand System Design',
-    h1: 'Custom logo and brand systems',
+    seoTitle: 'Custom Logo Design Services for Brands',
+    h1: 'Custom logo design and brand systems',
   },
   {
     slug: 'web-development',
@@ -164,8 +164,8 @@ const SEO_SHIP_TABLE = [
   },
   {
     slug: 'digital-marketing',
-    seoTitle: 'Digital Marketing for Brands',
-    h1: 'Digital marketing for brands',
+    seoTitle: 'Digital Marketing Agency for Brands',
+    h1: 'Digital marketing agency for brands',
   },
   {
     slug: 'seo',
