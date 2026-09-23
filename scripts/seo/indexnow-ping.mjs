@@ -10,6 +10,11 @@
 //
 // The first URL argument derives the host. With --dry-run, the payload is
 // printed to stdout and nothing is sent.
+//
+// Per https://www.indexnow.org/documentation the JSON `host` is a bare
+// hostname ("www.example.com"), and `keyLocation` must be a URL that serves
+// the key. Next.js serves public/ at the site root, so the key lives at
+// <origin>/<key>.txt — never <origin>/public/<key>.txt, which 404s.
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -31,13 +36,25 @@ function readKey(fileName) {
   return readFileSync(join(PUBLIC_DIR, fileName), 'utf8').trim();
 }
 
-function deriveHost(firstUrl) {
-  const { protocol, host } = new URL(firstUrl);
-  return protocol + '//' + host;
+export function deriveOrigin(firstUrl) {
+  return new URL(firstUrl).origin;
 }
 
-function buildPayload(host, key, keyLocation, urlList) {
-  return { host, key, keyLocation, urlList: urlList.filter(url => url.startsWith(host)) };
+// Only URLs on the same origin as the first one are sent: IndexNow answers
+// 422 for URLs that do not belong to `host`.
+export function buildPayload(origin, key, keyFile, urlList) {
+  return {
+    host: new URL(origin).host,
+    key,
+    keyLocation: `${origin}/${keyFile}`,
+    urlList: urlList.filter(url => {
+      try {
+        return new URL(url).origin === origin;
+      } catch {
+        return false;
+      }
+    }),
+  };
 }
 
 function printPayload(payload) {
@@ -73,9 +90,8 @@ async function main() {
   const { dryRun, urls } = parseArgs(process.argv);
   const keyFile = findKeyFile();
   const key = readKey(keyFile);
-  const host = deriveHost(urls[0]);
-  const keyLocation = host + '/public/' + keyFile;
-  const payload = buildPayload(host, key, keyLocation, urls);
+  const origin = deriveOrigin(urls[0]);
+  const payload = buildPayload(origin, key, keyFile, urls);
 
   if (dryRun) {
     console.log('--- IndexNow payload (dry run) ---');
@@ -86,9 +102,13 @@ async function main() {
     return;
   }
 
-  console.log(`Pinging IndexNow for ${payload.urlList.length} URL(s) on ${host} ...`);
+  console.log(`Pinging IndexNow for ${payload.urlList.length} URL(s) on ${payload.host} ...`);
   const response = await sendPing(payload);
+  // 202 means "received, key validation pending", not verified success.
   console.log(`IndexNow responded ${response.status} ${response.statusText}`);
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+// Run only as a CLI, so tests can import buildPayload without side effects.
+if (process.argv[1] && resolve(process.argv[1]) === __filename) {
+  main().catch(err => { console.error(err); process.exit(1); });
+}
