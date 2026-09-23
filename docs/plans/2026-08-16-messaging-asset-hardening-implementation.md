@@ -1,5 +1,13 @@
 # CRM Messaging and Asset Hardening Implementation Plan
 
+> **Historical note (added 2026-09-22):** this plan was authored against the
+> Next.js 15 baseline. The application now runs Next.js 16 (`package.json`
+> `next: ^16.3.5`), moved by dependabot in #204. The plan is kept as the dated
+> record of what was done at the time; validate any implementation detail
+> against the current `package.json` and test suite rather than the version
+> named below.
+
+
 > **For agentic workers:** Implement this plan task-by-task with the repository’s red-test → minimal implementation → full verification → review → pull-request protocol.
 
 **Goal:** Make project messaging and project-file access retry-safe, project-scoped, visibility-safe, and protected against direct storage-path downloads while preserving the existing three-role CRM architecture.

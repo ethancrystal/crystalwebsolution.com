@@ -3,6 +3,7 @@ import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
 import { SITE } from '../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import MarketingShell from '../../components/marketing/MarketingShell';
+import HeroStage from '../../components/marketing/HeroStage';
 import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 import FaqSchema from '../../components/marketing/FaqSchema';
@@ -69,9 +70,10 @@ function Rating({ value }) {
 
 export default function ReviewsPage() {
   return (
-    <MarketingShell>
+    <MarketingShell sceneVariant="reviews">
       <main className="reviews-index mkt-inner">
         <section className="reviews-hero" aria-labelledby="reviews-title">
+          <HeroStage />
           <p className="eyebrow"><SectionReveal as="span" direction="left">Client feedback</SectionReveal></p>
           <SectionReveal as="h1" id="reviews-title" className="page-title" direction="left" delay={0.05}>
             What clients said, in their own words.

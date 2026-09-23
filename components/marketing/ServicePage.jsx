@@ -110,6 +110,21 @@ export default function ServicePage({ page }) {
         </ContentSection>
       )}
 
+      {page.guideLinks?.length > 0 && (
+        <ContentSection eyebrow="From the blog" title="Further reading" tone="alt">
+          <ul className="mkt-related">
+            {page.guideLinks.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="mkt-related-link">
+                  <span className="mkt-related-title">{link.label}</span>
+                  <span className="mkt-related-arrow" aria-hidden="true">→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </ContentSection>
+      )}
+
       <ContentSection eyebrow="See our work" title={relatedWork.length ? 'Related projects' : 'Every project, one standard'}>
         {relatedWork.length > 0 && (
           <ul className="mkt-work-grid">

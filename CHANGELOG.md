@@ -1,22 +1,164 @@
+## v1.48 — 2026-09-23
+
+SEO internal links and IndexNow fixes from Jira KAN-12 and KAN-15.
+
+- **Service pages now link back to their blog posts (KAN-12).** The blog
+  posts already linked to their service pillars, but no service page linked
+  to any post. `/services/branding` and `/services/logo-design` now link to
+  `/blog/branding-and-web-design-studio`. Web design, web development, AI
+  automation and workflow automation also link to their published posts. The
+  links sit in a "Further reading" section that reuses the existing
+  related-links markup, and the data is in `GUIDE_LINKS` in
+  `lib/servicePages.mjs`. `ai automation agency` is mapped to
+  `/services/ai-automation` in the keyword registry, so the anchor pointing at
+  `/blog/ai-automation-agency` avoids that term and doesn't make the post
+  compete with its own pillar.
+- **`/blog/ai-automation-agency` and `/blog/custom-react-nextjs-web-development`
+  get specific "Next" links (KAN-15).** They used to fall back to the generic
+  Services / Work / Contact set.
+- **Every IndexNow ping sent by `scripts/seo/indexnow-ping.mjs` had two
+  errors (KAN-15).** `host` was sent as `https://www.…` instead of a bare
+  hostname, and `keyLocation` pointed at `/public/<key>.txt`, which 404s
+  because Next.js serves `public/` at the root. The key file itself is live at
+  `/<key>.txt`. The payload now matches the IndexNow documentation. URLs are
+  filtered by exact origin, and the script only runs `main()` when it is
+  executed directly. IndexNow can answer 202 ("key validation pending"), so
+  the failures may never have shown up as errors.
+- New contract tests in `tests/seo-internal-links.test.mjs`.
+
+## v1.47 — 2026-09-22
+
+Follow-up to v1.44 to v1.46 (#217). Both fixes below were pushed to that branch just after it
+merged, so neither shipped with it.
+
+- **Hero backgrounds covered only part of the hero** (owner report, most
+  visible on `/services`). Three stage modules, dot-field, letter-glitch and
+  ripple-grid, resized only when the window resized, and two of them pin
+  the canvas to fixed pixel sizes. Inside a hero the box keeps changing
+  height after mount as fonts load and reveals run. So the canvas stayed at
+  its first, smaller measurement. All three now watch their container with
+  a ResizeObserver, like the other four already did, and a test pins it for
+  all seven. The viewport-tuned `.alive-overlay` vignette also crushed the
+  hero's side edges, and its third glow sat dead centre. Both are
+  re-tuned inside the hero so the light spans the full width.
+- **Reduced motion now stops the animation, not just hides it.** A module
+  hidden with `display: none` still ran its requestAnimationFrame loop and
+  held a WebGL context. `DarkPageBackground` no longer mounts the module under
+  `(prefers-reduced-motion: reduce), (max-width: 767px)`, and it unmounts the
+  module if the preference changes mid-session. This covers auth pages too.
+- A shared diagonal "brand streak" across every hero was tried and then
+  removed at the owner's request. It does not ship.
+- **Service marks start still.** `ServiceGlyph`'s reduced-motion hook started at
+  `false`, so the SMIL marks could animate for one render before the visitor's
+  preference was read. It now starts at `true`, and motion turns on only after
+  matchMedia confirms it is allowed.
+
+## v1.46 — 2026-09-22
+
+Make the service emblems mean something. The owner's read of the previous
+set — "these blue shapes that each page has" — was fair: every service page
+opened on an abstract 3D object that said nothing about the service.
+
+- **Root cause was motion, not just shape** — `ServiceEmblem3D` spun each
+  form a full 360 degrees on Y. The forms were authored to be read face-on
+  (a viewport with a cursor, a layered stack), so half of every cycle showed
+  them edge-on, collapsed into an unreadable sliver. The spin is replaced by
+  a bounded sway (about 23 degrees of yaw, 7 of pitch; `rotSpeed` still sets
+  each signal's tempo). The form now always faces the reader and still reads
+  as a solid with depth on its edges. Scale 1.35 to 1.5.
+- **Forms rebuilt as literal objects** in `lib/serviceSignalGeometry.mjs`,
+  still procedural primitives, still one source of truth shared with the
+  homepage rail: browser window (web), `</>` (development), tag with eyelet
+  (brand), constructed mark in a ring (logo), megaphone (marketing), play
+  button (animation, still the one wireframe form), thickened node network
+  (ai), thickened relay with arrow (workflow), magnifying glass (seo). The
+  brand form took three tries: two card-stack versions fused into one blob
+  in a single flat colour; the tag works because its outline alone is
+  iconic, the same reason the magnifier and play button work.
+- **Inline SMIL marks redesigned** and moved to `components/marketing/
+  ServiceGlyph.jsx` (single source, shared by `ServiceEmblem`). Each shows the
+  service's value rather than decorating: a headline that writes itself and
+  a CTA that lands, a funnel that converts, a result that climbs to first.
+  Reduced-motion still strips SMIL from the tree.
+- **Tooltip copy extracted** to `lib/serviceSignalBlurbs.mjs` so it is not
+  duplicated. `vitest.setup.js` gains a `matchMedia` shim, matching its
+  existing `ResizeObserver` one, so components that gate on reduced motion
+  can render under jsdom.
+- **Scope note** — an SVG-only hero variant was built and verified, then
+  dropped the same day when the owner chose to keep React Three Fiber. Only
+  the shared geometry, the sway, the SMIL glyphs and the blurb extraction
+  ship.
+
+## v1.45 — 2026-09-22
+
+Extend the hero stage to the four index/detail surfaces the owner asked for,
+each with its own React Bits module, restyled to site tokens and dimmed to a
+single shared level.
+
+- **New stages** — `/services/[slug]` gets prism, `/work` ripple-grid, `/blog`
+  liquid-ether, `/reviews` dot-field. Seven modules exist and the four
+  top-level pages already take one each, so `reviews` reuses dot-field, the
+  quietest of the set and the right register for a text-dense page.
+- **Brand colors enforced at the source** — ripple-grid shipped vendor purple
+  `#8a5cff` and liquid-ether `['#5227FF','#89f7ff','#B497CF']`. Both now
+  default to site tokens (`--blue` `#3c6cff`, `--cyan` `#59f3ff`, `--muted`
+  `#8b98b8`), so no code path can render the demo palette. Prism gained a
+  `saturation` prop (defaulting to the vendor value, so existing behavior is
+  unchanged) and the wrapper pulls it to near-monochrome with a cyan hue
+  shift, low glow/bloom and a slow `timeScale`.
+- **One prominence knob** — `.mkt-hero-stage { opacity }` sets how loud every
+  stage reads, instead of editing each module. Full-viewport auth surfaces
+  are unaffected.
+- **Band variant** — `/work`'s first section is the entire index, so it has no
+  hero box to fill. `HeroStage variant="band"` paints a height-capped band at
+  the top of the container, fading into `--bg` before the project library.
+- **Scope** — `/work/[slug]`, `/blog/[slug]`, the embroidery pillar,
+  `/privacy` and `/terms` were not requested and still get no stage. The
+  no-fallback rule from v1.44 is unchanged and still covered by tests.
+
 ## v1.44 — 2026-09-22
 
-Service pillars carry their head terms, and every /services/* page gains visual proof.
+Scope the animated stage background to the hero on the four main marketing
+pages; remove it from every inner page it had leaked onto.
 
-- **SEO** — `/services/branding`, `/services/logo-design` and `/services/digital-marketing` now
-  carry their KEYWORD-REGISTRY head term in `seoTitle`, `h1`, `metaDescription` and the opening
-  line: `brand identity design` (18,100/mo), `logo design` (40,500/mo) and `digital marketing
-  agency` (49,500/mo). The `SEO_SHIP_TABLE` contract in `tests/marketing.test.mjs` was updated in
-  the same commit. `hero` is untouched on every page — it is asserted equal to the homepage
-  `SERVICES[].desc`, so changing it would move the homepage and the 3D rail.
-- **Design** — `components/marketing/ServicePage.jsx`: related projects render as a
-  `ProjectVisual` tile grid instead of text rows (the same palette-driven procedural visual
-  `/work` and the case studies use — no image assets); capabilities render as
-  `.mkt-principles` cards with their detail sentence instead of a bullet list; a
-  `ServiceThreadArc` divider marks the hand-off into the contact section. All nine service
-  pages inherit this from the shared template.
-- **Note** — `/services/web-design` is deliberately unchanged: theme 1's head term
-  `websites designers` is a malformed plural that cannot be placed in a title or H1 without
-  hurting the page. Pending MJ's ruling on replacing it.
+- **Bug fix** — the cyan/silver stage (acid-squares, dot-field,
+  faulty-terminal, letter-glitch) rendered `position: fixed`, so it covered
+  the full scroll height of any page through `SubpageExperience`, and a
+  silent `|| 'acid-squares'` fallback meant it also showed on pages with no
+  assigned variant: `/services/[slug]`, `/work`, `/work/[slug]`, `/blog`,
+  `/blog/[slug]`, `/reviews`, `/privacy`, `/terms`, and the embroidery
+  pillar page.
+- **Fix** — the stage now mounts inside `PageHero`'s `.mkt-hero` section via
+  a new `HeroStage` component and `StageContext`, with CSS that forces the
+  shared background modules to `position: absolute` inside `.mkt-hero-stage`
+  so each one fills the hero box and fades out before section 2, instead of
+  running the page's full height. `marketingStageBackground()` no longer
+  falls back to `acid-squares`; only `/about`, `/services`, `/process`, and
+  `/contact` (the four `MARKETING_STAGE_BACKGROUNDS` entries) get a stage.
+  `/privacy` and `/terms` no longer pass a `sceneVariant`. Homepage
+  (`Scene.jsx`/crystal journey) and auth pages are unchanged.
+- **Tests** — `tests/marketing-stage-background.test.mjs` rewritten to
+  assert the stage is hero-scoped, has no fallback, and privacy/terms
+  request no variant.
+- **Platform-version reconciliation** — `package.json` has run Next 16
+  (`^16.3.5`) since dependabot's #204, but the contract test still asserted
+  major `15`, so `pnpm test` exited 1 on `main`. Updated the assertion to 16
+  and renamed the file from `tests/crm/next15-upgrade.test.mjs` to
+  `tests/crm/next-platform-contract.test.mjs` so the name stops naming one
+  version. The same stale "Next.js 15" claim was corrected in the active docs:
+  `README.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `MEMORY.md` and
+  `docs/SENTRY-NEXTJS.md`. Dated plans under `docs/plans/` keep their Next 15
+  wording as historical record; the two most likely to mislead now carry a
+  historical note instead.
+- **README migration range** — replaced the stale `0001` through `0011`
+  statement (the directory head is `0042`, 43 files) with a pointer to inspect
+  the directory, matching the rule already stated in `CLAUDE.md`.
+- **Versioning note** — this release takes v1.44, not v1.43. The merge commit
+  `f0290ae` was titled `v1.43 — AI visibility + technical SEO assets (#212)`
+  and deployed under that name, but it bumped neither `VERSION` nor
+  `CHANGELOG.md`, so the files stayed at v1.42. v1.43 is therefore already
+  spent on a shipped deploy; reusing it would put two different deploys under
+  one name. There is intentionally no v1.43 entry below.
 
 ## v1.42 — 2026-09-20
 

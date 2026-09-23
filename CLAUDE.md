@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-CD Sportswear INC is a Next.js 15 / React 19 application containing a dark,
+CD Sportswear INC is a Next.js 16 / React 19 application containing a dark,
 cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
 The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM
 scrolls over it while a virtual camera flies through one continuous 3D space
@@ -112,10 +112,44 @@ Run a single test file directly with Node's runner, e.g.
 `node --test tests/contactForm.test.mjs` or `node --test tests/crm/<file>.test.mjs`
 (glob a subset with `node --test tests/crm/*.test.mjs`, matching `test:crm`'s pattern).
 
+**`tests/*.test.mjs` is not the whole suite.** `pnpm test` is
+`node --test tests/*.test.mjs tests/crm/*.test.mjs` — two globs. Running only
+the first passes ~205 tests and silently skips every CRM contract; that is how
+a red `tests/crm/` assertion sat on `main` unnoticed. Run `pnpm test` before
+claiming the suite is green.
+
 There is no lint script configured in `package.json`; do not invent one.
 Run the relevant Node tests, verify application changes in a real browser,
 and require `pnpm build` for routes/imports. This repository is pinned to
 pnpm in `package.json`; do not switch package managers.
+
+### Local build gotchas
+
+- **`pnpm build` currently fails on Windows and passes on CI.** It dies
+  prerendering `/_global-error`, `/services` and `/contact` with
+  `TypeError: Cannot read properties of null (reading 'useContext')`.
+  Confirmed 2026-09-22 against unmodified `main` (`f0290ae`) with CI's env
+  vars, so it is not caused by whatever you are working on, and
+  `/_global-error` is a plain Sentry boundary that imports no app code. The
+  same commit reports `Build: success` on ubuntu CI and deploys cleanly on
+  Vercel. Don't spend a session chasing it; confirm against CI instead.
+- **`next build` and `next dev` rewrite `tsconfig.json`** — they flip
+  `"jsx": "preserve"` to `"react-jsx"` and reformat the arrays. It is a
+  generated artifact, not your edit. Check `git status` after any build and
+  `git checkout -- tsconfig.json` before committing.
+- To reproduce the CI build locally, supply the placeholders its workflow
+  uses (`.github/workflows/docker-ci.yml`, `test` job), otherwise client env
+  vars throw:
+  ```bash
+  NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co \
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key \
+  NEXT_PUBLIC_APP_URL=https://placeholder.invalid \
+  pnpm build
+  ```
+- CI's merge gate is the `test` job in `.github/workflows/docker-ci.yml`: it
+  runs `pnpm test`, `pnpm test:marketing` and `pnpm build` in that order, on
+  ubuntu with node 24. `gh pr checks <n>` reads it; per-step results come from
+  `gh api repos/ethancrystal/crystalwebsolution.com/actions/jobs/<job-id>`.
 
 ## Architecture
 
@@ -180,6 +214,21 @@ move together.
 - Sections communicate with their 3D counterpart only through the
   singletons above (or GSAP ScrollTrigger), never via props/context across
   the DOM/canvas boundary.
+- Inner marketing pages do **not** use `Scene.jsx`. They render through
+  `MarketingShell` -> `SubpageExperience`, which passes a stage name (or
+  `null`) down via `StageContext`; `HeroStage` inside `PageHero` mounts the
+  matching `components/ui/*-background.jsx` module. Only the four variants in
+  `MARKETING_STAGE_BACKGROUNDS` (about, services, process, contact) get one —
+  there is deliberately no fallback, so a page with no `sceneVariant` renders
+  no stage. Two gates apply: a whitelisted variant *and* a rendered
+  `PageHero`.
+- Those background modules are authored `position: fixed; inset: 0` for
+  full-viewport use (auth pages still want that). To box one into a section,
+  override it to `position: absolute` under a positioned wrapper, as
+  `.mkt-hero-stage` does in `app/styles/service-pages.css`; their canvases
+  size themselves from the parent's `getBoundingClientRect()`, so they follow
+  automatically. `.hero-caustics` in `app/styles/hero.css` is the same idiom
+  on the homepage hero.
 - `FocusVeil.jsx` + `FocusDimmer.jsx` are a paired DOM/canvas mechanism: a
   `[data-quiet]` DOM section (see markup in `components/sections/`) fades in
   a gradient veil and raises `scrollState.focus`, which the in-canvas
@@ -270,3 +319,9 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
    deploy is identifiable in Vercel's deploy list.
 3. `package.json`'s `version` field is NOT part of this scheme — leave it.
 4. Never skip or reuse numbers; next = top of `CHANGELOG.md` + 0.01.
+5. **Check the merge log, not just the files.** A PR can be *titled* `vX.NN`
+   and deploy under that name while bumping neither file, so `VERSION` can lag
+   what production is actually called. That happened with v1.43 (`f0290ae`),
+   which is why v1.43 has no `CHANGELOG.md` entry and v1.44 follows v1.42.
+   Before picking a number, run `git log --oneline -5 main` and take one above
+   the highest version *named there*, not just the highest in the file.
