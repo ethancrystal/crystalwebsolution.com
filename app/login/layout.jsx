@@ -1,34 +1,32 @@
-import { SITE } from '../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
-// /login is a public entry point and is indexable by MJ's decision (2026-09-11):
-// the earlier `noindex` here — added when Screaming Frog counted the auth pages
-// among the 15 canonicalised pages diluting the indexed set — has been reversed,
-// and the matching `Disallow: /login` removed from app/robots.js. This segment
-// layout is the only place a 'use client' page can declare metadata, so the
-// robots directive and the self-canonical live here.
+// /login is noindex, follow (MJ, 2026-09-24 — reverses the 2026-09-11 decision).
+// Ubersuggest flagged it as thin content (17 words): a sign-in form has nothing
+// to rank for, and brand searches ("cd sportswear") should land on the homepage.
+// It stays crawlable (NOT disallowed in app/robots.js) so Google can actually
+// read the noindex and drop it. `follow` keeps link equity flowing to the site.
 //
-// The role-specific portals at /login/{admin,client,employee} are NOT covered by
-// this: each declares its own `robots: { index: false, follow: false }`, which
-// overrides what it would otherwise inherit from this file.
-const TITLE = 'Log in';
+// The role-specific portals at /login/{admin,client,employee} declare their own
+// `robots: { index: false, follow: false }` and are also disallowed in robots.js.
+const TITLE = 'Client Portal Log In — CD Sportswear INC';
 const DESCRIPTION = 'Sign in to the CD Sportswear INC client, employee, or admin portal.';
 
 export const metadata = {
-  title: TITLE,
+  // `absolute` so the root `%s | brand` template doesn't append the brand twice.
+  title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: { canonical: '/login' },
-  robots: { index: true, follow: true },
+  robots: { index: false, follow: true },
   openGraph: {
     type: 'website',
     url: absoluteUrl('/login'),
-    title: `${TITLE} | ${SITE.name}`,
+    title: TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${TITLE} | ${SITE.name}`,
+    title: TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },

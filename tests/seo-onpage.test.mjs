@@ -129,7 +129,7 @@ test('robots policy excludes the private employee route', () => {
   assert.match(code, /['"]\/team['"]/, 'robots policy must disallow /team');
 });
 
-test('indexable auth entry points publish their own Open Graph URL', () => {
+test('auth entry points publish their own Open Graph URL', () => {
   for (const [file, route] of [
     ['app/login/layout.jsx', '/login'],
     ['app/signup/layout.jsx', '/signup'],
@@ -164,7 +164,7 @@ test('sitemap lists public marketing URLs and excludes CRM and unbuilt landings'
   assert.match(code, /SITE_ORIGIN/, 'sitemap locs must come from the canonical origin');
   assert.match(code, /\/blog/, 'published blog index belongs in the sitemap');
   assert.match(code, /listPublishedSlugs/, 'published posts belong in the sitemap');
-  assert.doesNotMatch(code, /\/login/, 'login is indexable but not a sitemap URL');
+  assert.doesNotMatch(code, /\/login/, 'login is noindex and not a sitemap URL');
   assert.doesNotMatch(code, /\/dashboard/, 'CRM routes must not appear in the sitemap');
   assert.doesNotMatch(code, /hire\/shopify/, 'unbuilt landing pages must not appear in the sitemap');
 });

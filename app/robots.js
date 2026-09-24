@@ -8,9 +8,9 @@ import { SITE_ORIGIN } from '../lib/seo.mjs';
 // `robots: { index: false }` metadata is the authoritative signal — these rules
 // stop crawlers requesting them in the first place.
 //
-// /login and /signup are deliberately NOT disallowed (MJ, 2026-09-11): they are
-// public, brand-relevant entry points and are meant to be indexable. Their
-// segment layouts now declare `robots: { index: true, follow: true }`. The three
+// /login and /signup are deliberately NOT disallowed: since 2026-09-24 (MJ) they
+// carry a page-level `noindex, follow`, and a crawler has to be able to fetch
+// them to see it — disallowing them here would stop them being dropped. The three
 // role-specific portals under /login/* stay blocked — they are duplicates of
 // /login with no public audience — and keep their own page-level noindex.
 export default function robots() {

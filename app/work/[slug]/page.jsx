@@ -40,7 +40,14 @@ export async function generateMetadata({ params }) {
     ? `${project.summary.slice(0, 157).trimEnd()}…`
     : project.summary;
 
-  const titleStem = `${project.title} — ${project.category}`;
+  // Keep the rendered <title> at or under 65 chars (Ubersuggest flags longer ones
+  // as truncated in results). When "<title> — <category> | <brand>" is too long,
+  // fall back to the shorter "<title> — Case Study" stem so the brand survives.
+  const MAX_TITLE = 65;
+  const categoryStem = `${project.title} — ${project.category}`;
+  const titleStem = `${categoryStem} | ${SITE.name}`.length > MAX_TITLE
+    ? `${project.title} — Case Study`
+    : categoryStem;
   const brandedTitle = `${titleStem} | ${SITE.name}`;
   const titleRepeatsBrand = project.title === SITE.name;
 

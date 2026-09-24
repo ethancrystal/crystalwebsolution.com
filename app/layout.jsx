@@ -67,7 +67,8 @@ const JSON_LD = {
       '@type': ['Organization', 'ProfessionalService'],
       '@id': ORG_ID,
       name: SITE.name,
-      alternateName: SITE.short,
+      // Brand-search variants (MJ, 2026-09-24: track + rank for "cd sportswear").
+      alternateName: ['CD Sportswear', 'CD Sportswear Inc', SITE.short],
       url: `${SITE_URL}/`,
       email: SITE.email,
       telephone: SITE.phone,
@@ -136,6 +137,7 @@ const JSON_LD = {
       '@id': WEBSITE_ID,
       url: `${SITE_URL}/`,
       name: SITE.name,
+      alternateName: ['CD Sportswear', 'CD Sportswear Inc'],
       description:
         'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',
       publisher: { '@id': ORG_ID },
