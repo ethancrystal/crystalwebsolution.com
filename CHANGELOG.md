@@ -25,6 +25,10 @@ every pageview is counted twice.
   still needs its origin added to the CSP before it can run.
 - Tests: GTM ID resolution, load-once, consent ordering with and without
   GA4, disabled container, public-page gating, noscript fallback and CSP.
+- CI fix: `tests/seo-onpage.test.mjs` still asserted `/hire/shopify-developer`
+  was an unbuilt landing that must stay out of the sitemap. The page has
+  been built and indexable since `d56f22c` (#208), so the assertion now
+  checks the page is listed. This was red on `main` too.
 
 ## v1.51 — 2026-09-24
 

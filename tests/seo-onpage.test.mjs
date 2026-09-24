@@ -159,14 +159,14 @@ test('privacy and terms do not stamp a fresh last-updated date on every render',
   }
 });
 
-test('sitemap lists public marketing URLs and excludes CRM and unbuilt landings', () => {
+test('sitemap lists public marketing URLs and excludes CRM routes', () => {
   const code = source('app/sitemap.js');
   assert.match(code, /SITE_ORIGIN/, 'sitemap locs must come from the canonical origin');
   assert.match(code, /\/blog/, 'published blog index belongs in the sitemap');
   assert.match(code, /listPublishedSlugs/, 'published posts belong in the sitemap');
   assert.doesNotMatch(code, /\/login/, 'login is indexable but not a sitemap URL');
   assert.doesNotMatch(code, /\/dashboard/, 'CRM routes must not appear in the sitemap');
-  assert.doesNotMatch(code, /hire\/shopify/, 'unbuilt landing pages must not appear in the sitemap');
+  assert.match(code, /\/hire\/shopify-developer/, 'the built, indexable Shopify landing belongs in the sitemap');
 });
 
 test('marketing footer includes the blog in the explore set', () => {
