@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendInviteEmail } from '../lib/email/resend.js';
 
-// Must match public.pinned_admin_email() after migration 0042.
-const ADMIN_EMAIL = 'ethan@cdsportswearinc.com';
+// Must match public.pinned_admin_email() after migration 0043.
+const ADMIN_EMAIL = 'moizj00@gmail.com';
 const EMPLOYEE_EMAIL = 'ethan+employee@crystalwebsolution.com';
 const CLIENT_EMAIL = 'ethan+client@crystalwebsolution.com';
 
 const TEST_USERS = Object.freeze([
-  { email: ADMIN_EMAIL, role: 'admin', fullName: 'Ethan Admin' },
+  { email: ADMIN_EMAIL, role: 'admin', fullName: 'Moiz Jamil' },
   { email: EMPLOYEE_EMAIL, role: 'project_manager', fullName: 'Ethan Employee' },
   { email: CLIENT_EMAIL, role: 'client', fullName: 'Ethan Client' },
 ]);

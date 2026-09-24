@@ -8,10 +8,12 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select plan(1);
 
+-- 0043 moved the pin again, and this suite runs against the full migration
+-- chain, so the live function returns 0043's address.
 select is(
   public.pinned_admin_email(),
-  'ethan@cdsportswearinc.com',
-  '0042 pins the admin role to the current production mailbox'
+  'moizj00@gmail.com',
+  'the admin pin resolves to the current owner-approved address (0043)'
 );
 
 select * from finish();

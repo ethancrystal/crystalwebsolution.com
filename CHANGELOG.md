@@ -1,3 +1,22 @@
+## v1.51 — 2026-09-23
+
+Move the CRM admin to Moiz Jamil (owner-approved).
+
+- **Migration `0043_pin_admin_to_moiz.sql`.** `public.pinned_admin_email()`
+  now returns `moizj00@gmail.com`. The old admin, `ethan@cdsportswearinc.com`,
+  had never signed in. The existing `moizj00@gmail.com` account (currently a
+  client) is promoted to admin, and any other admin is demoted to
+  `project_manager`, following 0042's pattern. The single-admin design from
+  0014 is unchanged: one pinned address, a unique index and a trigger.
+  Applying the migration to production is a separate step from merging.
+- Lead-capture RPCs (0026, 0029) attribute new leads to the pinned admin, so
+  new leads now attribute to Moiz.
+- `scripts/provision-crm-test-users.mjs` and the 0042 pgTAP check follow the
+  new pin. New contract test: `tests/crm/migration-0043-pin-admin-to-moiz.test.mjs`.
+- Password reset needs no code change. `/forgot-password` already emails a
+  recovery link through Resend, and `/auth/reset-password` sets the new
+  password and sends an admin to `/admin`.
+
 ## v1.50 — 2026-09-23
 
 Install the blog publish workflow. It was built in v1.25 but never installed.
