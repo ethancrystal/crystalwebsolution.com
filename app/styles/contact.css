@@ -175,8 +175,8 @@
   grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
   font-family: var(--font-mono);
   font-size: 0.7rem;
@@ -184,6 +184,13 @@
   letter-spacing: 0.06em;
   padding-top: 2rem;
 }
-.footer-legal { display: flex; gap: 1.25rem; }
-.footer-legal a { color: var(--muted); font-size: 0.7rem; letter-spacing: 0.06em; }
-.footer-legal a:hover { color: var(--cyan); }
+.footer-legal {
+  display: flex;
+  gap: 1.5rem;
+}
+.footer-legal a {
+  color: var(--muted);
+}
+.footer-legal a:hover {
+  color: var(--cyan);
+}

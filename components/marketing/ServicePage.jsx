@@ -3,7 +3,10 @@ import PageHero from './PageHero';
 import ContentSection from './ContentSection';
 import ContactForm from './ContactForm';
 import ServiceEmblem from './ServiceEmblem';
+import ServiceThreadArc from './ServiceThreadArc';
+import ProjectVisual from '../ProjectVisual';
 import { getRelatedServices } from '../../lib/servicePages.mjs';
+import { getProject } from '../../lib/projects';
 import { SITE } from '../../lib/site';
 
 // ServicePage renders one full service record from lib/servicePages.mjs.
@@ -11,6 +14,9 @@ import { SITE } from '../../lib/site';
 // component. No homepage WebGL runtime is imported.
 export default function ServicePage({ page }) {
   const related = getRelatedServices(page);
+  const relatedWork = (page.relatedWorkSlugs || [])
+    .map((slug) => getProject(slug))
+    .filter(Boolean);
 
   return (
     <article className="mkt-service">
@@ -29,12 +35,12 @@ export default function ServicePage({ page }) {
       </ContentSection>
 
       <ContentSection eyebrow="Capabilities" title="What we do" tone="alt">
-        <ul className="mkt-list">
+        <ul className="mkt-principles mkt-principles--service">
           {page.capabilities.map((item, i) => (
-            <li key={item}>
-              {item}
+            <li key={item} className="mkt-principle">
+              <h3 className="mkt-principle-title">{item}</h3>
               {page.capabilityDetails?.[i] && (
-                <span className="mkt-list-detail"> — {page.capabilityDetails[i]}</span>
+                <p className="mkt-principle-body">{page.capabilityDetails[i]}</p>
               )}
             </li>
           ))}
@@ -104,11 +110,54 @@ export default function ServicePage({ page }) {
         </ContentSection>
       )}
 
-      <ContentSection eyebrow="See our work" title="Every project, one standard">
-        <Link href="/work" className="mkt-related-link">
-          <span className="mkt-related-title">See the work →</span>
-        </Link>
+      {page.guideLinks?.length > 0 && (
+        <ContentSection eyebrow="From the blog" title="Further reading" tone="alt">
+          <ul className="mkt-related">
+            {page.guideLinks.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="mkt-related-link">
+                  <span className="mkt-related-title">{link.label}</span>
+                  <span className="mkt-related-arrow" aria-hidden="true">→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </ContentSection>
+      )}
+
+      <ContentSection eyebrow="See our work" title={relatedWork.length ? 'Related projects' : 'Every project, one standard'}>
+        {relatedWork.length > 0 && (
+          <ul className="mkt-work-grid">
+            {relatedWork.map((project, i) => (
+              <li key={project.slug} className="mkt-work-card">
+                <Link href={`/work/${project.slug}`} className="mkt-work-card-link">
+                  <ProjectVisual
+                    palette={project.palette}
+                    title={project.title}
+                    variant={i}
+                    ratio="16 / 9"
+                    label={`${project.title} — ${project.category}`}
+                  />
+                  <span className="mkt-work-card-meta">
+                    <span className="mkt-work-card-title">{project.title}</span>
+                    <span className="mkt-work-card-category">{project.category}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        <ul className="mkt-related">
+          <li>
+            <Link href="/work" className="mkt-related-link">
+              <span className="mkt-related-title">{relatedWork.length ? 'All selected work' : 'See the work'}</span>
+              <span className="mkt-related-arrow" aria-hidden="true">→</span>
+            </Link>
+          </li>
+        </ul>
       </ContentSection>
+
+      <ServiceThreadArc />
 
       <ContentSection eyebrow="Start" title="Let’s talk">
         <p className="mkt-prose">{page.finalCta}</p>

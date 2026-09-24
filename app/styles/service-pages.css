@@ -57,7 +57,9 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
+  /* Transparent so DarkPageBackground (fixed, z-index 0) reads as the stage.
+     Body --bg remains the black base. Homepage Experience is unaffected. */
+  background: transparent;
 }
 .mkt-main { flex: 1 0 auto; }
 
@@ -112,6 +114,106 @@
 
 /* --- hero / sections --- */
 .mkt-hero, .mkt-section { padding: clamp(2.5rem, 7vw, 6rem) clamp(1.25rem, 5vw, 4rem); }
+.mkt-hero {
+  /* Give the procedural stage a beat under the title without moving type. */
+  min-height: min(68vh, 40rem);
+  /* Scope the animated stage to this section: it starts just below the nav
+     and ends here, never running behind section 2 and beyond. */
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.mkt-hero > .text-plate {
+  position: relative;
+  z-index: 1;
+}
+.mkt-hero-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* One knob for how loud every stage reads. The modules are authored at
+     demo strength; the brief for this site is a quiet field behind the type,
+     so they are dimmed here rather than in each module — auth pages and any
+     other full-viewport use keep full strength. */
+  opacity: 0.78;
+}
+
+/* Pages whose first section is the whole article (/work, the embroidery
+   pillar) have no hero box to fill, so the stage paints a fixed band at the
+   top of the container instead of stretching to the section's full height. */
+.mkt-hero-stage--band {
+  inset: 0 0 auto 0;
+  height: min(62vh, 34rem);
+}
+
+/* Hosts: any section that should carry a stage needs a stacking context and
+   clipping so the absolutely-positioned stage cannot escape it. */
+.mkt-hero,
+.blog-hero,
+.reviews-hero,
+.work-index,
+.case.mkt-inner {
+  position: relative;
+  isolation: isolate;
+}
+.blog-hero,
+.reviews-hero {
+  overflow: hidden;
+}
+/* Keep every direct child of a stage host above the stage — but never the
+   stage itself, or this rule would reset its `position: absolute` back to
+   `relative` and collapse it to zero height. */
+.blog-hero > *:not(.mkt-hero-stage),
+.reviews-hero > *:not(.mkt-hero-stage),
+.work-index > *:not(.mkt-hero-stage),
+.case.mkt-inner > *:not(.mkt-hero-stage) {
+  position: relative;
+  z-index: 1;
+}
+/* The stage modules (components/ui/*-background.jsx) are built to cover a
+   full viewport with `position: fixed`, scoped via styled-jsx (its own
+   generated class attaches to the same selector, so its specificity can tie
+   with an ordinary override here and source order isn't guaranteed once
+   these are dynamically imported). `!important` guarantees the hero-scoped
+   layout wins without editing each shared module, which stays correct for
+   the homepage/auth surfaces that still want the full-viewport version. */
+.mkt-hero-stage .acid-squares-bg,
+.mkt-hero-stage .dot-field-bg,
+.mkt-hero-stage .faulty-terminal-bg,
+.mkt-hero-stage .letter-glitch-bg,
+.mkt-hero-stage .prism-bg,
+.mkt-hero-stage .ripple-grid-bg,
+.mkt-hero-stage .liquid-ether-bg,
+.mkt-hero-stage .alive-overlay {
+  position: absolute !important;
+}
+/* The .alive-overlay in dark-page-background.jsx is tuned for a full
+   viewport. Inside a ~600px hero its vignette crushed the left and right
+   edges and its third orb sat dead centre, so every stage read as a pool of
+   light "only in the middle". Inside the hero: a wider, lighter vignette and
+   the third orb moved to the right so light spans the whole width. */
+.mkt-hero-stage .alive-vignette {
+  background: radial-gradient(
+    ellipse 125% 115% at 50% 40%,
+    transparent 58%,
+    rgba(4, 6, 12, 0.32) 100%
+  );
+}
+.mkt-hero-stage .alive-orb-3 {
+  left: 84%;
+  top: 34%;
+}
+
+/* Soft fade at the bottom of the hero so the stage doesn't cut off hard
+   against section 2. */
+.mkt-hero-stage::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 22%;
+  background: linear-gradient(to bottom, transparent, var(--bg));
+}
 .mkt-section--alt { background: linear-gradient(180deg, rgba(60,108,255,0.05), rgba(192,132,252,0.04)); }
 .mkt-section-inner { max-width: 78rem; margin: 0 auto; }
 .mkt-hero-title { margin-top: 0.4rem; }
@@ -384,3 +486,37 @@
 
 /* Grid card emblem: small static SVG mark above the title. */
 .mkt-service-card-emblem { width: 44px; height: 44px; margin-bottom: 0.75rem; }
+
+
+/* ===================================================================
+   Service detail pages — related-work grid and capability cards
+   (components/marketing/ServicePage.jsx). Visuals reuse ProjectVisual,
+   the same palette-driven procedural tile /work and the case studies
+   use — no image assets. Hover mirrors .work-row-visual.
+   =================================================================== */
+.mkt-work-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+.mkt-work-card-link { display: block; color: inherit; text-decoration: none; }
+.mkt-work-card-link .project-visual { transition: transform 0.3s ease, border-color 0.3s ease; }
+.mkt-work-card-link:hover .project-visual,
+.mkt-work-card-link:focus-visible .project-visual {
+  transform: scale(1.015);
+  border-color: rgba(89, 243, 255, 0.5);
+}
+.mkt-work-card-meta { display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.9rem; }
+.mkt-work-card-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--ink); }
+.mkt-work-card-category { font-size: 0.85rem; color: var(--muted); }
+
+.mkt-principles--service { margin-top: 0.5rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-work-card-link .project-visual { transition: none; }
+  .mkt-work-card-link:hover .project-visual,
+  .mkt-work-card-link:focus-visible .project-visual { transform: none; }
+}

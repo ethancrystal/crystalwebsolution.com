@@ -2,14 +2,24 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
+**Identity:** Repo = `ethancrystal/crystalwebsolution.com`, Business = CD Sportswear INC, Live domain = `https://www.cdsportswearinc.com`. `crystalwebsolution.com` is the repo name and a retired domain — not a business name or current URL.
+
+## SEO work
+
+Read `docs/seo/STRATEGY.md` first. Any task that touches SEO, keywords,
+blog posts, service pages, backlinks or `docs/seo/` is governed by the
+one-page strategy in `docs/seo/STRATEGY.md` (then
+`docs/seo/OPERATIONS-MANUAL.md` for mechanics). It applies to every
+agent. Never merge a PR, send a message, or buy anything — those are MJ's.
+
 ## Project overview
 
-CD Sportswear USA is a Next.js 15 / React 19 application containing a dark, cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
+CD Sportswear INC is a Next.js 16 / React 19 application containing a dark, cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
 
 1. **The Agency Experience**: The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM scrolls over it while a virtual camera flies through one continuous 3D space past a refracting crystal, service-signal instruments, an approach compass, procedural particles, and a morphing backdrop. Lab and Motion add DOM/CSS-3D card experiences over the same canvas. Marketing scene and project visuals are code-generated; `public/` serves standard brand assets.
 2. **The Client Collaboration CRM**: A secure portal system (`/login`, `/dashboard`, `/team`, and `/admin`) designed to **accommodate incoming and current clients and collaborate efficiently with them while their project is ongoing**.
 
-Stack: Next.js 15 (App Router, React 19, JSX, no TypeScript), React Three Fiber + drei, `@react-three/postprocessing`, GSAP + ScrollTrigger, Lenis (smooth scroll), SplitType, and Supabase. Plain global CSS with design tokens in `app/globals.css` — no Tailwind.
+Stack: Next.js 16 (App Router, React 19, JSX, no TypeScript), React Three Fiber + drei, `@react-three/postprocessing`, GSAP + ScrollTrigger, Lenis (smooth scroll), SplitType, and Supabase. Plain global CSS with design tokens in `app/globals.css` — no Tailwind.
 
 ## Commands
 
@@ -19,17 +29,23 @@ pnpm dev         # http://localhost:3000
 pnpm test        # full Node test suite
 pnpm test:crm    # CRM-focused contracts
 pnpm test:marketing  # vitest/jsdom component tests (tests/marketing/*.test.jsx)
+pnpm test:db     # Supabase database tests; requires the local stack
 pnpm build       # production build (standalone output)
 pnpm start       # serve the production build
+pnpm crm:verify                  # test:crm + test:db in one gate
+pnpm crm:provision-test-users    # seed CRM role accounts for manual/e2e testing
+pnpm livecheck                   # scripts/livecheck.mjs — smoke-check a running deployment
 ```
 
 There is no lint script configured in `package.json`; do not invent one.
 Run the relevant Node tests, verify application changes in a real browser,
 and require `pnpm build` for routes/imports. This repository is pinned to
 pnpm in `package.json`; do not switch package managers.
+`pnpm test:e2e` exists in `package.json` (`playwright test tests/e2e`) but
+`tests/e2e/` is not checked in — it's a planned gate, not a working suite.
 
 Docker: `Dockerfile` builds against `next.config.js`'s `output: 'standalone'`
-(deps → build → slim alpine runner). `.github/workflows/docker-publish.yml`
+(deps → build → slim alpine runner). `.github/workflows/docker-ci.yml`
 builds and pushes to `ghcr.io` on push to `main`, on `v*.*.*` tags, and on a
 daily schedule.
 
@@ -132,6 +148,12 @@ move together.
   DOM→canvas singletons (see above).
 - `lib/easing.js` — named GSAP easing/duration tokens; prefer these over
   inline magic numbers in new choreography.
+- `lib/seo.mjs` — **canonical source of truth for every URL in the app**.
+  Exports `SITE_ORIGIN` (`https://www.cdsportswearinc.com`), `SITE_HOST`,
+  `SOCIAL_IMAGE_PATH`, and `absoluteUrl()`. Every canonical URL, sitemap
+  loc, robots sitemap line, JSON-LD `@id`, and `og:url` is built from this
+  one constant so the host can never drift. No other mechanism sets canonical
+  origins; importing `lib/seo.mjs` is the single source.
 
 ## Conventions
 
@@ -142,10 +164,26 @@ move together.
 - No TypeScript, no Tailwind — plain JSX and global CSS with the design
   tokens defined at the top of `app/globals.css` (`--bg`, `--ink`, `--cyan`,
   `--blue`, `--violet`, etc.).
-- Supabase is the live CRM boundary. Application clients live under `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL lives in `supabase/migrations/0001` through `0023`. `.mcp.json` configures a Supabase MCP server for queries.
+- Supabase is the live CRM boundary. Application clients live under `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL lives in `supabase/migrations/0001` through `0042`. `.mcp.json` configures a Supabase MCP server for queries.
+- The production host is `https://www.cdsportswearinc.com` (apex 308-redirects to `www`).
+  All URLs must use the `www` host; never emit bare apex URLs in canonicals,
+  sitemaps, or OG tags.
 - Data-access paths coexist: Project delivery reads go through `lib/crm/projects.js` against the `lib/crm/project-contract.mjs` contract shape (Centralized `TASK_PRIORITIES`, `TASK_STATUSES`, etc.); writes use `'use server'` actions in `app/actions/project-actions.js`. Other tables (companies/contacts/deals/tasks/users) query tables directly via browser client, scoped by RLS.
 - Roles are database-enforced; `handle_new_user()` defaults accounts to `client`; `requested_staff_access` is resolved by admins; `admin` role is pinned by database trigger to prevent unauthorized signup/invite modification.
 - Project attachments use reservation/finalization hooks (`reserve_project_attachment` / `finalize_project_attachment`) linking to Supabase storage. See `docs/CRM-OPERATIONS.md` and `docs/ux/` for CRM details.
+
+## Cursor project skills
+
+Reusable agent skills live in `.cursor/skills/` (one folder per skill, each with `SKILL.md`). Inventory: `.cursor/skills/README.md` and `docs/PLUGINS-AND-SKILLS.md`. SEO, keyword, and blog skills in that tree do **not** override `docs/seo/STRATEGY.md`.
+
+## SEO agent (Hermes)
+
+The repository has an SEO agent role (`cds-seo-operator` skill) for
+continuous organic-growth work. Key files:
+- `lib/seo.mjs` — canonical origin source; all URLs derive from it
+- `app/sitemap.js`, `app/robots.js`, `app/layout.jsx` — all import
+  `SITE_ORIGIN` from `lib/seo.mjs`; never hardcode another host
+- `docs/seo/` — SEO operations manual, keyword registry, run logs
 
 ## Planning docs (not yet implemented)
 

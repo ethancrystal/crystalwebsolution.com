@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import MarketingShell from '../../components/marketing/MarketingShell';
-import PageHero from '../../components/marketing/PageHero';
+import ProcessHero from '../../components/marketing/ProcessHero';
 import ContentSection from '../../components/marketing/ContentSection';
 import ContactForm from '../../components/marketing/ContactForm';
 import ProcessStepsRail from '../../components/marketing/ProcessStepsRail';
@@ -9,23 +9,26 @@ import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'Process';
+// Exact <title> flagged by Ubersuggest and specified by MJ (2026-09-11). Wrapped
+// in `absolute` so the root layout's `%s | <brand>` template does not append to it.
+const SEO_TITLE = 'Our Process: Design & Build That Ships | CD Sportswear';
 const DESCRIPTION =
   'How CD Sportswear INC works — a clear path from discovery to a product your team owns, measured against real behavior.';
 
 export const metadata = {
-  title: TITLE,
+  title: { absolute: SEO_TITLE },
   description: DESCRIPTION,
   alternates: { canonical: '/process' },
   openGraph: {
     type: 'website',
     url: absoluteUrl('/process'),
-    title: `${TITLE} | ${SITE.name}`,
+    title: SEO_TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${TITLE} | ${SITE.name}`,
+    title: SEO_TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
@@ -67,9 +70,13 @@ const STEPS = [
 export default function ProcessPage() {
   return (
     <MarketingShell sceneVariant="process">
-      <PageHero
+      {/* Headline is cut out of a WebGPU dot field (ShapeWaves) with a static
+          fallback; the H1 text is unchanged. `maskText` only sets where the
+          field breaks the line. */}
+      <ProcessHero
         eyebrow="Process"
         title="From idea to outcome, without the limbo."
+        maskText={'From idea to outcome,\nwithout the limbo.'}
         lede="A clear path built to keep design and engineering in lockstep — so good ideas actually ship."
       />
       <ContentSection eyebrow="How we work" title="Six steps, one standard of care">

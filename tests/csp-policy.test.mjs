@@ -52,6 +52,7 @@ const EXPECTED_CSP = {
     'https://stats.g.doubleclick.net',
     'https://*.g.doubleclick.net',
     'https://www.google.com',
+    'https://*.ingest.us.sentry.io',
     'https://hcaptcha.com',
     'https://*.hcaptcha.com',
   ],
