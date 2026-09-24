@@ -1,3 +1,11 @@
+## v1.53 — 2026-09-24
+
+Add a "Services behind this project" section to every /work/[slug] case study.
+
+- Reuses `ServiceGrid` (the /services index component) in place of the bare "Related service →" links case studies had. Each card is now a real `<a href>` with descriptive, keyword-bearing anchor text (the service's own title + hero line), verified to resolve for all six projects and their related services.
+- `ServiceGrid` gains a `titleAs` prop (default `h2`) so it can render its card titles as `h3` here, keeping each case study's heading order at h1 → h2 → h3 (this is the page's first h2). `/services` is unaffected — it doesn't pass the prop, so its cards stay `h2`.
+- Placed after the "The look" gallery, before `CaseNavRail`; "Send a brief →" stays last. Approved extension plan on file in the PR description.
+
 ## v1.52 — 2026-09-24
 
 Resolve the 2026-09-24 Ubersuggest site audit (cdsportswearinc.com) and add the `cd sportswear` brand keyword.

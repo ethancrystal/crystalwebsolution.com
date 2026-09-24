@@ -4,6 +4,7 @@ import ProjectVisual from '../../../components/ProjectVisual';
 import MarketingShell from '../../../components/marketing/MarketingShell';
 import CaseGallery from '../../../components/marketing/CaseGallery';
 import CaseNavRail from '../../../components/marketing/CaseNavRail';
+import ServiceGrid from '../../../components/marketing/ServiceGrid';
 import SectionReveal from '../../../components/SectionReveal';
 import BreadcrumbSchema from '../../../components/marketing/BreadcrumbSchema';
 import { PROJECTS, getProject } from '../../../lib/projects';
@@ -124,13 +125,28 @@ export default async function CaseStudy({ params }) {
           <CaseGallery palette={project.palette} title={project.title} />
         </SectionReveal>
 
+        {/* "Services behind this project" — added 2026-09-24 as part of the
+            Ubersuggest audit's low-word-count fix. Reuses ServiceGrid (the
+            /services index component) instead of the bare "Related service →"
+            links this replaces, so each internal link carries a descriptive,
+            topic-bearing anchor (the service's own title + hero line) rather
+            than the generic label "Related service". titleAs="h3" keeps this
+            page's heading order at h1 -> h2 -> h3, since this is the page's
+            first h2. */}
+        {relatedServices.length > 0 && (
+          <SectionReveal as="div" direction="up" className="case-gallery-wrap">
+            <p className="eyebrow">What we delivered</p>
+            <h2 className="mkt-section-title">Services behind {project.title}</h2>
+            <p className="case-summary">
+              {relatedServices.length > 1
+                ? 'The build drew on these connected offers — here’s how we scope and deliver each one.'
+                : 'The build drew on one focused offer — here’s how we scope and deliver it.'}
+            </p>
+            <ServiceGrid pages={relatedServices} titleAs="h3" />
+          </SectionReveal>
+        )}
+
         <CaseNavRail prev={prev} next={next} />
-        {relatedServices.map((service) => (
-          <Link key={service.slug} href={`/services/${service.slug}`} className="case-next">
-            <span className="eyebrow">Related service</span>
-            <span className="case-next-title">{service.title} →</span>
-          </Link>
-        ))}
         <Link href="/contact" className="case-next">
           <span className="eyebrow">Start here</span>
           <span className="case-next-title">Send a brief →</span>
