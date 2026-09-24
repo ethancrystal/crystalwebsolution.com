@@ -1,3 +1,12 @@
+## v1.51 — 2026-09-24
+
+Cherry-pick usable SEO branch work that was stuck behind conflicts on main.
+
+- **Brand-drift title fix (from PR #219):** about, blog, contact, and /services hub `SEO_TITLE` strings now use exact brand `CD Sportswear INC`, topic-first ordering, and spaced em dashes. The /services hub title is `Connected Services — CD Sportswear INC` so it no longer cannibalizes pillar head terms.
+- **Keyword registry (from PR #214 + #213):** logo vs brand-identity split ruling; map 7 theme-3 terms; map `business of web design` and `product page design`.
+- **Drafts (from PR #213, `approved: false`):** `docs/seo/drafts/blog/business-of-web-design.md` and `product-page-design.md`. Not published live.
+- Skipped: metro/geo doorway branches; stale superseded SEO branches already on main (#208/#212/#220/#222); obsolete #199 registry one-liner.
+
 ## v1.50 — 2026-09-23
 
 Install the blog publish workflow. It was built in v1.25 but never installed.

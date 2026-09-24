@@ -12,7 +12,7 @@ import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 const BLOG_TITLE = 'Blog';
 // Exact <title> flagged by Ubersuggest and specified by MJ (2026-09-11). Wrapped
 // in `absolute` so the root layout's `%s | <brand>` template does not append to it.
-const SEO_TITLE = 'Web Design & Branding Blog | CD Sportswear Inc';
+const SEO_TITLE = 'Studio Notes on Web Design & Branding — CD Sportswear INC';
 const BLOG_DESCRIPTION =
   'Notes on web design, development and brand systems from the CD Sportswear INC studio — what we build, how we build it, and what it costs.';
 
