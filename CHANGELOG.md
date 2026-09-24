@@ -1,3 +1,31 @@
+## v1.52 — 2026-09-24
+
+Google Tag Manager container `GTM-5VKPC974` added alongside the existing GA4
+integration, per owner request. The container is for other tags (ads pixels,
+conversions); it must not also carry a GA4 tag for the same property, or
+every pageview is counted twice.
+
+- **Loader** (`lib/analytics.mjs` `loadTagManager()`, called from
+  `components/Analytics.jsx`) injects `gtm.js` once, on the first public
+  page. CRM and auth routes (`UNTRACKED_PREFIXES`) never load it, matching
+  the existing GA4 privacy rule. Once loaded it stays for the session, so
+  container tags that auto-track page changes must exclude those paths.
+- **Consent** — the Consent Mode v2 defaults (all denied) are queued before
+  `gtm.js` reads `dataLayer`, and are shared with GA4 so they are pushed only
+  once. The consent banner now shows when either tag is active and names
+  both. Non-Google tags in the container still need their own consent
+  settings in GTM to respect a decline.
+- **Scope** — production builds only (`next dev` never fires container
+  tags). `NEXT_PUBLIC_GTM_ID` overrides the container; a non-container value
+  such as `off` disables it.
+- **No-JS fallback** — the `<noscript>` `ns.html` iframe sits at the top of
+  `<body>` in `app/layout.jsx`; `frame-src` now allows
+  `https://www.googletagmanager.com` for it (pinned in
+  `tests/csp-policy.test.mjs`). Any third-party script a container tag loads
+  still needs its origin added to the CSP before it can run.
+- Tests: GTM ID resolution, load-once, consent ordering with and without
+  GA4, disabled container, public-page gating, noscript fallback and CSP.
+
 ## v1.51 — 2026-09-24
 
 Cherry-pick usable SEO branch work that was stuck behind conflicts on main.

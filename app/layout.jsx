@@ -4,6 +4,7 @@ import { SITE } from '../lib/site';
 import { REVIEW_STATS } from '../lib/reviews';
 import { SITE_ORIGIN, SOCIAL_IMAGE_PATH } from '../lib/seo.mjs';
 import Analytics from '../components/Analytics';
+import { GTM_ID } from '../lib/analytics.mjs';
 
 const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
@@ -168,6 +169,19 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        {/* GTM's fallback for visitors without JavaScript. The script itself is
+            loaded by <Analytics />, after consent defaults, on public pages. */}
+        {GTM_ID && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+              height="0"
+              width="0"
+              style={{ display: 'none', visibility: 'hidden' }}
+              title="Google Tag Manager"
+            />
+          </noscript>
+        )}
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>

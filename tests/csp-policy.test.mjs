@@ -28,8 +28,8 @@ const EXPECTED_CSP = {
   'default-src': ["'self'"],
   // 'unsafe-inline'/'unsafe-eval' are required by Next's inline bootstrap and
   // the R3F/GSAP runtime; removing them needs a nonce refactor, tracked
-  // separately. blob: is for Three.js shader workers. The only third-party
-  // origin is gtag.js — see analytics.test.mjs for why it must stay.
+  // separately. blob: is for Three.js shader workers. www.googletagmanager.com
+  // serves both gtag.js (GA4) and gtm.js (Tag Manager) — see analytics.test.mjs.
   // hCaptcha (v1.30, contact form): loader script, challenge iframe, its
   // stylesheet and its XHR all come from *.hcaptcha.com -- see lib/hcaptcha.mjs.
   'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'blob:', 'https://www.googletagmanager.com', 'https://hcaptcha.com', 'https://*.hcaptcha.com'],
@@ -57,7 +57,9 @@ const EXPECTED_CSP = {
     'https://*.hcaptcha.com',
   ],
   'media-src': ["'self'", 'data:', 'blob:'],
-  'frame-src': ["'self'", 'https://td.doubleclick.net', 'https://hcaptcha.com', 'https://*.hcaptcha.com'],
+  // www.googletagmanager.com: GTM's <noscript> ns.html fallback iframe in
+  // app/layout.jsx. Only rendered for visitors with JavaScript off.
+  'frame-src': ["'self'", 'https://td.doubleclick.net', 'https://www.googletagmanager.com', 'https://hcaptcha.com', 'https://*.hcaptcha.com'],
   'frame-ancestors': ["'self'"],
   'base-uri': ["'self'"],
   'form-action': ["'self'"],
