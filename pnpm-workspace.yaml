@@ -1,6 +1,8 @@
 allowBuilds:
   '@sentry/cli': false
+  '@vgpu/adapter-node': false
   sharp: true
+  webgpu: false
 
 onlyBuiltDependencies:
   - sharp

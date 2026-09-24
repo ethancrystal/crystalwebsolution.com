@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import MarketingShell from '../../components/marketing/MarketingShell';
-import PageHero from '../../components/marketing/PageHero';
+import ProcessHero from '../../components/marketing/ProcessHero';
 import ContentSection from '../../components/marketing/ContentSection';
 import ContactForm from '../../components/marketing/ContactForm';
 import ProcessStepsRail from '../../components/marketing/ProcessStepsRail';
@@ -70,9 +70,13 @@ const STEPS = [
 export default function ProcessPage() {
   return (
     <MarketingShell sceneVariant="process">
-      <PageHero
+      {/* Headline is cut out of a WebGPU dot field (ShapeWaves) with a static
+          fallback; the H1 text is unchanged. `maskText` only sets where the
+          field breaks the line. */}
+      <ProcessHero
         eyebrow="Process"
         title="From idea to outcome, without the limbo."
+        maskText={'From idea to outcome,\nwithout the limbo.'}
         lede="A clear path built to keep design and engineering in lockstep — so good ideas actually ship."
       />
       <ContentSection eyebrow="How we work" title="Six steps, one standard of care">
