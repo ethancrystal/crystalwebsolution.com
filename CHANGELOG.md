@@ -1,3 +1,256 @@
+## v1.50 — 2026-09-23
+
+Install the blog publish workflow. It was built in v1.25 but never installed.
+
+- **`docs/seo/seo-publish-blog.yml.pending` moves to
+  `.github/workflows/seo-publish-blog.yml`.** On every push to `main` that
+  touches `docs/seo/drafts/blog/**` or `scripts/seo/publish-blog-drafts.mjs`,
+  it runs the publish script. The script upserts drafts marked
+  `approved: true` into `blog_posts` as `status: draft`. It never publishes,
+  and it never overwrites a row that is already published. A person still
+  takes each post live from `/admin/blog`. It can also be run by hand from
+  the Actions tab, where it defaults to a dry run.
+- The `dry_run` input and the event name now reach the shell through `env:`
+  instead of being written into the script text.
+- The repo secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) and the
+  `SEO_BLOG_COVERS_BUCKET` variable were already set, so the workflow is live
+  as soon as this merges. Merging it does not trigger a run, because the
+  workflow file is not in its own `paths` filter.
+- **Known gap:** the `blog-covers` bucket that `SEO_BLOG_COVERS_BUCKET` names
+  does not exist in Supabase. No draft uses a cover image yet. Details are in
+  `docs/seo/OPERATIONS-MANUAL.md` item 8.
+
+## v1.49 — 2026-09-23
+
+Blog draft for Jira KAN-11, under SEO theme 2 (digital marketing). This is
+docs only, with no route or code change.
+
+- **`docs/seo/drafts/blog/sportswear-marketing-strategy.md`**, marked
+  `approved: false`. It's a B2B sportswear marketing strategy for brands that
+  sell to teams, clubs, schools and wholesale buyers. It covers the buying
+  committee, planning backwards from the season calendar, the reorder path,
+  how to show decoration work, channel choice and measurement. It targets
+  `sportswear marketing strategy` (390/mo, difficulty 27) and
+  `sportswear marketing plan` (50/mo, difficulty 24), both from Ubersuggest in
+  the US on 2026-09-23. The SERP is informational (Forbes, Deloitte,
+  launchmetrics), and one DA-14 agency blog ranks #8. It links internally to
+  `/services/digital-marketing`, `/services/seo`,
+  `/embroidery-screen-printing-web-design`, `/blog/web-development-rfp-guide`
+  and `/contact`. It contains no statistics, client names or outcomes.
+- Both keywords are added to `docs/seo/KEYWORD-REGISTRY.md`, mapped to
+  `/blog/sportswear-marketing-strategy`.
+- The publish pipeline only upserts drafts with `approved: true`, so this
+  lands nowhere until MJ approves it.
+
+## v1.48 — 2026-09-23
+
+SEO internal links and IndexNow fixes from Jira KAN-12 and KAN-15.
+
+- **Service pages now link back to their blog posts (KAN-12).** The blog
+  posts already linked to their service pillars, but no service page linked
+  to any post. `/services/branding` and `/services/logo-design` now link to
+  `/blog/branding-and-web-design-studio`. Web design, web development, AI
+  automation and workflow automation also link to their published posts. The
+  links sit in a "Further reading" section that reuses the existing
+  related-links markup, and the data is in `GUIDE_LINKS` in
+  `lib/servicePages.mjs`. `ai automation agency` is mapped to
+  `/services/ai-automation` in the keyword registry, so the anchor pointing at
+  `/blog/ai-automation-agency` avoids that term and doesn't make the post
+  compete with its own pillar.
+- **`/blog/ai-automation-agency` and `/blog/custom-react-nextjs-web-development`
+  get specific "Next" links (KAN-15).** They used to fall back to the generic
+  Services / Work / Contact set.
+- **Every IndexNow ping sent by `scripts/seo/indexnow-ping.mjs` had two
+  errors (KAN-15).** `host` was sent as `https://www.…` instead of a bare
+  hostname, and `keyLocation` pointed at `/public/<key>.txt`, which 404s
+  because Next.js serves `public/` at the root. The key file itself is live at
+  `/<key>.txt`. The payload now matches the IndexNow documentation. URLs are
+  filtered by exact origin, and the script only runs `main()` when it is
+  executed directly. IndexNow can answer 202 ("key validation pending"), so
+  the failures may never have shown up as errors.
+- New contract tests in `tests/seo-internal-links.test.mjs`.
+
+## v1.47 — 2026-09-22
+
+Follow-up to v1.44 to v1.46 (#217). Both fixes below were pushed to that branch just after it
+merged, so neither shipped with it.
+
+- **Hero backgrounds covered only part of the hero** (owner report, most
+  visible on `/services`). Three stage modules, dot-field, letter-glitch and
+  ripple-grid, resized only when the window resized, and two of them pin
+  the canvas to fixed pixel sizes. Inside a hero the box keeps changing
+  height after mount as fonts load and reveals run. So the canvas stayed at
+  its first, smaller measurement. All three now watch their container with
+  a ResizeObserver, like the other four already did, and a test pins it for
+  all seven. The viewport-tuned `.alive-overlay` vignette also crushed the
+  hero's side edges, and its third glow sat dead centre. Both are
+  re-tuned inside the hero so the light spans the full width.
+- **Reduced motion now stops the animation, not just hides it.** A module
+  hidden with `display: none` still ran its requestAnimationFrame loop and
+  held a WebGL context. `DarkPageBackground` no longer mounts the module under
+  `(prefers-reduced-motion: reduce), (max-width: 767px)`, and it unmounts the
+  module if the preference changes mid-session. This covers auth pages too.
+- A shared diagonal "brand streak" across every hero was tried and then
+  removed at the owner's request. It does not ship.
+- **Service marks start still.** `ServiceGlyph`'s reduced-motion hook started at
+  `false`, so the SMIL marks could animate for one render before the visitor's
+  preference was read. It now starts at `true`, and motion turns on only after
+  matchMedia confirms it is allowed.
+
+## v1.46 — 2026-09-22
+
+Make the service emblems mean something. The owner's read of the previous
+set — "these blue shapes that each page has" — was fair: every service page
+opened on an abstract 3D object that said nothing about the service.
+
+- **Root cause was motion, not just shape** — `ServiceEmblem3D` spun each
+  form a full 360 degrees on Y. The forms were authored to be read face-on
+  (a viewport with a cursor, a layered stack), so half of every cycle showed
+  them edge-on, collapsed into an unreadable sliver. The spin is replaced by
+  a bounded sway (about 23 degrees of yaw, 7 of pitch; `rotSpeed` still sets
+  each signal's tempo). The form now always faces the reader and still reads
+  as a solid with depth on its edges. Scale 1.35 to 1.5.
+- **Forms rebuilt as literal objects** in `lib/serviceSignalGeometry.mjs`,
+  still procedural primitives, still one source of truth shared with the
+  homepage rail: browser window (web), `</>` (development), tag with eyelet
+  (brand), constructed mark in a ring (logo), megaphone (marketing), play
+  button (animation, still the one wireframe form), thickened node network
+  (ai), thickened relay with arrow (workflow), magnifying glass (seo). The
+  brand form took three tries: two card-stack versions fused into one blob
+  in a single flat colour; the tag works because its outline alone is
+  iconic, the same reason the magnifier and play button work.
+- **Inline SMIL marks redesigned** and moved to `components/marketing/
+  ServiceGlyph.jsx` (single source, shared by `ServiceEmblem`). Each shows the
+  service's value rather than decorating: a headline that writes itself and
+  a CTA that lands, a funnel that converts, a result that climbs to first.
+  Reduced-motion still strips SMIL from the tree.
+- **Tooltip copy extracted** to `lib/serviceSignalBlurbs.mjs` so it is not
+  duplicated. `vitest.setup.js` gains a `matchMedia` shim, matching its
+  existing `ResizeObserver` one, so components that gate on reduced motion
+  can render under jsdom.
+- **Scope note** — an SVG-only hero variant was built and verified, then
+  dropped the same day when the owner chose to keep React Three Fiber. Only
+  the shared geometry, the sway, the SMIL glyphs and the blurb extraction
+  ship.
+
+## v1.45 — 2026-09-22
+
+Extend the hero stage to the four index/detail surfaces the owner asked for,
+each with its own React Bits module, restyled to site tokens and dimmed to a
+single shared level.
+
+- **New stages** — `/services/[slug]` gets prism, `/work` ripple-grid, `/blog`
+  liquid-ether, `/reviews` dot-field. Seven modules exist and the four
+  top-level pages already take one each, so `reviews` reuses dot-field, the
+  quietest of the set and the right register for a text-dense page.
+- **Brand colors enforced at the source** — ripple-grid shipped vendor purple
+  `#8a5cff` and liquid-ether `['#5227FF','#89f7ff','#B497CF']`. Both now
+  default to site tokens (`--blue` `#3c6cff`, `--cyan` `#59f3ff`, `--muted`
+  `#8b98b8`), so no code path can render the demo palette. Prism gained a
+  `saturation` prop (defaulting to the vendor value, so existing behavior is
+  unchanged) and the wrapper pulls it to near-monochrome with a cyan hue
+  shift, low glow/bloom and a slow `timeScale`.
+- **One prominence knob** — `.mkt-hero-stage { opacity }` sets how loud every
+  stage reads, instead of editing each module. Full-viewport auth surfaces
+  are unaffected.
+- **Band variant** — `/work`'s first section is the entire index, so it has no
+  hero box to fill. `HeroStage variant="band"` paints a height-capped band at
+  the top of the container, fading into `--bg` before the project library.
+- **Scope** — `/work/[slug]`, `/blog/[slug]`, the embroidery pillar,
+  `/privacy` and `/terms` were not requested and still get no stage. The
+  no-fallback rule from v1.44 is unchanged and still covered by tests.
+
+## v1.44 — 2026-09-22
+
+Scope the animated stage background to the hero on the four main marketing
+pages; remove it from every inner page it had leaked onto.
+
+- **Bug fix** — the cyan/silver stage (acid-squares, dot-field,
+  faulty-terminal, letter-glitch) rendered `position: fixed`, so it covered
+  the full scroll height of any page through `SubpageExperience`, and a
+  silent `|| 'acid-squares'` fallback meant it also showed on pages with no
+  assigned variant: `/services/[slug]`, `/work`, `/work/[slug]`, `/blog`,
+  `/blog/[slug]`, `/reviews`, `/privacy`, `/terms`, and the embroidery
+  pillar page.
+- **Fix** — the stage now mounts inside `PageHero`'s `.mkt-hero` section via
+  a new `HeroStage` component and `StageContext`, with CSS that forces the
+  shared background modules to `position: absolute` inside `.mkt-hero-stage`
+  so each one fills the hero box and fades out before section 2, instead of
+  running the page's full height. `marketingStageBackground()` no longer
+  falls back to `acid-squares`; only `/about`, `/services`, `/process`, and
+  `/contact` (the four `MARKETING_STAGE_BACKGROUNDS` entries) get a stage.
+  `/privacy` and `/terms` no longer pass a `sceneVariant`. Homepage
+  (`Scene.jsx`/crystal journey) and auth pages are unchanged.
+- **Tests** — `tests/marketing-stage-background.test.mjs` rewritten to
+  assert the stage is hero-scoped, has no fallback, and privacy/terms
+  request no variant.
+- **Platform-version reconciliation** — `package.json` has run Next 16
+  (`^16.3.5`) since dependabot's #204, but the contract test still asserted
+  major `15`, so `pnpm test` exited 1 on `main`. Updated the assertion to 16
+  and renamed the file from `tests/crm/next15-upgrade.test.mjs` to
+  `tests/crm/next-platform-contract.test.mjs` so the name stops naming one
+  version. The same stale "Next.js 15" claim was corrected in the active docs:
+  `README.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `MEMORY.md` and
+  `docs/SENTRY-NEXTJS.md`. Dated plans under `docs/plans/` keep their Next 15
+  wording as historical record; the two most likely to mislead now carry a
+  historical note instead.
+- **README migration range** — replaced the stale `0001` through `0011`
+  statement (the directory head is `0042`, 43 files) with a pointer to inspect
+  the directory, matching the rule already stated in `CLAUDE.md`.
+- **Versioning note** — this release takes v1.44, not v1.43. The merge commit
+  `f0290ae` was titled `v1.43 — AI visibility + technical SEO assets (#212)`
+  and deployed under that name, but it bumped neither `VERSION` nor
+  `CHANGELOG.md`, so the files stayed at v1.42. v1.43 is therefore already
+  spent on a shipped deploy; reusing it would put two different deploys under
+  one name. There is intentionally no v1.43 entry below.
+
+## v1.42 — 2026-09-20
+
+SEO content lane: publish-ready web-design-RFP blog draft for the /services/web-design pillar.
+
+- **Content** — Added `docs/seo/drafts/blog/how-to-write-a-web-design-rfp.md`:
+  a complete, publish-ready web-design-RFP writer's guide with copy-paste template, 6-criterion
+  scorecard, "before you send it" checklist, and call questions. Target keywords `web design rfp`
+  and `how to write a web design rfp` (both added to KEYWORD-REGISTRY.md; figures unavailable until
+  tracked in the Ubersuggest project). Supports the `/services/web-design` pillar (Theme 1) and
+  cross-links to the existing `/blog/web-development-rfp-guide`. `approved: false` — MJ-only gate.
+- **Keywords** — Registered two new mapped rows in KEYWORD-REGISTRY.md. No volume/difficulty/CPC
+  figures claimed; both marked unavailable pending tracking in project `109eb168…` (needs MJ's yes).
+
+## v1.41 — 2026-09-20
+
+Clean up stale identity, domain, and migration claims across agent
+instruction files and the CRM feature flag comment.
+
+- **Identity disambiguation** — CLAUDE.md and AGENTS.md now explicitly
+  distinguish repo name (`ethancrystal/crystalwebsolution.com`), business
+  name (CD Sportswear INC), and live domain
+  (`https://www.cdsportswearinc.com`). `crystalwebsolution.com` is
+  a retired domain, not a business name or current URL.
+- **Business name fix** — `CD Sportswear USA` corrected to `CD Sportswear INC`
+  in CLAUDE.md, AGENTS.md, and MEMORY.md project-overview sections
+  (matching `lib/site.js` `name: 'CD Sportswear INC'`).
+- **Migration count** — AGENTS.md and MEMORY.md updated from `0001` through
+  `0023` to `0001` through `0042` (verified against `supabase/migrations/`).
+- **Stale migration 0024 entry** removed from MEMORY.md.
+- **Deployment target** — MEMORY.md §4 corrected from `crystalwebsolution.com`
+  to `https://www.cdsportswearinc.com`.
+- **AGENTS.md gaps filled** — added missing commands (`pnpm test:db`,
+  `pnpm crm:verify`, `pnpm crm:provision-test-users`, `pnpm livecheck`),
+  `lib/seo.mjs` canonical-origin documentation, `www.cdsportswearinc.com`
+  host convention, `docker-ci.yml` reference (was `docker-publish.yml`),
+  and SEO agent (Hermes) section.
+- **Gap labeling** — CLAUDE.md gap claims now labeled as
+  `last confirmed 2026-09-11, owner to re-verify` instead of
+  presented as current facts. Migration `0042` claim is conditional
+  (verified applied to live DB is unknown).
+- **Retired domain block** — CLAUDE.md condensed ~25 lines of domain
+  transition history into a single factual sentence.
+- **lib/crmFlag.js** — comment updated to reflect CRM launched
+  2026-08-27 instead of `still in progress`.
+- **middleware.js** — CLAUDE.md reference corrected from literal
+  `middleware.js` file to conceptual `edge middleware`.
+
 # Changelog
 
 Every production deploy of crystalwebsolution.com gets one entry here, newest
@@ -5,74 +258,76 @@ first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
 
-## v1.41 — 2026-09-20
+## v1.40 — 2026-09-20
 
-**Version note:** this branch was cut before `v1.38` (SEO audit,
-`15787f4`) and `v1.39` (SEO service page, `708ecc7`) merged to `main`, so
-this entry originally numbered itself `v1.38` — reused. Renumbered to
-`v1.41` (`main` is at `v1.39`; open PR #207 claims `v1.40`). Re-check
-against `CHANGELOG.md`'s head on `main` before merging — if something
-else lands first, this needs bumping again per `VERSIONING.md`.
+Animated backgrounds on inner marketing pages and auth. Homepage WebGL
+crystal journey is unchanged.
 
-Two pieces of work land together because they shared this branch/checkout:
+- **Stage** — `SubpageExperience` mounts `DarkPageBackground` instead of the
+  idle Crystal canvas, which was hidden behind an opaque page fill.
+- **Family** — Acid Squares, Dot Field, Faulty Terminal, and Letter Glitch
+  (React Bits JS-CSS ports) restyled to cyan / silver / black-blue. About
+  uses acid-squares, services uses dot-field, process uses faulty-terminal,
+  contact uses letter-glitch. Login / portal use the CRT terminal; signup
+  uses the dot field; forgot / reset / confirm use letter glitch. Prism,
+  ripple-grid, and liquid-ether stay registered as fallbacks.
+- **Fill** — `.mkt-shell` and `.subpage` no longer paint solid `--bg`, so the
+  procedural stage reads through pitch-black heroes.
 
-**1. New page: `/hire/shopify-developer`** (content lane, committed
-`d56f22c`, 2026-09-16 run). Targets the keyword pair "hire a shopify
-developer" / "hire shopify developer", modeled on the existing
-`/embroidery-screen-printing-web-design` page. Adds the route to
-`app/sitemap.js` and updates `docs/seo/KEYWORD-REGISTRY.md`. Content-lane
-pages don't carry their own version bump per this repo's convention; this
-entry covers it only because it rides in the same PR as the code-lane
-change below.
+## v1.39 — 2026-09-19
 
-**2. `/process` opens on a WebGPU "shape waves" hero:** the headline is
-cut out of an interactive dot field (React Bits' ShapeWaves, ported into
-`components/marketing/ShapeWaves.jsx`). Copy is unchanged — "From idea to
-outcome, without the limbo." plus the same lede.
+SEO service page: `/services/seo`, the pillar for theme 4 of
+`docs/seo/STRATEGY.md` (head term "search engine optimization agencies";
+"seo agency near me" secondary on the same page). No homepage or WebGL rail
+change — the page is a **standalone** entry in `lib/servicePages.mjs`, not
+a ninth `SERVICES` signal, so the homepage keeps eight rows and eight rail
+instruments.
 
-- **New dependency `vgpu@^0.3.1`** (the WebGPU helper ShapeWaves is built
-  on; the same range React Bits pins). `0.4+` adds a `three >=0.180` peer
-  dependency that conflicts with this repo's `three ^0.169`, so stay on
-  `0.3.x` until `three` is upgraded. `pnpm-lock.yaml` must be regenerated
-  with `pnpm install` before this ships — Vercel installs with
-  `--frozen-lockfile`.
-- **`components/marketing/ProcessHero.jsx`** — progressive enhancement:
-  SSR and first paint show the real H1 over a CSS dot lattice
-  (`data-mode="static"`); after mount, when `useRenderQuality` allows
-  animation (eco tier stays static, same gate as `IdleScene`) and
-  `navigator.gpu` exists, ShapeWaves mounts client-only and the H1 fades
-  to opacity 0 (still in the accessibility tree) as the field fades in.
-  Any GPU error drops back to the static stage. Reduced motion freezes the
-  field on one frame and skips the intro.
-- **ShapeWaves changes vs. upstream** (each marked `// CWS:` in the file):
-  no CSS import (rules live in `app/styles/shape-waves.css`, imported from
-  `globals.css`); a `wrap` prop that word-wraps the mask text into the
-  largest font that fits the box instead of shrinking one long line; an
-  `onReady` callback for the cross-fade; `wrapWidth`/`wrapHeight`/`lineHeight`
-  props; and device-loss hardening — upstream only try/catches its
-  `frame()` call, so a GPU device lost after the first frame threw from
-  `params.set()` inside the rAF callback and silently left a blank stage
-  with the H1 already faded. `device.lost` is now observed and every GPU
-  entry point is guarded, so the loss reaches `onError` and the static
-  stage comes back (verified by destroying the device in a headless run).
-- Field uses the site tokens (`--cyan` `#59f3ff` on `--bg` `#04060c`,
-  hover white) and the display font resolved from `--font-display`
-  (Space Grotesk 500), so the cut-out matches every other heading.
-- Stage is full-bleed, 600px tall on desktop and 420px below 768px
-  (6px cells there so the four-line mobile headline stays legible).
-- `pnpm-workspace.yaml`'s `allowBuilds` had unresolved placeholder text
-  (`"set this to true or false"`) for `@vgpu/adapter-node` and `webgpu`
-  from an earlier run, which failed `pnpm build`'s deps-status check.
-  Neither package is imported anywhere in this repo (only `vgpu` itself
-  is, client-side, via the dynamic `ShapeWaves` import) — set both to
-  `false`; no native build step is needed.
-- No CRM, homepage, or other route changes beyond `/process` and the new
-  `/hire/shopify-developer` page above.
-- **Build verified against this branch's own base** (`885573b`, pre-#204)
-  on Next 15.5.23 — `pnpm build` (60/60 static pages) and `pnpm test` /
-  `pnpm test:marketing` (497 + 36 tests) all green. Not yet verified
-  against current `main`, which is on Next 16.3.5 (`#204`) and reported
-  red by open PR #207; rebase and re-verify before merging.
+- **`/services/seo`** — rendered by the existing `/services/[slug]` template
+  with a full content entry; conversion rate optimization is a capability,
+  a deliverable, a process step and an FAQ item of this page, not its own
+  page. Listed as "09 · SEO" on `/services` and in `/sitemap.xml` via
+  `SERVICE_PAGE_SLUGS`; Service / Breadcrumb / FAQ schema as the other eight.
+- **Internal links** — Web Design and Digital Marketing gain SEO in their
+  related services, so the pillar is not an orphan.
+- **Emblems** — a hand-drawn "results ladder" SVG glyph and a page-only 3D
+  "beacon" geometry (`getSignalGeometry('seo')`); `createSignalGeometries()`
+  (the rail) is unchanged at `SERVICES.length`.
+- **Tests** — `RAIL_SERVICE_PAGES` export; marketing tests split rail parity
+  (8) from the full page list (9) and assert the pillar has ≥2 inbound links.
+
+## v1.38 — 2026-09-19
+
+Evidence-based SEO audit pass. Extends the existing `lib/seo.mjs` origin
+architecture; does not add a second metadata or schema system. No homepage
+or WebGL visual change.
+
+- **Canonical host hygiene** — `toSitePath()` rewrites owned-host absolute
+  URLs (www, apex, retired `cdsportswearusa.com`, hijacked
+  `crystalwebsolution.com`) to site-relative paths. Blog markdown `safeHref`
+  uses it so published posts that still link the apex or a retired domain
+  do not send crawlers through a 308, a 404, or the Slot Gacor spam site
+  currently answering `crystalwebsolution.com`.
+- **Internal linking** — Blog added to `SITE.nav` and the marketing footer.
+  Service pages that have matching case studies now link them; case studies
+  link related services and Contact. Blog posts link the matching service
+  cluster plus other published posts. `/blog` listing gains a Contact CTA.
+- **Auth OG URLs** — `/login` and `/signup` now emit their own `og:url`
+  instead of inheriting the homepage URL.
+- **404 robots** — `app/not-found.jsx` is the single `noindex, nofollow`
+  signal for missing URLs (production currently emits both `noindex` and
+  the root layout's `index, follow`).
+- **Legal dates** — Privacy and Terms use a fixed `LAST_UPDATED` instead of
+  `new Date()` at render.
+- **Sentry CSP** — `connect-src` allows `https://*.ingest.us.sentry.io` so
+  client envelopes are not blocked (still absent on the live CSP as of
+  2026-09-19).
+- **Shopify landing** — `/hire/shopify-developer` is **not** built. Keyword
+  demand remains, but Shopify is not in the live service list. Parked in
+  `docs/seo/KEYWORD-REGISTRY.md`. Details in `docs/seo/runs/2026-09-19.md`.
+
+No invented rankings, traffic, or case-study outcomes. Measurement (GSC/GA4)
+remains Mode A — not live to this run.
 
 ## v1.37 — 2026-09-11
 

@@ -1,5 +1,11 @@
 'use client';
 
+// Kept for the homepage crystal language and any future idle-stage experiments.
+// Inner marketing pages mount DarkPageBackground from HeroStage (inside
+// PageHero, on the four whitelisted top-level pages only) instead of this
+// canvas — the idle Crystal was reading as empty pitch black behind an
+// opaque .subpage fill.
+
 import { useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import Crystal from '../three/Crystal';

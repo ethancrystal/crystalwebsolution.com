@@ -1,5 +1,14 @@
 # Operations Manual — Automated Daily Run
 
+> **v3.2 — 2026-09-19. Strategy is now ruled by [`STRATEGY.md`](./STRATEGY.md).**
+> MJ resolved the §3 / §11-item-6 split: the site targets the **broad head
+> terms**, reached through one pillar URL per theme plus supporting cluster
+> pages. Read `STRATEGY.md` first; where it and this manual disagree on
+> strategy, `STRATEGY.md` wins. This manual remains authoritative for systems,
+> IDs, mode logic and run mechanics. Ubersuggest project `109eb168…` now
+> reports `google_analytics_profile` `552972119` (25/125 keywords, 2/5
+> competitors, `get_project` 2026-09-19), so §2 flips the run to **Mode B**.
+
 > **v3 — 2026-09-10.** The production domain moved again: `cdsportswearusa.com`
 > → `cdsportswearinc.com` (PR #174, merged 2026-09-03). The Ubersuggest project
 > this manual named was deleted and replaced. The Linear team *Crystal Web
@@ -94,15 +103,17 @@ Current mapped set. Figures: Ubersuggest `keyword_overview`, US 2840, pulled
 |---|---|---|---|---|---|---|
 | Now | `rfp web development` | 260 | 13 | $15.25 | `/blog/web-development-rfp-guide` | **Live** since 2026-09-03 |
 | Now | `website development rfp` | 260 | 13 | $11.98 | `/blog/web-development-rfp-guide` | **Live** since 2026-09-03 |
-| Now | `hire a shopify developer` | 880 | 8 | $25.41 | `/hire/shopify-developer` | Not built |
-| Now | `hire shopify developer` | 880 | **37** | $31.06 | `/hire/shopify-developer` | Not built. Difficulty 26 → 37 since 2026-09-02 |
-| Next | `web development northern virginia` | 260 | 9 | $18.00 | `/northern-virginia-web-development` | Not built |
+| Parked | `hire a shopify developer` | 880 | 8 | $25.41 | `/hire/shopify-developer` | **Not built, 2026-09-19.** Demand remains; Shopify is not a live service. See `KEYWORD-REGISTRY.md` Parked |
+| Parked | `hire shopify developer` | 880 | **37** | $31.06 | `/hire/shopify-developer` | Same pair. Difficulty 26 → 37 since 2026-09-02 |
+| Next | `web development northern virginia` | 260 | 9 | $18.00 | `/northern-virginia-web-development` | Not built. Local-first was superseded; do not ship without MJ reversing §3 |
 | Monitor | `ai automation agency` | 4,400 | **40** | $17.80 | `/services/ai-automation` | Exists. Difficulty 35 → 40 since 2026-09-02 |
 | Monitor | `branding and web design` | 590 | 17 | $18.18 | `/blog/branding-and-web-design-studio` | **Live** since 2026-09-06 |
 | Monitor | `web design manassas va` | 20 | 5 | $0 | `/blog/web-design-manassas-va` | **Live** since 2026-09-06. Conflicts with this section — see above |
 
 `hire a shopify developer` has a volatile monthly series (210–1,900 over 13
-months; 880 is the smoothed figure). Treat volume as directional.
+months; 880 is the smoothed figure). Treat volume as directional. The 2026-09-19
+audit parked the pair rather than building the landing: the live service
+taxonomy (`lib/servicePages.mjs`) does not include Shopify.
 
 `/blog/how-much-does-ai-automation-cost` is live but has **no viable target
 term**: `how much does ai automation cost` returns 0/mo and `ai automation
@@ -253,10 +264,10 @@ be evidenced either way.
 | 2 | **Grant the GitHub connector Contents + Pull requests write** on `ethancrystal/crystalwebsolution.com` | Still `403` as of 2026-09-10 on the MCP connector. **2026-09-11: a workaround exists** — this account also has GitHub connected through Zapier (`ethancrystal`, full write access, used for PR #190) — but that is one more moving part to depend on long-term. Fixing the MCP connector's permissions directly is still the right long-term fix |
 | 3 | **Restore an issue queue.** The Linear team *Crystal Web Solution* is not present in the workspace this run can reach — `list_teams` returns only `TMS` (2026-09-10); deleted or different workspace is unknown | The run has nowhere to file findings. `CRY-17…30` history is unreachable |
 | 4 | **Connect GA4 and Search Console** to Ubersuggest project `109eb168…`, on the **`cdsportswearinc.com`** property | Until then every run is Mode A and no page can be verified past T+0 |
-| 5 | **Install the blog publish workflow** at `.github/workflows/seo-publish-blog.yml` (the file is parked at `docs/seo/seo-publish-blog.yml.pending`) and add its repo secrets | `.github/workflows/` still contains only `docker-ci.yml` (2026-09-10). The pipeline built on 2026-09-02 has never run |
-| 6 | **Rule on the strategy split in §3**: 54 broad head terms tracked vs. the specificity strategy, and the Manassas post vs. the parked local ladder | The registry cannot map keywords to URLs until this is settled |
+| 5 | ~~Install the blog publish workflow.~~ **RESOLVED 2026-09-23 (v1.50)** — moved from `docs/seo/seo-publish-blog.yml.pending` to `.github/workflows/seo-publish-blog.yml`. The repo secrets `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` already existed (set 2026-09-03) | — |
+| 6 | ~~Rule on the strategy split in §3.~~ **RESOLVED 2026-09-19** — broad head terms via pillar + cluster; see `STRATEGY.md` §3. The Manassas post stays live as a supporting page but local terms are never a pillar | — |
 | 7 | ~~Settle the brand name.~~ **RESOLVED 2026-09-11** — CD Sportswear INC, shipped in PR #190 (open, awaiting MJ's merge) | — |
-| 8 | Name the Supabase Storage bucket for cover images (`SEO_BLOG_COVERS_BUCKET`) | Blocks cover images on drafts |
+| 8 | **Fix the cover-image bucket.** The repo variable `SEO_BLOG_COVERS_BUCKET` is `blog-covers`, but that bucket does not exist in Supabase project `wmnjosiikehsuaqucvja`. It only has `project-files` and a public `SEO` bucket, created 2026-09-02 (checked 2026-09-23). Either set the variable to `SEO` or create a public `blog-covers` bucket | No draft uses `cover_image` yet, so nothing fails today. The first draft that does will fail its upload |
 | 9 | Submit the four live blog URLs in Search Console once #4 exists | They are in the sitemap; nothing else can be done without the property |
 | 10 | **Approve or decline two paid backlink routes** — Prince William Chamber membership (dues not published) and NTEN membership | Both are §4 paid-placement gates; the research is done and blocked on a yes/no (`backlinks/prospects.md`, 2026-09-10) |
 | 11 | Carried forward, unverified since 2026-09-02: confirm the live `cron.job` row for `drain-crm-outbox` and repoint it, and add the **current** domain to the Supabase auth redirect allow-list | Was scoped to `cdsportswearusa.com`; the domain move makes it more likely to be stale, not less |
@@ -283,6 +294,38 @@ Three production hosts in eight days. The honest consequences, 2026-09-10:
   by the `backlinks` call); 0 backlinks and 0 referring domains on the live
   host (Ubersuggest, 2026-09-10).
 - **Any further domain change resets this again.** §4 now names it as a gate.
+
+### llms.txt maintenance
+
+`public/llms.txt` is the machine-readable summary of the site (llmstxt.org).
+**Update `public/llms.txt` whenever a URL is published, renamed, or removed** —
+add the new entry under the right section (`## Services`, `## Work`, `## Guides`,
+or `## Contact`) with its absolute URL and a one-line summary, and remove or
+relocate any entry whose URL no longer exists. The file must always cover every
+URL in `https://www.cdsportswearinc.com/sitemap.xml`. Verify with a fetch of
+`https://www.cdsportswearinc.com/llms.txt` after every change.
+
+### IndexNow
+
+**Run `scripts/seo/indexnow-ping.mjs` after every merge that adds or changes a URL.**
+
+- The IndexNow key is stored as `public/<key>.txt` — a 32-character lowercase hex string, one line, no trailing newline. Generate it once (`node -e "console.log(Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join(''))"`), write it to `public/<key>.txt`, and treat it as a secret only in the sense that it should not be edited casually — it is not an API token and is safe to commit.
+- `scripts/seo/indexnow-ping.mjs` reads the key from that file and POSTs `{ host, key, keyLocation, urlList }` to `https://api.indexnow.org/indexnow` for the URLs passed on the command line. Usage:
+
+  ```bash
+  node scripts/seo/indexnow-ping.mjs https://www.cdsportswearinc.com https://www.cdsportswearinc.com/new-page https://www.cdsportswearinc.com/updated-page
+  ```
+
+  Add `--dry-run` to print the payload without sending it:
+
+  ```bash
+  node scripts/seo/indexnow-ping.mjs --dry-run https://www.cdsportswearinc.com https://www.cdsportswearinc.com/new-page
+  ```
+
+- Ping the new or changed URLs only — do not re-ping the whole sitemap every time. The endpoint rejects URLs that do not start with the host, so `urlList` is filtered to URLs under `host` in the script.
+- `keyLocation` is `https://www.cdsportswearinc.com/public/<key>.txt` — the public path where IndexNow fetches the key to verify ownership.
+- If the ping returns non-2xx, record the status and body in the run log and retry once next run. Do not retry in the same run more than once.
+- Do **not** ping on merges that only touch docs, tests, configs, or other non-public routes. Ping only when a public URL is added, removed, or materially changed (new content, new slug, redirected-away slug).
 
 A `domain_overview` call for `cdsportswearinc.com` returned `HTTP 403` on
 2026-09-10 after several successful calls; the `backlinks_overview` figures

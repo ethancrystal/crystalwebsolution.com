@@ -9,6 +9,7 @@ import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 const TITLE = 'Terms of Service';
 const DESCRIPTION =
   "Terms governing your use of CD Sportswear INC's website and services.";
+const LAST_UPDATED = 'September 11, 2026';
 
 export const metadata = {
   title: TITLE,
@@ -31,14 +32,14 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <MarketingShell sceneVariant="about">
+    <MarketingShell>
       <PageHero
         eyebrow="Legal"
         title="Terms of Service"
         lede="Terms governing the use of our website and services."
       />
 
-      <ContentSection eyebrow="Effective" title={`Last updated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`}>
+      <ContentSection eyebrow="Effective" title={`Last updated: ${LAST_UPDATED}`}>
         <p className="mkt-prose">
           These terms of service govern your use of {SITE.name}'s website and services. By accessing
           our website or engaging our services, you agree to be bound by these terms. If you do not

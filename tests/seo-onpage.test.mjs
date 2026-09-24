@@ -57,9 +57,13 @@ test('public metadata routes retain unique titles, descriptions, canonicals, and
     'app/services/page.jsx',
     'app/work/page.jsx',
     'app/reviews/page.jsx',
+    'app/blog/page.jsx',
+    'app/privacy/page.jsx',
+    'app/terms/page.jsx',
     'app/embroidery-screen-printing-web-design/page.jsx',
     'app/services/[slug]/page.jsx',
     'app/work/[slug]/page.jsx',
+    'app/blog/[slug]/page.jsx',
   ];
   for (const file of routes) {
     const code = source(file);
@@ -79,9 +83,13 @@ test('public metadata routes publish route-aware Open Graph and Twitter images',
     'app/services/page.jsx',
     'app/work/page.jsx',
     'app/reviews/page.jsx',
+    'app/blog/page.jsx',
+    'app/privacy/page.jsx',
+    'app/terms/page.jsx',
     'app/embroidery-screen-printing-web-design/page.jsx',
     'app/services/[slug]/page.jsx',
     'app/work/[slug]/page.jsx',
+    'app/blog/[slug]/page.jsx',
   ];
   for (const file of routes) {
     const code = source(file);
@@ -98,6 +106,9 @@ test('static public metadata routes publish canonical Open Graph URLs', () => {
     'app/services/page.jsx': '/services',
     'app/work/page.jsx': '/work',
     'app/reviews/page.jsx': '/reviews',
+    'app/blog/page.jsx': '/blog',
+    'app/privacy/page.jsx': '/privacy',
+    'app/terms/page.jsx': '/terms',
     'app/embroidery-screen-printing-web-design/page.jsx': '/embroidery-screen-printing-web-design',
   };
   for (const [file, route] of Object.entries(routes)) {
@@ -116,4 +127,48 @@ test('auth callback and reset segments explicitly disable indexing', () => {
 test('robots policy excludes the private employee route', () => {
   const code = source('app/robots.js');
   assert.match(code, /['"]\/team['"]/, 'robots policy must disallow /team');
+});
+
+test('indexable auth entry points publish their own Open Graph URL', () => {
+  for (const [file, route] of [
+    ['app/login/layout.jsx', '/login'],
+    ['app/signup/layout.jsx', '/signup'],
+  ]) {
+    const code = source(file);
+    assert.match(code, /openGraph\s*:/, `${file} must define Open Graph metadata`);
+    assert.match(code, /twitter\s*:/, `${file} must define Twitter metadata`);
+    assert.match(
+      code,
+      new RegExp(`openGraph\\s*:\\s*\\{[\\s\\S]*?url\\s*:\\s*absoluteUrl\\(['"]${route}['"]\\)`),
+      `${file} must not inherit the homepage og:url`,
+    );
+  }
+});
+
+test('the not-found page is the authoritative noindex for missing URLs', () => {
+  const code = source('app/not-found.jsx');
+  assert.match(code, /robots\s*:\s*\{[\s\S]*?index\s*:\s*false/, 'not-found must set index=false');
+  assert.match(code, /follow\s*:\s*false/, 'not-found must set follow=false');
+});
+
+test('privacy and terms do not stamp a fresh last-updated date on every render', () => {
+  for (const file of ['app/privacy/page.jsx', 'app/terms/page.jsx']) {
+    const code = source(file);
+    assert.match(code, /LAST_UPDATED/, `${file} must use a fixed last-updated date`);
+    assert.doesNotMatch(code, /new Date\(\)\.toLocaleDateString/, `${file} must not generate today's date at render`);
+  }
+});
+
+test('sitemap lists public marketing URLs and excludes CRM and unbuilt landings', () => {
+  const code = source('app/sitemap.js');
+  assert.match(code, /SITE_ORIGIN/, 'sitemap locs must come from the canonical origin');
+  assert.match(code, /\/blog/, 'published blog index belongs in the sitemap');
+  assert.match(code, /listPublishedSlugs/, 'published posts belong in the sitemap');
+  assert.doesNotMatch(code, /\/login/, 'login is indexable but not a sitemap URL');
+  assert.doesNotMatch(code, /\/dashboard/, 'CRM routes must not appear in the sitemap');
+  assert.doesNotMatch(code, /hire\/shopify/, 'unbuilt landing pages must not appear in the sitemap');
+});
+
+test('marketing footer includes the blog in the explore set', () => {
+  assert.match(source('components/marketing/MarketingFooter.jsx'), /href="\/blog"/);
 });
