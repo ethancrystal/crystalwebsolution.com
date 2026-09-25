@@ -20,6 +20,7 @@ serves 404 (WebFetch on apex and `www`, 2026-09-10) — Operations Manual §12.
 
 | Keyword | Vol/mo | Diff | CPC | Intent | Target URL | Page state | Tier | Tracked? | Pulled |
 |---|---|---|---|---|---|---|---|---|---|
+| cd sportswear | 320 | 22 | $0.00 | navigational (brand) | / | live — homepage; Organization/WebSite `alternateName` added 2026-09-24. Brand defence only: most searchers likely want an apparel company, not the agency | Now | **yes (added 2026-09-24, MJ)** | 2026-09-24 |
 | rfp web development | 260 | 13 | $15.25 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-10 |
 | website development rfp | 260 | 13 | $11.98 | commercial | /blog/web-development-rfp-guide | **live 2026-09-03** | Now | yes | 2026-09-10 |
 | web development northern virginia | 260 | 9 | $18.00 | — | /northern-virginia-web-development | not built | Next | yes | 2026-09-10 |
