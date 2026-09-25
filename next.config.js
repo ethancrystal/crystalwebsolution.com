@@ -40,7 +40,9 @@ const GA_CONNECT_ORIGINS = [
 ];
 
 // The conversion linker uses an iframe; default-src 'self' would block it.
-const GA_FRAME_ORIGINS = ['https://td.doubleclick.net'];
+// www.googletagmanager.com serves GTM's <noscript> ns.html fallback iframe
+// (app/layout.jsx) for visitors without JavaScript.
+const GA_FRAME_ORIGINS = ['https://td.doubleclick.net', 'https://www.googletagmanager.com'];
 
 // Client Sentry (instrumentation-client.js) posts envelopes to the org's
 // ingest host. Without this token, production CSP blocks those requests and
