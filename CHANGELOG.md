@@ -1,3 +1,22 @@
+## v1.53 — 2026-09-24
+
+Add a "Services behind this project" section to every /work/[slug] case study.
+
+- Reuses `ServiceGrid` (the /services index component) in place of the bare "Related service →" links case studies had. Each card is now a real `<a href>` with descriptive, keyword-bearing anchor text (the service's own title + hero line), verified to resolve for all six projects and their related services.
+- `ServiceGrid` gains a `titleAs` prop (default `h2`) so it can render its card titles as `h3` here, keeping each case study's heading order at h1 → h2 → h3 (this is the page's first h2). `/services` is unaffected — it doesn't pass the prop, so its cards stay `h2`.
+- Placed after the "The look" gallery, before `CaseNavRail`; "Send a brief →" stays last. Approved extension plan on file in the PR description.
+
+## v1.52 — 2026-09-24
+
+Resolve the 2026-09-24 Ubersuggest site audit (cdsportswearinc.com) and add the `cd sportswear` brand keyword.
+
+- **Brand keyword:** `cd sportswear` (320/mo, diff 22) added to Ubersuggest tracking and the Keyword Registry → homepage. Organization and WebSite JSON-LD now carry `alternateName: ['CD Sportswear', 'CD Sportswear Inc', …]` so brand searches resolve to this site.
+- **Thin auth pages:** `/login` and `/signup` are now `noindex, follow` (MJ, 2026-09-24 — reverses 2026-09-11). They stay crawlable in `robots.js` so the noindex is seen. `/login` title lengthened to `Client Portal Log In — CD Sportswear INC` (was 26 chars).
+- **URL-keyword check:** `/about` → `About Our Web Design & Branding Studio — CD Sportswear INC`; `/services` → `Services: Websites, Brands & Automation — CD Sportswear INC` (keeps clear of the web-design/branding pillar head terms).
+- **Long titles (>65 chars):** `/services/seo` seoTitle shortened; case-study titles over 65 chars fall back to `<Project> — Case Study | CD Sportswear INC`. Four blog `seo_title`s shortened directly in Supabase (branding-and-web-design-studio, web-design-manassas-va, how-much-does-a-small-business-website-cost, ai-automation-agency).
+- **Thin case studies:** Style and Prestige Online Learning each gain three approach paragraphs (~400 words on page). They only expand what the existing narrative already states: no new metrics, stack, or client claims.
+- **Not changed:** `/forgot-password` and `/login/{admin,client,employee}` stay disallowed in robots.txt on purpose (Ubersuggest's "blocked" flag is expected for them).
+
 ## v1.51 — 2026-09-24
 
 Cherry-pick usable SEO branch work that was stuck behind conflicts on main.

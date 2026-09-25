@@ -169,7 +169,7 @@ const SEO_SHIP_TABLE = [
   },
   {
     slug: 'seo',
-    seoTitle: 'SEO Agency — Search Engine Optimization Services',
+    seoTitle: 'SEO Agency — Search Engine Optimization',
     h1: 'Search engine optimization agency for brands',
   },
 ];
