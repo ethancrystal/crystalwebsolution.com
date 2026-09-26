@@ -6,6 +6,301 @@ SEO content and technical audit updates, plus a transitive dependency security f
 - **Technical SEO** — Applied the Latiedo audit metadata corrections, preserved the approved no-Shopify strategy, and reduced the flagged homepage client image below 200 KB.
 - **Security** — Pinned transitive `fast-uri` to patched `3.1.6`; `pnpm audit` reports no known vulnerabilities.
 
+## v1.56 — 2026-09-26
+
+Merge after v1.55 (client briefs, PR #229); this entry was renumbered from
+v1.55 so the two releases don't share a version.
+
+Door Dennis-style transitions (owner request, adapted from doordennis.nl's
+motion system — transitions only; none of its WebGL, media or copy).
+
+- **Page-to-page transition** (`components/PageTransition.jsx`, rules in
+  `lib/pageTransition.mjs`): internal link click -> page content fades out
+  (0.45s) -> Next navigates -> jump to top unless a `#hash` was requested ->
+  `ScrollTrigger.refresh()` -> fade in (0.6s). Mounted once in
+  `app/layout.jsx`. Opacity only, so the fixed WebGL stage and nav never
+  re-anchor. Skips CRM/auth routes, same-page hashes, new tabs, downloads,
+  modifier clicks, `data-no-page-transition`, and `ProjectHandoffLink`
+  (which keeps its own stripe wipe). A 5s safety net restores the page if a
+  route never commits.
+- **Blur-letter headings** (`components/BlurLetters.jsx`): letters turn in
+  from `rotateY(-90deg) scale(.9)` with an 8px blur while words rise, 0.75s
+  `power3.out`. Now used by `SectionHeader` (Services, Approach, Stories) and
+  the inner-page `PageHero` title, replacing their `SectionReveal` mask.
+- **Line/word rise** (`components/LineRise.jsx`): words rise per rendered
+  line, 0.15s between lines. Used by the `PageHero` lede.
+- **Hover letter scramble** (`components/HoverScramble.jsx`,
+  `lib/scramble.mjs`): 4 random-glyph frames 80ms apart, then the label
+  snaps back. Applied to the subpage nav links and Log in link; width is
+  locked and an sr-only copy keeps the accessible name stable.
+- Both text entrances revert their SplitType spans once settled, so final
+  headings are plain text again (a11y name, `text-wrap: balance`, resize).
+  Everything resolves instantly under `prefers-reduced-motion`.
+- Tests: `tests/pageTransition.test.mjs` (route rules, exclusions, scramble
+  frames).
+
+## v1.54 — 2026-09-25
+
+Google Tag Manager container `GTM-5VKPC974` added alongside the existing GA4
+integration, per owner request. The container is for other tags (ads pixels,
+conversions); it must not also carry a GA4 tag for the same property, or
+every pageview is counted twice.
+
+- **Loader** (`lib/analytics.mjs` `loadTagManager()`, called from
+  `components/Analytics.jsx`) injects `gtm.js` once, on the first public
+  page. CRM and auth routes (`UNTRACKED_PREFIXES`) never load it, matching
+  the existing GA4 privacy rule. Once loaded it stays for the session, so
+  container tags that auto-track page changes must exclude those paths.
+- **Consent** — the Consent Mode v2 defaults (all denied) are queued before
+  `gtm.js` reads `dataLayer`, and are shared with GA4 so they are pushed only
+  once. The consent banner now shows when either tag is active and names
+  both. Non-Google tags in the container still need their own consent
+  settings in GTM to respect a decline.
+- **Scope** — production builds only (`next dev` never fires container
+  tags). `NEXT_PUBLIC_GTM_ID` overrides the container; a non-container value
+  such as `off` disables it.
+- **No-JS fallback** — the `<noscript>` `ns.html` iframe sits at the top of
+  `<body>` in `app/layout.jsx`; `frame-src` now allows
+  `https://www.googletagmanager.com` for it (pinned in
+  `tests/csp-policy.test.mjs`). Any third-party script a container tag loads
+  still needs its origin added to the CSP before it can run.
+- Tests: GTM ID resolution, load-once, consent ordering with and without
+  GA4, disabled container, public-page gating, noscript fallback and CSP.
+
+## v1.53 — 2026-09-24
+
+Add a "Services behind this project" section to every /work/[slug] case study.
+
+- Reuses `ServiceGrid` (the /services index component) in place of the bare "Related service →" links case studies had. Each card is now a real `<a href>` with descriptive, keyword-bearing anchor text (the service's own title + hero line), verified to resolve for all six projects and their related services.
+- `ServiceGrid` gains a `titleAs` prop (default `h2`) so it can render its card titles as `h3` here, keeping each case study's heading order at h1 → h2 → h3 (this is the page's first h2). `/services` is unaffected — it doesn't pass the prop, so its cards stay `h2`.
+- Placed after the "The look" gallery, before `CaseNavRail`; "Send a brief →" stays last. Approved extension plan on file in the PR description.
+
+## v1.52 — 2026-09-24
+
+Resolve the 2026-09-24 Ubersuggest site audit (cdsportswearinc.com) and add the `cd sportswear` brand keyword.
+
+- **Brand keyword:** `cd sportswear` (320/mo, diff 22) added to Ubersuggest tracking and the Keyword Registry → homepage. Organization and WebSite JSON-LD now carry `alternateName: ['CD Sportswear', 'CD Sportswear Inc', …]` so brand searches resolve to this site.
+- **Thin auth pages:** `/login` and `/signup` are now `noindex, follow` (MJ, 2026-09-24 — reverses 2026-09-11). They stay crawlable in `robots.js` so the noindex is seen. `/login` title lengthened to `Client Portal Log In — CD Sportswear INC` (was 26 chars).
+- **URL-keyword check:** `/about` → `About Our Web Design & Branding Studio — CD Sportswear INC`; `/services` → `Services: Websites, Brands & Automation — CD Sportswear INC` (keeps clear of the web-design/branding pillar head terms).
+- **Long titles (>65 chars):** `/services/seo` seoTitle shortened; case-study titles over 65 chars fall back to `<Project> — Case Study | CD Sportswear INC`. Four blog `seo_title`s shortened directly in Supabase (branding-and-web-design-studio, web-design-manassas-va, how-much-does-a-small-business-website-cost, ai-automation-agency).
+- **Thin case studies:** Style and Prestige Online Learning each gain three approach paragraphs (~400 words on page). They only expand what the existing narrative already states: no new metrics, stack, or client claims.
+- **Not changed:** `/forgot-password` and `/login/{admin,client,employee}` stay disallowed in robots.txt on purpose (Ubersuggest's "blocked" flag is expected for them).
+
+## v1.51 — 2026-09-24
+
+Cherry-pick usable SEO branch work that was stuck behind conflicts on main.
+
+- **Brand-drift title fix (from PR #219):** about, blog, contact, and /services hub `SEO_TITLE` strings now use exact brand `CD Sportswear INC`, topic-first ordering, and spaced em dashes. The /services hub title is `Connected Services — CD Sportswear INC` so it no longer cannibalizes pillar head terms.
+- **Keyword registry (from PR #214 + #213):** logo vs brand-identity split ruling; map 7 theme-3 terms; map `business of web design` and `product page design`.
+- **Drafts (from PR #213, `approved: false`):** `docs/seo/drafts/blog/business-of-web-design.md` and `product-page-design.md`. Not published live.
+- Skipped: metro/geo doorway branches; stale superseded SEO branches already on main (#208/#212/#220/#222); obsolete #199 registry one-liner.
+
+## v1.50 — 2026-09-23
+
+Install the blog publish workflow. It was built in v1.25 but never installed.
+
+- **`docs/seo/seo-publish-blog.yml.pending` moves to
+  `.github/workflows/seo-publish-blog.yml`.** On every push to `main` that
+  touches `docs/seo/drafts/blog/**` or `scripts/seo/publish-blog-drafts.mjs`,
+  it runs the publish script. The script upserts drafts marked
+  `approved: true` into `blog_posts` as `status: draft`. It never publishes,
+  and it never overwrites a row that is already published. A person still
+  takes each post live from `/admin/blog`. It can also be run by hand from
+  the Actions tab, where it defaults to a dry run.
+- The `dry_run` input and the event name now reach the shell through `env:`
+  instead of being written into the script text.
+- The repo secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) and the
+  `SEO_BLOG_COVERS_BUCKET` variable were already set, so the workflow is live
+  as soon as this merges. Merging it does not trigger a run, because the
+  workflow file is not in its own `paths` filter.
+- **Known gap:** the `blog-covers` bucket that `SEO_BLOG_COVERS_BUCKET` names
+  does not exist in Supabase. No draft uses a cover image yet. Details are in
+  `docs/seo/OPERATIONS-MANUAL.md` item 8.
+
+## v1.49 — 2026-09-23
+
+Blog draft for Jira KAN-11, under SEO theme 2 (digital marketing). This is
+docs only, with no route or code change.
+
+- **`docs/seo/drafts/blog/sportswear-marketing-strategy.md`**, marked
+  `approved: false`. It's a B2B sportswear marketing strategy for brands that
+  sell to teams, clubs, schools and wholesale buyers. It covers the buying
+  committee, planning backwards from the season calendar, the reorder path,
+  how to show decoration work, channel choice and measurement. It targets
+  `sportswear marketing strategy` (390/mo, difficulty 27) and
+  `sportswear marketing plan` (50/mo, difficulty 24), both from Ubersuggest in
+  the US on 2026-09-23. The SERP is informational (Forbes, Deloitte,
+  launchmetrics), and one DA-14 agency blog ranks #8. It links internally to
+  `/services/digital-marketing`, `/services/seo`,
+  `/embroidery-screen-printing-web-design`, `/blog/web-development-rfp-guide`
+  and `/contact`. It contains no statistics, client names or outcomes.
+- Both keywords are added to `docs/seo/KEYWORD-REGISTRY.md`, mapped to
+  `/blog/sportswear-marketing-strategy`.
+- The publish pipeline only upserts drafts with `approved: true`, so this
+  lands nowhere until MJ approves it.
+
+## v1.48 — 2026-09-23
+
+SEO internal links and IndexNow fixes from Jira KAN-12 and KAN-15.
+
+- **Service pages now link back to their blog posts (KAN-12).** The blog
+  posts already linked to their service pillars, but no service page linked
+  to any post. `/services/branding` and `/services/logo-design` now link to
+  `/blog/branding-and-web-design-studio`. Web design, web development, AI
+  automation and workflow automation also link to their published posts. The
+  links sit in a "Further reading" section that reuses the existing
+  related-links markup, and the data is in `GUIDE_LINKS` in
+  `lib/servicePages.mjs`. `ai automation agency` is mapped to
+  `/services/ai-automation` in the keyword registry, so the anchor pointing at
+  `/blog/ai-automation-agency` avoids that term and doesn't make the post
+  compete with its own pillar.
+- **`/blog/ai-automation-agency` and `/blog/custom-react-nextjs-web-development`
+  get specific "Next" links (KAN-15).** They used to fall back to the generic
+  Services / Work / Contact set.
+- **Every IndexNow ping sent by `scripts/seo/indexnow-ping.mjs` had two
+  errors (KAN-15).** `host` was sent as `https://www.…` instead of a bare
+  hostname, and `keyLocation` pointed at `/public/<key>.txt`, which 404s
+  because Next.js serves `public/` at the root. The key file itself is live at
+  `/<key>.txt`. The payload now matches the IndexNow documentation. URLs are
+  filtered by exact origin, and the script only runs `main()` when it is
+  executed directly. IndexNow can answer 202 ("key validation pending"), so
+  the failures may never have shown up as errors.
+- New contract tests in `tests/seo-internal-links.test.mjs`.
+
+## v1.47 — 2026-09-22
+
+Follow-up to v1.44 to v1.46 (#217). Both fixes below were pushed to that branch just after it
+merged, so neither shipped with it.
+
+- **Hero backgrounds covered only part of the hero** (owner report, most
+  visible on `/services`). Three stage modules, dot-field, letter-glitch and
+  ripple-grid, resized only when the window resized, and two of them pin
+  the canvas to fixed pixel sizes. Inside a hero the box keeps changing
+  height after mount as fonts load and reveals run. So the canvas stayed at
+  its first, smaller measurement. All three now watch their container with
+  a ResizeObserver, like the other four already did, and a test pins it for
+  all seven. The viewport-tuned `.alive-overlay` vignette also crushed the
+  hero's side edges, and its third glow sat dead centre. Both are
+  re-tuned inside the hero so the light spans the full width.
+- **Reduced motion now stops the animation, not just hides it.** A module
+  hidden with `display: none` still ran its requestAnimationFrame loop and
+  held a WebGL context. `DarkPageBackground` no longer mounts the module under
+  `(prefers-reduced-motion: reduce), (max-width: 767px)`, and it unmounts the
+  module if the preference changes mid-session. This covers auth pages too.
+- A shared diagonal "brand streak" across every hero was tried and then
+  removed at the owner's request. It does not ship.
+- **Service marks start still.** `ServiceGlyph`'s reduced-motion hook started at
+  `false`, so the SMIL marks could animate for one render before the visitor's
+  preference was read. It now starts at `true`, and motion turns on only after
+  matchMedia confirms it is allowed.
+
+## v1.46 — 2026-09-22
+
+Make the service emblems mean something. The owner's read of the previous
+set — "these blue shapes that each page has" — was fair: every service page
+opened on an abstract 3D object that said nothing about the service.
+
+- **Root cause was motion, not just shape** — `ServiceEmblem3D` spun each
+  form a full 360 degrees on Y. The forms were authored to be read face-on
+  (a viewport with a cursor, a layered stack), so half of every cycle showed
+  them edge-on, collapsed into an unreadable sliver. The spin is replaced by
+  a bounded sway (about 23 degrees of yaw, 7 of pitch; `rotSpeed` still sets
+  each signal's tempo). The form now always faces the reader and still reads
+  as a solid with depth on its edges. Scale 1.35 to 1.5.
+- **Forms rebuilt as literal objects** in `lib/serviceSignalGeometry.mjs`,
+  still procedural primitives, still one source of truth shared with the
+  homepage rail: browser window (web), `</>` (development), tag with eyelet
+  (brand), constructed mark in a ring (logo), megaphone (marketing), play
+  button (animation, still the one wireframe form), thickened node network
+  (ai), thickened relay with arrow (workflow), magnifying glass (seo). The
+  brand form took three tries: two card-stack versions fused into one blob
+  in a single flat colour; the tag works because its outline alone is
+  iconic, the same reason the magnifier and play button work.
+- **Inline SMIL marks redesigned** and moved to `components/marketing/
+  ServiceGlyph.jsx` (single source, shared by `ServiceEmblem`). Each shows the
+  service's value rather than decorating: a headline that writes itself and
+  a CTA that lands, a funnel that converts, a result that climbs to first.
+  Reduced-motion still strips SMIL from the tree.
+- **Tooltip copy extracted** to `lib/serviceSignalBlurbs.mjs` so it is not
+  duplicated. `vitest.setup.js` gains a `matchMedia` shim, matching its
+  existing `ResizeObserver` one, so components that gate on reduced motion
+  can render under jsdom.
+- **Scope note** — an SVG-only hero variant was built and verified, then
+  dropped the same day when the owner chose to keep React Three Fiber. Only
+  the shared geometry, the sway, the SMIL glyphs and the blurb extraction
+  ship.
+
+## v1.45 — 2026-09-22
+
+Extend the hero stage to the four index/detail surfaces the owner asked for,
+each with its own React Bits module, restyled to site tokens and dimmed to a
+single shared level.
+
+- **New stages** — `/services/[slug]` gets prism, `/work` ripple-grid, `/blog`
+  liquid-ether, `/reviews` dot-field. Seven modules exist and the four
+  top-level pages already take one each, so `reviews` reuses dot-field, the
+  quietest of the set and the right register for a text-dense page.
+- **Brand colors enforced at the source** — ripple-grid shipped vendor purple
+  `#8a5cff` and liquid-ether `['#5227FF','#89f7ff','#B497CF']`. Both now
+  default to site tokens (`--blue` `#3c6cff`, `--cyan` `#59f3ff`, `--muted`
+  `#8b98b8`), so no code path can render the demo palette. Prism gained a
+  `saturation` prop (defaulting to the vendor value, so existing behavior is
+  unchanged) and the wrapper pulls it to near-monochrome with a cyan hue
+  shift, low glow/bloom and a slow `timeScale`.
+- **One prominence knob** — `.mkt-hero-stage { opacity }` sets how loud every
+  stage reads, instead of editing each module. Full-viewport auth surfaces
+  are unaffected.
+- **Band variant** — `/work`'s first section is the entire index, so it has no
+  hero box to fill. `HeroStage variant="band"` paints a height-capped band at
+  the top of the container, fading into `--bg` before the project library.
+- **Scope** — `/work/[slug]`, `/blog/[slug]`, the embroidery pillar,
+  `/privacy` and `/terms` were not requested and still get no stage. The
+  no-fallback rule from v1.44 is unchanged and still covered by tests.
+
+## v1.44 — 2026-09-22
+
+Scope the animated stage background to the hero on the four main marketing
+pages; remove it from every inner page it had leaked onto.
+
+- **Bug fix** — the cyan/silver stage (acid-squares, dot-field,
+  faulty-terminal, letter-glitch) rendered `position: fixed`, so it covered
+  the full scroll height of any page through `SubpageExperience`, and a
+  silent `|| 'acid-squares'` fallback meant it also showed on pages with no
+  assigned variant: `/services/[slug]`, `/work`, `/work/[slug]`, `/blog`,
+  `/blog/[slug]`, `/reviews`, `/privacy`, `/terms`, and the embroidery
+  pillar page.
+- **Fix** — the stage now mounts inside `PageHero`'s `.mkt-hero` section via
+  a new `HeroStage` component and `StageContext`, with CSS that forces the
+  shared background modules to `position: absolute` inside `.mkt-hero-stage`
+  so each one fills the hero box and fades out before section 2, instead of
+  running the page's full height. `marketingStageBackground()` no longer
+  falls back to `acid-squares`; only `/about`, `/services`, `/process`, and
+  `/contact` (the four `MARKETING_STAGE_BACKGROUNDS` entries) get a stage.
+  `/privacy` and `/terms` no longer pass a `sceneVariant`. Homepage
+  (`Scene.jsx`/crystal journey) and auth pages are unchanged.
+- **Tests** — `tests/marketing-stage-background.test.mjs` rewritten to
+  assert the stage is hero-scoped, has no fallback, and privacy/terms
+  request no variant.
+- **Platform-version reconciliation** — `package.json` has run Next 16
+  (`^16.3.5`) since dependabot's #204, but the contract test still asserted
+  major `15`, so `pnpm test` exited 1 on `main`. Updated the assertion to 16
+  and renamed the file from `tests/crm/next15-upgrade.test.mjs` to
+  `tests/crm/next-platform-contract.test.mjs` so the name stops naming one
+  version. The same stale "Next.js 15" claim was corrected in the active docs:
+  `README.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `MEMORY.md` and
+  `docs/SENTRY-NEXTJS.md`. Dated plans under `docs/plans/` keep their Next 15
+  wording as historical record; the two most likely to mislead now carry a
+  historical note instead.
+- **README migration range** — replaced the stale `0001` through `0011`
+  statement (the directory head is `0042`, 43 files) with a pointer to inspect
+  the directory, matching the rule already stated in `CLAUDE.md`.
+- **Versioning note** — this release takes v1.44, not v1.43. The merge commit
+  `f0290ae` was titled `v1.43 — AI visibility + technical SEO assets (#212)`
+  and deployed under that name, but it bumped neither `VERSION` nor
+  `CHANGELOG.md`, so the files stayed at v1.42. v1.43 is therefore already
+  spent on a shipped deploy; reusing it would put two different deploys under
+  one name. There is intentionally no v1.43 entry below.
+
 ## v1.42 — 2026-09-20
 
 SEO content lane: publish-ready web-design-RFP blog draft for the /services/web-design pillar.

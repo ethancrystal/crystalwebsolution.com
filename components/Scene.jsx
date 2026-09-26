@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import CameraRig from './three/CameraRig';
 import FocusDimmer from './three/FocusDimmer';
@@ -11,47 +12,66 @@ import Sparks from './three/Sparks';
 import BackdropMorph from './three/BackdropMorph';
 import Lights from './three/Lights';
 import Effects from './three/Effects';
+import CanvasFeatureBoundary from './three/CanvasFeatureBoundary';
 import { CLUSTERS } from '../lib/journey';
 import { useRenderQuality } from '../lib/useRenderQuality';
+import { canUseWebGL } from '../lib/webglSupport.mjs';
 
 // One fixed, non-interactive canvas behind the whole page.
 // The DOM scrolls over it; the camera flies through one continuous space.
 export default function Scene() {
   const quality = useRenderQuality();
+  // Client-only module (dynamic, ssr: false), so probing in the initializer
+  // cannot cause a hydration mismatch.
+  const [webgl] = useState(canUseWebGL);
+
+  // No WebGL: render nothing. The page's CSS backdrop and every DOM section
+  // still carry the experience.
+  if (!webgl) return null;
 
   return (
     <div className="scene-canvas" aria-hidden="true">
-      <Canvas
-        dpr={[1, 1.75]}
-        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-        camera={{ fov: 42, near: 0.1, far: 260, position: [0, 0.25, 7.5] }}
-      >
-        <color attach="background" args={['#04060c']} />
-        {/* Beats sit 9-18 apart and the camera trails ~8-9 units behind each
-            stop, so the current mascot is ~10 away (barely fogged) and the
-            next ~17-26. near=10/far=48 actually delivers what the old
-            14/64 range only promised: the next beat reads as a dim preview
-            instead of loose dark slabs floating over the current copy. */}
-        <fog attach="fog" args={['#04060c', 10, 48]} />
-        <Lights />
-        <CameraRig />
-        <FocusDimmer />
+      <CanvasFeatureBoundary>
+        <Canvas
+          dpr={[1, quality.maxDpr]}
+          gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+          camera={{ fov: 42, near: 0.1, far: 260, position: [0, 0.25, 7.5] }}
+        >
+          <color attach="background" args={['#04060c']} />
+          {/* Beats sit 9-18 apart and the camera trails ~8-9 units behind each
+              stop, so the current mascot is ~10 away (barely fogged) and the
+              next ~17-26. near=10/far=48 actually delivers what the old
+              14/64 range only promised: the next beat reads as a dim preview
+              instead of loose dark slabs floating over the current copy. */}
+          <fog attach="fog" args={['#04060c', 10, 48]} />
+          <Lights />
+          <CameraRig />
+          <FocusDimmer />
 
-        {/* Hero beat */}
-        <Crystal position={[0, 0, CLUSTERS.crystal]} quality={quality} />
-        <Sparks position={[0, 0, CLUSTERS.crystal]} />
+          {/* Hero beat */}
+          <Crystal position={[0, 0, CLUSTERS.crystal]} quality={quality} />
+          <Sparks position={[0, 0, CLUSTERS.crystal]} />
 
-        {/* Services beat — eight signal instruments, one per service row, hover-linked
-            to the DOM list (see ServiceRail) */}
-        <ServiceRail position={[0, 0, CLUSTERS.services]} animate={quality.animate} />
+          {/* Services beat — eight signal instruments, one per service row, hover-linked
+              to the DOM list (see ServiceRail) */}
+          <ServiceRail position={[0, 0, CLUSTERS.services]} animate={quality.animate} />
 
-        {/* Approach beat — step-markers orbiting a small core */}
-        <ApproachCompass position={[0, 0, CLUSTERS.approach]} animate={quality.animate} />
+          {/* Approach beat — step-markers orbiting a small core */}
+          <ApproachCompass position={[0, 0, CLUSTERS.approach]} animate={quality.animate} />
 
-        <Particles count={900} />
-        <BackdropMorph />
-        <Effects />
-      </Canvas>
+          {/* Tier-driven like IdleScene (lib/renderQuality.mjs): particle density
+              and DPR step down on compact, low-memory, save-data and
+              reduced-motion devices instead of every device paying high-tier
+              cost. Post-processing deliberately never goes fully 'off' here:
+              eco includes 4-thread laptops (2019 MacBook Air class), and bloom +
+              vignette carry the crystal's look, so non-high tiers get Effects'
+              lighter mode (no mipmap blur, no DOF) instead (owner decision
+              2026-09-26; revisit with real-device numbers in Phase 6). */}
+          <Particles count={quality.particleCount} animate={quality.animate} />
+          <BackdropMorph />
+          <Effects mode={quality.postprocessing === 'full' ? 'full' : 'light'} />
+        </Canvas>
+      </CanvasFeatureBoundary>
     </div>
   );
 }

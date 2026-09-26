@@ -5,13 +5,14 @@ import { SITE } from '../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import { safeJsonLd } from '../../lib/jsonLd.mjs';
 import MarketingShell from '../../components/marketing/MarketingShell';
+import HeroStage from '../../components/marketing/HeroStage';
 import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const BLOG_TITLE = 'Blog';
 // Exact <title> flagged by Ubersuggest and specified by MJ (2026-09-11). Wrapped
 // in `absolute` so the root layout's `%s | <brand>` template does not append to it.
-const SEO_TITLE = 'Web Design & Branding Blog | CD Sportswear Inc';
+const SEO_TITLE = 'Studio Notes on Web Design & Branding — CD Sportswear INC';
 const BLOG_DESCRIPTION =
   'Notes on web design, development and brand systems from the CD Sportswear INC studio — what we build, how we build it, and what it costs.';
 
@@ -79,7 +80,7 @@ export default async function BlogIndexPage() {
   };
 
   return (
-    <MarketingShell>
+    <MarketingShell sceneVariant="blog">
       <main className="blog-index mkt-inner">
         <BreadcrumbSchema trail={[{ name: BLOG_TITLE, path: '/blog' }]} />
         {posts.length > 0 ? (
@@ -90,6 +91,7 @@ export default async function BlogIndexPage() {
         ) : null}
 
         <section className="blog-hero" aria-labelledby="blog-title">
+          <HeroStage />
           <p className="eyebrow">
             <SectionReveal as="span" direction="left">
               Studio notes

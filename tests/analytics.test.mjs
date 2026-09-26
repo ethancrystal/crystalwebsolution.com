@@ -34,14 +34,34 @@ function fakeStorage(initial = null, { throws = false } = {}) {
   };
 }
 
-async function loadAnalytics({ id = 'G-ABCD1234', href = 'https://www.crystalwebsolution.com/', referrer = '', title = 'Home', storage = fakeStorage() } = {}) {
+const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
+
+// GTM only resolves in production builds, so nodeEnv defaults to the test
+// runner's own (unset) value and every pre-existing case runs GA4-only.
+async function loadAnalytics({ id = 'G-ABCD1234', href = 'https://www.crystalwebsolution.com/', referrer = '', title = 'Home', storage = fakeStorage(), nodeEnv = ORIGINAL_NODE_ENV, gtmId } = {}) {
   const url = new URL(href);
+  const appended = [];
   globalThis.window = { location: { origin: url.origin, href }, localStorage: storage };
-  globalThis.document = { title, referrer };
+  globalThis.document = {
+    title,
+    referrer,
+    head: { appendChild: (element) => appended.push(element) },
+    createElement: (tagName) => ({ tagName }),
+  };
   process.env.NEXT_PUBLIC_GA_ID = id;
+  if (nodeEnv === undefined) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = nodeEnv;
+  if (gtmId === undefined) delete process.env.NEXT_PUBLIC_GTM_ID;
+  else process.env.NEXT_PUBLIC_GTM_ID = gtmId;
   instance += 1;
   const mod = await import(`../lib/analytics.mjs?case=${instance}`);
-  return { mod, storage, dataLayer: () => (globalThis.window.dataLayer || []).map((entry) => Array.from(entry)) };
+  return {
+    mod,
+    storage,
+    appended,
+    rawDataLayer: () => globalThis.window.dataLayer || [],
+    dataLayer: () => (globalThis.window.dataLayer || []).map((entry) => Array.from(entry)),
+  };
 }
 
 const DENIED = { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' };
@@ -51,6 +71,9 @@ test.afterEach(() => {
   delete globalThis.window;
   delete globalThis.document;
   delete process.env.NEXT_PUBLIC_GA_ID;
+  delete process.env.NEXT_PUBLIC_GTM_ID;
+  if (ORIGINAL_NODE_ENV === undefined) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = ORIGINAL_NODE_ENV;
 });
 
 test('only a well-formed GA4 measurement ID enables the tag', async () => {
@@ -346,4 +369,88 @@ test('contact form reports generate_lead only on success, with no PII', async ()
   const keys = [...paramsObject.matchAll(/(\w+):/g)].map((match) => match[1]);
   assert.deepEqual(keys.sort(), ['budget', 'form_location'], 'generate_lead may only carry non-identifying fields');
   assert.ok(!/values\.(name|email|brief|company)/.test(paramsObject), 'contact details must never be sent to GA4');
+});
+
+test('GTM resolves only in production, defaults to the owner container, and can be switched off', async () => {
+  const { mod } = await loadAnalytics();
+  assert.equal(mod.resolveGtmId(undefined, 'development'), '', 'next dev must never fire container tags');
+  assert.equal(mod.resolveGtmId('GTM-ABCD1234', 'test'), '');
+  assert.equal(mod.resolveGtmId(undefined, 'production'), 'GTM-5VKPC974');
+  assert.equal(mod.resolveGtmId('   ', 'production'), 'GTM-5VKPC974', 'a blank override falls back to the default');
+  assert.equal(mod.resolveGtmId('  GTM-WXYZ9876  ', 'production'), 'GTM-WXYZ9876');
+  for (const bad of ['off', 'G-ABCD1234', 'GTM-AB', 'GTM-OK"><script>']) {
+    assert.equal(mod.resolveGtmId(bad, 'production'), '', `${JSON.stringify(bad)} must not reach the script src`);
+  }
+  assert.equal(mod.isTagManagerEnabled(), false, 'the test runner is not a production build');
+});
+
+test('gtm.js loads once, after the denied consent defaults', async () => {
+  const { mod, appended, rawDataLayer, dataLayer } = await loadAnalytics({ id: '', nodeEnv: 'production' });
+  assert.equal(mod.GTM_ID, 'GTM-5VKPC974');
+  assert.equal(mod.loadTagManager(), true);
+  assert.equal(mod.loadTagManager(), false, 'client-side navigations must not inject a second container');
+
+  assert.equal(appended.length, 1);
+  assert.equal(appended[0].tagName, 'script');
+  assert.equal(appended[0].async, true);
+  assert.equal(appended[0].src, 'https://www.googletagmanager.com/gtm.js?id=GTM-5VKPC974');
+
+  const raw = rawDataLayer();
+  assert.deepEqual(dataLayer()[0].slice(0, 2), ['consent', 'default'], 'container tags would fire on their own defaults otherwise');
+  assert.deepEqual({ ...dataLayer()[0][2], wait_for_update: undefined }, { ...DENIED, wait_for_update: undefined });
+  const start = raw.findIndex((entry) => entry && entry.event === 'gtm.js');
+  assert.ok(start > 0, 'gtm.start must follow the consent default');
+  assert.equal(typeof raw[start]['gtm.start'], 'number');
+  assert.equal(raw.filter((entry) => entry && entry.event === 'gtm.js').length, 1);
+});
+
+test('GTM and GA4 together queue the consent default only once', async () => {
+  const { mod, dataLayer } = await loadAnalytics({ nodeEnv: 'production', storage: fakeStorage('granted') });
+  mod.loadTagManager();
+  mod.pageview('/', '');
+  const queue = dataLayer();
+  assert.equal(queue.filter((entry) => entry[0] === 'consent' && entry[1] === 'default').length, 1);
+  assert.equal(queue.filter((entry) => entry[0] === 'consent' && entry[1] === 'update').length, 1, 'the stored grant is replayed once, not per tag');
+  assert.deepEqual(queue[0].slice(0, 2), ['consent', 'default']);
+  assert.ok(queue.findIndex((entry) => entry[0] === 'config') > 0, 'GA4 config still follows the defaults');
+});
+
+test('with GTM but no GA4, consent choices still reach the tag', async () => {
+  const { mod, dataLayer } = await loadAnalytics({ id: '', nodeEnv: 'production' });
+  assert.equal(mod.isConsentRequired(), true, 'the banner must still ask when only GTM is on');
+  mod.setConsent('granted');
+  const queue = dataLayer();
+  assert.deepEqual(queue[0].slice(0, 2), ['consent', 'default']);
+  const updates = queue.filter((entry) => entry[0] === 'consent' && entry[1] === 'update');
+  assert.equal(updates.length, 1);
+  assert.deepEqual(updates[0][2], GRANTED);
+  assert.equal(queue.some((entry) => entry[0] === 'config'), false, 'no GA4 config without a measurement ID');
+});
+
+test('a disabled container touches nothing', async () => {
+  const { mod, appended, dataLayer } = await loadAnalytics({ id: '', nodeEnv: 'production', gtmId: 'off' });
+  assert.equal(mod.loadTagManager(), false);
+  assert.deepEqual(appended, []);
+  assert.deepEqual(dataLayer(), []);
+  assert.equal(mod.isConsentRequired(), false);
+});
+
+test('GTM loads only from public pages, and ships a no-JS fallback the CSP allows', async () => {
+  const component = source('components/Analytics.jsx');
+  assert.match(component, /isTrackablePath\(pathname\)\) loadTagManager\(\)/, 'CRM and auth pages must not load the container');
+  assert.doesNotMatch(component, /gtm\.js/, 'the loader belongs in lib/analytics.mjs, after the consent defaults');
+
+  const banner = source('components/ConsentBanner.jsx');
+  assert.match(banner, /isConsentRequired\(\)/, 'the banner must ask when either tag is on');
+
+  const layout = source('app/layout.jsx');
+  assert.match(layout, /<noscript>\s*<iframe\s+src=\{`https:\/\/www\.googletagmanager\.com\/ns\.html\?id=\$\{GTM_ID\}`\}/);
+  assert.match(layout, /\{GTM_ID && \(/, 'no fallback iframe when GTM is off');
+
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
+  const config = createRequire(import.meta.url)(path.join(ROOT, 'next.config.js'));
+  const [rule] = await config.headers();
+  const csp = rule.headers.find((header) => header.key === 'Content-Security-Policy').value;
+  const frameSrc = csp.split('; ').find((directive) => directive.startsWith('frame-src ')).split(' ');
+  assert.ok(frameSrc.includes('https://www.googletagmanager.com'), 'the ns.html fallback iframe would be blocked');
 });

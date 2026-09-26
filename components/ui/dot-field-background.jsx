@@ -146,6 +146,13 @@ function DotField() {
       resizeTimer = window.setTimeout(doResize, 100);
     }
 
+    // Track the container, not just the window. Inside a marketing hero the box
+    // keeps changing height after mount (fonts, reveal animations, the band
+    // settling), and a window-only listener left the canvas at its first,
+    // smaller size, covering only part of the hero.
+    const ro = new ResizeObserver(onResize);
+    if (canvas.parentElement) ro.observe(canvas.parentElement);
+
     doResize();
     window.addEventListener('resize', onResize);
     window.addEventListener('mousemove', onMouseMove, { passive: true });
@@ -155,6 +162,7 @@ function DotField() {
       cancelAnimationFrame(raf);
       clearInterval(speedInterval);
       clearTimeout(resizeTimer);
+      ro.disconnect();
       window.removeEventListener('resize', onResize);
       window.removeEventListener('mousemove', onMouseMove);
     };

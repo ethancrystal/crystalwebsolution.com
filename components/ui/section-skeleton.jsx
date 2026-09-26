@@ -21,15 +21,17 @@ export default function SectionSkeleton() {
     document.documentElement.dataset.cwsHydrated = '1';
   }, []);
 
+  // The sweep element always renders so server and client markup match:
+  // useReducedMotion() is null on the server but true on a reduced-motion
+  // client's first render, and branching the tree on it was a hydration
+  // mismatch (React #418). Reduced motion hides it in CSS and skips the tween.
   return (
     <div className="section-skeleton" aria-hidden="true">
-      {!reduced && (
-        <motion.div
-          className="section-skeleton-sweep"
-          animate={{ x: ['-100%', '100%'] }}
-          transition={{ duration: 1.6, ease: 'easeInOut', repeat: Infinity }}
-        />
-      )}
+      <motion.div
+        className="section-skeleton-sweep"
+        animate={reduced ? undefined : { x: ['-100%', '100%'] }}
+        transition={{ duration: 1.6, ease: 'easeInOut', repeat: Infinity }}
+      />
     </div>
   );
 }

@@ -11,9 +11,10 @@ import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'About';
-// Exact <title> flagged by Ubersuggest and specified by MJ (2026-09-11). Wrapped
-// in `absolute` so the root layout's `%s | <brand>` template does not append to it.
-const SEO_TITLE = 'CD Sportswear Inc— Web Design & Branding Studio';
+// MJ-approved 2026-09-24 (replaces the 2026-09-11 title): includes "About" so the
+// title matches the /about slug (Ubersuggest URL-keyword check). Wrapped in
+// `absolute` so the root layout's `%s | <brand>` template does not append to it.
+const SEO_TITLE = 'About Our Web Design & Branding Studio — CD Sportswear INC';
 const DESCRIPTION =
   'CD Sportswear INC is a digital studio designing websites, brand systems, motion, and AI automation — clarity, craft, and impact since 2016.';
 

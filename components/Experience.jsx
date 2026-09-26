@@ -28,7 +28,9 @@ export default function Experience() {
       <FocusVeil />
       <Nav />
       <ScrollProgress sections />
-      <main className="page">
+      {/* A div, not <main>: app/layout.jsx already wraps every route in the
+          single <main id="main-content"> landmark. */}
+      <div className="page">
         <Hero />
         <SectionHandoff from="top" tone="cyan" label="about"><About /></SectionHandoff>
         <SectionHandoff from="left" tone="cyan" label="services"><Services /></SectionHandoff>
@@ -38,7 +40,7 @@ export default function Experience() {
         <Lab />
         <Motion />
         <Contact />
-      </main>
+      </div>
     </SmoothScroll>
   );
 }

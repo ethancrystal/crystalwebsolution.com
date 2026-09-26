@@ -20,26 +20,19 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { getSignalGeometry, EMISSIVE_BASE, EMISSIVE_ACTIVE } from '../../lib/serviceSignalGeometry.mjs';
 import { SERVICE_SIGNAL_META } from '../../lib/serviceSignals.mjs';
+import { SIGNAL_BLURB } from '../../lib/serviceSignalBlurbs.mjs';
 
-const BASE_SCALE = 1.35;
+const BASE_SCALE = 1.5;
+// How far the emblem is allowed to turn off face-on, in radians. ~23 degrees
+// of yaw keeps every form readable while still reading as a real 3D object
+// (you can see the depth on its edges); ~7 degrees of pitch adds life.
+const YAW_RANGE = 0.4;
+const PITCH_RANGE = 0.12;
 const EMIS_UNLIT = 0.35;
 const EMIS_HOVER = 1.4;
 const COLOR_UNLIT = new THREE.Color(EMISSIVE_BASE);
 const COLOR_ACTIVE = new THREE.Color(EMISSIVE_ACTIVE);
 
-// Visitor-focused PAS one-liners, surfaced when the emblem is clicked.
-const SIGNAL_BLURB = {
-  web: 'Your site looks like everyone else and quietly loses the deal before a word is read — so we design with intent, clarity and craft that earns the click and the close.',
-  development: 'That internal tool or product idea keeps stalling in hand-off limbo while technical debt piles up — we architect and ship web apps your team can own and extend.',
-  brand: 'Your brand reads as a logo file somebody sent once, not a system buyers recognise — so we build a simple, ownable identity that compounds across every touchpoint.',
-  logo: 'Your mark does not survive a favicon, a stamp, or a phone lock screen — so we design a logo that holds up at 16px and at billboard scale.',
-  marketing: 'Your campaigns earn clicks that bounce because the page underneath breaks the promise — so we align the message and the experience so traffic converts.',
-  motion: 'Your story sits still while competitors move, and attention moves on — so we add motion that guides the eye to the one thing that matters.',
-  ai: 'AI is either a buzzword in your copy or a black box nobody trusts — so we wire practical, explainable automation into the work you already do.',
-  workflow: 'Your team reinvents the hand-off on every project and momentum dies in the gaps — so we design the workflow once, clearly, and let it scale.',
-  // Standalone /services/seo pillar (not a homepage rail signal).
-  seo: 'You rank for your own name and nothing a buyer types — so we build the pages, links and fixes that put the service you sell in front of the search that wants it.',
-};
 
 function EmblemMesh({ signal, onHover }) {
   const meshRef = useRef();
@@ -65,8 +58,19 @@ function EmblemMesh({ signal, onHover }) {
   useFrame((state, delta) => {
     const reduce = reduceRef.current;
     if (meshRef.current && !reduce) {
-      meshRef.current.rotation.y += delta * meta.rotSpeed;
-      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.4) * 0.16;
+      // Bounded presentation sway, NOT a full spin.
+      //
+      // These signal forms are built to be read face-on: 01/Web is a viewport
+      // with a cursor, 02/Development a layered stack, 08/Workflow a left-to-
+      // right relay. Rotating a flat pictogram a full 360 degrees means the
+      // visitor spends half of every cycle looking at it edge-on, where it
+      // collapses into an unreadable blue sliver — the emblem stops saying
+      // anything about the service. So the yaw oscillates inside a shallow
+      // arc (rotSpeed still sets each signal's tempo, so the rail's per-signal
+      // character is preserved) and the form always faces the reader.
+      const t = state.clock.elapsedTime;
+      meshRef.current.rotation.y = Math.sin(t * meta.rotSpeed * 0.9) * YAW_RANGE;
+      meshRef.current.rotation.x = Math.sin(t * 0.34) * PITCH_RANGE;
     }
     if (reduce) return;
     // Smooth hover glow (no spring lib needed for a single emblem).

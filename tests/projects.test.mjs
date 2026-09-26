@@ -10,7 +10,9 @@ test('selected work contains six unique, route-ready case studies', () => {
     assert.match(project.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     assert.equal(project.palette.length, 2);
     assert.ok(project.services.length >= 3);
-    assert.equal(project.body.length, 4);
+    // At least problem + approach + result; thin case studies may carry extra
+    // approach paragraphs (Ubersuggest low-word-count fix, 2026-09-24).
+    assert.ok(project.body.length >= 4, `${project.slug} needs at least 4 body paragraphs`);
     assert.equal(getProject(project.slug), project);
   }
 });

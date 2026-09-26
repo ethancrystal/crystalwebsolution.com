@@ -32,7 +32,7 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <MarketingShell sceneVariant="about">
+    <MarketingShell>
       <PageHero
         eyebrow="Legal"
         title="Terms of Service"

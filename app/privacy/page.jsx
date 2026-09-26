@@ -32,7 +32,7 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <MarketingShell sceneVariant="about">
+    <MarketingShell>
       <PageHero
         eyebrow="Legal"
         title="Privacy Policy"

@@ -1,3 +1,17 @@
+/* ---------- focus: global safety net ----------
+   Zero-specificity (:where) so every component's own :focus-visible style
+   still wins; this only guarantees that no keyboard-reachable control is left
+   without a visible indicator. Light surfaces swap the cyan ring (1.06:1 on
+   #e6e5e1) for near-black (14.4:1). */
+:where(a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--focus-ring, var(--cyan));
+  outline-offset: 3px;
+}
+[data-nav-tone="light"],
+.nav-on-light {
+  --focus-ring: #151612;
+}
+
 /* ---------- layout primitives ---------- */
 .section {
   position: relative;
@@ -36,6 +50,15 @@ h1, h2, h3,
 .decode { display: inline-block; }
 .decode .char { display: inline-block; will-change: transform, opacity; }
 .eyebrow .section-reveal { display: inline-block; }
+
+/* Door Dennis-derived transitions (BlurLetters, LineRise, HoverScramble).
+   Split spans exist only while an entrance runs; each component reverts
+   to plain text when it settles. */
+.blur-letters .word,
+.blur-letters .char { display: inline-block; will-change: transform, filter; }
+.line-rise .line { overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.line-rise .word { display: inline-block; will-change: transform; }
+.hover-scramble-visual { display: inline-block; white-space: pre; }
 
 /* ---------- assertive display type ---------- */
 /* Element-level rules; existing classes (.hero-title, .section-title, etc.)
