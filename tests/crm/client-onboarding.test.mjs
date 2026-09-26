@@ -93,3 +93,18 @@ test('onboarding route remains outside the generic auth redirect list', async ()
 
   assert.doesNotMatch(source, /\[['"]signup['"],\s*['"]forgot-password['"],\s*['"]onboarding['"]\]/);
 });
+
+test('onboarding form rethrows Next.js navigation errors via unstable_rethrow', async () => {
+  const source = await readSource(formPath);
+
+  assert.match(source, /unstable_rethrow/);
+  assert.match(source, /from ['"]next\/navigation['"]/);
+  assert.doesNotMatch(source, /err\?\.digest\?\.startsWith\(['"]NEXT_REDIRECT['"]\)/);
+});
+
+test('onboarding action maps already-linked clients to dashboard redirect', async () => {
+  const source = await readSource(actionPath);
+
+  assert.match(source, /already linked to a company/i);
+  assert.match(source, /redirect\(['"]\/dashboard['"]\)/);
+});
