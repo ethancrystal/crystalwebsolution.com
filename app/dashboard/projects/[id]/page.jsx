@@ -14,6 +14,7 @@ import ProjectApprovals from '@/components/crm/ProjectApprovals';
 import ProjectThread from '@/components/crm/ProjectThread';
 import NotesPanel from '@/components/crm/NotesPanel';
 import NotificationsPanel from '@/components/crm/NotificationsPanel';
+import ProjectBriefs from '@/components/crm/ProjectBriefs';
 import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 export default function ClientProjectPage() {
@@ -24,6 +25,15 @@ export default function ClientProjectPage() {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [justSubmitted, setJustSubmitted] = useState(false);
+
+  useEffect(() => {
+    // ?brief=submitted is set by BriefWizard after a successful submit.
+    if (new URLSearchParams(window.location.search).get('brief') === 'submitted') {
+      setJustSubmitted(true);
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
 
   const loadWorkspace = useCallback(async () => {
     if (!projectId) return;
@@ -99,7 +109,14 @@ export default function ClientProjectPage() {
 
   return (
     <WorkspaceShell role="client" title={workspace.project.title}>
+      {justSubmitted && (
+        <div className="crm-brief-success" role="status">
+          Brief received. The team has been notified and will review it shortly. You can follow progress and message
+          us right here.
+        </div>
+      )}
       <ProjectOverview project={workspace.project} />
+      <ProjectBriefs projectId={projectId} canAddBriefs projectStatus={workspace.project.status} />
       <NotificationsPanel notifications={notifications} />
       <ProjectTimeline history={workspace.statusHistory} />
       <ProjectTasks tasks={workspace.tasks ?? []} readOnly />
@@ -145,6 +162,14 @@ export default function ClientProjectPage() {
 
         .crm-link-secondary:hover {
           text-decoration: underline;
+        }
+
+        .crm-brief-success {
+          background: rgba(120, 220, 160, 0.08);
+          border: 1px solid rgba(120, 220, 160, 0.3);
+          color: #a6e8c0;
+          padding: 0.9rem 1rem;
+          border-radius: 10px;
         }
 
         .crm-internal-note {

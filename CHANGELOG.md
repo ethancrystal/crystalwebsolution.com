@@ -1,8 +1,7 @@
 ## v1.57 — 2026-09-26
 
 Visual experience Phase 0 baseline + Phase 1a defect fixes (owner-supplied
-brief: `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`). Merge after v1.55 (client briefs,
-PR #229) and v1.56 (Door Dennis transitions); renumber if the order changes.
+brief: `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`).
 
 - **Phones no longer scroll sideways.** `.motion-stream-index` (Selected work
   list) was `width: min(100%, 34rem)` plus a 6vw side margin, so it ran
@@ -36,6 +35,65 @@ PR #229) and v1.56 (Door Dennis transitions); renumber if the order changes.
   mobile scroll 9 → 30 fps, desktop scroll 4 → 8 fps, axe violations 3 → 0,
   page errors in reduced-motion and no-WebGL modes → 0.
 - Tests: `tests/visualPhase1a.test.mjs` (7).
+
+## v1.55 — 2026-09-26
+
+Merged as PR #229 *after* v1.56 (#231), so production shipped v1.56 first and
+`VERSION` read v1.56 when this landed; the PR's merge conflict was resolved
+without this entry. Backfilled here (in v1.57) so the release is recorded.
+
+Full client area: guided, service-specific briefs that start projects.
+
+- **Briefs by service.** New `/dashboard` with service cards for **Logo design, Website, SEO and PPC ads**, plus "Something else" (the existing free-text form). Each opens a step-by-step questionnaire (`lib/crm/brief-templates.mjs`) written for the designer, developer or marketer who picks it up. Examples: brand personality sliders, logo usage and file formats; pages, features, content readiness and reference sites; target locations, priority services, keywords, Search Console/GA4 status; platforms, ad spend, conversion goal, tracking and landing pages.
+- **Autosave and pre-fill.** Answers save about a second after the client stops typing, with a visible "Saved" status. The client can leave and resume from "Briefs in progress". Company name, website and industry are pre-filled from onboarding.
+- **Many briefs per project.** Submit either starts a new project (name and target date suggested from the answers) or adds the brief to an existing project. Project pages for client, team and admin gain a **Briefs** panel with the full answers laid out by section. Clients can add another brief from there.
+- **Studio alerts.** Submitting notifies the admin and any assigned staff in-app and by email (`project.brief_submitted`). The email links straight to the staff view of the project.
+- **Database (`0043_project_briefs.sql`).** New `project_briefs` table with forced RLS: drafts are author-only, submitted briefs are visible to project participants, and only drafts are writable. `submit_project_brief()` RPC is idempotent via `create_project()`'s key. Adds `project.brief_submitted` to the audit event list. **Applied to the live database on 2026-09-26**, before this merge.
+- **Fixes.** The free-text brief form's success handler received `{ projectId }` but navigated to `/dashboard/projects/[object Object]`. The brief wizard's step list no longer widens the page on phones.
+- **Hardening from review.**
+  - The dashboard loads projects independently of briefs, so a missing `0043` never blanks the project list.
+  - Pending edits save when the client leaves the wizard.
+  - Non-retryable save errors stop retrying, and other failures back off exponentially.
+  - Submit waits for, and requires, a successful save of the exact answers.
+  - A draft whose project was cancelled can be re-pointed.
+  - Specific submit error messages.
+  - Emoji-safe length caps.
+  - Brief ids are immutable, and an id colliding with an existing project key is refused.
+  - The answer size check leaves headroom under the database limit.
+- Tests: questionnaire data and validation, migration contract, server-action guards, email template (Node); wizard autosave/submit behaviour (vitest); 22 pgTAP assertions for RLS, submit, idempotency, id immutability and notifications, all run against a local Postgres 16 with every migration `0001`–`0043` applied.
+
+## v1.56 — 2026-09-26
+
+Merge after v1.55 (client briefs, PR #229); this entry was renumbered from
+v1.55 so the two releases don't share a version.
+
+Door Dennis-style transitions (owner request, adapted from doordennis.nl's
+motion system — transitions only; none of its WebGL, media or copy).
+
+- **Page-to-page transition** (`components/PageTransition.jsx`, rules in
+  `lib/pageTransition.mjs`): internal link click -> page content fades out
+  (0.45s) -> Next navigates -> jump to top unless a `#hash` was requested ->
+  `ScrollTrigger.refresh()` -> fade in (0.6s). Mounted once in
+  `app/layout.jsx`. Opacity only, so the fixed WebGL stage and nav never
+  re-anchor. Skips CRM/auth routes, same-page hashes, new tabs, downloads,
+  modifier clicks, `data-no-page-transition`, and `ProjectHandoffLink`
+  (which keeps its own stripe wipe). A 5s safety net restores the page if a
+  route never commits.
+- **Blur-letter headings** (`components/BlurLetters.jsx`): letters turn in
+  from `rotateY(-90deg) scale(.9)` with an 8px blur while words rise, 0.75s
+  `power3.out`. Now used by `SectionHeader` (Services, Approach, Stories) and
+  the inner-page `PageHero` title, replacing their `SectionReveal` mask.
+- **Line/word rise** (`components/LineRise.jsx`): words rise per rendered
+  line, 0.15s between lines. Used by the `PageHero` lede.
+- **Hover letter scramble** (`components/HoverScramble.jsx`,
+  `lib/scramble.mjs`): 4 random-glyph frames 80ms apart, then the label
+  snaps back. Applied to the subpage nav links and Log in link; width is
+  locked and an sr-only copy keeps the accessible name stable.
+- Both text entrances revert their SplitType spans once settled, so final
+  headings are plain text again (a11y name, `text-wrap: balance`, resize).
+  Everything resolves instantly under `prefers-reduced-motion`.
+- Tests: `tests/pageTransition.test.mjs` (route rules, exclusions, scramble
+  frames).
 
 ## v1.54 — 2026-09-25
 

@@ -51,6 +51,15 @@ h1, h2, h3,
 .decode .char { display: inline-block; will-change: transform, opacity; }
 .eyebrow .section-reveal { display: inline-block; }
 
+/* Door Dennis-derived transitions (BlurLetters, LineRise, HoverScramble).
+   Split spans exist only while an entrance runs; each component reverts
+   to plain text when it settles. */
+.blur-letters .word,
+.blur-letters .char { display: inline-block; will-change: transform, filter; }
+.line-rise .line { overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.line-rise .word { display: inline-block; will-change: transform; }
+.hover-scramble-visual { display: inline-block; white-space: pre; }
+
 /* ---------- assertive display type ---------- */
 /* Element-level rules; existing classes (.hero-title, .section-title, etc.)
    are more specific and keep controlling size — this only adds separation
