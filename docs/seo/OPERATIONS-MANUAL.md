@@ -103,17 +103,19 @@ Current mapped set. Figures: Ubersuggest `keyword_overview`, US 2840, pulled
 |---|---|---|---|---|---|---|
 | Now | `rfp web development` | 260 | 13 | $15.25 | `/blog/web-development-rfp-guide` | **Live** since 2026-09-03 |
 | Now | `website development rfp` | 260 | 13 | $11.98 | `/blog/web-development-rfp-guide` | **Live** since 2026-09-03 |
-| Parked | `hire a shopify developer` | 880 | 8 | $25.41 | `/hire/shopify-developer` | **Not built, 2026-09-19.** Demand remains; Shopify is not a live service. See `KEYWORD-REGISTRY.md` Parked |
-| Parked | `hire shopify developer` | 880 | **37** | $31.06 | `/hire/shopify-developer` | Same pair. Difficulty 26 → 37 since 2026-09-02 |
+| Exception | `hire a shopify developer` | 880 | 8 | $25.41 | `/hire/shopify-developer` | **Direct-response only, noindex, excluded from sitemap; not an organic target.** Shopify is not a live service. |
+| Exception | `hire shopify developer` | 880 | **37** | $31.06 | `/hire/shopify-developer` | Same pair. Difficulty 26 → 37 since 2026-09-02; no internal-link work. |
 | Next | `web development northern virginia` | 260 | 9 | $18.00 | `/northern-virginia-web-development` | Not built. Local-first was superseded; do not ship without MJ reversing §3 |
 | Monitor | `ai automation agency` | 4,400 | **40** | $17.80 | `/services/ai-automation` | Exists. Difficulty 35 → 40 since 2026-09-02 |
 | Monitor | `branding and web design` | 590 | 17 | $18.18 | `/blog/branding-and-web-design-studio` | **Live** since 2026-09-06 |
 | Monitor | `web design manassas va` | 20 | 5 | $0 | `/blog/web-design-manassas-va` | **Live** since 2026-09-06. Conflicts with this section — see above |
 
 `hire a shopify developer` has a volatile monthly series (210–1,900 over 13
-months; 880 is the smoothed figure). Treat volume as directional. The 2026-09-19
-audit parked the pair rather than building the landing: the live service
-taxonomy (`lib/servicePages.mjs`) does not include Shopify.
+months; 880 is the smoothed figure). Treat volume as directional. Shopify is
+not in the live service taxonomy (`lib/servicePages.mjs`), so the existing
+historical route is retained only as a direct-response exception. It is
+`noindex`, excluded from the sitemap, and must not receive organic content or
+internal-link investment. Reopen only after MJ confirms Shopify is a sold offer.
 
 `/blog/how-much-does-ai-automation-cost` is live but has **no viable target
 term**: `how much does ai automation cost` returns 0/mo and `ai automation

@@ -59,11 +59,12 @@ project needs MJ's explicit yes (§4).
 | website development rfp | diff 13 | diff 13 | Unchanged |
 | web development northern virginia | diff 9 | diff 9 | Unchanged |
 
-**Shopify pair parked 2026-09-19** (see Parked). Volume/difficulty still
-favour a page, but Shopify is not in the live eight-service list
-(`lib/servicePages.mjs` / `/sitemap.xml`). Building `/hire/shopify-developer`
-would be a thin commercial URL for a service the studio does not currently
-offer. Do not un-park without MJ confirming Shopify is a sold offer.
+**Shopify pair remains parked 2026-09-19; route state clarified 2026-09-26**
+(see Parked). Volume/difficulty still favour a page, but Shopify is not in the
+live service list (`lib/servicePages.mjs`). The already-merged
+`/hire/shopify-developer` route is a direct-response exception: `noindex`,
+excluded from `/sitemap.xml`, and not an organic target. Do not un-park or add
+internal-link work without MJ confirming Shopify is a sold offer.
 
 `ai automation agency` remains Monitor-only. Recheck both next Keywords lane.
 
@@ -126,8 +127,8 @@ Figures in this table have not been re-validated since the dates shown.
 |---|---|---|---|---|
 | web design manassas | 20 | 13 | /manassas-va-web-design | Superseded local-first ladder (CRY-21). Its sibling term is now covered by /blog/web-design-manassas-va |
 | web design manassas va | 20 | 5 | — | **Un-parked de facto** by the 2026-09-06 post and moved to the Mapped table above. The supersession itself has *not* been reversed — pending MJ's §3 ruling |
-| hire a shopify developer | 880 | 8 | /hire/shopify-developer | **Parked 2026-09-19.** Demand is real (est. 880/mo, diff 8) but Shopify is not among the eight live `/services/*` offers. A hire-landing would be a thin page for an unsold service. Reopen only if MJ confirms Shopify is a sold offer |
-| hire shopify developer | 880 | 37 | /hire/shopify-developer | Same decision as the pair's easier half. Difficulty rose 26 → 37 between 2026-09-02 and 2026-09-10 |
+| hire a shopify developer | 880 | 8 | /hire/shopify-developer | **Parked 2026-09-19; route exception clarified 2026-09-26.** Demand is real (est. 880/mo, diff 8), but Shopify is not among the live `/services/*` offers. The existing route is noindex, excluded from the sitemap, and direct-response only. Reopen only if MJ confirms Shopify is a sold offer |
+| hire shopify developer | 880 | 37 | /hire/shopify-developer | Same decision as the pair's easier half. Difficulty rose 26 → 37 between 2026-09-02 and 2026-09-10; no organic or internal-link investment |
 | branding agency northern virginia | 0 | 4 | — | Dropped: no demand (CRY-20) |
 
 ## Legacy — old domain, for the record only

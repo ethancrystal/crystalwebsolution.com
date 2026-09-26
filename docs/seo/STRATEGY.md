@@ -61,8 +61,15 @@ question. Every run log opens with progress against this criterion.
   §7 rules out. Never write a location page for a place the business cannot
   demonstrably serve, and never fake local proof. (Amended 2026-09-22.)
 - Services sold are the eight live `/services/*` pages plus SEO once §3 row 4
-  ships. Do **not** build pages for services the site does not sell
-  (Shopify, native mobile, and anything else absent from `lib/servicePages.mjs`).
+  ships. Do **not** build or optimize organic pages for services the site does
+  not sell (Shopify, native mobile, and anything else absent from
+  `lib/servicePages.mjs`). The existing `/hire/shopify-developer` route is a
+  **legacy direct-response exception** from a historical merge: it remains
+  reachable by direct URL for qualified conversations, but is `noindex`, is
+  excluded from `/sitemap.xml`, receives no internal-link work, and is not an
+  organic target. Reopening Shopify as a search target requires MJ to confirm
+  in writing that it is a sold offer, followed by a separate service-taxonomy
+  and positioning review.
 - Brand name is exactly **CD Sportswear INC**. Do not write "Crystal Web
   Solution" or "CD Sportswear USA" on any new page.
 
@@ -186,6 +193,10 @@ the business can serve that searcher · merging anything · guessing a number.
   `/services/seo` as unbuilt after it had shipped.
 - Unresolved, blocked on MJ: see `OPERATIONS-MANUAL.md` §11. The §3 strategy
   split listed there (item 6) is **resolved by this file**.
+- **Shopify strategy conflict — resolved 2026-09-26:** the Ahrefs audit treated
+  `/hire/shopify-developer` as an indexable orphan, while the ratified strategy
+  says Shopify is not a sold offer. The route is now documented and treated as
+  a noindex direct-response exception; see `ROADMAP.md` and the 2026-09-26 run.
 
 ## 9. If you are an agent starting a run — the 60-second checklist
 
