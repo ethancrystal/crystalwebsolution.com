@@ -4,6 +4,7 @@ import { SITE } from '../lib/site';
 import { REVIEW_STATS } from '../lib/reviews';
 import { SITE_ORIGIN, SOCIAL_IMAGE_PATH } from '../lib/seo.mjs';
 import Analytics from '../components/Analytics';
+import PageTransition from '../components/PageTransition';
 import { GTM_ID } from '../lib/analytics.mjs';
 
 const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
@@ -194,6 +195,7 @@ export default function RootLayout({ children }) {
         <main id="main-content" tabIndex={-1}>
           {children}
         </main>
+        <PageTransition />
         <Analytics />
       </body>
     </html>
