@@ -28,8 +28,8 @@ function renderInline(tokens, keyPrefix) {
         );
       case 'image':
         // Author images in a post body sit below the fold, so they load lazily.
-        // No width/height: bodies carry no dimensions; .post-image reserves
-        // the full column width and keeps the source aspect ratio.
+        // No width/height: bodies carry no dimensions; .post-image caps the
+        // image at the column width and keeps the source aspect ratio.
         return (
           <img
             key={key}

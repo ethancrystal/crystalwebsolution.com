@@ -56,6 +56,15 @@ here.
   GSC connector; new owner items 12–15), STRATEGY §8 current state, and a
   CLAUDE.md build gotcha — `NODE_ENV=development` in the shell reproduces the
   `useContext` prerender failure on Linux.
+- Follow-up from the adversarial review (same release): a failed post read
+  during an hourly sitemap regeneration now throws, so Next keeps serving the
+  last good sitemap instead of caching one with no posts (`next build` still
+  degrades to the static list; `listPublishedSlugs({ throwOnError })`).
+  `safeHref`/`safeImageSrc` refuse `//host` and `/\host` paths, including
+  ones produced by rewriting an owned-host URL. Title-drop applies to the
+  first line only and on a word boundary; empty headings are skipped; closing
+  `#`s and a leading BOM are handled. `.post-image` uses `max-width`. The
+  post editor's Markdown help mentions images and the H1 rule.
 - Tests: `tests/seo-identity-and-crawl.test.mjs` (location, schema, canonical
   ownership, robots groups, sitemap freshness, llms.txt coverage),
   `tests/marketing/postBody.test.jsx`, new parser cases in

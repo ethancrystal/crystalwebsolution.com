@@ -418,6 +418,21 @@ only; remove the site-wide `AggregateRating`; render blog Markdown images.
 | E30 | `public/llms.txt`: 10 posts + `/hire/shopify-developer` added; Process described as six steps |
 | — | CLAUDE.md build gotcha (`NODE_ENV`); ops manual §1 Search Console row and §11 items 12–15; STRATEGY §8 current state |
 
+Follow-up after the `furious-reviewer` pass (verdict SHIP, no blockers):
+the hourly sitemap regeneration throws on a failed post read so Next keeps
+the last good copy (build still degrades to the static list); `safeHref` and
+`safeImageSrc` refuse `//host` and `/\host` (the link half was a pre-existing
+hole); title-drop is first-line-only on a word boundary; empty headings are
+skipped; closing `#`s and a BOM are handled; `.post-image` uses `max-width`;
+the admin post editor's help text documents images; the About FAQ says "a
+client in Manassas" rather than introducing "Northern Virginia"; the stale
+`/reviews` comment is corrected. Its two content-side-effect concerns (a
+mid-paragraph `# ` line becoming a heading; `text![x](/y)` becoming an image)
+were checked against the live bodies: no post has a `# ` line after its
+first, and all six `![` occurrences are real images. `/hire/shopify-developer`
+stays listed under "Services" in `llms.txt` because it is a live sitemap URL;
+retiring the page (ops §11 #13) removes it there too.
+
 Not changed on purpose: the WebGL scene, any hero/H1 copy (E23 — would change
 the design), the owner-specified `/process` title (E22), post titles and
 bodies in `blog_posts` (E16–E18 are editorial and live content edits are an

@@ -194,11 +194,12 @@
   overflow-x: auto;
 }
 .post-rule { border: 0; border-top: 1px solid var(--line); margin: 2.6rem 0; }
-/* Author images from post Markdown: column width, source aspect ratio,
-   same corner and hairline as .post-code. */
+/* Author images from post Markdown: never wider than the column (small
+   images keep their size), source aspect ratio, same corner and hairline as
+   .post-code. */
 .post-image {
   display: block;
-  width: 100%;
+  max-width: 100%;
   height: auto;
   border: 1px solid var(--line);
   border-radius: 6px;

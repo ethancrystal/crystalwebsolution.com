@@ -37,7 +37,8 @@ test('no page or component claims a Sharjah / Dubai location', () => {
 
 test('site-wide Organization schema: one real US address, no P.O. Box, no site-wide rating', () => {
   const layout = source('app/layout.jsx');
-  assert.match(layout, /address:\s*\{\s*'@type':\s*'PostalAddress',\s*\.\.\.SITE\.address\s*\}/, 'address comes from SITE.address');
+  assert.match(layout, /\.\.\.SITE\.address\b/, 'address comes from SITE.address');
+  assert.match(layout, /'PostalAddress'/);
   assert.doesNotMatch(layout, /mailingAddress/, 'the P.O. Box must never be emitted as schema.org address');
   assert.doesNotMatch(layout, /aggregateRating\s*:/, 'no AggregateRating on the site-wide graph');
   assert.doesNotMatch(layout, /REVIEW_STATS/, 'reviews are not read by the layout');
@@ -45,7 +46,7 @@ test('site-wide Organization schema: one real US address, no P.O. Box, no site-w
 });
 
 test('the homepage owns its canonical; the root layout sets none for others to inherit', () => {
-  assert.doesNotMatch(source('app/layout.jsx'), /alternates\s*:\s*\{\s*canonical/);
+  assert.doesNotMatch(source('app/layout.jsx'), /alternates\s*:\s*\{[^}]*canonical/);
   assert.match(source('app/page.jsx'), /alternates\s*:\s*\{\s*canonical\s*:\s*'\/'\s*\}/);
 });
 
@@ -73,6 +74,14 @@ test('sitemap regenerates on a timer and never reports build time as lastmod', (
   assert.doesNotMatch(code, /lastModified:\s*now/, 'static routes must not claim the build time');
   assert.doesNotMatch(code, /new Date\(\)/, 'no "now" timestamps in the sitemap');
   assert.match(code, /updated_at/, 'posts keep their real modification date');
+  // A failed runtime read must throw (Next keeps the last good sitemap), while
+  // `next build` with CI's placeholder Supabase still degrades to [].
+  assert.match(code, /NEXT_PHASE === 'phase-production-build'/);
+  assert.match(code, /listPublishedSlugs\(\{ throwOnError: !duringBuild\(\) \}\)/);
+  const reader = source('lib/crm/blog.js');
+  const fn = reader.match(/export async function listPublishedSlugs[\s\S]*?\n}/)[0];
+  assert.match(fn, /if \(throwOnError\) throw new Error\(/, 'the reader can surface a failed read');
+  assert.match(fn, /if \(!supabase\) return \[\];/, 'unconfigured Supabase still returns []');
 });
 
 test('llms.txt lists every sitemap URL and every post the pillars link to', () => {

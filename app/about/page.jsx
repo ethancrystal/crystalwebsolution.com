@@ -63,7 +63,7 @@ const ABOUT_FAQ = [
   },
   {
     q: 'You’re based in Manassas, Virginia. Do you only work with local clients?',
-    a: `No. The studio is based in ${SITE.city} and remote is the default, so clients anywhere in the United States work with us the same way a Northern Virginia business does.`,
+    a: `No. The studio is based in ${SITE.city} and remote is the default, so clients anywhere in the United States work with us the same way a client in Manassas does.`,
   },
   {
     q: 'How big is the team?',

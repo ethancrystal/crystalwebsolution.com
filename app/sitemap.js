@@ -12,9 +12,16 @@ const SITE_URL = SITE_ORIGIN;
 // (docs/seo/OPERATIONS-MANUAL.md §12), and until 2026-09-26 those only showed
 // up after a manual redeploy — seven "redeploy to refresh sitemap" commits.
 // Hourly regeneration bounds that lag without making the sitemap per-request.
-// listPublishedSlugs returns [] when Supabase is unconfigured or the read
-// fails, which degrades to the static route list rather than failing.
 export const revalidate = 3600;
+
+// A failed post read must not become a cached sitemap with every post missing.
+// At runtime it throws, and Next keeps serving the last good sitemap and
+// retries. During `next build` (Next sets NEXT_PHASE before prerendering) it
+// degrades to the static route list instead, because CI builds against a
+// placeholder Supabase URL. Unconfigured Supabase returns [] either way.
+function duringBuild() {
+  return process.env.NEXT_PHASE === 'phase-production-build';
+}
 
 // `lastModified` is set only where a real modification date exists (posts'
 // `updated_at`). Static, service and case-study routes used to report the
@@ -22,7 +29,7 @@ export const revalidate = 3600;
 // claim all of them changed. An inaccurate lastmod teaches search engines to
 // ignore the field; omitting it is the honest option.
 export default async function sitemap() {
-  const posts = await listPublishedSlugs();
+  const posts = await listPublishedSlugs({ throwOnError: !duringBuild() });
   const postPages = posts.map((post) => {
     const modified = post.updated_at ?? post.published_at;
     return {

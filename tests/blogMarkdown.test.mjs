@@ -234,3 +234,34 @@ test('image sources are limited to https and site-relative paths', () => {
   const refused = parseInline('![alt words](javascript:alert)');
   assert.deepEqual(refused, [{ type: 'text', value: 'alt words' }], 'a refused image degrades to its alt text');
 });
+
+// Edge cases from the adversarial review of v1.58.
+test('protocol-relative and backslash paths are refused for links and images', () => {
+  for (const unsafe of ['//evil.test/p.gif', '/\\evil.test/p.gif', 'https://www.cdsportswearinc.com//evil.test/p.gif']) {
+    assert.equal(safeImageSrc(unsafe), null, `image: ${unsafe}`);
+    assert.equal(safeHref(unsafe), null, `link: ${unsafe}`);
+  }
+  assert.equal(safeHref('/services/web-design'), '/services/web-design');
+});
+
+test('only the first line can be dropped as the title, and only on a word boundary', () => {
+  const twice = parseMarkdown('# My Title\n\n# My Title\n\nBody.', { title: 'My Title' });
+  assert.deepEqual(twice.map((block) => block.type), ['heading', 'paragraph'], 'the second copy is content');
+
+  const cut = parseMarkdown('# How Much Does a Small Bus\n\nBody.', {
+    title: 'How Much Does a Small Business Website Cost?',
+  });
+  assert.equal(cut[0].type, 'heading', 'a prefix that ends mid-word is not the title');
+});
+
+test('empty headings, closing hashes and a leading BOM', () => {
+  assert.deepEqual(parseMarkdown('# \n\nBody.').map((block) => block.type), ['paragraph'], 'no empty <h2>');
+  assert.deepEqual(parseMarkdown('## \n\nBody.').map((block) => block.type), ['paragraph']);
+
+  const closed = parseMarkdown('## Section ##');
+  assert.deepEqual(closed[0].children, [{ type: 'text', value: 'Section' }]);
+  assert.deepEqual(parseMarkdown('## Learn C#')[0].children, [{ type: 'text', value: 'Learn C#' }]);
+
+  const bom = parseMarkdown('﻿# The Title\n\nBody.', { title: 'The Title' });
+  assert.deepEqual(bom.map((block) => block.type), ['paragraph']);
+});
