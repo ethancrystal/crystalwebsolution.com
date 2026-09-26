@@ -171,6 +171,11 @@ test('sitemap lists public marketing URLs and excludes CRM routes', () => {
 
 test('Shopify landing is direct-access only while Shopify remains outside the sold services', () => {
   const code = source('app/hire/shopify-developer/page.jsx');
+  assert.match(code, /export const metadata/, 'Shopify landing must define route metadata');
+  assert.match(code, /description\s*:/, 'Shopify landing must define a description');
+  assert.match(code, /alternates\s*:\s*\{\s*canonical:\s*['"]\/hire\/shopify-developer['"]/, 'Shopify landing must self-canonicalize');
+  assert.match(code, /openGraph\s*:/, 'Shopify landing must define Open Graph metadata');
+  assert.match(code, /twitter\s*:/, 'Shopify landing must define Twitter metadata');
   assert.match(code, /index:\s*false/, 'Shopify landing must be noindex');
   assert.match(code, /follow:\s*true/, 'Shopify landing may pass discovery signals to its linked pages');
 });
