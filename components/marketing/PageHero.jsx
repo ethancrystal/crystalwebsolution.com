@@ -1,4 +1,6 @@
 import SectionReveal from '../SectionReveal';
+import BlurLetters from '../BlurLetters';
+import LineRise from '../LineRise';
 import HeroStage from './HeroStage';
 
 // PageHero — the opening block for inner marketing pages. Reuses the existing
@@ -19,13 +21,13 @@ export default function PageHero({ eyebrow, title, lede, children }) {
             <SectionReveal as="span" direction="left">{eyebrow}</SectionReveal>
           </p>
         )}
-        <SectionReveal as="h1" className="page-title mkt-hero-title" direction="left" delay={0.05}>
+        <BlurLetters as="h1" className="page-title mkt-hero-title" delay={0.05}>
           {title}
-        </SectionReveal>
+        </BlurLetters>
         {lede && (
-          <SectionReveal as="p" className="mkt-hero-lede" direction="up" delay={0.15}>
+          <LineRise as="p" className="mkt-hero-lede" delay={0.15}>
             {lede}
-          </SectionReveal>
+          </LineRise>
         )}
         <SectionReveal direction="up" delay={0.2}>
           {children}

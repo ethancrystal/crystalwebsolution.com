@@ -1,3 +1,36 @@
+## v1.56 — 2026-09-26
+
+Merge after v1.55 (client briefs, PR #229); this entry was renumbered from
+v1.55 so the two releases don't share a version.
+
+Door Dennis-style transitions (owner request, adapted from doordennis.nl's
+motion system — transitions only; none of its WebGL, media or copy).
+
+- **Page-to-page transition** (`components/PageTransition.jsx`, rules in
+  `lib/pageTransition.mjs`): internal link click -> page content fades out
+  (0.45s) -> Next navigates -> jump to top unless a `#hash` was requested ->
+  `ScrollTrigger.refresh()` -> fade in (0.6s). Mounted once in
+  `app/layout.jsx`. Opacity only, so the fixed WebGL stage and nav never
+  re-anchor. Skips CRM/auth routes, same-page hashes, new tabs, downloads,
+  modifier clicks, `data-no-page-transition`, and `ProjectHandoffLink`
+  (which keeps its own stripe wipe). A 5s safety net restores the page if a
+  route never commits.
+- **Blur-letter headings** (`components/BlurLetters.jsx`): letters turn in
+  from `rotateY(-90deg) scale(.9)` with an 8px blur while words rise, 0.75s
+  `power3.out`. Now used by `SectionHeader` (Services, Approach, Stories) and
+  the inner-page `PageHero` title, replacing their `SectionReveal` mask.
+- **Line/word rise** (`components/LineRise.jsx`): words rise per rendered
+  line, 0.15s between lines. Used by the `PageHero` lede.
+- **Hover letter scramble** (`components/HoverScramble.jsx`,
+  `lib/scramble.mjs`): 4 random-glyph frames 80ms apart, then the label
+  snaps back. Applied to the subpage nav links and Log in link; width is
+  locked and an sr-only copy keeps the accessible name stable.
+- Both text entrances revert their SplitType spans once settled, so final
+  headings are plain text again (a11y name, `text-wrap: balance`, resize).
+  Everything resolves instantly under `prefers-reduced-motion`.
+- Tests: `tests/pageTransition.test.mjs` (route rules, exclusions, scramble
+  frames).
+
 ## v1.54 — 2026-09-25
 
 Google Tag Manager container `GTM-5VKPC974` added alongside the existing GA4
