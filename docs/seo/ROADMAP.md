@@ -34,7 +34,7 @@ Reopening Shopify as an organic target requires MJ to confirm that Shopify is a 
 
 - Shorten the three overlong blog titles using the conditional brand-suffix template.
 - Rewrite the four indexable meta descriptions: SEO, branding, terms, and the page-builder article.
-- Add related-post links for the three low-inlink blog posts.
+- **Completed on branch 2026-09-26:** add contextual related-post links for the three low-inlink blog posts; verify after deployment and Ahrefs re-crawl.
 - Re-test `/terms` server response and make the route static/cacheable if the slow response repeats.
 - Correct the two-hop apex-to-`www` redirect in hosting configuration when the owner approves the DNS/Vercel change.
 
