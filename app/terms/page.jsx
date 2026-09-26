@@ -8,7 +8,7 @@ import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'Terms of Service';
 const DESCRIPTION =
-  "Terms governing your use of CD Sportswear INC's website and services.";
+  'The terms that govern your use of the CD Sportswear INC website and services — accounts, project engagements, payments, IP and liability.';
 const LAST_UPDATED = 'September 11, 2026';
 
 export const metadata = {
