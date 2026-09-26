@@ -62,7 +62,7 @@ The problems that matter are elsewhere:
    (4.3 / 20) sits on the Organization node on every page; GSC detects
    "Review snippets" on every inspected URL, though the reviews are only
    visible on `/reviews`.
-4. **Live blog rendering defects (P1).** 9 of 14 published posts print a
+4. **Live blog rendering defects (P1).** 10 of 14 published posts print a
    literal `# Title` paragraph under the real `<h1>`, and 3 posts print a
    stray `!` plus a text link to an Unsplash `.jpg` in place of 6 images.
 5. **Robots groups leak private paths to named crawlers (P1).** Bingbot,
@@ -99,13 +99,13 @@ Status uses only VERIFIED / RECOMMENDATION / NOT VERIFIED. P = priority.
 | E8 | P3 | Robots | `Host:` directive emitted | VERIFIED | Local `/robots.txt` | None for Google (non-standard, ignored) | Remove |
 | E9 | P2 | Sitemap | `/sitemap.xml` is static (`○` in build output) and refreshes only via `revalidatePath` in the admin publish action; 7 redeploy-only commits 2026-09-22 → 09-25 | VERIFIED | `app/sitemap.js`, `app/actions/blog-actions.js`, `git log --grep "refresh sitemap"` | New posts absent from sitemap until someone redeploys | Hourly revalidation as a safety net |
 | E10 | P2 | Sitemap | Every static/service/work URL has `lastmod` = build time | VERIFIED | `app/sitemap.js` `lastModified: now` | `lastmod` is verifiably inaccurate, so search engines learn to ignore it | Omit `lastmod` where no real modification date exists; keep real `updated_at` for posts |
-| E11 | P1 | Content rendering | 9/14 posts start with `# <title>`; the parser only knows `##`/`###`, so it renders a literal `# …` paragraph | VERIFIED | SQL on `blog_posts`; `parseMarkdown()` on the same text | Visible defect; duplicate title text under the `<h1>` | Drop a leading H1 that restates the title; demote any other `#` to `<h2>` |
+| E11 | P1 | Content rendering | 10/14 posts start with `# <title>` (9 verbatim, 1 without its "(2026 Planning Guide)" suffix); the parser only knows `##`/`###`, so it renders a literal `# …` paragraph | VERIFIED | SQL on `blog_posts`; `parseMarkdown()` on the same text | Visible defect; duplicate title text under the `<h1>` | Drop a leading H1 that restates the title; demote any other `#` to `<h2>` |
 | E12 | P1 | Image SEO | 3 posts contain 6 Markdown images; parser outputs `!` + a text link to the image URL | VERIFIED | SQL + parser output | Broken content; outbound links to `.jpg` files | Render as lazy `<img>` with the author's alt text (owner-approved) |
 | E13 | P1 | Internal links | 8 published posts not linked from any service pillar: `ai-automation-vs-zapier-make`, `brochure-website-vs-conversion-site`, `when-page-builders-become-a-trap`, `how-much-does-a-small-business-website-cost`, `when-to-redesign-vs-refresh-website`, `website-redesign-services`, `website-redesign-cost`, `wix-harmony-vs-framer-ai-squarespace`; the same 8 fall back to generic "Next" links on the post template | VERIFIED | `lib/servicePages.mjs` `GUIDE_LINKS`; `app/blog/[slug]/page.jsx` `RELATED_BY_SLUG`; SQL | Supporting pages don't feed their pillars both ways (STRATEGY §3) | Add pillar → post and post → pillar links, except the redesign-services post (E17) |
 | E14 | P2 | Internal links | `/hire/shopify-developer` has 0 contextual inbound links; STRATEGY §2 and the registry say Shopify is not a sold service and the page is parked, yet it is live and in the sitemap | VERIFIED | Local link graph; `KEYWORD-REGISTRY.md` Parked; PR #208 merged | Orphan page contradicting strategy | Owner decision: confirm Shopify as a sold offer (then link it) or retire the page |
 | E15 | P2 | Content gaps | No supporting posts for `/services/digital-marketing` (theme 2), `/services/seo` (theme 4) or `/services/animation` | VERIFIED | SQL + `GUIDE_LINKS` | Pillars without clusters (STRATEGY §3 build order) | Editorial: 3–5 supporting posts per pillar, registry first |
 | E16 | P1 | Cannibalization | `/blog/ai-automation-agency` title, H1 and slug use `ai automation agency`, which the registry maps to `/services/ai-automation` | VERIFIED | SQL title; `KEYWORD-REGISTRY.md` | Post competes with its pillar | Editorial: retitle the post to its decision-stage angle; keep the pillar on the head term |
-| E17 | P1 | Cannibalization | `/blog/website-redesign-services` title/H1 target `website redesign services`, listed as a secondary of `/services/web-design` | VERIFIED | SQL; registry "Web design and redesign" cluster | Post competes with the theme-1 pillar | Owner rules the mapping; no new pillar → post link until then |
+| E17 | P1 | Cannibalization | `/blog/website-redesign-services` title/H1 target `website redesign services`, a tracked term in the registry's "Web design and redesign" cluster, which the registry says would map to `/services/web-design` (not yet formally mapped) | VERIFIED | SQL; `KEYWORD-REGISTRY.md` tracked-but-unmapped table | Post and theme-1 pillar can compete for the same term | Owner rules the mapping; no new pillar → post link until then |
 | E18 | P2 | Cannibalization | `/blog/custom-react-nextjs-web-development` title opens with the service page's own title stem "Custom React & Next.js Web Development" | VERIFIED | SQL vs `lib/servicePages.mjs` | Near-duplicate titles | Editorial: lead the post title with the decision question |
 | E19 | P2 | Keyword registry | 8 live posts and the live Shopify page are missing or stale in `KEYWORD-REGISTRY.md`; registry still says branding pillar copy is "not yet aligned" although title and H1 now carry `brand identity design` | VERIFIED | Registry vs SQL and `lib/servicePages.mjs` | Cannibalization guard is blind to half the blog | Registry updated this run (records only; mapping new terms still needs research) |
 | E20 | P3 | Canonicals | Root layout sets `alternates.canonical: '/'`, so any page without its own canonical (today: 404s and "Post not found") inherits the homepage canonical | VERIFIED | `app/layout.jsx`; local 404 HTML | Latent risk for future routes | Move the homepage canonical to `app/page.jsx` |
@@ -393,3 +393,113 @@ Implemented in this run (v1.58), in priority order: E1–E3, E6, E2, E7–E8,
 E11–E12, E9–E10, E13 (except the redesign-services post), E20, E30, E19
 (registry records). Left for the owner or for editorial work: E4/E5 (GSC
 requests, old-domain 301), E14, E15–E18, E21–E24, E25–E27.
+
+---
+
+# After implementation (same day, v1.58)
+
+## Changes implemented
+
+Owner decisions taken in the session (2026-09-26), each the recommended
+option: remove Sharjah; publish the physical address as a service-area
+business (no hours, no visit wording) with the P.O. Box as mailing address
+only; remove the site-wide `AggregateRating`; render blog Markdown images.
+
+| Finding | Change |
+|---|---|
+| E1, E3 | `lib/site.js`: `citySecondary`/`cityCompact` removed; `address` and `mailingAddress` added with `cityStateZip()`. "Also Located in" lines removed from `MarketingFooter`, homepage `Contact`, `ContactPulseLinks`; Contact lists "Physical address" and "Mailing address"; About paragraph + FAQ and Contact FAQ + "Direct" paragraph reworded to Manassas-only, remote-by-default; OG image shows `SITE.city`; Privacy "operates from" sentence and Privacy/Terms "write to us" lines use the real addresses, "Last updated" → September 26, 2026. Privacy data-transfer clause left as-is (legal statement, not a location claim) |
+| E2, E6 | `app/layout.jsx`: single `PostalAddress` spread from `SITE.address`; `areaServed` and `contactPoint.areaServed` US only; `AggregateRating` removed. `ServiceSchema` default and web-design `areaServed` drop the UAE |
+| E20 | Homepage canonical moved from `app/layout.jsx` to `app/page.jsx` |
+| E7, E8 | `app/robots.js`: one group for `*` + named crawlers sharing the private-path disallows; `host` removed |
+| E9, E10 | `app/sitemap.js`: `revalidate = 3600`; `lastModified` only on posts |
+| E11, E12 | `lib/blogMarkdown.mjs`: `#` headings parsed; a leading one that restates the title (verbatim, or the title minus a trailing qualifier) is dropped, others become `<h2>`; `![alt](src)` → image token, `safeImageSrc()` allows https and site-relative only. `PostBody` passes `title` and renders `<img class="post-image" loading="lazy" decoding="async">`; `.post-image` CSS in `app/styles/case-study.css` |
+| E13 | `lib/servicePages.mjs` `GUIDE_LINKS`: +3 posts on web-design, +1 on web-development, +1 on ai-automation, +1 on workflow-automation. `app/blog/[slug]/page.jsx` `RELATED_BY_SLUG`: entries for the 8 posts that fell back to the default |
+| E19 | `KEYWORD-REGISTRY.md`: 10 unregistered live posts recorded as unmapped (no volumes invented), Shopify state conflict, branding-pillar note corrected |
+| E30 | `public/llms.txt`: 10 posts + `/hire/shopify-developer` added; Process described as six steps |
+| — | CLAUDE.md build gotcha (`NODE_ENV`); ops manual §1 Search Console row and §11 items 12–15; STRATEGY §8 current state |
+
+Not changed on purpose: the WebGL scene, any hero/H1 copy (E23 — would change
+the design), the owner-specified `/process` title (E22), post titles and
+bodies in `blog_posts` (E16–E18 are editorial and live content edits are an
+approval gate), the Sentry setup (E26 — owner trade-off), and anything at
+the DNS/Vercel layer.
+
+## Validation
+
+All run in this container on the final tree.
+
+| Check | Result |
+|---|---|
+| `pnpm test` (`tests/*.test.mjs` + `tests/crm/*.test.mjs`) | 579 / 579 pass (578 at the first post-change run, before the last parser case was added). The suite was not run on the untouched baseline |
+| `pnpm test:marketing` (vitest) | 12 files, 42 / 42 pass |
+| `pnpm build` with CI placeholder env and `NODE_ENV=production` | Pass, 60/60 static pages; `/sitemap.xml` reported as `○ … 1h` (revalidating) |
+| Lint / typecheck | No lint script exists (CLAUDE.md); `next build` ran its TypeScript step without errors |
+| Before/after crawl of the built site, 37 URLs | On every 200 page: titles, descriptions, robots, `lang`, H1 count and canonicals unchanged. Only diffs: 404s no longer carry a homepage canonical; 4 pillars gained guide links; Privacy/Terms dates |
+| Generated metadata | 27 distinct indexable pages, 27 unique titles and descriptions, all self-canonical on `www`, one `<h1>` each |
+| robots.txt output | One group (`*` + 8 named crawlers), 12 disallows, sitemap line, no `Host` |
+| sitemap.xml output | Same 27 static URLs as before, no `lastmod` on them |
+| JSON-LD | 0 parse errors on 37 URLs; one Organization per page; address = the Manassas street address; no UAE, no P.O. Box, no `aggregateRating` anywhere |
+| Visible text | Contact shows both addresses; Privacy/Terms show the P.O. Box; no "Sharjah"/"DXB" on any crawled page |
+| Internal links | 32 distinct internal non-blog hrefs on the static pages, 0 broken; all 11 blog hrefs point at posts `blog_posts` reports as published; RELATED targets likewise |
+| Blog rendering | Verified by parser tests on the real openings (SQL: 9 verbatim title restatements, 1 prefix) and a jsdom render of `PostBody`; **not** verified on a rendered production post (egress) |
+
+No before/after performance comparison was made: no change in this release
+targets performance, and production cannot be measured from here.
+
+## Remaining issues
+
+- E4/E5: pillars not indexed; Google's stored canonical still on the old host
+  for 7 indexed pages — owner action in GSC (ops §11 #12) and the
+  `cdsportswearusa.com` 301 (ops §11 #1).
+- E14 Shopify page, E17 `website redesign services` ownership, E26 Sentry
+  Replay — owner decisions (ops §11 #13–15).
+- E16/E18: retitle `/blog/ai-automation-agency` and
+  `/blog/custom-react-nextjs-web-development` away from their pillars' terms
+  (editorial, via the admin UI).
+- E15: supporting posts for digital marketing, SEO and animation.
+- E21–E24: long descriptions, `/process` brand suffix, topical H1s, `Article`
+  on landing pages — low priority.
+
+## Not yet verified
+
+- Production HTML, headers, robots.txt and sitemap.xml fetched directly
+  (egress-blocked); rendered blog posts on production.
+- Field Core Web Vitals (no CrUX / GSC CWV data); desktop PageSpeed (tool
+  error). The one mobile lab run is a single sample.
+- GA4 traffic, conversions and qualified inquiries; Bing Webmaster data.
+- Google Business Profile, Bing Places, directory and social listings.
+- Whether each blog image matches its alt text (Unsplash blocked).
+- The effect of any change here on indexing or rankings — measure at T+7 /
+  T+30 in GSC; nothing in this run is claimed as an SEO improvement.
+
+## Next SEO actions (priority order)
+
+1. After merge: GSC "Request indexing" for the pillars and re-crawl requests
+   for the stale-canonical pages (ops §11 #12); resubmit the sitemap.
+2. After merge: `node scripts/seo/indexnow-ping.mjs` for `/contact`, `/about`,
+   `/privacy`, `/terms`, the four pillars with new links, and the 10 posts
+   whose rendering changed.
+3. Owner rulings: ops §11 #13 (Shopify), #14 (redesign term), #15 (Sentry
+   Replay), #1 (301 the old domain).
+4. Editorial: retitle the two cannibalising posts (E16, E18).
+5. Build the theme-2 and theme-4 clusters (E15), registry first.
+6. Re-inspect the 26 URLs in GSC on 2026-10-03 (T+7) and record coverage.
+
+## Files changed
+
+`CHANGELOG.md`, `CLAUDE.md`, `VERSION`, `app/about/page.jsx`,
+`app/blog/[slug]/page.jsx`, `app/contact/page.jsx`, `app/layout.jsx`,
+`app/opengraph-image.jsx`, `app/page.jsx`, `app/privacy/page.jsx`,
+`app/robots.js`, `app/services/[slug]/page.jsx`, `app/sitemap.js`,
+`app/styles/case-study.css`, `app/terms/page.jsx`,
+`components/marketing/ContactPulseLinks.jsx`,
+`components/marketing/MarketingFooter.jsx`,
+`components/marketing/PostBody.jsx`, `components/marketing/ServiceSchema.jsx`,
+`components/sections/Contact.jsx`, `docs/seo/KEYWORD-REGISTRY.md`,
+`docs/seo/OPERATIONS-MANUAL.md`, `docs/seo/STRATEGY.md`,
+`docs/seo/runs/2026-09-26-full-audit.md`, `lib/blogMarkdown.mjs`,
+`lib/servicePages.mjs`, `lib/site.js`, `public/llms.txt`,
+`tests/blogMarkdown.test.mjs`, `tests/content.test.mjs`,
+`tests/marketing/postBody.test.jsx` (new),
+`tests/marketing/serviceSchema.test.jsx`,
+`tests/seo-identity-and-crawl.test.mjs` (new).

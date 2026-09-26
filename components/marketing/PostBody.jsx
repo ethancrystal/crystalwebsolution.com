@@ -26,6 +26,20 @@ function renderInline(tokens, keyPrefix) {
             {token.value}
           </code>
         );
+      case 'image':
+        // Author images in a post body sit below the fold, so they load lazily.
+        // No width/height: bodies carry no dimensions; .post-image reserves
+        // the full column width and keeps the source aspect ratio.
+        return (
+          <img
+            key={key}
+            className="post-image"
+            src={token.src}
+            alt={token.alt}
+            loading="lazy"
+            decoding="async"
+          />
+        );
       case 'link': {
         const external = /^https?:\/\//i.test(token.href);
         // Internal links use next/link for client navigation; external ones get
@@ -46,8 +60,9 @@ function renderInline(tokens, keyPrefix) {
   });
 }
 
-export default function PostBody({ body }) {
-  const blocks = parseMarkdown(body);
+export default function PostBody({ body, title }) {
+  // `title` lets the parser drop a leading `# Title` that restates the <h1>.
+  const blocks = parseMarkdown(body, { title });
 
   if (!blocks.length) return null;
 

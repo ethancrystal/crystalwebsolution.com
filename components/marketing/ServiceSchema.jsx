@@ -5,9 +5,9 @@
 import { SITE } from '../../lib/site';
 import { SITE_ORIGIN } from '../../lib/seo.mjs';
 
+// Matches the Organization's areaServed in app/layout.jsx: national, remote.
 export const DEFAULT_SERVICE_AREA_SERVED = [
   { '@type': 'Country', name: 'United States' },
-  { '@type': 'Country', name: 'United Arab Emirates' },
 ];
 
 export default function ServiceSchema({ n, title, description, url, areaServed }) {

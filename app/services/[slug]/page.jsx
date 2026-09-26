@@ -24,7 +24,6 @@ const WEB_DESIGN_AREA_SERVED = [
     },
   },
   { '@type': 'Country', name: 'United States' },
-  { '@type': 'Country', name: 'United Arab Emirates' },
 ];
 
 export function generateStaticParams() {

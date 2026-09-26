@@ -106,7 +106,7 @@ export default async function OpengraphImage() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <div style={{ display: 'flex', width: 120, height: 4, background: 'linear-gradient(90deg,#59f3ff,#965aff)' }} />
-          <div style={{ color: '#6f83a6', fontSize: 24 }}>{SITE.cityCompact}</div>
+          <div style={{ color: '#6f83a6', fontSize: 24 }}>{SITE.city}</div>
         </div>
       </div>
     ),

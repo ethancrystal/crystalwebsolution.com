@@ -62,8 +62,8 @@ const ABOUT_FAQ = [
     a: 'Both, on the same team. Design and engineering work in lockstep here, so what you get is not a mockup that someone else has to reinterpret. It gets built, and built to be owned.',
   },
   {
-    q: 'You’re based in Manassas and Sharjah. How does that work for clients?',
-    a: `The studio runs across two locations, ${SITE.city} and ${SITE.citySecondary}. That split overlaps with the US working day and extends further into it than a single-office studio would.`,
+    q: 'You’re based in Manassas, Virginia. Do you only work with local clients?',
+    a: `No. The studio is based in ${SITE.city} and remote is the default, so clients anywhere in the United States work with us the same way a Northern Virginia business does.`,
   },
   {
     q: 'How big is the team?',
@@ -87,7 +87,7 @@ export default function AboutPage() {
         </p>
         <p className="mkt-prose">
           We are {SITE.projectsShipped} deep, with {SITE.experience} of practice behind every engagement.
-          The studio spans {SITE.city} and {SITE.citySecondary} — close enough to your hours to feel local, global enough to ship anywhere.
+          The studio is based in {SITE.city} and works remotely with clients across the United States.
         </p>
         <p className="mkt-prose">
           {SITE.name} keeps every client review public, good and bad. {REVIEW_STATS.total} reviews are

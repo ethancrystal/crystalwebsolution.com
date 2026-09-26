@@ -2,14 +2,14 @@ import Link from 'next/link';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import PageHero from '../../components/marketing/PageHero';
 import ContentSection from '../../components/marketing/ContentSection';
-import { SITE } from '../../lib/site';
+import { SITE, cityStateZip } from '../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'Privacy Policy';
 const DESCRIPTION =
   'How CD Sportswear INC collects, uses, and protects your information when you visit our site or use our services.';
-const LAST_UPDATED = 'September 11, 2026';
+const LAST_UPDATED = 'September 26, 2026';
 
 export const metadata = {
   title: TITLE,
@@ -148,7 +148,7 @@ export default function PrivacyPage() {
 
       <ContentSection eyebrow="International" title="International data transfers" tone="alt">
         <p className="mkt-prose">
-          {SITE.name} operates from {SITE.city} and {SITE.citySecondary}. Information we collect may be
+          {SITE.name} is based in Manassas, Virginia, United States. Information we collect may be
           transferred to and processed in the United States, the United Arab Emirates, or other
           countries where our service providers operate. By using our services, you consent to the
           transfer of your information to countries outside your country of residence, which may have
@@ -180,7 +180,8 @@ export default function PrivacyPage() {
           <a href={`tel:${SITE.phone.replace(/[^+\d]/g, '')}`}>{SITE.phone}</a>.
         </p>
         <p className="mkt-prose">
-          You may also write to us at: {SITE.name}, {SITE.city}, United States.
+          You may also write to us at: {SITE.name}, {SITE.mailingAddress.poBox},{' '}
+          {cityStateZip(SITE.mailingAddress)}, United States.
         </p>
       </ContentSection>
 

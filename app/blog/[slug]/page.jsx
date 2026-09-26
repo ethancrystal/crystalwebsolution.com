@@ -52,6 +52,49 @@ const RELATED_BY_SLUG = {
     { href: '/embroidery-screen-printing-web-design', title: 'Web design for embroidery shops' },
     { href: '/contact', title: 'Send a brief' },
   ],
+  // 2026-09-26: the posts published 2026-09-24 → 09-26 fell back to
+  // DEFAULT_RELATED. Each now points at the pillar its body already links to,
+  // plus its closest sibling post (docs/seo/runs/2026-09-26-full-audit.md, E13).
+  'ai-automation-vs-zapier-make': [
+    { href: '/services/workflow-automation', title: 'Workflow automation' },
+    { href: '/services/ai-automation', title: 'AI automation for business' },
+    { href: '/blog/how-much-does-ai-automation-cost', title: 'How much does AI automation cost?' },
+  ],
+  'brochure-website-vs-conversion-site': [
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+    { href: '/blog/how-much-does-a-small-business-website-cost', title: 'How much does a small business website cost?' },
+    { href: '/contact', title: 'Send a brief' },
+  ],
+  'when-page-builders-become-a-trap': [
+    { href: '/services/web-development', title: 'Custom React & Next.js development' },
+    { href: '/blog/wix-harmony-vs-framer-ai-squarespace', title: 'Wix Harmony vs Framer AI vs Squarespace AI' },
+    { href: '/contact', title: 'Send a brief' },
+  ],
+  'how-much-does-a-small-business-website-cost': [
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+    { href: '/blog/website-redesign-cost', title: 'Website redesign cost' },
+    { href: '/contact', title: 'Send a brief' },
+  ],
+  'when-to-redesign-vs-refresh-website': [
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+    { href: '/blog/website-redesign-cost', title: 'Website redesign cost' },
+    { href: '/contact', title: 'Send a brief' },
+  ],
+  'website-redesign-services': [
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+    { href: '/blog/when-to-redesign-vs-refresh-website', title: 'When to redesign vs refresh your website' },
+    { href: '/contact', title: 'Send a brief' },
+  ],
+  'website-redesign-cost': [
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+    { href: '/blog/when-to-redesign-vs-refresh-website', title: 'When to redesign vs refresh your website' },
+    { href: '/contact', title: 'Send a brief' },
+  ],
+  'wix-harmony-vs-framer-ai-squarespace': [
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+    { href: '/blog/when-page-builders-become-a-trap', title: 'When page builders become a trap' },
+    { href: '/contact', title: 'Send a brief' },
+  ],
 };
 
 const DEFAULT_RELATED = [
@@ -181,7 +224,7 @@ export default async function BlogPostPage({ params }) {
             ) : null}
           </header>
 
-          <PostBody body={post.body} />
+          <PostBody body={post.body} title={post.title} />
         </article>
 
         <section className="blog-article-continue" aria-label="Continue">

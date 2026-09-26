@@ -43,7 +43,7 @@ State column verified 2026-09-10 unless noted.
 | Ubersuggest | Keyword, backlink, domain data; rank tracking | project `109eb16879ab6b871522949b04ab791df52a888ebbab4b2037450214d037b7cf` (`cdsportswearinc.com`, en/2840), tier1, weekly refresh | Created 2026-09-09 15:20 UTC. **54/125 keywords, 5/5 competitors.** `google_analytics_profile: null` |
 | — previous project | Deleted | `5dfd943c8a27…` (`cdsportswearusa.com`) | **Gone.** `get_project` → `HTTP 404 Project not found`, 2026-09-10 |
 | GA4 | Engagement, conversions | `G-YENE9MFT5K` (code shipped) | **Not verified live.** Not connected to the Ubersuggest project |
-| Search Console | Impressions, indexing | Property should be `https://www.cdsportswearinc.com` | Not verified. The property named in v2 was for a domain that now 404s |
+| Search Console | Impressions, indexing | Domain property `sc-domain:cdsportswearinc.com` | **Readable by agents via the GSC connector** (siteOwner, 2026-09-26): performance, sitemaps and URL Inspection all return data. Sitemap submitted 2026-09-21, 39 URLs at the 2026-09-26 download, 0 errors. Coverage on 2026-09-26: 12 of 26 inspected URLs indexed, 13 "Discovered – currently not indexed" (all five theme pillars among them), `/services` unknown — see `runs/2026-09-26-full-audit.md` |
 | Linear | Execution queue | Team *Crystal Web Solution*, prefix `CRY` | **Not reachable.** `list_teams` returns one team, `TMS`, 2026-09-10. Whether the team was deleted or the connector now points at a different workspace is unknown. `CRY-*` references below are historical |
 | Notion | Former archive | — | **Dropped 2026-09-02.** Not used |
 
@@ -271,6 +271,10 @@ be evidenced either way.
 | 9 | Submit the four live blog URLs in Search Console once #4 exists | They are in the sitemap; nothing else can be done without the property |
 | 10 | **Approve or decline two paid backlink routes** — Prince William Chamber membership (dues not published) and NTEN membership | Both are §4 paid-placement gates; the research is done and blocked on a yes/no (`backlinks/prospects.md`, 2026-09-10) |
 | 11 | Carried forward, unverified since 2026-09-02: confirm the live `cron.job` row for `drain-crm-outbox` and repoint it, and add the **current** domain to the Supabase auth redirect allow-list | Was scoped to `cdsportswearusa.com`; the domain move makes it more likely to be stale, not less |
+| 12 | **Request indexing in Search Console** (URL Inspection → Request indexing) for the five pillars, `/services`, `/work`, `/reviews`, `/process`, and re-request `/contact`, `/about`, `/services/web-development`, `/services/workflow-automation`, `/services/animation`, `/work/style`, `/embroidery-screen-printing-web-design` | The pillars are "Discovered – currently not indexed"; the indexed pages were last crawled 2026-09-02/03 and Google still stores their old `cdsportswearusa.com` canonical (2026-09-26 audit, E4–E5). The API cannot request indexing; the GSC UI can |
+| 13 | **Rule on `/hire/shopify-developer`** — confirm Shopify as a sold offer, or retire the URL | Live and in the sitemap, but parked in the registry and excluded by STRATEGY §2; no page links to it (2026-09-26 audit, E14) |
+| 14 | **Rule on `website redesign services`** — pillar (`/services/web-design`) or the live post `/blog/website-redesign-services` | Both target it; the pillar does not link to the post until this is decided (2026-09-26 audit, E17) |
+| 15 | **Decide on lazy-loading Sentry Session Replay** | Replay is the largest initial script on every public page (538 KB raw / 166 KB gzip of 1,117 / 357 KB on `/about`, local build). Lazy-loading it cuts that cost but loses replays of errors in the first seconds of a visit (2026-09-26 audit, E26) |
 
 ## 12. Domain history — and what the last move cost
 
