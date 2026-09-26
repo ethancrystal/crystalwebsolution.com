@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(20);
+select plan(22);
 
 -- Behavioural proof for 0043_project_briefs.sql. Same fixture idiom as
 -- 0041_client_read_scope.test.sql: stable UUIDs, the admin row uses
@@ -166,6 +166,31 @@ select throws_ok(
   ),
   'P0002', null,
   'a client cannot attach a brief to another company''s project'
+);
+
+-- A draft cannot be re-keyed, and a client-chosen id that collides with an
+-- existing project key is refused instead of attaching to that project.
+select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
+insert into public.project_briefs (id, company_id, created_by, brief_type, answers)
+values ('50000000-0000-0000-0000-000000000009', '20000000-0000-0000-0000-000000000001',
+        '10000000-0000-0000-0000-000000000001', 'seo', '{"site_url":"https://a.test"}');
+update public.project_briefs set id = '50000000-0000-0000-0000-00000000000a'
+where id = '50000000-0000-0000-0000-000000000009';
+select is(
+  (select count(*) from public.project_briefs where id = '50000000-0000-0000-0000-000000000009'),
+  1::bigint,
+  'a draft id cannot be changed'
+);
+
+reset role;
+update public.projects set client_generated_id = '50000000-0000-0000-0000-000000000009'
+where id = (select id from brief_test_ids where key = 'project');
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
+select throws_ok(
+  $$ select public.submit_project_brief('50000000-0000-0000-0000-000000000009', 'SEO brief', null, 'Collide', null) $$,
+  '22023', null,
+  'a brief id that collides with an existing project key is refused'
 );
 
 reset role;

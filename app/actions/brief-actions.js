@@ -47,11 +47,22 @@ function safeDatabaseCode(error) {
 
 function databaseFailure(error, requestId, userMessage) {
   console.error({ requestId, code: safeDatabaseCode(error) });
-  return { ok: false, error: userMessage, requestId };
+  return { ok: false, error: userMessage, requestId, retryable: true };
 }
 
+// submit_project_brief / create_project raise these with user-safe text;
+// surface a specific message instead of the generic failure.
+const SUBMIT_ERRORS = {
+  P0002: 'That project is no longer available. Choose another project or start a new one.',
+  22023: 'This brief could not be submitted as it is. Check the project name and choose an open project.',
+  42501: 'You are not authorized to submit this brief.',
+};
+
+// Validation and authorization failures cannot succeed on retry; the
+// wizard's autosave stops on retryable: false. Database/network failures
+// (databaseFailure) stay retryable.
 function invalid(requestId, error, extra = {}) {
-  return { ok: false, error, requestId, ...extra };
+  return { ok: false, error, requestId, retryable: false, ...extra };
 }
 
 function success(requestId, data) {
@@ -181,7 +192,12 @@ export async function saveBriefDraft(formData) {
     .select('updated_at')
     .maybeSingle();
 
-  if (error) return databaseFailure(error, requestId, 'Unable to save your answers.');
+  if (error) {
+    const failure = databaseFailure(error, requestId, 'Unable to save your answers.');
+    // RLS rejections (42501) and check violations (23514) never succeed on retry.
+    if (['42501', '23514'].includes(safeDatabaseCode(error))) failure.retryable = false;
+    return failure;
+  }
   if (!data) return invalid(requestId, 'This brief can no longer be edited.', { submitted: true });
 
   return success(requestId, { savedAt: data.updated_at });
@@ -218,8 +234,10 @@ export async function submitBrief(formData) {
   const briefId = formString(formData, 'briefId');
   if (!isCanonicalUuid(briefId)) return invalid(requestId, 'Brief not found.');
 
-  const projectId = formString(formData, 'projectId') || null;
-  if (projectId !== null && !isCanonicalUuid(projectId)) return invalid(requestId, 'Choose a valid project.');
+  // destination: 'attach' (projectId required) or 'new' (projectTitle).
+  const destination = formString(formData, 'destination') === 'attach' ? 'attach' : 'new';
+  const projectId = destination === 'attach' ? formString(formData, 'projectId') : null;
+  if (destination === 'attach' && !isCanonicalUuid(projectId)) return invalid(requestId, 'Choose a valid project.');
 
   const targetDate = formString(formData, 'targetDate').trim() || null;
   if (!validDateOnly(targetDate)) return invalid(requestId, 'Choose a valid target date.');
@@ -232,7 +250,22 @@ export async function submitBrief(formData) {
   if (readError) return databaseFailure(readError, requestId, 'Unable to submit the brief.');
   if (!brief) return invalid(requestId, 'Brief not found.');
 
-  const attachTo = brief.project_id ?? projectId;
+  // A draft started from a project page carries that project_id; the client
+  // may still re-point it (e.g. the project was cancelled meanwhile). RLS
+  // only accepts a project the client can access, or null.
+  if (brief.status === 'draft' && (brief.project_id ?? null) !== projectId) {
+    const { error: retargetError } = await supabase
+      .from('project_briefs')
+      .update({ project_id: projectId })
+      .eq('id', briefId)
+      .eq('status', 'draft');
+    if (retargetError) {
+      return invalid(requestId, SUBMIT_ERRORS.P0002);
+    }
+    brief.project_id = projectId;
+  }
+
+  const attachTo = brief.project_id;
   let projectTitle = null;
   if (brief.status === 'draft' && !attachTo) {
     try {
@@ -265,7 +298,9 @@ export async function submitBrief(formData) {
   }
 
   if (result.error || !isCanonicalUuid(result.data)) {
-    return databaseFailure(result.error, requestId, 'Unable to submit the brief.');
+    const failure = databaseFailure(result.error, requestId, 'Unable to submit the brief.');
+    const specific = SUBMIT_ERRORS[safeDatabaseCode(result.error)];
+    return specific ? { ...failure, error: specific, retryable: false } : failure;
   }
 
   revalidatePath('/dashboard');

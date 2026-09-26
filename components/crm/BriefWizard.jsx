@@ -152,31 +152,38 @@ export default function BriefWizard({ brief, projects = [] }) {
   const [submitError, setSubmitError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const attachedProject = projects.find((project) => project.id === brief.project_id) ?? null;
   const openProjects = projects.filter((project) => project.status !== 'cancelled');
+  // A draft started from a project page defaults to that project, unless it
+  // has since been cancelled -- then the client picks a new destination.
+  const attachedOpen = openProjects.some((project) => project.id === brief.project_id);
+  const startedFromClosedProject = Boolean(brief.project_id) && !attachedOpen;
   const [destination, setDestination] = useState(() => ({
-    mode: brief.project_id ? 'attach' : 'new',
-    projectId: brief.project_id ?? openProjects[0]?.id ?? '',
+    mode: attachedOpen ? 'attach' : 'new',
+    projectId: attachedOpen ? brief.project_id : (openProjects[0]?.id ?? ''),
     projectTitle: '',
     targetDate: '',
   }));
 
   const answersRef = useRef(answers);
   const dirtyRef = useRef(false);
-  const savingRef = useRef(false);
   const timerRef = useRef(null);
   const headingRef = useRef(null);
-
   const inflightRef = useRef(null);
+  const lastSaveOkRef = useRef(true);
+  const failuresRef = useRef(0);
+  // Set by a non-retryable failure (validation, auth, deleted draft): stop
+  // the automatic retries until the client edits again.
+  const stoppedRef = useRef(false);
+  const flushRef = useRef(null);
 
+  // Saves the latest answers. Resolves true when the answers as of the end
+  // of the call are stored, false otherwise. Safe to call concurrently: only
+  // one request is ever in flight and every caller waits for it.
   const flush = useCallback(async () => {
     clearTimeout(timerRef.current);
-    // One save at a time: wait for the in-flight one, then save whatever
-    // changed while it ran.
-    if (inflightRef.current) await inflightRef.current;
-    if (!dirtyRef.current) return;
+    while (inflightRef.current) await inflightRef.current;
+    if (!dirtyRef.current) return lastSaveOkRef.current;
 
-    savingRef.current = true;
     dirtyRef.current = false;
     setSaveState((prev) => ({ ...prev, status: 'saving' }));
 
@@ -185,33 +192,44 @@ export default function BriefWizard({ brief, projects = [] }) {
     formData.set('answers', JSON.stringify(answersRef.current));
 
     const request = (async () => {
+      let saved = false;
       try {
         const result = await saveBriefDraft(formData);
         if (result.ok) {
+          saved = true;
+          failuresRef.current = 0;
           setSaveState({ status: 'saved', savedAt: result.data.savedAt });
         } else {
-          // A submitted brief is read-only: retrying can never succeed.
+          // A submitted brief has nothing left to save.
           if (!result.submitted) dirtyRef.current = true;
+          if (result.retryable === false) stoppedRef.current = true;
+          failuresRef.current += 1;
           setSaveState((prev) => ({ ...prev, status: 'error', message: result.error }));
-          return false;
         }
       } catch {
         dirtyRef.current = true;
+        failuresRef.current += 1;
         setSaveState((prev) => ({ ...prev, status: 'error', message: 'Connection lost. Retrying…' }));
-        return false;
       }
-      return true;
+      lastSaveOkRef.current = saved;
+      inflightRef.current = null;
+      return saved;
     })();
 
     inflightRef.current = request;
     const saved = await request;
-    inflightRef.current = null;
-    savingRef.current = false;
 
-    // Changes typed while the request was in flight get their own save;
-    // a failed save retries on the same cadence.
-    if (dirtyRef.current) timerRef.current = setTimeout(flush, saved ? AUTOSAVE_DELAY_MS : AUTOSAVE_DELAY_MS * 5);
+    // Edits typed during the request get their own save; failures back off
+    // exponentially (capped at a minute) and stop when not retryable.
+    if (dirtyRef.current && !stoppedRef.current) {
+      const delay = saved
+        ? AUTOSAVE_DELAY_MS
+        : Math.min(AUTOSAVE_DELAY_MS * 2 ** failuresRef.current, 60_000);
+      timerRef.current = setTimeout(() => flushRef.current?.(), delay);
+    }
+    return saved && !dirtyRef.current;
   }, [brief.id]);
+  flushRef.current = flush;
 
   const updateAnswer = useCallback(
     (fieldId, value) => {
@@ -223,16 +241,17 @@ export default function BriefWizard({ brief, projects = [] }) {
         return next;
       });
       dirtyRef.current = true;
+      stoppedRef.current = false;
       setSaveState((prev) => (prev.status === 'saving' ? prev : { ...prev, status: 'pending' }));
       clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(flush, AUTOSAVE_DELAY_MS);
+      timerRef.current = setTimeout(() => flushRef.current?.(), AUTOSAVE_DELAY_MS);
     },
-    [flush],
+    [],
   );
 
   useEffect(() => {
     function warnIfUnsaved(event) {
-      if (!dirtyRef.current && !savingRef.current) return;
+      if (!dirtyRef.current && !inflightRef.current) return;
       event.preventDefault();
       event.returnValue = '';
     }
@@ -240,6 +259,9 @@ export default function BriefWizard({ brief, projects = [] }) {
     return () => {
       window.removeEventListener('beforeunload', warnIfUnsaved);
       clearTimeout(timerRef.current);
+      // In-app navigation (e.g. the "Dashboard" link) unmounts without
+      // beforeunload: save pending edits now instead of dropping them.
+      if (dirtyRef.current && !stoppedRef.current) flushRef.current?.();
     };
   }, []);
 
@@ -276,16 +298,19 @@ export default function BriefWizard({ brief, projects = [] }) {
 
     setIsSubmitting(true);
     try {
-      clearTimeout(timerRef.current);
+      // Force a save of the exact answers being submitted and wait for it
+      // (including any save already in flight) before submitting.
       dirtyRef.current = true;
-      await flush();
-      if (dirtyRef.current) {
+      stoppedRef.current = false;
+      const saved = await flush();
+      if (!saved) {
         setSubmitError('We could not save your latest answers. Check your connection and try again.');
         return;
       }
 
       const formData = new FormData();
       formData.set('briefId', brief.id);
+      formData.set('destination', destination.mode);
       if (destination.mode === 'attach') {
         formData.set('projectId', destination.projectId);
       } else {
@@ -480,71 +505,68 @@ export default function BriefWizard({ brief, projects = [] }) {
 
               <fieldset className="bw-destination">
                 <legend>Where should this brief go?</legend>
-                {attachedProject ? (
-                  <p className="bw-help">
-                    This brief will be added to <strong>{attachedProject.title}</strong>.
+                {startedFromClosedProject && (
+                  <p className="bw-help bw-destination-note">
+                    The project this brief was started from is no longer open. Choose where it should go.
                   </p>
-                ) : (
-                  <>
-                    <label className={`bw-chip ${destination.mode === 'new' ? 'is-on' : ''}`}>
-                      <input
-                        type="radio"
-                        name="destination"
-                        checked={destination.mode === 'new'}
-                        onChange={() => setDestination((prev) => ({ ...prev, mode: 'new' }))}
-                      />
-                      <span>Start a new project</span>
-                    </label>
-                    {openProjects.length > 0 && (
-                      <label className={`bw-chip ${destination.mode === 'attach' ? 'is-on' : ''}`}>
-                        <input
-                          type="radio"
-                          name="destination"
-                          checked={destination.mode === 'attach'}
-                          onChange={() => setDestination((prev) => ({ ...prev, mode: 'attach' }))}
-                        />
-                        <span>Add to an existing project</span>
-                      </label>
-                    )}
+                )}
+                <label className={`bw-chip ${destination.mode === 'new' ? 'is-on' : ''}`}>
+                  <input
+                    type="radio"
+                    name="destination"
+                    checked={destination.mode === 'new'}
+                    onChange={() => setDestination((prev) => ({ ...prev, mode: 'new' }))}
+                  />
+                  <span>Start a new project</span>
+                </label>
+                {openProjects.length > 0 && (
+                  <label className={`bw-chip ${destination.mode === 'attach' ? 'is-on' : ''}`}>
+                    <input
+                      type="radio"
+                      name="destination"
+                      checked={destination.mode === 'attach'}
+                      onChange={() => setDestination((prev) => ({ ...prev, mode: 'attach' }))}
+                    />
+                    <span>Add to an existing project</span>
+                  </label>
+                )}
 
-                    {destination.mode === 'new' ? (
-                      <div className="bw-destination-grid">
-                        <div className="bw-field">
-                          <label htmlFor="bw-project-title" className="bw-label">Project name</label>
-                          <input
-                            id="bw-project-title"
-                            type="text"
-                            maxLength={120}
-                            value={destination.projectTitle}
-                            placeholder={suggestedTitle}
-                            onChange={(event) => setDestination((prev) => ({ ...prev, projectTitle: event.target.value }))}
-                          />
-                        </div>
-                        <div className="bw-field">
-                          <label htmlFor="bw-target-date" className="bw-label">Target date</label>
-                          <input
-                            id="bw-target-date"
-                            type="date"
-                            value={destination.targetDate || suggestedDate}
-                            onChange={(event) => setDestination((prev) => ({ ...prev, targetDate: event.target.value }))}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bw-field">
-                        <label htmlFor="bw-project" className="bw-label">Project</label>
-                        <select
-                          id="bw-project"
-                          value={destination.projectId}
-                          onChange={(event) => setDestination((prev) => ({ ...prev, projectId: event.target.value }))}
-                        >
-                          {openProjects.map((project) => (
-                            <option key={project.id} value={project.id}>{project.title}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                  </>
+                {destination.mode === 'new' ? (
+                  <div className="bw-destination-grid">
+                    <div className="bw-field">
+                      <label htmlFor="bw-project-title" className="bw-label">Project name</label>
+                      <input
+                        id="bw-project-title"
+                        type="text"
+                        maxLength={120}
+                        value={destination.projectTitle}
+                        placeholder={suggestedTitle}
+                        onChange={(event) => setDestination((prev) => ({ ...prev, projectTitle: event.target.value }))}
+                      />
+                    </div>
+                    <div className="bw-field">
+                      <label htmlFor="bw-target-date" className="bw-label">Target date</label>
+                      <input
+                        id="bw-target-date"
+                        type="date"
+                        value={destination.targetDate || suggestedDate}
+                        onChange={(event) => setDestination((prev) => ({ ...prev, targetDate: event.target.value }))}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bw-field">
+                    <label htmlFor="bw-project" className="bw-label">Project</label>
+                    <select
+                      id="bw-project"
+                      value={destination.projectId}
+                      onChange={(event) => setDestination((prev) => ({ ...prev, projectId: event.target.value }))}
+                    >
+                      {openProjects.map((project) => (
+                        <option key={project.id} value={project.id}>{project.title}</option>
+                      ))}
+                    </select>
+                  </div>
                 )}
               </fieldset>
 
@@ -938,6 +960,7 @@ export default function BriefWizard({ brief, projects = [] }) {
           padding: 0 0.35rem;
         }
         .bw-destination > .bw-field,
+        .bw-destination-note,
         .bw-destination-grid {
           flex-basis: 100%;
         }

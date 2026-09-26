@@ -50,19 +50,23 @@ export default function DashboardPage() {
     const supabase = createClient();
     const viewerProfile = { profile: { id: userId, role: 'client', company_id: companyId } };
 
+    let projects;
     try {
-      const [projects, draftRows] = await Promise.all([
-        listProjectsForViewer(supabase, viewerProfile),
-        listDraftBriefs(supabase),
-      ]);
+      projects = await listProjectsForViewer(supabase, viewerProfile);
       setMyProjects(projects);
-      setDrafts(draftRows);
-      setBriefTypesByProject(
-        await submittedBriefTypesByProject(supabase, projects.map((project) => project.id)),
-      );
     } catch (err) {
       setError(err.message);
+      return;
     }
+
+    // Brief data is secondary: a failure here (e.g. before migration 0043 is
+    // applied) hides drafts and badges but never the project list.
+    const [draftResult, typesResult] = await Promise.allSettled([
+      listDraftBriefs(supabase),
+      submittedBriefTypesByProject(supabase, projects.map((project) => project.id)),
+    ]);
+    if (draftResult.status === 'fulfilled') setDrafts(draftResult.value);
+    if (typesResult.status === 'fulfilled') setBriefTypesByProject(typesResult.value);
   }, []);
 
   useEffect(() => {
@@ -146,14 +150,18 @@ export default function DashboardPage() {
     if (!window.confirm(`Delete the draft "${draft.title || briefTypeLabel(draft.brief_type)}"? This cannot be undone.`)) {
       return;
     }
-    const formData = new FormData();
-    formData.set('briefId', draft.id);
-    const result = await deleteBriefDraft(formData);
-    if (!result.ok) {
-      setError(result.error || 'Unable to delete the draft.');
-      return;
+    try {
+      const formData = new FormData();
+      formData.set('briefId', draft.id);
+      const result = await deleteBriefDraft(formData);
+      if (!result.ok) {
+        setError(result.error || 'Unable to delete the draft.');
+        return;
+      }
+      setDrafts((prev) => prev.filter((item) => item.id !== draft.id));
+    } catch {
+      setError('Unable to delete the draft. Check your connection and try again.');
     }
-    setDrafts((prev) => prev.filter((item) => item.id !== draft.id));
   }
 
   if (isLoading) {

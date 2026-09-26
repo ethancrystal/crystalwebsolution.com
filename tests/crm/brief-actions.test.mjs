@@ -66,3 +66,25 @@ test('the notification worker links staff to their own workspace for brief alert
   assert.match(source, /staffProjectUrl: staffProjectUrlFor\(row\.project_id, recipient\.role\)/);
   assert.match(source, /\.select\('id, full_name, role'\)/);
 });
+
+test('validation failures are non-retryable; database failures are retryable', async () => {
+  const source = await readFile('app/actions/brief-actions.js', 'utf8');
+  assert.match(source, /function invalid\([^)]*\) \{\s*return \{ ok: false, error, requestId, retryable: false/);
+  assert.match(source, /return \{ ok: false, error: userMessage, requestId, retryable: true \}/);
+  assert.match(source, /\['42501', '23514'\]\.includes\(safeDatabaseCode\(error\)\)/);
+});
+
+test('submit lets a draft be re-pointed and maps RPC errors to specific messages', async () => {
+  const source = await readFile('app/actions/brief-actions.js', 'utf8');
+  const submit = source.slice(source.indexOf('export async function submitBrief'));
+  assert.match(submit, /formString\(formData, 'destination'\) === 'attach'/);
+  assert.match(submit, /\.update\(\{ project_id: projectId \}\)[\s\S]*?\.eq\('status', 'draft'\)/);
+  assert.match(submit, /SUBMIT_ERRORS\[safeDatabaseCode\(result\.error\)\]/);
+});
+
+test('the dashboard project list does not depend on the briefs table', async () => {
+  const source = await readFile('app/dashboard/page.jsx', 'utf8');
+  const projectsLoad = source.indexOf('projects = await listProjectsForViewer');
+  const briefsLoad = source.indexOf('Promise.allSettled');
+  assert.ok(projectsLoad > 0 && briefsLoad > projectsLoad, 'projects load first, briefs settle separately');
+});

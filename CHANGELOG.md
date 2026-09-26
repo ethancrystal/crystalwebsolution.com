@@ -8,7 +8,17 @@ Full client area: guided, service-specific briefs that start projects.
 - **Studio alerts.** Submitting notifies the admin and any assigned staff in-app and by email (`project.brief_submitted`). The email links straight to the staff view of the project.
 - **Database (`0043_project_briefs.sql`).** New `project_briefs` table with forced RLS: drafts are author-only, submitted briefs are visible to project participants, and only drafts are writable. `submit_project_brief()` RPC is idempotent via `create_project()`'s key. Adds `project.brief_submitted` to the audit event list. **Must be applied to the live database** before the new dashboard works in production.
 - **Fixes.** The free-text brief form's success handler received `{ projectId }` but navigated to `/dashboard/projects/[object Object]`. The brief wizard's step list no longer widens the page on phones.
-- Tests: questionnaire data and validation, migration contract, server-action guards, email template (Node); wizard autosave/submit behaviour (vitest); 20 pgTAP assertions for RLS, submit, idempotency and notifications, all run against a local Postgres 16 with every migration `0001`–`0043` applied.
+- **Hardening from review.**
+  - The dashboard loads projects independently of briefs, so a missing `0043` never blanks the project list.
+  - Pending edits save when the client leaves the wizard.
+  - Non-retryable save errors stop retrying, and other failures back off exponentially.
+  - Submit waits for, and requires, a successful save of the exact answers.
+  - A draft whose project was cancelled can be re-pointed.
+  - Specific submit error messages.
+  - Emoji-safe length caps.
+  - Brief ids are immutable, and an id colliding with an existing project key is refused.
+  - The answer size check leaves headroom under the database limit.
+- Tests: questionnaire data and validation, migration contract, server-action guards, email template (Node); wizard autosave/submit behaviour (vitest); 22 pgTAP assertions for RLS, submit, idempotency, id immutability and notifications, all run against a local Postgres 16 with every migration `0001`–`0043` applied.
 
 ## v1.54 — 2026-09-25
 

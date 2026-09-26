@@ -74,3 +74,10 @@ test('studio staff are notified and the submitter is not', async () => {
   assert.match(sql, /unnest\(array\['in_app', 'email'\]\)/);
   assert.match(sql, /staff\.user_id <> v_user_id/);
 });
+
+test('brief ids are immutable and a colliding idempotency key is refused', async () => {
+  const sql = statementsOf(await readFile(migrationPath, 'utf8'));
+  assert.match(sql, /new\.id := old\.id;/);
+  assert.match(sql, /new\.created_at := old\.created_at;/);
+  assert.match(sql, /project\.client_generated_id = v_brief\.id[\s\S]*?raise exception 'This brief cannot be submitted\.'/);
+});

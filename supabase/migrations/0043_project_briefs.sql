@@ -83,12 +83,16 @@ create index if not exists project_briefs_author_idx
 create index if not exists project_briefs_company_idx
   on public.project_briefs (company_id);
 
+-- Identity columns are immutable: the brief id doubles as create_project()'s
+-- idempotency key, so a client must not be able to re-key a draft.
 create or replace function private.touch_project_brief()
 returns trigger
 language plpgsql
 set search_path = pg_catalog, public, private
 as $function$
 begin
+  new.id := old.id;
+  new.created_at := old.created_at;
   new.updated_at := now();
   return new;
 end
@@ -275,7 +279,19 @@ begin
     end;
 
     -- create_project validates the title and is idempotent on
-    -- (created_by, client_generated_id); the brief id is that key.
+    -- (created_by, client_generated_id); the brief id is that key. A draft
+    -- is never submitted twice (the early return above), so an existing
+    -- project under this key means a colliding id chosen by the client:
+    -- refuse rather than attach to that (possibly cancelled) project.
+    if exists (
+      select 1
+      from public.projects as project
+      where project.created_by = v_user_id
+        and project.client_generated_id = v_brief.id
+    ) then
+      raise exception 'This brief cannot be submitted.' using errcode = '22023';
+    end if;
+
     v_project_id := public.create_project(
       v_company_id,
       v_category,

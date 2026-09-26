@@ -170,3 +170,23 @@ test('display titles and progress', () => {
   assert.equal(answered, 2);
   assert.equal(total, templateFields(BRIEF_TEMPLATES.ppc).length);
 });
+
+test('summary truncation never splits an emoji surrogate pair', () => {
+  // Pad so the cut lands between the halves of an emoji.
+  for (let pad = 0; pad < 4; pad += 1) {
+    const answers = {};
+    for (const field of templateFields(BRIEF_TEMPLATES.seo)) {
+      if (field.type === 'textarea') answers[field.id] = `${'x'.repeat(pad)}${'😀'.repeat(1500)}`;
+    }
+    const summary = renderBriefSummary('seo', answers);
+    assert.ok(summary.length <= MAX_SUMMARY_LENGTH);
+    assert.doesNotMatch(summary, /[\uD800-\uDBFF](?![\uDC00-\uDFFF])/, `pad ${pad}: no lone high surrogate`);
+    assert.doesNotThrow(() => JSON.parse(JSON.stringify(summary)));
+  }
+});
+
+test('per-field length caps never split an emoji surrogate pair', () => {
+  const clean = sanitizeBriefAnswers('logo', { description: `x${'😀'.repeat(FIELD_LIMITS.textarea)}` });
+  assert.ok(clean.description.length <= FIELD_LIMITS.textarea);
+  assert.doesNotMatch(clean.description, /[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
+});

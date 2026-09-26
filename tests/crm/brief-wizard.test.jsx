@@ -170,4 +170,95 @@ describe('BriefWizard', () => {
     expect(await screen.findByText('Unable to submit the brief.')).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
   });
+
+  it('saves pending edits when the wizard unmounts before the debounce fires', async () => {
+    const { unmount } = render(<BriefWizard brief={brief()} />);
+    fireEvent.change(screen.getByLabelText(/What does your business do/), { target: { value: 'Uniforms' } });
+    unmount();
+
+    await waitFor(() => expect(saveBriefDraft).toHaveBeenCalledTimes(1));
+    expect(JSON.parse(formEntries(saveBriefDraft.mock.calls[0]).answers).description).toBe('Uniforms');
+  });
+
+  it('stops retrying a save the server marks non-retryable', async () => {
+    saveBriefDraft.mockResolvedValue({ ok: false, error: 'Brief not found.', retryable: false });
+    render(<BriefWizard brief={brief()} />);
+    fireEvent.change(screen.getByLabelText(/What does your business do/), { target: { value: 'Uniforms' } });
+
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    await waitFor(() => expect(saveBriefDraft).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      vi.advanceTimersByTime(120_000);
+    });
+    expect(saveBriefDraft).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('status')).toHaveTextContent('Brief not found.');
+  });
+
+  it('backs off retryable save failures instead of hammering the server', async () => {
+    saveBriefDraft.mockResolvedValue({ ok: false, error: 'Unable to save your answers.', retryable: true });
+    render(<BriefWizard brief={brief()} />);
+    fireEvent.change(screen.getByLabelText(/What does your business do/), { target: { value: 'Uniforms' } });
+
+    for (let i = 0; i < 60; i += 1) {
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+    }
+    // 60s of failures: immediate + backoff 1.8s, 3.6s, 7.2s, 14.4s, 28.8s -> at most 6 calls.
+    expect(saveBriefDraft.mock.calls.length).toBeLessThanOrEqual(6);
+  });
+
+  it('does not submit when the save it depends on fails', async () => {
+    let resolveSave;
+    saveBriefDraft.mockImplementationOnce(() => new Promise((resolve) => { resolveSave = resolve; }));
+    saveBriefDraft.mockResolvedValue({ ok: false, error: 'Unable to save your answers.', retryable: true });
+    const complete = brief({
+      answers: {
+        site_url: 'https://acme.test', business_name: 'Acme', description: 'Uniforms', goals: ['leads'],
+        service_area: 'local', priority_services: 'Embroidery', history: 'never', monthly_budget: 'unsure',
+      },
+    });
+    render(<BriefWizard brief={complete} />);
+    // An autosave is still in flight when the client submits...
+    fireEvent.change(screen.getByLabelText(/What does your business do/), { target: { value: 'Team uniforms' } });
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(saveBriefDraft).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button', { name: /Review & submit/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Submit brief' }));
+    // ...it succeeds, but the pre-submit save that follows it fails.
+    await act(async () => {
+      resolveSave({ ok: true, data: { savedAt: '2026-09-25T10:02:00.000Z' } });
+    });
+
+    expect(await screen.findByText(/could not save your latest answers/)).toBeInTheDocument();
+    expect(saveBriefDraft.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(submitBrief).not.toHaveBeenCalled();
+  });
+
+  it('lets the client re-point a draft whose project was cancelled', async () => {
+    const complete = brief({
+      project_id: '33333333-3333-4333-8333-333333333333',
+      answers: {
+        site_url: 'https://acme.test', business_name: 'Acme', description: 'Uniforms', goals: ['leads'],
+        service_area: 'local', priority_services: 'Embroidery', history: 'never', monthly_budget: 'unsure',
+      },
+    });
+    const projects = [
+      { id: PROJECT_ID, title: 'Acme rebrand', status: 'in_progress' },
+      { id: '33333333-3333-4333-8333-333333333333', title: 'Old', status: 'cancelled' },
+    ];
+    render(<BriefWizard brief={complete} projects={projects} />);
+    fireEvent.click(screen.getByRole('button', { name: /Review & submit/ }));
+    expect(await screen.findByText(/no longer open/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Start a new project')).toBeChecked();
+
+    fireEvent.click(screen.getByLabelText('Add to an existing project'));
+    fireEvent.click(screen.getByRole('button', { name: 'Submit brief' }));
+    await waitFor(() => expect(submitBrief).toHaveBeenCalledTimes(1));
+    expect(formEntries(submitBrief.mock.calls[0])).toMatchObject({ destination: 'attach', projectId: PROJECT_ID });
+  });
 });
