@@ -491,9 +491,7 @@ targets performance, and production cannot be measured from here.
 
 1. After merge: GSC "Request indexing" for the pillars and re-crawl requests
    for the stale-canonical pages (ops §11 #12); resubmit the sitemap.
-2. After merge: `node scripts/seo/indexnow-ping.mjs` for `/contact`, `/about`,
-   `/privacy`, `/terms`, the four pillars with new links, and the 10 posts
-   whose rendering changed.
+2. ~~After merge: IndexNow ping~~ — **done 2026-09-26, see §IndexNow below.**
 3. Owner rulings: ops §11 #13 (Shopify), #14 (redesign term), #15 (Sentry
    Replay), #1 (301 the old domain).
 4. Editorial: retitle the two cannibalising posts (E16, E18).
@@ -518,3 +516,27 @@ targets performance, and production cannot be measured from here.
 `tests/marketing/postBody.test.jsx` (new),
 `tests/marketing/serviceSchema.test.jsx`,
 `tests/seo-identity-and-crawl.test.mjs` (new).
+
+## IndexNow (after the v1.58 deploy)
+
+- **Sent 2026-09-26, shortly before 23:57 UTC, by MJ** from a local clone of
+  `main` (`1b2020f`). The cloud session could not send it: its egress policy
+  answered `403` to CONNECT for `api.indexnow.org` and `www.bing.com`, and
+  adding `api.indexnow.org` to the environment's allowed domains had not
+  reached the running container by 23:57 UTC.
+- **Response: `202 Accepted`** — received; key validation pending. That is
+  not proof of indexing, and nothing here claims any.
+- **Key file:** `https://www.cdsportswearinc.com/2aa3a082044a1c787011f08d0c31fd1f.txt`
+  loads and shows the key (checked by MJ in a browser, same day).
+- **19 URLs** (payload checked with `--dry-run` first; host
+  `www.cdsportswearinc.com`): `/`, `/about`, `/contact`, `/privacy`,
+  `/terms`, `/services/web-design`, `/services/web-development`,
+  `/services/ai-automation`, `/services/workflow-automation`, and the 10
+  posts whose rendering changed — `ai-automation-agency`,
+  `custom-react-nextjs-web-development`, `ai-automation-vs-zapier-make`,
+  `brochure-website-vs-conversion-site`, `when-page-builders-become-a-trap`,
+  `how-much-does-a-small-business-website-cost`,
+  `when-to-redesign-vs-refresh-website`, `website-redesign-services`,
+  `website-redesign-cost`, `wix-harmony-vs-framer-ai-squarespace`.
+- No retry needed (2xx). Bing Webmaster Tools' IndexNow report is where
+  receipt can be confirmed; not checked from here (no connector).
