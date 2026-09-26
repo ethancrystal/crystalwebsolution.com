@@ -29,3 +29,7 @@ html[data-cws-hydrated='1'] .section-skeleton {
     transparent
   );
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .section-skeleton-sweep { display: none; }
+}
