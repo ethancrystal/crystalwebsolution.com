@@ -1,3 +1,11 @@
+## v1.57 — 2026-09-26
+
+SEO content and technical audit updates, plus a transitive dependency security fix.
+
+- **SEO content** — Added the business-of-web-design and product-page-design drafts, keyword registry updates, and daily SEO run documentation.
+- **Technical SEO** — Applied the Latiedo audit metadata corrections, preserved the approved no-Shopify strategy, and reduced the flagged homepage client image below 200 KB.
+- **Security** — Pinned transitive `fast-uri` to patched `3.1.6`; `pnpm audit` reports no known vulnerabilities.
+
 ## v1.56 — 2026-09-26
 
 Merge after v1.55 (client briefs, PR #229); this entry was renumbered from

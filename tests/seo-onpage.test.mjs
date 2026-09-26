@@ -166,9 +166,35 @@ test('sitemap lists public marketing URLs and excludes CRM routes', () => {
   assert.match(code, /listPublishedSlugs/, 'published posts belong in the sitemap');
   assert.doesNotMatch(code, /\/login/, 'login is noindex and not a sitemap URL');
   assert.doesNotMatch(code, /\/dashboard/, 'CRM routes must not appear in the sitemap');
-  // hire/shopify-developer shipped as a real page in d56f22c (2026-09-17) and was
-  // deliberately added to the sitemap alongside it — it is not an unbuilt landing.
-  assert.match(code, /hire\/shopify-developer/, 'the built hire/shopify-developer landing page belongs in the sitemap');
+  assert.doesNotMatch(code, /hire\/shopify-developer/, 'the non-organic Shopify landing exception must stay out of the sitemap');
+});
+
+test('Shopify landing is direct-access only while Shopify remains outside the sold services', () => {
+  const code = source('app/hire/shopify-developer/page.jsx');
+  assert.match(code, /export const metadata/, 'Shopify landing must define route metadata');
+  assert.match(code, /description\s*:/, 'Shopify landing must define a description');
+  assert.match(code, /alternates\s*:\s*\{\s*canonical:\s*['"]\/hire\/shopify-developer['"]/, 'Shopify landing must self-canonicalize');
+  assert.match(code, /openGraph\s*:/, 'Shopify landing must define Open Graph metadata');
+  assert.match(code, /twitter\s*:/, 'Shopify landing must define Twitter metadata');
+  assert.match(code, /index:\s*false/, 'Shopify landing must be noindex');
+  assert.match(code, /follow:\s*true/, 'Shopify landing may pass discovery signals to its linked pages');
+});
+
+test('low-inlink blog posts have contextual related links and a conversion path', () => {
+  const code = source('app/blog/[slug]/page.jsx');
+  const expected = {
+    'brochure-website-vs-conversion-site': ['/blog/when-page-builders-become-a-trap', '/blog/when-to-redesign-vs-refresh-website', '/services/web-design'],
+    'ai-automation-vs-zapier-make': ['/services/ai-automation', '/services/workflow-automation', '/contact'],
+    'when-page-builders-become-a-trap': ['/blog/brochure-website-vs-conversion-site', '/blog/when-to-redesign-vs-refresh-website', '/services/web-development'],
+  };
+
+  for (const [slug, targets] of Object.entries(expected)) {
+    const block = code.match(new RegExp(`['"]${slug}['"]\\s*:\\s*\\[(<!--[\\s\\S]*?-->)?([\\s\\S]*?)\\n\\s*\\],`));
+    assert.ok(block, `${slug} must have an explicit related-link block`);
+    for (const target of targets) {
+      assert.match(block[0], new RegExp(`href:\\s*['"]${target.replace(/[.*+?^${}()|[\\]\\]/g, '\\\\$&')}['"]`), `${slug} must link to ${target}`);
+    }
+  }
 });
 
 test('marketing footer includes the blog in the explore set', () => {

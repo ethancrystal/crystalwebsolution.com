@@ -38,9 +38,12 @@ exits 0.
 
 ## How a code page ships (e.g. `/hire/shopify-developer`)
 
-Landing pages are Next.js routes, not blog rows. The run opens a PR on a
-`seo/<slug>` branch following the App Router conventions in `CLAUDE.md`. MJ
-merges. Merging deploys production — the run never merges.
+Organic landing pages are Next.js routes, not blog rows. The run opens a PR on
+a `seo/<slug>` branch following the App Router conventions in `CLAUDE.md`. MJ
+merges. Merging deploys production — the run never merges. The existing
+`/hire/shopify-developer` route is an exception from a historical merge: it is
+direct-response only, `noindex`, excluded from the sitemap, and does not enter
+the organic roadmap unless MJ confirms Shopify is a sold offer.
 
 ## What the run may do without asking
 

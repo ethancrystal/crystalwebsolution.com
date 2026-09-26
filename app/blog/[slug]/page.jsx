@@ -52,6 +52,23 @@ const RELATED_BY_SLUG = {
     { href: '/embroidery-screen-printing-web-design', title: 'Web design for embroidery shops' },
     { href: '/contact', title: 'Send a brief' },
   ],
+  // Ahrefs found these three posts with only the /blog index as an inlink.
+  // Keep each cluster contextual while giving readers a clear next conversion path.
+  'brochure-website-vs-conversion-site': [
+    { href: '/blog/when-page-builders-become-a-trap', title: 'When page builders become a trap' },
+    { href: '/blog/when-to-redesign-vs-refresh-website', title: 'Redesign vs refresh your website' },
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+  ],
+  'ai-automation-vs-zapier-make': [
+    { href: '/services/ai-automation', title: 'AI automation for business' },
+    { href: '/services/workflow-automation', title: 'Workflow automation' },
+    { href: '/contact', title: 'Send a brief' },
+  ],
+  'when-page-builders-become-a-trap': [
+    { href: '/blog/brochure-website-vs-conversion-site', title: 'Brochure site vs conversion site' },
+    { href: '/blog/when-to-redesign-vs-refresh-website', title: 'Redesign vs refresh your website' },
+    { href: '/services/web-development', title: 'Custom React & Next.js development' },
+  ],
 };
 
 const DEFAULT_RELATED = [
@@ -59,6 +76,25 @@ const DEFAULT_RELATED = [
   { href: '/work', title: 'Selected work' },
   { href: '/contact', title: 'Send a brief' },
 ];
+
+// Audit-approved SEO copy for the four indexable posts flagged by the 2026-09-26
+// crawl. Keep this as a route-level fallback until the same values are entered
+// in the CMS; it prevents a stale database value from reintroducing the issue.
+const SEO_OVERRIDES = {
+  'when-to-redesign-vs-refresh-website': {
+    title: 'When to Redesign vs Refresh Your Website: 2026 Guide',
+  },
+  'website-redesign-cost': {
+    title: 'Website Redesign Cost in 2026: Planning Ranges by Path',
+  },
+  'website-redesign-services': {
+    title: 'Website Redesign Services: What’s Included & What to Ask',
+  },
+  'when-page-builders-become-a-trap': {
+    description:
+      'Signs you’ve outgrown Webflow, Framer or WordPress themes — and when a custom React/Next.js build is worth the investment for your business.',
+  },
+};
 
 function formatDate(value) {
   if (!value) return null;
@@ -85,8 +121,9 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  const title = post.seo_title || post.title;
-  const description = post.seo_description || post.excerpt || undefined;
+  const override = SEO_OVERRIDES[post.slug] || {};
+  const title = override.title || post.seo_title || post.title;
+  const description = override.description || post.seo_description || post.excerpt || undefined;
   const canonical = `/blog/${post.slug}`;
   const image = post.cover_image_url || SOCIAL_IMAGE_PATH;
 
@@ -130,7 +167,7 @@ export default async function BlogPostPage({ params }) {
     '@type': 'BlogPosting',
     '@id': absoluteUrl(`/blog/${post.slug}`),
     headline: post.title,
-    description: post.seo_description || post.excerpt || undefined,
+    description,
     url: absoluteUrl(`/blog/${post.slug}`),
     datePublished: isoDate(post.published_at),
     dateModified: isoDate(post.updated_at) ?? isoDate(post.published_at),
