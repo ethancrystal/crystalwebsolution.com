@@ -1,4 +1,7 @@
-## v1.55 — 2026-09-25
+## v1.56 — 2026-09-26
+
+Merge after v1.55 (client briefs, PR #229); this entry was renumbered from
+v1.55 so the two releases don't share a version.
 
 Door Dennis-style transitions (owner request, adapted from doordennis.nl's
 motion system — transitions only; none of its WebGL, media or copy).
