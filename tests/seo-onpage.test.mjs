@@ -180,6 +180,23 @@ test('Shopify landing is direct-access only while Shopify remains outside the so
   assert.match(code, /follow:\s*true/, 'Shopify landing may pass discovery signals to its linked pages');
 });
 
+test('low-inlink blog posts have contextual related links and a conversion path', () => {
+  const code = source('app/blog/[slug]/page.jsx');
+  const expected = {
+    'brochure-website-vs-conversion-site': ['/blog/when-page-builders-become-a-trap', '/blog/when-to-redesign-vs-refresh-website', '/services/web-design'],
+    'ai-automation-vs-zapier-make': ['/services/ai-automation', '/services/workflow-automation', '/contact'],
+    'when-page-builders-become-a-trap': ['/blog/brochure-website-vs-conversion-site', '/blog/when-to-redesign-vs-refresh-website', '/services/web-development'],
+  };
+
+  for (const [slug, targets] of Object.entries(expected)) {
+    const block = code.match(new RegExp(`['"]${slug}['"]\\s*:\\s*\\[(<!--[\\s\\S]*?-->)?([\\s\\S]*?)\\n\\s*\\],`));
+    assert.ok(block, `${slug} must have an explicit related-link block`);
+    for (const target of targets) {
+      assert.match(block[0], new RegExp(`href:\\s*['"]${target.replace(/[.*+?^${}()|[\\]\\]/g, '\\\\$&')}['"]`), `${slug} must link to ${target}`);
+    }
+  }
+});
+
 test('marketing footer includes the blog in the explore set', () => {
   assert.match(source('components/marketing/MarketingFooter.jsx'), /href="\/blog"/);
 });

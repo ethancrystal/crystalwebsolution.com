@@ -52,6 +52,23 @@ const RELATED_BY_SLUG = {
     { href: '/embroidery-screen-printing-web-design', title: 'Web design for embroidery shops' },
     { href: '/contact', title: 'Send a brief' },
   ],
+  // Ahrefs found these three posts with only the /blog index as an inlink.
+  // Keep each cluster contextual while giving readers a clear next conversion path.
+  'brochure-website-vs-conversion-site': [
+    { href: '/blog/when-page-builders-become-a-trap', title: 'When page builders become a trap' },
+    { href: '/blog/when-to-redesign-vs-refresh-website', title: 'Redesign vs refresh your website' },
+    { href: '/services/web-design', title: 'Custom web design for brands' },
+  ],
+  'ai-automation-vs-zapier-make': [
+    { href: '/services/ai-automation', title: 'AI automation for business' },
+    { href: '/services/workflow-automation', title: 'Workflow automation' },
+    { href: '/contact', title: 'Send a brief' },
+  ],
+  'when-page-builders-become-a-trap': [
+    { href: '/blog/brochure-website-vs-conversion-site', title: 'Brochure site vs conversion site' },
+    { href: '/blog/when-to-redesign-vs-refresh-website', title: 'Redesign vs refresh your website' },
+    { href: '/services/web-development', title: 'Custom React & Next.js development' },
+  ],
 };
 
 const DEFAULT_RELATED = [
