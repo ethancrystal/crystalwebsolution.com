@@ -133,6 +133,11 @@ pnpm in `package.json`; do not switch package managers.
   `/_global-error` is a plain Sentry boundary that imports no app code. The
   same commit reports `Build: success` on ubuntu CI and deploys cleanly on
   Vercel. Don't spend a session chasing it; confirm against CI instead.
+  **Check `NODE_ENV` first.** On 2026-09-26 the identical error reproduced
+  on Linux (Claude Code cloud container, node 22) because the shell exported
+  `NODE_ENV=development`; prefixing the build with `NODE_ENV=production`
+  made the same commit build cleanly (60/60 pages). Whether that is also the
+  Windows cause has not been checked.
 - **`next build` and `next dev` rewrite `tsconfig.json`** — they flip
   `"jsx": "preserve"` to `"react-jsx"` and reformat the arrays. It is a
   generated artifact, not your edit. Check `git status` after any build and

@@ -1,3 +1,75 @@
+## v1.58 — 2026-09-26
+
+Full SEO audit and the fixes it justified. Evidence, sources and everything
+left for the owner: `docs/seo/runs/2026-09-26-full-audit.md`. Numbered after
+v1.57, which is named in the merge log (`3d7479a`, PR #230) but has no entry
+here.
+
+- **Business identity** (owner-confirmed 2026-09-26). "Sharjah, DXB" is not a
+  CD Sportswear INC location and is removed from the footer, homepage contact
+  block, Contact page, About copy and FAQ, OG image and Privacy page;
+  `SITE.citySecondary` / `SITE.cityCompact` are gone. `lib/site.js` gains
+  `address` (8956 Dahlgren Ridge Rd, Manassas, VA 20111) and
+  `mailingAddress` (P.O. Box #41424, Arlington, VA 22204) plus a shared
+  `cityStateZip()` formatter. Contact now lists both; Privacy and Terms use
+  the P.O. Box instead of the undeliverable "Manassas, VA, United States"
+  (their "Last updated" moves to September 26, 2026). The Privacy
+  data-transfer clause is unchanged.
+- **Organization schema** (`app/layout.jsx`): one US `PostalAddress` with
+  the street address; `areaServed` United States; no P.O. Box, hours or geo.
+  The site-wide `AggregateRating` is removed — it was on every page while the
+  reviews are only visible on `/reviews` (which keeps its per-review markup).
+  Service schema `areaServed` drops the UAE.
+- **Canonical**: the homepage canonical moves from the root layout to
+  `app/page.jsx`, so 404s (and any future route that forgets its own) no
+  longer inherit a homepage canonical. Every other canonical is unchanged
+  (before/after crawl of the built site).
+- **robots.txt**: `*` and the named crawlers (GPTBot, OAI-SearchBot,
+  ChatGPT-User, ClaudeBot, PerplexityBot, Bingbot, Applebot, Google-Extended)
+  now share one group. Each used to have its own `Allow: /` group, and under
+  RFC 9309 a crawler obeys only its most specific group, so none of them
+  inherited the CRM/API/auth disallows. The non-standard `Host:` line is
+  dropped.
+- **Sitemap**: regenerates hourly (`revalidate = 3600`) so posts that reach
+  `blog_posts` outside the admin publish action appear without a redeploy
+  (seven "redeploy to refresh sitemap" commits since 2026-09-22). `lastmod`
+  is now emitted only for posts (`updated_at`); static, service and
+  case-study URLs used to report the build time.
+- **Blog rendering** (`lib/blogMarkdown.mjs`, `PostBody.jsx`): 10 of 14 live
+  posts open with `# <title>`, which printed as a literal "# ..." paragraph
+  under the real `<h1>`; a leading heading that restates the title is now
+  dropped and any other `#` becomes `<h2>`. `![alt](src)` images (6 across 3
+  posts) rendered as "!" plus a link to the `.jpg`; they now render as lazy
+  `<img class="post-image">` with the author's alt text. Image sources are
+  limited to https and site-relative paths.
+- **Internal links**: `/services/web-design`, `/services/web-development`,
+  `/services/ai-automation` and `/services/workflow-automation` link to the
+  six published posts that already linked up to them but got nothing back;
+  the eight posts published 2026-09-24 → 26 get pillar + sibling "Next" links
+  instead of the generic fallback. `/blog/website-redesign-services` is left
+  unlinked from the pillar pending the owner's ruling on the term it targets.
+- `public/llms.txt` now covers every sitemap URL (10 posts and
+  `/hire/shopify-developer` were missing) and describes Process as the six
+  steps the page shows.
+- Docs: keyword registry (10 unregistered live posts, the Shopify page's
+  state conflict), operations manual (Search Console now readable via the
+  GSC connector; new owner items 12–15), STRATEGY §8 current state, and a
+  CLAUDE.md build gotcha — `NODE_ENV=development` in the shell reproduces the
+  `useContext` prerender failure on Linux.
+- Follow-up from the adversarial review (same release): a failed post read
+  during an hourly sitemap regeneration now throws, so Next keeps serving the
+  last good sitemap instead of caching one with no posts (`next build` still
+  degrades to the static list; `listPublishedSlugs({ throwOnError })`).
+  `safeHref`/`safeImageSrc` refuse `//host` and `/\host` paths, including
+  ones produced by rewriting an owned-host URL. Title-drop applies to the
+  first line only and on a word boundary; empty headings are skipped; closing
+  `#`s and a leading BOM are handled. `.post-image` uses `max-width`. The
+  post editor's Markdown help mentions images and the H1 rule.
+- Tests: `tests/seo-identity-and-crawl.test.mjs` (location, schema, canonical
+  ownership, robots groups, sitemap freshness, llms.txt coverage),
+  `tests/marketing/postBody.test.jsx`, new parser cases in
+  `tests/blogMarkdown.test.mjs`; `content` and `serviceSchema` tests updated.
+
 ## v1.56 — 2026-09-26
 
 Merge after v1.55 (client briefs, PR #229); this entry was renumbered from

@@ -173,6 +173,14 @@ the business can serve that searcher · merging anything · guessing a number.
   Webmaster Tools are verified for the domain (MJ, 2026-09-19). API access
   for the Hermes jobs is still being set up — until then, first-party data is
   read by MJ, and agents report it as "unavailable to this run".
+- 2026-09-26: Claude Code sessions can now read Search Console through the
+  GSC connector (property `sc-domain:cdsportswearinc.com`). GA4 is still
+  unavailable to agents, so the §1 goal metric remains "unavailable".
+- Business identity (MJ, 2026-09-26): Manassas, VA is the only location.
+  Physical address `8956 Dahlgren Ridge Rd, Manassas, VA 20111` is published
+  in schema and on Contact as a service-area business (no hours, no walk-ins);
+  mailing address `P.O. Box #41424, Arlington, VA 22204` is shown on Contact,
+  Privacy and Terms and is never schema `address`. "Sharjah, DXB" was removed.
 - Daily operator: **Hermes Agent** on MJ's desktop (`CDS-SEO daily` Mon–Fri,
   `CDS-SEO weekly audit` Sun, `CDS-SEO watchdog`). Claude/Cowork sessions
   advise and may open PRs, but must check open PRs and today's run log first

@@ -128,8 +128,10 @@ export default function PostForm({ action, post, submitLabel }) {
         />
         <p className="crm-field-hint" id="post-body-hint">
           Markdown: ## and ### headings, **bold**, *italic*, `code`, [links](/path),
-          - lists, &gt; quotes, ``` fenced code. The post title is the page&rsquo;s
-          only H1, so start headings at ##.
+          ![alt text](https://&hellip;) images, - lists, &gt; quotes, ``` fenced code.
+          The post title is the page&rsquo;s only H1, so start headings at ## (a first
+          line that repeats the title as # is hidden). Images must be https:// or a
+          /site path; anything else shows only its alt text.
         </p>
         <FieldError message={fieldErrors.body} id="post-body-error" />
       </div>

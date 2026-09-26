@@ -15,6 +15,7 @@
 - [AI Automation — Agents that do the work](https://www.cdsportswearinc.com/services/ai-automation): Document and content automation, triage and summarization workflows, and LLM-powered assistants and agents.
 - [Workflow Automation — Connected systems](https://www.cdsportswearinc.com/services/workflow-automation): Tool and system integration, trigger-based automation, and data sync across platforms.
 - [SEO — Search engine optimization that compounds](https://www.cdsportswearinc.com/services/seo): Technical fixes, pillar pages and earned links, measured in inquiries — remote, US-wide.
+- [Hire a Shopify Developer — CD Sportswear INC](https://www.cdsportswearinc.com/hire/shopify-developer): Shopify theme builds, app integrations and store migrations, scoped to what the store actually needs.
 
 ## Work
 
@@ -33,8 +34,18 @@
 - [Branding and Web Design Studio — CD Sportswear INC](https://www.cdsportswearinc.com/blog/branding-and-web-design-studio): How a branding and web design studio turns strategy into brands people remember.
 - [How Much Does AI Automation Cost — CD Sportswear INC](https://www.cdsportswearinc.com/blog/how-much-does-ai-automation-cost): What AI automation costs and what it takes to automate repetitive work.
 - [Web Development RFP Guide — CD Sportswear INC](https://www.cdsportswearinc.com/blog/web-development-rfp-guide): How to write a web development RFP that gets a straight, comparable read.
+- [AI Automation Agency: What You Get — CD Sportswear INC](https://www.cdsportswearinc.com/blog/ai-automation-agency): What an AI automation agency does, when off-the-shelf tools aren’t enough, and what a first project should include.
+- [Custom React & Next.js Web Development — CD Sportswear INC](https://www.cdsportswearinc.com/blog/custom-react-nextjs-web-development): When custom React/Next.js beats templates and page builders, and what a first build should include.
+- [AI Automation vs Zapier/Make — CD Sportswear INC](https://www.cdsportswearinc.com/blog/ai-automation-vs-zapier-make): When DIY no-code automation is enough and when to hire a studio.
+- [Brochure Website vs Conversion Site — CD Sportswear INC](https://www.cdsportswearinc.com/blog/brochure-website-vs-conversion-site): Why brochure sites stall leads and what a conversion site needs instead.
+- [When Page Builders Become a Trap — CD Sportswear INC](https://www.cdsportswearinc.com/blog/when-page-builders-become-a-trap): Signs a site has outgrown Webflow, Framer or WordPress themes, and when custom Next.js is worth it.
+- [How Much Does a Small Business Website Cost? — CD Sportswear INC](https://www.cdsportswearinc.com/blog/how-much-does-a-small-business-website-cost): Planning ranges for DIY, freelancer and studio paths, what drives price, and the ongoing costs quotes skip.
+- [When to Redesign vs Refresh Your Website — CD Sportswear INC](https://www.cdsportswearinc.com/blog/when-to-redesign-vs-refresh-website): A signal checklist for choosing a full redesign or a focused refresh.
+- [Website Redesign Services: What You’re Buying — CD Sportswear INC](https://www.cdsportswearinc.com/blog/website-redesign-services): What redesign services include, when you need them, what drives cost, and how to pick a partner.
+- [Website Redesign Cost — CD Sportswear INC](https://www.cdsportswearinc.com/blog/website-redesign-cost): Planning ranges for refresh, full redesign and replatform paths, and the line items most quotes skip.
+- [Wix Harmony vs Framer AI vs Squarespace AI — CD Sportswear INC](https://www.cdsportswearinc.com/blog/wix-harmony-vs-framer-ai-squarespace): Which AI site builder fits a first service-business site, and when DIY stops fitting.
 - [About — CD Sportswear INC](https://www.cdsportswearinc.com/about): The studio behind the work.
-- [Process — Four steps, no shortcuts](https://www.cdsportswearinc.com/process): Brief & discovery, design, development, deployment — the same four steps on every project.
+- [Process — Six steps, one standard of care](https://www.cdsportswearinc.com/process): Discover, define, design, build, refine, hand off — the same six steps on every project.
 - [Privacy — CD Sportswear INC](https://www.cdsportswearinc.com/privacy): Privacy policy for CD Sportswear INC.
 - [Terms — CD Sportswear INC](https://www.cdsportswearinc.com/terms): Terms and conditions for CD Sportswear INC.
 - [Embroidery and screen printing web design — CD Sportswear INC](https://www.cdsportswearinc.com/embroidery-screen-printing-web-design): Web design for embroidery and screen printing businesses.

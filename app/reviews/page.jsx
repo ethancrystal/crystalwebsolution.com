@@ -198,10 +198,12 @@ export default function ReviewsPage() {
       </main>
       <BreadcrumbSchema trail={[{ name: REVIEWS_TITLE, path: '/reviews' }]} />
       <FaqSchema faq={REVIEWS_FAQ} />
-      {/* Google requires AggregateRating to be backed by actual Review nodes
-          with named authors. These are real, attributable client reviews —
-          never synthesise entries here, and keep parseDate in sync with the
-          human-readable `date` strings in lib/reviews.js. */}
+      {/* Review nodes for the reviews shown on this page, each with a named
+          author. These are real, attributable client reviews — never
+          synthesise entries here, and keep parseDate in sync with the
+          human-readable `date` strings in lib/reviews.js. (The site-wide
+          AggregateRating these once backed was removed on 2026-09-26: it sat
+          on every page, not just this one.) */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
