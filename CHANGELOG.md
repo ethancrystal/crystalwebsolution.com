@@ -1,41 +1,35 @@
-## v1.57 — 2026-09-26
+## v1.56 — 2026-09-26
 
-Visual experience Phase 0 baseline + Phase 1a defect fixes (owner-supplied
-brief: `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`). Merge after v1.55 (client briefs,
-PR #229) and v1.56 (Door Dennis transitions); renumber if the order changes.
+Merge after v1.55 (client briefs, PR #229); this entry was renumbered from
+v1.55 so the two releases don't share a version.
 
-- **Phones no longer scroll sideways.** `.motion-stream-index` (Selected work
-  list) was `width: min(100%, 34rem)` plus a 6vw side margin, so it ran
-  19–23px past the right edge at every phone width and the fixed nav's menu
-  button was clipped. Now `width: auto; max-width: 34rem` (desktop unchanged).
-- **One `<main>` landmark.** `app/layout.jsx` already owns
-  `<main id="main-content">`; the homepage and subpage shells rendered a
-  second, nested `<main>` (axe: 3 landmark violations on every page). They
-  are now `<div>`s with the same classes.
-- **Reduced-motion hydration error fixed.** `SectionSkeleton` branched its
-  markup on `useReducedMotion()` (null on the server, true on the client),
-  throwing React #418 for exactly the visitors reduced motion protects. The
-  sweep element always renders; CSS hides it under reduced motion.
-- **WebGL failure no longer throws.** `Scene` probes WebGL once
-  (`lib/webglSupport.mjs`) and skips the canvas when it is unavailable; the
-  canvas is also wrapped in `CanvasFeatureBoundary`. The CSS backdrop and every
-  DOM section keep working.
-- **Homepage scene follows its quality tier.** `Scene.jsx` hardcoded DPR 1.75,
-  900 particles and full post-processing on every device, ignoring
-  `lib/renderQuality.mjs`. DPR, particle count and idle animation now follow
-  the tier, like `IdleScene` already did. Bloom + vignette stay on every tier
-  (eco includes 4-thread laptops such as the 2019 MacBook Air; owner decision)
-  — only the high tier gets mipmap blur + depth of field.
-- **Global focus ring.** Zero-specificity `:where(...):focus-visible` safety
-  net in `primitives.css` (component styles still win); dark ring on
-  `[data-nav-tone="light"]` surfaces where cyan fails contrast.
-- **Docs.** `CLAUDE-VISUAL-EXPERIENCE-PLAN.md`, `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`
-  and `docs/visual/` (UI/UX review, accessibility audit, accessibility test plan,
-  Phase 0 current-state map and baseline); `CLAUDE.md` points to them.
-- Measured on a production build (software WebGL — relative numbers only):
-  mobile scroll 9 → 30 fps, desktop scroll 4 → 8 fps, axe violations 3 → 0,
-  page errors in reduced-motion and no-WebGL modes → 0.
-- Tests: `tests/visualPhase1a.test.mjs` (7).
+Door Dennis-style transitions (owner request, adapted from doordennis.nl's
+motion system — transitions only; none of its WebGL, media or copy).
+
+- **Page-to-page transition** (`components/PageTransition.jsx`, rules in
+  `lib/pageTransition.mjs`): internal link click -> page content fades out
+  (0.45s) -> Next navigates -> jump to top unless a `#hash` was requested ->
+  `ScrollTrigger.refresh()` -> fade in (0.6s). Mounted once in
+  `app/layout.jsx`. Opacity only, so the fixed WebGL stage and nav never
+  re-anchor. Skips CRM/auth routes, same-page hashes, new tabs, downloads,
+  modifier clicks, `data-no-page-transition`, and `ProjectHandoffLink`
+  (which keeps its own stripe wipe). A 5s safety net restores the page if a
+  route never commits.
+- **Blur-letter headings** (`components/BlurLetters.jsx`): letters turn in
+  from `rotateY(-90deg) scale(.9)` with an 8px blur while words rise, 0.75s
+  `power3.out`. Now used by `SectionHeader` (Services, Approach, Stories) and
+  the inner-page `PageHero` title, replacing their `SectionReveal` mask.
+- **Line/word rise** (`components/LineRise.jsx`): words rise per rendered
+  line, 0.15s between lines. Used by the `PageHero` lede.
+- **Hover letter scramble** (`components/HoverScramble.jsx`,
+  `lib/scramble.mjs`): 4 random-glyph frames 80ms apart, then the label
+  snaps back. Applied to the subpage nav links and Log in link; width is
+  locked and an sr-only copy keeps the accessible name stable.
+- Both text entrances revert their SplitType spans once settled, so final
+  headings are plain text again (a11y name, `text-wrap: balance`, resize).
+  Everything resolves instantly under `prefers-reduced-motion`.
+- Tests: `tests/pageTransition.test.mjs` (route rules, exclusions, scramble
+  frames).
 
 ## v1.54 — 2026-09-25
 

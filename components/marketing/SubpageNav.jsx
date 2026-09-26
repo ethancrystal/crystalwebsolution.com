@@ -5,6 +5,7 @@ import Link from 'next/link';
 import BrandLogo from '../BrandLogo';
 import Magnetic from '../Magnetic';
 import Menu from '../Menu';
+import HoverScramble from '../HoverScramble';
 import { SITE } from '../../lib/site';
 import { CRM_ENABLED } from '../../lib/crmFlag';
 
@@ -54,7 +55,7 @@ export default function SubpageNav() {
         <nav className="subpage-nav-links" aria-label="Marketing">
           {SITE.nav.map((item) => (
             <Link key={item.label} href={item.href}>
-              {item.label}
+              <HoverScramble>{item.label}</HoverScramble>
             </Link>
           ))}
         </nav>
@@ -62,7 +63,7 @@ export default function SubpageNav() {
         <div className="nav-right">
           {CRM_ENABLED && (
             <Link href="/login" className="nav-login-link">
-              Log in
+              <HoverScramble>Log in</HoverScramble>
             </Link>
           )}
           <Magnetic>

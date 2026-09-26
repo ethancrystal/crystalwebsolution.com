@@ -40,6 +40,18 @@
 - Status transitions are validated by `lib/crm/project-contract.mjs`.
 - Writes use bounded server actions in `app/actions/project-actions.js`.
 
+## Client Briefs
+
+Clients start projects from guided, service-specific briefs (migration `0043_project_briefs.sql`).
+
+- Questionnaires are data in `lib/crm/brief-templates.mjs`: `logo`, `website`, `seo`, `ppc`. Adding a question is a data change there. Adding a brief *type* also needs the `project_briefs_type_check` constraint and the category mapping in `submit_project_brief()`, both in a new migration. Briefs never ask for passwords; access is arranged separately.
+- `/dashboard` shows service cards, drafts in progress, and projects. `/dashboard/briefs/[id]` is the step-by-step wizard. It autosaves drafts through `saveBriefDraft` (`app/actions/brief-actions.js`) and pre-fills name, website and industry from the client's company record. The free-text form (`BriefSubmissionForm`) remains as "Something else".
+- Drafts are private to their author under RLS. Admin and PMs never see unsent drafts. Only drafts can be inserted, updated or deleted.
+- Submit goes through `submit_project_brief()`. It creates a new project through the idempotent `create_project()` (the brief id is the idempotency key), or attaches the brief to one of the client's existing, non-cancelled projects. A project can carry several briefs. Resubmitting returns the same project.
+- Submission writes a `project.brief_submitted` audit event and notifies the admin plus any assigned staff (in-app and email). The email links staff to `/admin/projects/<id>` or `/team/projects/<id>`. The submitting client is not notified.
+- Submitted briefs appear in the "Briefs" panel on the client, team and admin project pages. Clients can add another brief from there.
+- Behavioural proof: `supabase/tests/0043_project_briefs.test.sql` (`pnpm test:db`).
+
 ## Storage and Cleanup
 
 - Uploads go through `reserve_project_attachment`.
@@ -98,7 +110,7 @@ Any unread cleanup must use an explicit owner-selected cutoff, update only `in_a
 
 ## Migrations
 
-The checked-in migration directory currently contains the CRM chain through `0042_repoint_cron_and_pinned_admin.sql` (no `0024`; `0009b` and `0014b` are reconciliation files). `0041_client_read_scope_hardening.sql` was still **not applied** as of 2026-09-03 — see `docs/plans/audit-followups-crm-hardening-3.md` Task 11 — and `0042` is checked in, not applied, until the owner runs it against the live project. Always `ls supabase/migrations/` for the real head rather than trusting this sentence. The `0033` notes below are kept because that migration is the one with a cutover rehearsal. `0033` is additive: it adds lease and failure metadata, a bounded claim index, atomic claim/reclaim behavior, lease-owned success/failure transitions, fixed `search_path` functions, and trusted-worker grants. It intentionally does not introduce a `processing` status.
+The checked-in migration directory currently contains the CRM chain through `0043_project_briefs.sql` (no `0024`; `0009b` and `0014b` are reconciliation files). `0041_client_read_scope_hardening.sql` was still **not applied** as of 2026-09-03 — see `docs/plans/audit-followups-crm-hardening-3.md` Task 11 — and `0042` is checked in, not applied, until the owner runs it against the live project. (A read-only check on 2026-09-25 found `0041` and `0042` both applied live.) `0043` was applied to the live project on 2026-09-26 (recorded as `0043_project_briefs`, version `20260926010549`), before the v1.55 client brief UI merged. Always `ls supabase/migrations/` for the real head rather than trusting this sentence. The `0033` notes below are kept because that migration is the one with a cutover rehearsal. `0033` is additive: it adds lease and failure metadata, a bounded claim index, atomic claim/reclaim behavior, lease-owned success/failure transitions, fixed `search_path` functions, and trusted-worker grants. It intentionally does not introduce a `processing` status.
 
 Repository numeric filenames are not proof of production application. The live Supabase migration ledger uses timestamped versions and has previously diverged from the checked-in chain. Before applying `0033`, reconcile the live ledger, inspect exact live function definitions with `pg_get_functiondef`, verify grants and scheduler state, run the migration on an isolated database, and rehearse the old-worker/new-worker cutover. Do not edit or replay historical migration files.
 
