@@ -37,6 +37,16 @@ function projectUrlFor(projectId) {
   return APP_URL ? `${APP_URL}/dashboard/projects/${projectId}` : undefined;
 }
 
+// Staff alerts (project.brief_submitted) link to the recipient's own
+// workspace: /dashboard redirects staff to their home, dropping the project.
+const STAFF_PROJECT_BASE = { admin: '/admin/projects', project_manager: '/team/projects' };
+
+function staffProjectUrlFor(projectId, role) {
+  const base = STAFF_PROJECT_BASE[role];
+  if (!base || !projectId || !APP_URL) return projectUrlFor(projectId);
+  return `${APP_URL}${base}/${projectId}`;
+}
+
 // lead.created rows (create_lead_from_contact, migration 0026) have no
 // project_id -- they link to the admin deals view instead.
 function dealUrlFor(dealId) {
@@ -55,6 +65,7 @@ function templateContextFor(row, { recipient, project }) {
     fullName: recipient.fullName,
     projectName: project?.title ?? payload.project_name,
     projectUrl: projectUrlFor(row.project_id),
+    staffProjectUrl: staffProjectUrlFor(row.project_id, recipient.role),
     reviewsUrl: APP_URL ? `${APP_URL}/reviews` : undefined,
     fromStatus: payload.from_status,
     toStatus: payload.to_status,
@@ -72,6 +83,9 @@ function templateContextFor(row, { recipient, project }) {
     leadCompany: payload.lead_company,
     leadEmail: payload.lead_email,
     dealUrl: dealUrlFor(payload.deal_id),
+    briefTitle: payload.brief_title,
+    briefType: payload.brief_type,
+    createdProject: payload.created_project === true,
   };
 }
 
@@ -339,17 +353,18 @@ async function resolveRecipients(supabase, rows) {
 
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('id, full_name')
+    .select('id, full_name, role')
     .in('id', ids);
 
   const names = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
+  const roles = new Map((profiles ?? []).map((p) => [p.id, p.role]));
 
   const results = await Promise.all(
     ids.map(async (id) => {
       try {
         const { data, error } = await supabase.auth.admin.getUserById(id);
         if (error || !data?.user?.email) return [id, null];
-        return [id, { email: data.user.email, fullName: names.get(id) ?? null }];
+        return [id, { email: data.user.email, fullName: names.get(id) ?? null, role: roles.get(id) ?? null }];
       } catch {
         return [id, null];
       }

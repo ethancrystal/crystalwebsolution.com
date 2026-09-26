@@ -1,3 +1,15 @@
+## v1.55 — 2026-09-26
+
+Full client area: guided, service-specific briefs that start projects.
+
+- **Briefs by service.** New `/dashboard` with service cards for **Logo design, Website, SEO and PPC ads**, plus "Something else" (the existing free-text form). Each opens a step-by-step questionnaire (`lib/crm/brief-templates.mjs`) written for the designer, developer or marketer who picks it up. Examples: brand personality sliders, logo usage and file formats; pages, features, content readiness and reference sites; target locations, priority services, keywords, Search Console/GA4 status; platforms, ad spend, conversion goal, tracking and landing pages.
+- **Autosave and pre-fill.** Answers save about a second after the client stops typing, with a visible "Saved" status. The client can leave and resume from "Briefs in progress". Company name, website and industry are pre-filled from onboarding.
+- **Many briefs per project.** Submit either starts a new project (name and target date suggested from the answers) or adds the brief to an existing project. Project pages for client, team and admin gain a **Briefs** panel with the full answers laid out by section. Clients can add another brief from there.
+- **Studio alerts.** Submitting notifies the admin and any assigned staff in-app and by email (`project.brief_submitted`). The email links straight to the staff view of the project.
+- **Database (`0043_project_briefs.sql`).** New `project_briefs` table with forced RLS: drafts are author-only, submitted briefs are visible to project participants, and only drafts are writable. `submit_project_brief()` RPC is idempotent via `create_project()`'s key. Adds `project.brief_submitted` to the audit event list. **Must be applied to the live database** before the new dashboard works in production.
+- **Fixes.** The free-text brief form's success handler received `{ projectId }` but navigated to `/dashboard/projects/[object Object]`. The brief wizard's step list no longer widens the page on phones.
+- Tests: questionnaire data and validation, migration contract, server-action guards, email template (Node); wizard autosave/submit behaviour (vitest); 20 pgTAP assertions for RLS, submit, idempotency and notifications, all run against a local Postgres 16 with every migration `0001`–`0043` applied.
+
 ## v1.54 — 2026-09-25
 
 Google Tag Manager container `GTM-5VKPC974` added alongside the existing GA4
