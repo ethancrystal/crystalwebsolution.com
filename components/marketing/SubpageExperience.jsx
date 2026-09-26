@@ -46,9 +46,10 @@ export default function SubpageExperience({ children, sceneVariant }) {
           <FocusVeil />
           <SubpageNav />
           <ScrollProgress />
-          <main className="mkt-main page subpage subpage-page">
+          {/* A div, not <main>: app/layout.jsx owns the single main landmark. */}
+          <div className="mkt-main page subpage subpage-page">
             {children}
-          </main>
+          </div>
           <MarketingFooter />
         </div>
       </StageProvider>

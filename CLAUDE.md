@@ -325,3 +325,13 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
    which is why v1.43 has no `CHANGELOG.md` entry and v1.44 follows v1.42.
    Before picking a number, run `git log --oneline -5 main` and take one above
    the highest version *named there*, not just the highest in the file.
+
+## Visual experience execution brief
+
+For any visual redesign, interaction, animation, accessibility, or WebGL performance task, read these project-owned instructions before coding:
+
+- `CLAUDE-VISUAL-EXPERIENCE-PLAN.md` — phased product, design, performance, accessibility, and QA plan.
+- `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md` — manager-style execution prompt for Claude Code. Start with Phase 0 discovery and baseline; do not begin a broad rewrite without the current-state map.
+- `docs/visual/` — the UI/UX review, accessibility & contrast audit, accessibility test plan, and the Phase 0 current-state map and baseline (`PHASE-0-REPORT.md`).
+
+These documents extend this file; they do not override repository identity, deployment, security, CRM, SEO, versioning, or production-branch rules above.
