@@ -16,6 +16,7 @@
 - Convention: the project's own release naming, not conventional commits.
 - Format: the PR title and squash commit are `vX.NN — <summary>` (em-dash, zero-padded).
 - Rules: every PR to `main` bumps `VERSION` and adds the top `CHANGELOG.md` entry. `package.json`'s version stays untouched.
+- Next number: one above the highest `vX.NN` in the `main` merge log and in any open PR title above it. Stale open PRs below that are ignored. `/version-bump` applies this.
 
 ## Commit Strategy
 

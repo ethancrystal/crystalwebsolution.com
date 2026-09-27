@@ -236,6 +236,9 @@ Project docs, memory, specs, and plans live in `aidd_docs/`.
 @aidd_docs/memory/testing.md
 @aidd_docs/memory/vcs.md
 
+<!-- read on demand, not auto-loaded -->
+- aidd_docs/memory/internal/decisions/memory-authority.md
+
 <!-- aidd_project_memory:end -->
 
 - If the block above is empty, run `ls -1tr aidd_docs/memory/` and read each file.

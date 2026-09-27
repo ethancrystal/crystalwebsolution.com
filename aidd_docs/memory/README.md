@@ -14,9 +14,8 @@ The root files load every session through the project memory block in each AI co
 
 ## Files
 
-Refreshed automatically by the memory hook. Do not edit by hand.
+Maintained by hand: add a line when you add a file. The AIDD `update_memory.js` hook would write Windows-broken links here, so this list carries no hook markers.
 
-<!-- files:start -->
 - [api.md](api.md)
 - [architecture.md](architecture.md)
 - [auth.md](auth.md)
@@ -34,7 +33,10 @@ Refreshed automatically by the memory hook. Do not edit by hand.
 - [realtime.md](realtime.md)
 - [testing.md](testing.md)
 - [vcs.md](vcs.md)
-<!-- files:end -->
+
+Read on demand:
+
+- [internal/decisions/memory-authority.md](internal/decisions/memory-authority.md)
 
 ## Maintaining it
 

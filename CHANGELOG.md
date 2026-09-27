@@ -23,6 +23,11 @@ Sets up the AIDD framework (aidd-context skills 00–09) for this repo.
   after `next build` / `next dev` only when the diff is purely the Next.js
   rewrite. It is wired in the gitignored `settings.local.json`, so it is
   opt-in per checkout.
+- **Learnings** (`aidd-context:10-learn`): the next version skips numbers
+  open PRs already claim; private realtime broadcasts need private channels;
+  an ADR makes `aidd_docs/memory/` authoritative over root `MEMORY.md`. The
+  memory README list is now maintained by hand, because the AIDD
+  `SessionStart` hook wrote Windows-broken links into it.
 
 ## v1.64 — 2026-09-26
 
