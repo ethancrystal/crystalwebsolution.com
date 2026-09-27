@@ -1,3 +1,28 @@
+## v1.64 — 2026-09-26
+
+Docs only; no application code, route or runtime change. Lands the SEO
+goal-monger records that were sitting untracked in a local checkout.
+
+- **`docs/seo/goals.md`** — the active goal MJ approved on 2026-09-26: GSC
+  average position ≤10 for `rfp web development` on
+  `/blog/web-development-rfp-guide`, 14 consecutive complete reporting days,
+  by 2027-03-31. Baseline 0 reportable impressions (position unavailable);
+  indexing milestone closed. Does not replace the qualified-inquiry goal in
+  `STRATEGY.md`.
+- **First push run note** (`runs/2026-09-26-goal-monger.md`) and the
+  continuous SEO operating plan.
+- **RFP worksheet draft** at `drafts/downloads/web-development-rfp-worksheet.md`
+  (`approved: false`). Deliberately *not* in `drafts/blog/`: the publish
+  script would have turned it into `/blog/web-development-rfp-template`, a
+  second URL for a query the registry already assigns to the RFP guide.
+- **Agent Council records** (`council/`): the original brief (byte-identical
+  to the sha256 in the recorded verdict), its revised preflight brief, the
+  verdict JSON, and the GitHub Actions weekly-council proposal (proposal
+  only — no workflow is added).
+- **Templates** (`templates/`): weekly run note, SEO PR body, scheduler
+  handoff, and the draft `get_seo_goal_snapshot` tool schema for the
+  Search Console connector repo.
+
 ## v1.61 — 2026-09-27
 
 Fixes for v1.60 (visual Phase 1b) from its adversarial review. They were
