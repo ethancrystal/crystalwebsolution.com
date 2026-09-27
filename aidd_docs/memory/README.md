@@ -1,0 +1,52 @@
+# memory/ - Project Memory
+
+Structured context the AI assistant reads at the start of a session, so it does not rediscover the project each time.
+
+## How it loads
+
+```mermaid
+flowchart LR
+    bank["memory/*.md"] -->|every session| ai(["AI context"])
+    notes["internal/ · external/"] -.->|on demand| ai
+```
+
+The root files load every session through the project memory block in each AI context file. `internal/` and `external/` load only when relevant.
+
+## Files
+
+Maintained by hand: add a line when you add a file. The AIDD `update_memory.js` hook would write Windows-broken links here, so this list carries no hook markers.
+
+- [architecture.md](architecture.md)
+- [auth.md](auth.md)
+- [codebase-map.md](codebase-map.md)
+- [coding-assertions.md](coding-assertions.md)
+- [database.md](database.md)
+- [deployment.md](deployment.md)
+- [project-brief.md](project-brief.md)
+- [testing.md](testing.md)
+- [vcs.md](vcs.md)
+
+Read on demand:
+
+- [internal/api.md](internal/api.md)
+- [internal/backlog.md](internal/backlog.md)
+- [internal/design.md](internal/design.md)
+- [internal/ecosystem.md](internal/ecosystem.md)
+- [internal/forms.md](internal/forms.md)
+- [internal/integration.md](internal/integration.md)
+- [internal/navigation.md](internal/navigation.md)
+- [internal/realtime.md](internal/realtime.md)
+- [internal/decisions/memory-authority.md](internal/decisions/memory-authority.md)
+
+## Maintaining it
+
+The AI writes and refreshes these files. When you edit one by hand:
+
+- One file per concern (architecture, database, vcs, ...).
+- Capture the macro and the non-derivable. Point to the code, never copy it.
+- Current state only, kept small. No personal notes, no future TODOs.
+
+## Subdirectories
+
+- `internal/`: AIDD workflow traces (the capability profile, audit notes, learn captures).
+- `external/`: external references the project pulls in (specs, design docs).

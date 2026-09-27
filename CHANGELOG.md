@@ -1,3 +1,50 @@
+## v1.68 — 2026-09-27
+
+AI tooling and docs only; no application code, route or runtime change.
+Sets up the AIDD framework (aidd-context skills 00–09) for this repo.
+
+- **Project memory** (`aidd_docs/memory/`): 17 files covering the current
+  architecture, codebase map, auth, database, realtime, API, integrations,
+  deployment, testing, design, forms, navigation, VCS, backlog and the tool
+  ecosystem, plus a DOM → canvas scroll-pipeline diagram. They are imported
+  into `CLAUDE.md` and `AGENTS.md` through a new `## Memory Management`
+  block.
+- **`release-check` skill** (Claude + Cursor) reproduces the CI `test` job
+  locally (`pnpm test`, `test:marketing`, placeholder-env `build`), checks
+  the version bump, and restores `tsconfig.json`.
+- **`gatekeeper` agent** (Claude, Cursor, Codex) runs `release-check` and
+  returns a ready or blocked verdict without editing code.
+- **`/version-bump` command** (Claude + Cursor) picks the next unused
+  `vX.NN` from the merge log and open PRs.
+- **R3F frame-loop rule** (Claude + Cursor), scoped to `components/` and
+  `lib/`: no allocation in `useFrame`, one RAF clock, per-frame state in
+  singletons.
+- **`.claude/hooks/revert-generated-tsconfig.mjs`** restores `tsconfig.json`
+  after `next build` / `next dev` only when the diff is purely the Next.js
+  rewrite. It is wired in the gitignored `settings.local.json`, so it is
+  opt-in per checkout.
+- **Learnings** (`aidd-context:10-learn`): the next version skips numbers
+  open PRs already claim; private realtime broadcasts need private channels;
+  an ADR makes `aidd_docs/memory/` authoritative over root `MEMORY.md`. The
+  memory README list is now maintained by hand, because the AIDD
+  `SessionStart` hook wrote Windows-broken links into it.
+- **Deduplicated `CLAUDE.md` and `AGENTS.md`** against the memory bank:
+  the scroll/animation prose, test-run details, build gotchas, branch model
+  and role flow now live in `aidd_docs/memory/`, and the context files keep
+  the rules as one-liners with pointers. `CLAUDE.md` drops ~3.8 KB per
+  session. `AGENTS.md` also stops hardcoding the migration head.
+- **Token trim** (`aidd-context:12-cook` token-optimization recipe): 8
+  task-specific memory files (api, backlog, design, ecosystem, forms,
+  integration, navigation, realtime) move to `aidd_docs/memory/internal/`
+  and load on demand. That cuts the auto-loaded bank from ~24 KB to ~13 KB
+  per session. `gatekeeper` runs on `haiku`. `desktop-commander` is removed
+  from `.mcp.json`: its tool schema rode along every turn and it timed out at
+  startup.
+- **`.claude/settings.json` is now tracked** (removed from `.gitignore`) so
+  its `permissions.deny` rules are shared: reads of `.next/`, `node_modules/`,
+  `test-results/` and `.env*` stay out of agent context. Personal settings
+  still belong in the gitignored `settings.local.json`.
+
 ## v1.67 — 2026-09-27
 
 SEO index fix for one page. Nothing else changes.
