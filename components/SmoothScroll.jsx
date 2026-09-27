@@ -71,7 +71,23 @@ export default function SmoothScroll({ children }) {
         ScrollTrigger.update();
       };
 
-      const tick = (time) => lenis.raf(time * 1000);
+      // Measure real section boundaries whenever layout can have changed.
+      // Always use lenis.limit so these fractions share scroll progress's
+      // exact baseline.
+      const remeasure = () => measureBeats(lenis.limit);
+
+      // Lenis recomputes its limit on its own debounced ResizeObserver, which
+      // lands after ours: on first load our observer measured against a stale
+      // limit and every breakpoint stayed at its evenly-spaced default until
+      // the window happened to resize. Re-measure on the frame the limit moves.
+      let measuredLimit = -1;
+      const tick = (time) => {
+        lenis.raf(time * 1000);
+        if (lenis.limit !== measuredLimit) {
+          measuredLimit = lenis.limit;
+          remeasure();
+        }
+      };
       gsap.ticker.add(tick);
       gsap.ticker.lagSmoothing(0);
 
@@ -89,10 +105,8 @@ export default function SmoothScroll({ children }) {
       };
       document.addEventListener('click', onClick);
 
-      // Measure real section boundaries whenever layout can have changed.
-      // Always use lenis.limit so these fractions share scroll progress's
-      // exact baseline.
-      const remeasure = () => measureBeats(lenis.limit);
+      // The ticker catches limit changes; this catches layout shifts that
+      // move a section without changing the page height.
       remeasure();
       const resizeObserver = typeof ResizeObserver === 'undefined'
         ? null

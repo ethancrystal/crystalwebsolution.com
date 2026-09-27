@@ -1,0 +1,158 @@
+/* ---------- homepage journey nav (components/JourneyNav.jsx) ----------
+   Sits where the old aria-hidden "01/09" readout sat (right edge, mid-height,
+   the one margin the fixed chrome leaves free). Below the menu (480) and the
+   consent banner (470) so neither is ever covered. Every visible label sits on
+   its own dark plate, so contrast holds over light sections (Lab) and bright
+   canvas frames alike — no reliance on what is behind it. */
+.journey-nav {
+  position: fixed;
+  z-index: 460;
+  right: 1.6vw;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.journey-nav-toggle { display: none; }
+.journey-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.journey-nav-list a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  min-height: 1.75rem; /* comfortable target without widening the column */
+  padding: 0 0.35rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+.journey-nav-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.1rem;
+  padding: 0.18rem 0.3rem;
+  border-radius: 999px;
+  /* 0.92, not lighter: over Lab's light ground a thinner plate turns mid-grey
+     and the muted numerals drop below 4.5:1. */
+  background: rgba(4, 6, 12, 0.92);
+  border: 1px solid rgba(139, 152, 184, 0.28);
+  transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+.journey-nav-label {
+  position: absolute;
+  right: calc(100% - 0.1rem);
+  white-space: nowrap;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(4, 6, 12, 0.92);
+  color: var(--ink);
+  opacity: 0;
+  transform: translateX(0.4rem);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.journey-nav-list a[aria-current='location'] .journey-nav-index {
+  color: var(--bg);
+  background: var(--cyan);
+  border-color: var(--cyan);
+}
+/* Active label always shows; the rest appear while the column is hovered or
+   holds keyboard focus. Hidden labels stay in the accessibility tree (opacity,
+   not display), so every link keeps its full name. */
+.journey-nav-list a[aria-current='location'] .journey-nav-label,
+.journey-nav:hover .journey-nav-label,
+.journey-nav:focus-within .journey-nav-label {
+  opacity: 1;
+  transform: none;
+}
+.journey-nav-list a:hover .journey-nav-index,
+.journey-nav-list a:focus-visible .journey-nav-index {
+  color: var(--cyan);
+  border-color: var(--cyan);
+}
+.journey-nav-list a:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
+/* Phones and small tablets: a compact "03/09 · Services" button that opens
+   the full list, bottom-right, instead of a rail over the body copy. */
+@media (max-width: 900px) {
+  .journey-nav {
+    top: auto;
+    transform: none;
+    right: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+  .journey-nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    padding: 0 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(89, 243, 255, 0.35);
+    background: rgba(4, 6, 12, 0.92);
+    color: var(--ink);
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+  }
+  .journey-nav-toggle-count { color: var(--cyan); }
+  .journey-nav-toggle-total { color: var(--muted); }
+  .journey-nav-list {
+    display: none;
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.5rem);
+    min-width: 13rem;
+    padding: 0.5rem;
+    border-radius: 14px;
+    border: 1px solid rgba(89, 243, 255, 0.2);
+    background: rgba(4, 6, 12, 0.94);
+  }
+  .journey-nav[data-open='true'] .journey-nav-list { display: flex; }
+  .journey-nav-list a {
+    justify-content: flex-start;
+    min-height: 2.75rem;
+    color: var(--ink);
+  }
+  .journey-nav-label {
+    position: static;
+    opacity: 1;
+    transform: none;
+    background: none;
+    padding: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-nav-index,
+  .journey-nav-label { transition: none; }
+}
+
+/* Windows High Contrast / forced colors: let system colours draw the plates
+   and the active state instead of the cyan fill. */
+@media (forced-colors: active) {
+  .journey-nav-index,
+  .journey-nav-label,
+  .journey-nav-toggle,
+  .journey-nav-list { border: 1px solid CanvasText; }
+  .journey-nav-list a[aria-current='location'] .journey-nav-index {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+}
