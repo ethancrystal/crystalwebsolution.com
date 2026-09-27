@@ -22,6 +22,11 @@ goal-monger records that were sitting untracked in a local checkout.
 - **Templates** (`templates/`): weekly run note, SEO PR body, scheduler
   handoff, and the draft `get_seo_goal_snapshot` tool schema for the
   Search Console connector repo.
+- **`.claude/goal-monger/seo.md`** — this project's SEO profile for the
+  general-purpose `goal-monger` skill: proof sources (exact query AND page in
+  Search Console), lag, registry check, move playbook, and the STRATEGY §4
+  approval gates. The skill itself carries no project rules; it loads this
+  profile when a goal is about search.
 
 ## v1.61 — 2026-09-27
 
