@@ -91,14 +91,18 @@ Segment boundaries are **not** a uniform `index / (STOPS.length - 1)` split —
 sections vary hugely in scroll length (Lab's sticky flight stage is much taller
 than a standard beat).
 `lib/beatProgress.js` measures each section's real DOM position
-(`measureBeats`, called from `SmoothScroll.jsx` via a `ResizeObserver` on
-`<body>`, always against `lenis.limit` so the fractions share
+(`measureBeats`, always against `lenis.limit` so the fractions share
 `scrollState.progress`'s exact baseline) and `CameraRig` looks up segments
-against those measured breakpoints instead.
+against those measured breakpoints instead. Measure with `sectionTop()`
+(layout tops), never `getBoundingClientRect()`: rects include SectionHandoff's
+16px pre-reveal transform. SmoothScroll re-measures on the ticker frame
+Lenis's limit changes as well as from its `<body>` `ResizeObserver`, because
+Lenis updates the limit on its own debounced observer, after ours has fired.
 
 When adding or reordering a scroll section, `STOPS`/`CLUSTERS` in
 `lib/journey.js`, `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`
-(read by `measureBeats`), and any matching 3D actor in `Scene.jsx` all have to
+(read by `measureBeats`), its label in `LABELS` in `lib/journeyNav.mjs` (the
+homepage section nav), and any matching 3D actor in `Scene.jsx` all have to
 move together.
 
 ### Component layout
@@ -107,7 +111,8 @@ move together.
   (assembles the whole page and dynamic-imports `Scene` with `ssr: false`
   since it touches `window`/WebGL), `SmoothScroll.jsx`, `Scene.jsx`,
   `Loader.jsx`, `Nav.jsx`, `Menu.jsx`, `FocusVeil.jsx`,
-  `ScrollProgress.jsx`, and small reusable primitives (`Magnetic.jsx`,
+  `ScrollProgress.jsx` (progress bar only), `JourneyNav.jsx` (homepage section
+  nav), and small reusable primitives (`Magnetic.jsx`,
   `Reveal.jsx`/`SectionReveal.jsx`, `DecodeText.jsx`, `Marquee.jsx`).
 - `components/sections/*.jsx` — one file per scroll beat's DOM content
   (Hero, About, Services, Approach, Stories, Mark, Lab, Motion, Contact),
@@ -209,3 +214,7 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
    deploy is identifiable in Vercel's deploy list.
 3. `package.json`'s `version` field is NOT part of this scheme — leave it.
 4. Never skip or reuse numbers; next = top of `CHANGELOG.md` + 0.01.
+5. After merging `main` into a version-bump branch (including GitHub's
+   "Update branch"), check that `VERSION` and the top `CHANGELOG.md` heading
+   still name this PR's version. That merge dropped the bump for v1.55, v1.57
+   and v1.60.

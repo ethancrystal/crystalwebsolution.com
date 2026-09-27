@@ -1,3 +1,20 @@
+## v1.62 — 2026-09-27
+
+Docs only: CLAUDE.md and AGENTS.md catch up with v1.60/v1.61. No runtime
+change.
+
+- The "adding or reordering a scroll section" checklist now includes the
+  section's label in `LABELS` in `lib/journeyNav.mjs`.
+- The beat-measurement notes say to measure with `sectionTop()` (layout
+  tops), never `getBoundingClientRect()`, and that SmoothScroll re-measures
+  when Lenis's limit changes as well as from its `<body>` ResizeObserver.
+- The component layout names `JourneyNav.jsx` (homepage section nav) and
+  says `ScrollProgress.jsx` is only the progress bar.
+- A new versioning rule: after merging `main` into a version-bump branch,
+  including GitHub's "Update branch", check that `VERSION` and the top
+  CHANGELOG heading still name the PR's version. That merge dropped the
+  bump for v1.55, v1.57 and v1.60.
+
 ## v1.61 — 2026-09-27
 
 Fixes for v1.60 (visual Phase 1b) from its adversarial review. They were

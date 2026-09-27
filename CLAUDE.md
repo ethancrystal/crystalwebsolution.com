@@ -198,20 +198,37 @@ Segment boundaries are **not** a uniform `index / (STOPS.length - 1)` split —
 sections vary hugely in scroll length (Lab's sticky flight stage is much taller
 than a standard beat).
 `lib/beatProgress.js` measures each section's real DOM position
-(`measureBeats`, called from `SmoothScroll.jsx` via a `ResizeObserver` on
-`<body>`, always against `lenis.limit` so the fractions share
+(`measureBeats`, always against `lenis.limit` so the fractions share
 `scrollState.progress`'s exact baseline) and `CameraRig` looks up segments
-against those measured breakpoints instead.
+against those measured breakpoints instead. Two things about that
+measurement bit us in v1.60/v1.61:
+
+- **Use `sectionTop()`, not `getBoundingClientRect()`.** Rects include CSS
+  transforms, and `SectionHandoff` holds About/Services/Stories 16px low until
+  they reveal, so rect-based breakpoints disagreed with where a jump lands.
+  SmoothScroll's anchor jumps scroll homepage beats to `sectionTop()` too.
+- **Lenis's limit updates late.** Lenis recomputes it on its own debounced
+  observer, after SmoothScroll's `<body>` `ResizeObserver` has fired, so
+  SmoothScroll also re-measures on the ticker frame the limit changes (reading
+  `lenis.dimensions`, since the `limit` getter allocates). Without that, the
+  breakpoints silently stay at their evenly-spaced defaults on first load.
 
 When adding or reordering a scroll section, `STOPS`/`CLUSTERS` in
 `lib/journey.js`, `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`
-(read by `measureBeats`), and any matching 3D actor in `Scene.jsx` all have to
-move together.
+(read by `measureBeats`), its plain-language label in `LABELS` in
+`lib/journeyNav.mjs` (the homepage section nav), and any matching 3D actor in
+`Scene.jsx` all have to move together.
 
 ### Component layout
 
 - `Experience.jsx` renders the current beats in this order: Hero, About,
   Services, Approach, Stories, Mark, Lab, Motion, Contact.
+- `JourneyNav.jsx` (homepage only, mounted after `.page` so keyboard users
+  reach the hero first) is the section nav: plain `#id` links with
+  `aria-current="location"`, driven from `gsap.ticker` via
+  `currentBeatIndex()`. `ScrollProgress.jsx` is only the progress bar;
+  subpages mount it without JourneyNav, because the nine homepage ids don't
+  resolve there.
 - `Scene.jsx` mounts one Canvas with `CameraRig`, `Lights`, `Effects`,
   `FocusDimmer`, `Crystal`, `Sparks`, `ServiceRail`, `ApproachCompass`,
   `Particles`, and `BackdropMorph`. Lab and Motion do not mount separate scene
@@ -330,6 +347,13 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
    which is why v1.43 has no `CHANGELOG.md` entry and v1.44 follows v1.42.
    Before picking a number, run `git log --oneline -5 main` and take one above
    the highest version *named there*, not just the highest in the file.
+6. **GitHub's "Update branch" can silently drop the bump.** When `main` has
+   moved its own `VERSION`/`CHANGELOG.md`, that merge can resolve both to
+   `main`'s side, and the PR then deploys under its title with no entry.
+   It happened to v1.55, v1.57 and v1.60 (backfilled in v1.59 and v1.61).
+   After any merge of `main` into a version-bump branch, check that `VERSION`
+   and the top `CHANGELOG.md` heading still name this PR's version before it
+   merges.
 
 ## Visual experience execution brief
 
