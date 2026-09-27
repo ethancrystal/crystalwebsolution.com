@@ -62,6 +62,32 @@ describe('JourneyNav', () => {
     expect(document.activeElement).toBe(toggle);
   });
 
+  it('closes the list when keyboard focus leaves it, not when it moves inside', () => {
+    const outside = document.createElement('button');
+    document.body.appendChild(outside);
+    render(<JourneyNav />);
+    const toggle = screen.getByRole('button', { name: /Sections, now at/ });
+    fireEvent.click(toggle);
+
+    const links = screen.getAllByRole('link');
+    fireEvent.focusOut(links[0], { relatedTarget: links[1] });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.focusOut(links[8], { relatedTarget: outside });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    outside.remove();
+  });
+
+  it('leaves an Escape another component already handled alone', () => {
+    render(<JourneyNav />);
+    const toggle = screen.getByRole('button', { name: /Sections, now at/ });
+    fireEvent.click(toggle);
+    const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    event.preventDefault();
+    fireEvent(document, event);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('closes the list when a section is chosen or the user taps outside', () => {
     render(<JourneyNav />);
     const toggle = screen.getByRole('button', { name: /Sections, now at/ });

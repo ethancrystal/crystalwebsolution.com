@@ -67,7 +67,9 @@ test('the hero says what the studio does and offers a second path', () => {
   // Exactly one h1, still the two-line headline.
   assert.equal((hero.match(/<h1\b/g) || []).length, 1);
   assert.match(hero, /href="\/#contact"[\s\S]*?Start a project/);
-  assert.match(hero, /href="\/#motion"[\s\S]*?See selected work/);
+  // The work CTA goes to the real project list, never the decorative marquee.
+  assert.match(hero, /href="\/work"[\s\S]*?See selected work/);
+  assert.doesNotMatch(hero, /href="\/#motion"/);
   // Both CTAs stop the click reaching the hero's blast handler.
   assert.equal((hero.match(/onClick=\{\(e\) => e\.stopPropagation\(\)\}/g) || []).length, 2);
 });
