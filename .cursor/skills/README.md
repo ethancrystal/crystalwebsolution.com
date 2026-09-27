@@ -49,6 +49,7 @@ must not be imported from Next.js.
 | `proposal-forecaster` | Proposal + forecast from historical numbers |
 | `railway-deploy` | Railway GraphQL deploy/ops |
 | `repo-intelligence-mapper` | Architecture map of an unfamiliar repo |
+| `release-check` | Reproduce the CI `test` job locally before a PR to main |
 | `repo-scanner` | GitHub API scan of branches/PRs/issues |
 | `scrapling` | Fetching and parsing web pages with Scrapling |
 | `seo-aeo-best-practices` | Metadata, schema, sitemaps, AEO |

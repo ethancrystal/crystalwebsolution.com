@@ -340,3 +340,35 @@ For any visual redesign, interaction, animation, accessibility, or WebGL perform
 - `docs/visual/` — the UI/UX review, accessibility & contrast audit, accessibility test plan, and the Phase 0 current-state map and baseline (`PHASE-0-REPORT.md`).
 
 These documents extend this file; they do not override repository identity, deployment, security, CRM, SEO, versioning, or production-branch rules above.
+
+## Memory Management
+
+Project docs, memory, specs, and plans live in `aidd_docs/`.
+
+### Project memory
+
+<!-- aidd_project_memory:start -->
+
+@aidd_docs/memory/api.md
+@aidd_docs/memory/architecture.md
+@aidd_docs/memory/auth.md
+@aidd_docs/memory/backlog.md
+@aidd_docs/memory/codebase-map.md
+@aidd_docs/memory/coding-assertions.md
+@aidd_docs/memory/database.md
+@aidd_docs/memory/deployment.md
+@aidd_docs/memory/design.md
+@aidd_docs/memory/ecosystem.md
+@aidd_docs/memory/forms.md
+@aidd_docs/memory/integration.md
+@aidd_docs/memory/navigation.md
+@aidd_docs/memory/project-brief.md
+@aidd_docs/memory/realtime.md
+@aidd_docs/memory/testing.md
+@aidd_docs/memory/vcs.md
+
+<!-- aidd_project_memory:end -->
+
+- If the block above is empty, run `ls -1tr aidd_docs/memory/` and read each file.
+- Load `aidd_docs/memory/external/*` when the user asks.
+- Load `aidd_docs/memory/internal/*` when the task needs it.

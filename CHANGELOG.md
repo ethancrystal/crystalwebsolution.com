@@ -1,3 +1,29 @@
+## v1.66 — 2026-09-27
+
+AI tooling and docs only; no application code, route or runtime change.
+Sets up the AIDD framework (aidd-context skills 00–09) for this repo.
+
+- **Project memory** (`aidd_docs/memory/`): 17 files covering the current
+  architecture, codebase map, auth, database, realtime, API, integrations,
+  deployment, testing, design, forms, navigation, VCS, backlog and the tool
+  ecosystem, plus a DOM → canvas scroll-pipeline diagram. They are imported
+  into `CLAUDE.md` and `AGENTS.md` through a new `## Memory Management`
+  block.
+- **`release-check` skill** (Claude + Cursor) reproduces the CI `test` job
+  locally (`pnpm test`, `test:marketing`, placeholder-env `build`), checks
+  the version bump, and restores `tsconfig.json`.
+- **`gatekeeper` agent** (Claude, Cursor, Codex) runs `release-check` and
+  returns a ready or blocked verdict without editing code.
+- **`/version-bump` command** (Claude + Cursor) picks the next unused
+  `vX.NN` from the merge log and open PRs.
+- **R3F frame-loop rule** (Claude + Cursor), scoped to `components/` and
+  `lib/`: no allocation in `useFrame`, one RAF clock, per-frame state in
+  singletons.
+- **`.claude/hooks/revert-generated-tsconfig.mjs`** restores `tsconfig.json`
+  after `next build` / `next dev` only when the diff is purely the Next.js
+  rewrite. It is wired in the gitignored `settings.local.json`, so it is
+  opt-in per checkout.
+
 ## v1.64 — 2026-09-26
 
 Docs only; no application code, route or runtime change. Lands the SEO
