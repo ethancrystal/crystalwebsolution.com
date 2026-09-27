@@ -2,7 +2,7 @@
 name: gatekeeper
 description: Runs the local copy of the CI test job for this repo and returns a ready or blocked verdict before a pull request to main. Use when a branch needs its merge gate checked without editing code.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: haiku
 ---
 
 # Role

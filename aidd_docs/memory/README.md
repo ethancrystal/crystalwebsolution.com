@@ -16,26 +16,26 @@ The root files load every session through the project memory block in each AI co
 
 Maintained by hand: add a line when you add a file. The AIDD `update_memory.js` hook would write Windows-broken links here, so this list carries no hook markers.
 
-- [api.md](api.md)
 - [architecture.md](architecture.md)
 - [auth.md](auth.md)
-- [backlog.md](backlog.md)
 - [codebase-map.md](codebase-map.md)
 - [coding-assertions.md](coding-assertions.md)
 - [database.md](database.md)
 - [deployment.md](deployment.md)
-- [design.md](design.md)
-- [ecosystem.md](ecosystem.md)
-- [forms.md](forms.md)
-- [integration.md](integration.md)
-- [navigation.md](navigation.md)
 - [project-brief.md](project-brief.md)
-- [realtime.md](realtime.md)
 - [testing.md](testing.md)
 - [vcs.md](vcs.md)
 
 Read on demand:
 
+- [internal/api.md](internal/api.md)
+- [internal/backlog.md](internal/backlog.md)
+- [internal/design.md](internal/design.md)
+- [internal/ecosystem.md](internal/ecosystem.md)
+- [internal/forms.md](internal/forms.md)
+- [internal/integration.md](internal/integration.md)
+- [internal/navigation.md](internal/navigation.md)
+- [internal/realtime.md](internal/realtime.md)
 - [internal/decisions/memory-authority.md](internal/decisions/memory-authority.md)
 
 ## Maintaining it

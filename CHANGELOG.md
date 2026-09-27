@@ -28,6 +28,13 @@ Sets up the AIDD framework (aidd-context skills 00–09) for this repo.
   an ADR makes `aidd_docs/memory/` authoritative over root `MEMORY.md`. The
   memory README list is now maintained by hand, because the AIDD
   `SessionStart` hook wrote Windows-broken links into it.
+- **Token trim** (`aidd-context:12-cook` token-optimization recipe): 8
+  task-specific memory files (api, backlog, design, ecosystem, forms,
+  integration, navigation, realtime) move to `aidd_docs/memory/internal/`
+  and load on demand. That cuts the auto-loaded bank from ~24 KB to ~13 KB
+  per session. `gatekeeper` runs on `haiku`. `desktop-commander` is removed
+  from `.mcp.json`: its tool schema rode along every turn and it timed out at
+  startup.
 
 ## v1.67 — 2026-09-27
 
