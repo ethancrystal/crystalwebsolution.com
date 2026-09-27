@@ -166,11 +166,18 @@ test('sitemap lists public marketing URLs and excludes CRM routes', () => {
   assert.match(code, /listPublishedSlugs/, 'published posts belong in the sitemap');
   assert.doesNotMatch(code, /\/login/, 'login is noindex and not a sitemap URL');
   assert.doesNotMatch(code, /\/dashboard/, 'CRM routes must not appear in the sitemap');
-  // hire/shopify-developer shipped as a real page in d56f22c (2026-09-17) and was
-  // deliberately added to the sitemap alongside it — it is not an unbuilt landing.
-  assert.match(code, /hire\/shopify-developer/, 'the built hire/shopify-developer landing page belongs in the sitemap');
+  // hire/shopify-developer is a direct-response landing (2026-09-27, MJ): it is
+  // noindex, follow, so listing it would ask crawlers to index a noindex URL.
+  assert.doesNotMatch(code, /hire\/shopify-developer/, 'the noindex hire/shopify-developer page must not be in the sitemap');
 });
 
 test('marketing footer includes the blog in the explore set', () => {
   assert.match(source('components/marketing/MarketingFooter.jsx'), /href="\/blog"/);
+});
+
+test('hire/shopify-developer is noindex, follow and stays out of the sitemap', () => {
+  const page = source('app/hire/shopify-developer/page.jsx');
+  assert.match(page, /robots:\s*\{\s*index:\s*false,\s*follow:\s*true\s*\}/, 'direct-response landing must be noindex, follow');
+  assert.match(page, /canonical:\s*'\/hire\/shopify-developer'/, 'self-canonical is kept');
+  assert.doesNotMatch(source('app/sitemap.js'), /shopify/, 'no Shopify URL in the sitemap');
 });
