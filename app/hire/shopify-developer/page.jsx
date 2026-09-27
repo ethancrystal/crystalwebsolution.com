@@ -34,6 +34,11 @@ export const metadata = {
   description:
     'Hire a Shopify developer for custom theme builds, app integrations, and store migrations — scoped to what your store actually needs. Get a free quote.',
   alternates: { canonical: '/hire/shopify-developer' },
+  // Direct-response landing only (ads, outreach, links): Shopify is not an
+  // organic target in docs/seo/STRATEGY.md. noindex keeps it out of search;
+  // follow keeps its links to the rest of the site crawlable. It is also left
+  // out of app/sitemap.js.
+  robots: { index: false, follow: true },
   openGraph: {
     type: 'article',
     url: absoluteUrl('/hire/shopify-developer'),

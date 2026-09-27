@@ -67,11 +67,6 @@ export default async function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
-    {
-      url: `${SITE_URL}/hire/shopify-developer`,
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
     ...servicePages,
     ...projectPages,
     ...postPages,
