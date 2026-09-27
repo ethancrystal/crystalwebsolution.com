@@ -29,7 +29,6 @@ export default function Experience() {
       <FocusVeil />
       <Nav />
       <ScrollProgress />
-      <JourneyNav />
       {/* A div, not <main>: app/layout.jsx already wraps every route in the
           single <main id="main-content"> landmark. */}
       <div className="page">
@@ -43,6 +42,9 @@ export default function Experience() {
         <Motion />
         <Contact />
       </div>
+      {/* After the page in DOM order (it is fixed, so it looks the same):
+          keyboard users reach the hero before nine section links. */}
+      <JourneyNav />
     </SmoothScroll>
   );
 }

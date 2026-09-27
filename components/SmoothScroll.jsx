@@ -5,7 +5,7 @@ import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { scrollState } from '../lib/scrollState';
-import { measureBeats } from '../lib/beatProgress';
+import { BEAT_IDS, measureBeats, sectionTop } from '../lib/beatProgress';
 import { registerScrollApi, scrollLock } from '../lib/scrollLock';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -80,12 +80,18 @@ export default function SmoothScroll({ children }) {
       // lands after ours: on first load our observer measured against a stale
       // limit and every breakpoint stayed at its evenly-spaced default until
       // the window happened to resize. Re-measure on the frame the limit moves.
-      let measuredLimit = -1;
+      // Read the raw dimensions: `lenis.limit` builds a new object per call.
+      // Lenis emits no scroll event for a resize, so progress is resynced here
+      // too, or the nav and camera would sit on the old baseline until the
+      // next scroll.
+      let lastLimit = -1;
       const tick = (time) => {
         lenis.raf(time * 1000);
-        if (lenis.limit !== measuredLimit) {
-          measuredLimit = lenis.limit;
+        const limit = lenis.dimensions.scrollHeight - lenis.dimensions.height;
+        if (limit !== lastLimit) {
+          lastLimit = limit;
           remeasure();
+          scrollState.progress = lenis.progress;
         }
       };
       gsap.ticker.add(tick);
@@ -100,13 +106,19 @@ export default function SmoothScroll({ children }) {
         const target = document.querySelector(hash);
         if (target && window.location.pathname === '/') {
           event.preventDefault();
-          lenis.scrollTo(target, { offset: 0, duration: 1.6 });
+          // Homepage beats go to their layout top (see sectionTop), the same
+          // number their breakpoint is measured from.
+          lenis.scrollTo(BEAT_IDS.includes(target.id) ? sectionTop(target) : target, { offset: 0, duration: 1.6 });
+          // preventDefault also cancels the browser's own focus move, so do it
+          // here: the next Tab continues from the section the reader jumped to.
+          if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+          target.focus({ preventScroll: true });
         }
       };
       document.addEventListener('click', onClick);
 
-      // The ticker catches limit changes; this catches layout shifts that
-      // move a section without changing the page height.
+      // The ticker catches limit changes; this also re-measures when <body>
+      // changes size without moving the limit (e.g. a width-only resize).
       remeasure();
       const resizeObserver = typeof ResizeObserver === 'undefined'
         ? null

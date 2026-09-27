@@ -1,3 +1,86 @@
+## v1.61 — 2026-09-27
+
+Fixes for v1.60 (visual Phase 1b) from its adversarial review. They were
+pushed to PR #236 after the commit it merged at (`28346fd`), so they ship
+here. Also backfills the v1.60 entry below.
+
+- **Fix: jumping back to About, Services or Client stories named the
+  section above.** Breakpoints were measured with `getBoundingClientRect()`,
+  which includes SectionHandoff's 16px pre-reveal transform, while a jump
+  back to an already-revealed section lands on the real top. `sectionTop()`
+  in `lib/beatProgress.js` measures layout tops (offsetTop chain), and
+  SmoothScroll jumps homepage sections to that same number. The same
+  breakpoints drive `CameraRig`.
+- **Hero "See selected work" links to `/work`** (the real projects) instead
+  of `#motion`, whose marquee is third-party showcase screenshots that must
+  never read as CD Sportswear INC client work.
+- **SmoothScroll**: the limit check reads Lenis's raw dimensions (its
+  `limit` getter allocates an object per call) and resyncs
+  `scrollState.progress` on the same frame, since Lenis emits no scroll
+  event for a resize. In-page jumps now move focus to the target section
+  (`tabindex="-1"`, no ring), so the next Tab continues from there.
+- **JourneyNav**: after the page in DOM order, so keyboard users reach the
+  hero first; the phone list closes when focus leaves it, ignores an Escape
+  another component already handled, and scrolls within the viewport on
+  landscape phones and at 200% zoom.
+- Tests: transform-free layout tops, the jump target, focus-out and Escape
+  behaviour, and the `/work` CTA. `docs/HOMEPAGE-OVERHAUL-REUSE-INVENTORY.md`
+  no longer describes the removed "01/09" readout.
+- Verified in Chromium on a production build: 18 forward, backward and
+  random nav jumps each mark the right section at 1440, 1024 and 390px;
+  Tab after a jump lands inside the target section; the open phone list
+  fits and scrolls at 844×390; the resting rail overlaps no text at 1024 or
+  1180px.
+
+## v1.60 — 2026-09-27
+
+Visual experience Phase 1b: wayfinding and first-screen clarity
+(`docs/visual/PHASE-0-REPORT.md`, `docs/visual/UI-UX-REVIEW.md`). Numbered
+after v1.59 (PR #235, the v1.55/v1.57 CHANGELOG backfill).
+
+*Backfilled in v1.61.* PR #236 merged at `28346fd`, whose "Update branch"
+merge took `main`'s `VERSION` (v1.59) and `CHANGELOG.md`, so v1.60 deployed
+without its entry. This is the entry as it stood on the shipped commit.
+
+- **Section navigation** (`components/JourneyNav.jsx`,
+  `app/styles/journey-nav.css`, `lib/journeyNav.mjs`). The homepage's
+  aria-hidden "01/09" readout becomes a real `<nav aria-label="Page
+  sections">` of in-page links, one per beat, in the existing order.
+  The current section is marked `aria-current="location"`. On desktop it is
+  the same right-edge rail, with labels shown for the current section and
+  on hover or keyboard focus. At ≤900px it is a "03/09 · Services" button
+  (44px tall, bottom-right) that opens the list; Escape, tapping outside or
+  choosing a section closes it. Links are plain `#id` anchors, so
+  SmoothScroll's existing Lenis upgrade (and native scrolling under reduced
+  motion) handles the scroll. The active beat is read from the shared
+  `gsap.ticker`, and the DOM is written only when the beat changes.
+- **Plain-language labels**: Intro, About, Services, How we work, Client
+  stories, Brand systems, Capabilities, Selected work, Contact. Lab is
+  labelled *Capabilities*, not *Experiments*, because the section shows
+  what we build for clients.
+- **Hero**: a descriptor line above the headline ("Websites · Branding ·
+  Motion · Marketing · AI automation") and a secondary "See selected work"
+  CTA beside "Start a project". The headline, proof line and the rest of
+  the hero are unchanged.
+- **Fix: section boundaries were never measured on first load.** Lenis
+  updates `lenis.limit` on its own debounced ResizeObserver, after
+  SmoothScroll's body observer has already measured against the stale
+  value. Every breakpoint stayed at its evenly-spaced default until the
+  window resized, so the old "01/09" count ran one section behind from
+  About onward (e.g. "05" on Mark). SmoothScroll now re-measures on the
+  ticker frame the limit changes. `CameraRig` reads the same breakpoints,
+  so on first load the camera now paces to the real sections — what it
+  already did after any resize. `currentBeatIndex` also allows 2px of
+  slack, so a jump that lands a sub-pixel short of a section still names
+  it. Verified in Chromium: all nine nav jumps mark the right section at
+  1440px and 390px.
+- `ScrollProgress` loses its `sections` readout (now JourneyNav's job) and
+  keeps the progress bar; the matching `.scroll-progress-count` CSS is
+  removed.
+- Tests: `tests/journeyNav.test.mjs` and `tests/marketing/journeyNav.test.jsx`
+  (the second runs in CI's `test:marketing`). `tests/beatProgress.test.mjs`
+  now checks that only the homepage mounts the readout.
+
 ## v1.59 — 2026-09-27
 
 Release-record backfill only; no code or runtime change.
