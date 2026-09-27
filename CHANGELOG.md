@@ -1,3 +1,19 @@
+## v1.67 — 2026-09-27
+
+SEO index fix for one page. Nothing else changes.
+
+- **`/hire/shopify-developer` is now `noindex, follow`.** The page is a
+  direct-response landing for ads, outreach and links. Shopify is not an
+  organic target in `docs/seo/STRATEGY.md`, and Search Console already lists
+  the URL as "Discovered – not indexed". `follow` keeps its links to the rest
+  of the site crawlable. It uses the same `robots` metadata pattern as
+  `/login` and `/signup`.
+- **Removed from `app/sitemap.js`**, so the sitemap no longer asks crawlers to
+  index a noindex URL.
+- **Tests:** `seo-onpage` now asserts the page is noindex, follow, stays
+  self-canonical, and is absent from the sitemap. The `llms.txt` test no longer
+  requires the page to be a sitemap route.
+
 ## v1.64 — 2026-09-26
 
 Docs only; no application code, route or runtime change. Lands the SEO
