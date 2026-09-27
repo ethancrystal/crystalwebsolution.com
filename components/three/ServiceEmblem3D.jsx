@@ -84,23 +84,36 @@ function EmblemMesh({ signal, onHover }) {
   });
 
   return (
-    <mesh
+    <group
       ref={meshRef}
-      geometry={geometry}
       scale={BASE_SCALE}
       onPointerOver={(e) => { e.stopPropagation(); setHovered(true); onHover?.(true); }}
       onPointerOut={() => { setHovered(false); onHover?.(false); }}
     >
-      <meshStandardMaterial
-        ref={matRef}
-        color={EMISSIVE_BASE}
-        emissive={EMISSIVE_BASE}
-        emissiveIntensity={EMIS_UNLIT}
-        metalness={0.35}
-        roughness={0.3}
-        wireframe={meta.wireframe === true}
-      />
-    </mesh>
+      <mesh geometry={geometry}>
+        <meshStandardMaterial
+          ref={matRef}
+          color={EMISSIVE_BASE}
+          emissive={EMISSIVE_BASE}
+          emissiveIntensity={EMIS_UNLIT}
+          metalness={0.55}
+          roughness={0.24}
+          wireframe={meta.wireframe === true}
+        />
+      </mesh>
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[1.18, 0.012, 8, 64]} />
+        <meshBasicMaterial color="#59f3ff" transparent opacity={0.55} />
+      </mesh>
+      <mesh rotation={[Math.PI / 2, 0, 0]} scale={0.72}>
+        <torusGeometry args={[1.18, 0.008, 8, 64]} />
+        <meshBasicMaterial color="#c084fc" transparent opacity={0.38} />
+      </mesh>
+      <mesh position={[0, -0.92, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.72, 48]} />
+        <meshBasicMaterial color="#3c6cff" transparent opacity={0.16} />
+      </mesh>
+    </group>
   );
 }
 

@@ -430,8 +430,28 @@
 /* --- service emblem (shared mark tying inner pages to the homepage rail) --- */
 .mkt-emblem { display: inline-flex; align-items: center; gap: 0.5rem; }
 .mkt-emblem svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.mkt-emblem--3d { position: relative; display: block; }
-.mkt-emblem--placeholder { display: block; width: 100%; height: 100%; min-height: 120px; border-radius: 14px; background: rgba(60,108,255,0.06); }
+  .mkt-emblem--3d { position: relative; display: block; }
+  .mkt-emblem--3d::before {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  border: 1px solid rgba(89, 243, 255, 0.18);
+  border-radius: 50%;
+  box-shadow: 0 0 42px rgba(60, 108, 255, 0.2), inset 0 0 24px rgba(89, 243, 255, 0.08);
+  pointer-events: none;
+  animation: emblem-orbit 8s linear infinite;
+  }
+  .mkt-emblem--3d::after {
+  content: 'SIGNAL / ACTIVE';
+  position: absolute;
+  left: 0;
+  bottom: -1.4rem;
+  color: var(--muted);
+  font: 0.58rem/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  }
+  @keyframes emblem-orbit { to { transform: rotate(360deg); } }
+  .mkt-emblem--placeholder { display: block; width: 100%; height: 100%; min-height: 120px; border-radius: 14px; background: rgba(60,108,255,0.06); }
 
 /* The per-signal SVG strokes reuse the brand palette so the mark reads as a
    child of the homepage system, not a foreign icon set. */
