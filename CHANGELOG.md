@@ -35,6 +35,10 @@ Sets up the AIDD framework (aidd-context skills 00–09) for this repo.
   per session. `gatekeeper` runs on `haiku`. `desktop-commander` is removed
   from `.mcp.json`: its tool schema rode along every turn and it timed out at
   startup.
+- **`.claude/settings.json` is now tracked** (removed from `.gitignore`) so
+  its `permissions.deny` rules are shared: reads of `.next/`, `node_modules/`,
+  `test-results/` and `.env*` stay out of agent context. Personal settings
+  still belong in the gitignored `settings.local.json`.
 
 ## v1.67 — 2026-09-27
 

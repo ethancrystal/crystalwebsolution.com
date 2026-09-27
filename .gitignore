@@ -39,7 +39,6 @@ tsconfig.tsbuildinfo
 .playwright-mcp/
 .playwright-cli/
 .zcode/
-/.claude/settings.json
 /.claude/settings.local.json
 /.claude/workflows/
 
