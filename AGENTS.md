@@ -216,5 +216,5 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
 4. Never skip or reuse numbers; next = top of `CHANGELOG.md` + 0.01.
 5. After merging `main` into a version-bump branch (including GitHub's
    "Update branch"), check that `VERSION` and the top `CHANGELOG.md` heading
-   still name this PR's version. That merge dropped the bump for v1.55, v1.57
-   and v1.60.
+   still name this PR's version. That merge dropped the bump for v1.55, v1.57,
+   v1.60 and v1.63.

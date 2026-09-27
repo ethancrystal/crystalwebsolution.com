@@ -51,7 +51,7 @@ code change to announce it. **Known related gaps — last confirmed 2026-09-11, 
   changing the variable alone does nothing until Production is rebuilt.
 - Supabase Auth's dashboard `SITE_URL`. The repo allow-list in
   `supabase/config.toml` was updated in v1.36.
-- Migration `0042` (`0042_repoint_cron_and_pinned_admin.sql`) is checked in (v1.37) but whether it has been applied to the live database is unknown — verify via Supabase MCP. If not yet applied, `pg_cron`'s `drain-crm-outbox` job may still POST to the old host and `public.pinned_admin_email()` may return the old email.
+- Migration `0042` (`0042_repoint_cron_and_pinned_admin.sql`) was applied to the live database on 2026-09-15 (verified via Supabase MCP `list_migrations` on 2026-09-27). Migration `0044` (v1.63) then moved the single admin pin from `ethan@cdsportswearinc.com` to `moizj00@gmail.com`, demoting Ethan's account to `project_manager` (owner-approved 2026-09-27). Re-check live state with `select public.pinned_admin_email()` rather than trusting this line.
 - Mailbox and Resend domain verification for `cdsportswearinc.com`:
   `SITE.email` and the Resend sender in `lib/email/resend.js` already
   moved in v1.35; DNS/mailbox/Resend verification is still owner-side.
@@ -350,7 +350,8 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
 6. **GitHub's "Update branch" can silently drop the bump.** When `main` has
    moved its own `VERSION`/`CHANGELOG.md`, that merge can resolve both to
    `main`'s side, and the PR then deploys under its title with no entry.
-   It happened to v1.55, v1.57 and v1.60 (backfilled in v1.59 and v1.61).
+   It happened to v1.55, v1.57, v1.60 and v1.63 (backfilled in v1.59, v1.61
+   and v1.65).
    After any merge of `main` into a version-bump branch, check that `VERSION`
    and the top `CHANGELOG.md` heading still name this PR's version before it
    merges.

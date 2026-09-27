@@ -8,10 +8,12 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select plan(1);
 
-select is(
+-- 0044 has since moved the pin again (its own test asserts the address), so
+-- this only proves 0042's job stayed done: never the retired domain.
+select isnt(
   public.pinned_admin_email(),
-  'ethan@cdsportswearinc.com',
-  '0042 pins the admin role to the current production mailbox'
+  'ethan@crystalwebsolution.com',
+  'the admin pin no longer names the retired crystalwebsolution.com mailbox'
 );
 
 select * from finish();
