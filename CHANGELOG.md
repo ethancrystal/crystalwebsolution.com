@@ -1,28 +1,27 @@
-## v1.63 — 2026-09-27
+## v1.64 — 2026-09-26
 
-Moiz becomes the single CRM admin (owner-approved 2026-09-27). Numbered
-after v1.62 (PR #238, docs only).
+Docs only; no application code, route or runtime change. Lands the SEO
+goal-monger records that were sitting untracked in a local checkout.
 
-- **Migration `0044_pin_admin_to_moiz.sql`**: `public.pinned_admin_email()`
-  now returns `moizj00@gmail.com`. The existing admin (Ethan,
-  `ethan@cdsportswearinc.com`) is demoted to `project_manager`, so it keeps
-  `/team` access but not `/admin` or user management. Moiz's existing
-  account is then promoted to `admin`. No accounts are merged, renamed or
-  deleted. The 0027 revoke on the helper is re-asserted.
-- Consequences, also owner-approved: new contact-form leads are recorded
-  against Moiz (0026/0029 look up the pinned admin), and
-  `project.brief_submitted` alerts (in-app and email) go to Moiz.
-- `scripts/provision-crm-test-users.mjs` provisions the admin as
-  `moizj00@gmail.com` and no longer overwrites that account's name.
-- Tests: `supabase/tests/0044_pin_admin_to_moiz.test.sql` (5 pgTAP) and
-  `tests/crm/migration-0044-pin-admin-to-moiz.test.mjs`. The 0042 pgTAP
-  test now checks only that the pin no longer names the retired domain.
-  Locally, 0044 applied to a copy staged like live (Ethan admin, Moiz
-  client) gives Ethan `project_manager` and Moiz `admin`, re-applying it
-  changes nothing, and the pin-dependent pgTAP files (0009, 0035, 0041,
-  0042, 0043, 0044) pass 92/92.
-- CLAUDE.md: 0042 is recorded as applied live (2026-09-15), and 0044 as the
-  current admin pin.
+- **`docs/seo/goals.md`** — the active goal MJ approved on 2026-09-26: GSC
+  average position ≤10 for `rfp web development` on
+  `/blog/web-development-rfp-guide`, 14 consecutive complete reporting days,
+  by 2027-03-31. Baseline 0 reportable impressions (position unavailable);
+  indexing milestone closed. Does not replace the qualified-inquiry goal in
+  `STRATEGY.md`.
+- **First push run note** (`runs/2026-09-26-goal-monger.md`) and the
+  continuous SEO operating plan.
+- **RFP worksheet draft** at `drafts/downloads/web-development-rfp-worksheet.md`
+  (`approved: false`). Deliberately *not* in `drafts/blog/`: the publish
+  script would have turned it into `/blog/web-development-rfp-template`, a
+  second URL for a query the registry already assigns to the RFP guide.
+- **Agent Council records** (`council/`): the original brief (byte-identical
+  to the sha256 in the recorded verdict), its revised preflight brief, the
+  verdict JSON, and the GitHub Actions weekly-council proposal (proposal
+  only — no workflow is added).
+- **Templates** (`templates/`): weekly run note, SEO PR body, scheduler
+  handoff, and the draft `get_seo_goal_snapshot` tool schema for the
+  Search Console connector repo.
 
 ## v1.61 — 2026-09-27
 

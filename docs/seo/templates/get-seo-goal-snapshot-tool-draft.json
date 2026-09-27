@@ -1,0 +1,182 @@
+{
+  "name": "get_seo_goal_snapshot",
+  "title": "Get SEO Goal Snapshot",
+  "description": "Read Google Search Console performance for one exact query AND one exact page. Returns separately filtered current and equal-length prior windows plus daily rows for a stated sustain window. Uses Web search and finalized data. This tool reports evidence only; it does not declare that a ranking goal is achieved. Average position is null when there are no reportable impressions. Missing dates are explicitly not reported and never count as meeting the threshold.",
+  "inputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["siteUrl", "query", "page", "currentWindow", "previousWindow", "sustainWindow"],
+    "properties": {
+      "siteUrl": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Exact Search Console property returned by list_search_console_sites, e.g. sc-domain:cdsportswearinc.com."
+      },
+      "query": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512,
+        "description": "Exact Search Console query string. Applied as an equals filter."
+      },
+      "page": {
+        "type": "string",
+        "format": "uri",
+        "description": "Exact canonical page URL. Applied as an equals filter; must belong to siteUrl."
+      },
+      "currentWindow": {
+        "$ref": "#/$defs/dateWindow"
+      },
+      "previousWindow": {
+        "$ref": "#/$defs/dateWindow",
+        "description": "Prior, non-overlapping window with the same inclusive day count as currentWindow."
+      },
+      "sustainWindow": {
+        "$ref": "#/$defs/dateWindow",
+        "description": "Daily-granularity window used to inspect consecutive reported days against the position threshold."
+      },
+      "positionThreshold": {
+        "type": "number",
+        "exclusiveMinimum": 0,
+        "maximum": 100,
+        "default": 10,
+        "description": "Daily GSC average-position threshold. A day is counted as meeting it only if the day is reported, impressions are greater than zero, and averagePosition is at or better than this threshold. This is not an independent fixed-position rank tracker."
+      },
+      "searchType": {
+        "const": "web",
+        "default": "web",
+        "description": "Fixed to Web search for this ranking goal."
+      },
+      "dataState": {
+        "const": "final",
+        "default": "final",
+        "description": "Fixed to finalized Search Console data."
+      }
+    },
+    "$defs": {
+      "dateWindow": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["startDate", "endDate"],
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          }
+        }
+      }
+    }
+  },
+  "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["siteUrl", "query", "page", "searchType", "dataState", "timeZone", "retrievedAt", "filterSemantics", "current", "previous", "sustain"],
+    "properties": {
+      "siteUrl": { "type": "string" },
+      "query": { "type": "string" },
+      "page": { "type": "string", "format": "uri" },
+      "searchType": { "const": "web" },
+      "dataState": { "const": "final" },
+      "timeZone": { "type": "string", "description": "IANA timezone used for date selection and daily labels, e.g. America/Los_Angeles." },
+      "retrievedAt": { "type": "string", "format": "date-time" },
+      "filterSemantics": {
+        "type": "object",
+        "required": ["groupType", "filters"],
+        "properties": {
+          "groupType": { "const": "and" },
+          "filters": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": { "$ref": "#/$defs/appliedFilter" }
+          }
+        }
+      },
+      "current": { "$ref": "#/$defs/period" },
+      "previous": { "$ref": "#/$defs/period" },
+      "sustain": {
+        "type": "object",
+        "required": ["startDate", "endDate", "positionThreshold", "days"],
+        "properties": {
+          "startDate": { "type": "string", "format": "date" },
+          "endDate": { "type": "string", "format": "date" },
+          "positionThreshold": { "type": "number" },
+          "days": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/day" },
+            "description": "Complete calendar date spine. Every date in the requested inclusive window appears once."
+          },
+          "reportedDaysMeetingThreshold": { "type": "integer", "minimum": 0 },
+          "consecutiveReportedDaysMeetingThreshold": { "type": "integer", "minimum": 0 },
+          "thresholdStatus": {
+            "enum": ["insufficient-data", "not-sustained", "sustained"],
+            "description": "Evidence summary only. sustained is valid only when the full requested sustain window has reportable daily observations meeting the threshold; consumers must still apply the goal's approved rules."
+          }
+        }
+      }
+    },
+    "$defs": {
+      "appliedFilter": {
+        "type": "object",
+        "required": ["dimension", "operator", "expression"],
+        "properties": {
+          "dimension": { "enum": ["query", "page"] },
+          "operator": { "const": "equals" },
+          "expression": { "type": "string" }
+        }
+      },
+      "metrics": {
+        "type": "object",
+        "required": ["clicks", "impressions", "ctr", "averagePosition", "hasReportableData"],
+        "properties": {
+          "clicks": { "type": "integer", "minimum": 0 },
+          "impressions": { "type": "integer", "minimum": 0 },
+          "ctr": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "averagePosition": { "type": ["number", "null"], "minimum": 1 },
+          "hasReportableData": { "type": "boolean" }
+        }
+      },
+      "period": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": ["startDate", "endDate", "metrics"],
+            "properties": {
+              "startDate": { "type": "string", "format": "date" },
+              "endDate": { "type": "string", "format": "date" },
+              "metrics": { "$ref": "#/$defs/metrics" }
+            }
+          }
+        ]
+      },
+      "day": {
+        "type": "object",
+        "required": ["date", "reported", "clicks", "impressions", "ctr", "averagePosition", "meetsPositionThreshold"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "reported": { "type": "boolean" },
+          "clicks": { "type": "integer", "minimum": 0 },
+          "impressions": { "type": "integer", "minimum": 0 },
+          "ctr": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "averagePosition": { "type": ["number", "null"], "minimum": 1 },
+          "meetsPositionThreshold": { "type": ["boolean", "null"], "description": "null if not reported or no impressions; otherwise based on daily averagePosition <= positionThreshold." }
+        }
+      }
+    }
+  },
+  "implementationNotes": [
+    "Validate real calendar dates, startDate <= endDate, non-overlapping equal-length current/previous windows, and bounded maximum date spans in code; JSON Schema patterns alone do not guarantee semantic validity.",
+    "Every Search Analytics request must include dimensionFilterGroups: [{ groupType: 'and', filters: [{ dimension: 'query', operator: 'equals', expression: query }, { dimension: 'page', operator: 'equals', expression: page }] }]. Apply the same filters to aggregate and date-dimension requests.",
+    "Use separate dimensionless requests for aggregate metrics; do not sum breakdown rows to compute totals.",
+    "Use date as the only response dimension for the sustain series. Fill absent dates in application code with reported=false and nullable position.",
+    "Validate that page belongs to the caller-owned siteUrl before querying. Never accept arbitrary property access based only on caller-supplied text.",
+    "If the MCP SDK in use supports outputSchema, register it; otherwise keep the same output contract in the returned structured JSON and tool description."
+  ]
+}
