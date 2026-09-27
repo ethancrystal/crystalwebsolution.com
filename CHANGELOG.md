@@ -1,3 +1,29 @@
+## v1.63 — 2026-09-27
+
+Moiz becomes the single CRM admin (owner-approved 2026-09-27). Numbered
+after v1.62 (PR #238, docs only).
+
+- **Migration `0044_pin_admin_to_moiz.sql`**: `public.pinned_admin_email()`
+  now returns `moizj00@gmail.com`. The existing admin (Ethan,
+  `ethan@cdsportswearinc.com`) is demoted to `project_manager`, so it keeps
+  `/team` access but not `/admin` or user management. Moiz's existing
+  account is then promoted to `admin`. No accounts are merged, renamed or
+  deleted. The 0027 revoke on the helper is re-asserted.
+- Consequences, also owner-approved: new contact-form leads are recorded
+  against Moiz (0026/0029 look up the pinned admin), and
+  `project.brief_submitted` alerts (in-app and email) go to Moiz.
+- `scripts/provision-crm-test-users.mjs` provisions the admin as
+  `moizj00@gmail.com` and no longer overwrites that account's name.
+- Tests: `supabase/tests/0044_pin_admin_to_moiz.test.sql` (5 pgTAP) and
+  `tests/crm/migration-0044-pin-admin-to-moiz.test.mjs`. The 0042 pgTAP
+  test now checks only that the pin no longer names the retired domain.
+  Locally, 0044 applied to a copy staged like live (Ethan admin, Moiz
+  client) gives Ethan `project_manager` and Moiz `admin`, re-applying it
+  changes nothing, and the pin-dependent pgTAP files (0009, 0035, 0041,
+  0042, 0043, 0044) pass 92/92.
+- CLAUDE.md: 0042 is recorded as applied live (2026-09-15), and 0044 as the
+  current admin pin.
+
 ## v1.61 — 2026-09-27
 
 Fixes for v1.60 (visual Phase 1b) from its adversarial review. They were
