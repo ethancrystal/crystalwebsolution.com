@@ -59,7 +59,8 @@ test('the flight windows end when their sticky stages finish travelling', () => 
       if (!tops.has(id)) return null;
       return {
         offsetHeight: id === 'motion' ? 2800 : 1000,
-        getBoundingClientRect: () => ({ top: tops.get(id) }),
+        offsetTop: tops.get(id),
+        offsetParent: null,
       };
     },
   };

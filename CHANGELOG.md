@@ -22,8 +22,16 @@ after v1.59 (PR #235, the v1.55/v1.57 CHANGELOG backfill).
   what we build for clients.
 - **Hero**: a descriptor line above the headline ("Websites · Branding ·
   Motion · Marketing · AI automation") and a secondary "See selected work"
-  CTA beside "Start a project". The headline, proof line and the rest of
-  the hero are unchanged.
+  CTA beside "Start a project". It links to `/work` (the real projects), not
+  `#motion`, whose marquee is third-party showcase screenshots. The
+  headline, proof line and the rest of the hero are unchanged.
+- **Keyboard and small screens**: an in-page jump now moves focus to the
+  target section (`tabindex="-1"`, no ring), so the next Tab continues from
+  there — SmoothScroll's Lenis path had been cancelling the browser's own
+  focus move. JourneyNav sits after the page in DOM order, so keyboard users
+  reach the hero first. The phone list closes when focus leaves it, ignores
+  an Escape another component already handled, and scrolls within the
+  viewport on landscape phones and at 200% zoom.
 - **Fix: section boundaries were never measured on first load.** Lenis
   updates `lenis.limit` on its own debounced ResizeObserver, after
   SmoothScroll's body observer has already measured against the stale
@@ -32,10 +40,17 @@ after v1.59 (PR #235, the v1.55/v1.57 CHANGELOG backfill).
   About onward (e.g. "05" on Mark). SmoothScroll now re-measures on the
   ticker frame the limit changes. `CameraRig` reads the same breakpoints,
   so on first load the camera now paces to the real sections — what it
-  already did after any resize. `currentBeatIndex` also allows 2px of
-  slack, so a jump that lands a sub-pixel short of a section still names
-  it. Verified in Chromium: all nine nav jumps mark the right section at
-  1440px and 390px.
+  already did after any resize. Progress is resynced on the same frame, as
+  Lenis emits no scroll event for a resize.
+- **Fix: section tops ignored the reveal offset.** Breakpoints were measured
+  with `getBoundingClientRect()`, which includes SectionHandoff's 16px
+  pre-reveal transform on About, Services and Client stories, so jumping
+  back to one of them (after it had revealed) named the section above.
+  `sectionTop()` in `lib/beatProgress.js` measures layout tops, and
+  SmoothScroll's jumps to homepage sections land on that same number.
+  `currentBeatIndex` also allows 2px of slack for sub-pixel landings.
+  Verified in Chromium: 18 forward, backward and random jumps each mark
+  the right section at 1440px, 1024px and 390px.
 - `ScrollProgress` loses its `sections` readout (now JourneyNav's job) and
   keeps the progress bar; the matching `.scroll-progress-count` CSS is
   removed.

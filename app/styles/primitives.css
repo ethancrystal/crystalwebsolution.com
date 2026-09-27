@@ -7,6 +7,9 @@
   outline: 2px solid var(--focus-ring, var(--cyan));
   outline-offset: 3px;
 }
+/* In-page jumps move focus to the target section (SmoothScroll) so the next
+   Tab starts there; the section itself is not a control and gets no ring. */
+section[tabindex="-1"]:focus { outline: none; }
 [data-nav-tone="light"],
 .nav-on-light {
   --focus-ring: #151612;

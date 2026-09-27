@@ -118,6 +118,11 @@
     right: 0;
     bottom: calc(100% + 0.5rem);
     min-width: 13rem;
+    /* Landscape phones and 200% zoom are under 900px wide but only ~360px
+       tall: keep the list inside the viewport and let it scroll. */
+    max-height: calc(100dvh - 6rem - env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 0.5rem;
     border-radius: 14px;
     border: 1px solid rgba(89, 243, 255, 0.2);

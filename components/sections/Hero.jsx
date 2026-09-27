@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import DecodeText from '../DecodeText';
@@ -112,14 +113,17 @@ export default function Hero() {
                 Start a project <span className="btn-arrow">→</span>
               </a>
             </Magnetic>
-            {/* Secondary path for visitors who want proof before a brief. */}
-            <a
-              href="/#motion"
+            {/* Secondary path for visitors who want proof before a brief.
+                /work, not #motion: Motion opens on a decorative marquee of
+                third-party showcase screenshots that must never read as our
+                client work; /work lists the real projects. */}
+            <Link
+              href="/work"
               className="btn btn-ghost"
               onClick={(e) => e.stopPropagation()}
             >
               See selected work
-            </a>
+            </Link>
           </div>
         </Reveal>
         {/* Inline proof line under the CTA. Reads from SITE rather than

@@ -47,19 +47,27 @@ export default function JourneyNav() {
 
   useEffect(() => {
     if (!open) return undefined;
+    const nav = navRef.current;
     const onKey = (event) => {
-      if (event.key !== 'Escape') return;
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
       setOpen(false);
       toggleRef.current?.focus();
     };
     const onPointer = (event) => {
-      if (!navRef.current?.contains(event.target)) setOpen(false);
+      if (!nav?.contains(event.target)) setOpen(false);
+    };
+    // Tabbing out of the list closes it, so the opaque panel never sits over
+    // whatever the keyboard moves on to.
+    const onFocusOut = (event) => {
+      if (event.relatedTarget && !nav?.contains(event.relatedTarget)) setOpen(false);
     };
     document.addEventListener('keydown', onKey);
     document.addEventListener('pointerdown', onPointer);
+    nav?.addEventListener('focusout', onFocusOut);
     return () => {
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('pointerdown', onPointer);
+      nav?.removeEventListener('focusout', onFocusOut);
     };
   }, [open]);
 
@@ -80,7 +88,9 @@ export default function JourneyNav() {
         </span>
         <span ref={labelRef} className="journey-nav-toggle-label">{JOURNEY_NAV[0].label}</span>
       </button>
-      <ol id={listId} ref={listRef} className="journey-nav-list">
+      {/* data-lenis-prevent: on short screens the phone list scrolls, and
+          Lenis would otherwise take the wheel/touch input for the page. */}
+      <ol id={listId} ref={listRef} className="journey-nav-list" data-lenis-prevent>
         {JOURNEY_NAV.map((item, index) => (
           <li key={item.id}>
             <a href={`#${item.id}`} data-beat={item.id} onClick={() => setOpen(false)}>
