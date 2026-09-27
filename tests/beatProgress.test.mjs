@@ -46,6 +46,25 @@ test('currentBeatIndex maps scroll progress onto the measured beats', () => {
   });
 });
 
+test('a jump that lands a sub-pixel short of a section still names it', () => {
+  withMeasuredBeats(() => {
+    // 10000px page: services starts at 2000px = 0.2.
+    assert.equal(currentBeatIndex((2000 - 0.4) / 10000), BEAT_IDS.indexOf('services'));
+    assert.equal(currentBeatIndex((2000 - 1.9) / 10000), BEAT_IDS.indexOf('services'));
+    // Beyond the 2px slack it is still the section above.
+    assert.equal(currentBeatIndex((2000 - 3) / 10000), BEAT_IDS.indexOf('about'));
+  });
+});
+
+// Lenis updates its limit on its own debounced observer, after SmoothScroll's
+// body observer has already fired, so the beats must re-measure when the
+// limit itself moves or they stay at their evenly-spaced defaults.
+test('SmoothScroll re-measures the beats whenever Lenis\'s limit changes', () => {
+  const source = readFileSync(new URL('../components/SmoothScroll.jsx', import.meta.url), 'utf8');
+  assert.match(source, /if \(lenis\.limit !== measuredLimit\) \{\s*measuredLimit = lenis\.limit;\s*remeasure\(\);/);
+  assert.match(source, /new ResizeObserver\(remeasure\)/);
+});
+
 test('the last beat is reachable despite contact being pinned to 1', () => {
   withMeasuredBeats(() => {
     const last = BEAT_IDS.length - 1;
@@ -92,13 +111,15 @@ test('currentBeatIndex never runs backwards as the page scrolls forward', () => 
   });
 });
 
-// The readout is opt-in because beatProgress is measured from the homepage's
-// section ids. On a subpage none of them resolve, every breakpoint keeps its
-// evenly-spaced default, and the count would render confident nonsense.
-test('only the homepage opts into the section readout', () => {
+// The old aria-hidden "01/09" readout moved into JourneyNav (visual Phase 1b),
+// which only the homepage mounts: beatProgress is measured from the homepage's
+// section ids, so on a subpage every breakpoint keeps its evenly-spaced
+// default and a section readout would render confident nonsense.
+test('only the homepage mounts the section readout', () => {
   const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
-  assert.match(read('../components/Experience.jsx'), /<ScrollProgress sections \/>/);
-  assert.match(read('../components/marketing/SubpageExperience.jsx'), /<ScrollProgress \/>/);
-  assert.match(read('../components/ScrollProgress.jsx'), /sections = false/);
+  assert.match(read('../components/Experience.jsx'), /<JourneyNav \/>/);
+  assert.match(read('../components/Experience.jsx'), /<ScrollProgress \/>/);
+  assert.doesNotMatch(read('../components/marketing/SubpageExperience.jsx'), /JourneyNav/);
+  assert.doesNotMatch(read('../components/ScrollProgress.jsx'), /sections|currentBeatIndex/);
 });
