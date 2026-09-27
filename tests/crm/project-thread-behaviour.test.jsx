@@ -32,10 +32,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 Element.prototype.scrollIntoView = () => {};
 
 vi.mock('@/lib/supabase/browser', () => {
-  const realtime = { channels: [], removed: [], reset() { realtime.channels = []; realtime.removed = []; } };
-  function makeChannel(name) {
+  const realtime = {
+    channels: [],
+    removed: [],
+    events: [],
+    reset() { realtime.channels = []; realtime.removed = []; realtime.events = []; },
+  };
+  function makeChannel(name, opts) {
     const channel = {
       name,
+      opts,
       handlers: {},
       subscribed: false,
       on(_type, filter, handler) {
@@ -44,6 +50,7 @@ vi.mock('@/lib/supabase/browser', () => {
       },
       subscribe() {
         channel.subscribed = true;
+        realtime.events.push(`subscribe:${name}`);
         return channel;
       },
     };
@@ -51,8 +58,13 @@ vi.mock('@/lib/supabase/browser', () => {
   }
   const client = {
     auth: { getUser: async () => ({ data: { user: { id: 'me' } } }) },
-    channel(name) {
-      const channel = makeChannel(name);
+    realtime: {
+      async setAuth() {
+        realtime.events.push('setAuth');
+      },
+    },
+    channel(name, opts) {
+      const channel = makeChannel(name, opts);
       realtime.channels.push(channel);
       return channel;
     },
@@ -61,7 +73,7 @@ vi.mock('@/lib/supabase/browser', () => {
     },
     storage: { from: () => ({ upload: async () => ({ error: null }) }) },
   };
-  return { createClient: () => client, __realtime: realtime };
+  return { createClient: () => client, __realtime: realtime, __realtimeClient: client };
 });
 
 vi.mock('@/lib/crm/projects', () => ({ listProjectMessages: vi.fn() }));
@@ -125,6 +137,35 @@ describe('ProjectThread realtime subscription lifecycle', () => {
       expect(Object.keys(channel.handlers).sort()).toEqual(['project_message_created', 'project_message_updated']);
     }
     expect(__realtime.removed).toHaveLength(0);
+  });
+
+  it('channels are private and the socket is authed before any join (the DB broadcasts privately)', async () => {
+    render(<ProjectThread projectId="p1" profile={PM} />);
+    await screen.findByText('Message m1');
+    await waitFor(() => expect(__realtime.channels).toHaveLength(2));
+
+    for (const channel of __realtime.channels) {
+      expect(channel.opts).toEqual({ config: { private: true } });
+    }
+    expect(__realtime.events[0]).toBe('setAuth');
+    expect(__realtime.events.slice(1)).toEqual(['subscribe:project:p1:shared', 'subscribe:project:p1:internal']);
+  });
+
+  it('unmounting before realtime auth resolves never opens a channel', async () => {
+    const { __realtimeClient } = await import('@/lib/supabase/browser');
+    let resolveAuth;
+    const originalSetAuth = __realtimeClient.realtime.setAuth;
+    __realtimeClient.realtime.setAuth = () => new Promise((resolve) => { resolveAuth = resolve; });
+    try {
+      const { unmount } = render(<ProjectThread projectId="p1" profile={PM} />);
+      await screen.findByText('Message m1');
+      await waitFor(() => expect(resolveAuth).toBeTypeOf('function'));
+      unmount();
+      await act(async () => { resolveAuth(); });
+      expect(__realtime.channels).toHaveLength(0);
+    } finally {
+      __realtimeClient.realtime.setAuth = originalSetAuth;
+    }
   });
 
   it('a client viewer only subscribes to the shared channel', async () => {

@@ -1,3 +1,36 @@
+## v1.69 — 2026-09-27
+
+CRM fix: live project-thread updates were never delivered. The message
+triggers (migrations 0009, 0032) broadcast with `realtime.send(..., true)`,
+i.e. **private** broadcasts, but `components/crm/useProjectThread.js` joined
+**public** channels on the same topics. Supabase treats a private and a public
+channel with the same topic as different channels, so
+`project_message_created` / `project_message_updated` never reached the
+browser and threads only refreshed on the viewer's own actions or a reload.
+
+- **`useProjectThread.js`** — channels are created with
+  `{ config: { private: true } }` after an explicit
+  `await supabase.realtime.setAuth()`, so the join carries the user's JWT and
+  is authorized by the existing `realtime.messages` RLS policy
+  (`private.can_subscribe_project_topic`). supabase-js 2.112.3 only refreshes
+  the realtime token asynchronously on connect, so without the await the
+  first join of a fresh socket could race to the anon key. The effect is now
+  async with a `cancelled` guard (no channel opens after unmount/project
+  switch), and `CHANNEL_ERROR` / `TIMED_OUT` are logged instead of silent.
+  Clients still open only the `shared` topic.
+- **Tests** — new node contract in
+  `tests/crm/messaging-asset-hardening.test.mjs` (private config, `setAuth`
+  before `subscribe`, both migrations still send privately, client topics
+  shared-only); fails against the previous hook. The ProjectThread vitest
+  mock now records channel options and auth ordering, plus a test that an
+  unmount before auth resolves opens no channel.
+- Verified live (read-only / synthetic topic): a private `realtime.send` to a
+  random `project:<uuid>:shared` topic is not received by a public
+  subscriber while a public control send is; impersonated in a rolled-back
+  transaction, a client may subscribe to its project's `shared` topic but
+  not `internal` or another project's, and an admin may subscribe to both.
+- No migration, no schema change.
+
 ## v1.68 — 2026-09-27
 
 AI tooling and docs only; no application code, route or runtime change.
