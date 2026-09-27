@@ -28,6 +28,11 @@ Sets up the AIDD framework (aidd-context skills 00–09) for this repo.
   an ADR makes `aidd_docs/memory/` authoritative over root `MEMORY.md`. The
   memory README list is now maintained by hand, because the AIDD
   `SessionStart` hook wrote Windows-broken links into it.
+- **Deduplicated `CLAUDE.md` and `AGENTS.md`** against the memory bank:
+  the scroll/animation prose, test-run details, build gotchas, branch model
+  and role flow now live in `aidd_docs/memory/`, and the context files keep
+  the rules as one-liners with pointers. `CLAUDE.md` drops ~3.8 KB per
+  session. `AGENTS.md` also stops hardcoding the migration head.
 - **Token trim** (`aidd-context:12-cook` token-optimization recipe): 8
   task-specific memory files (api, backlog, design, ecosystem, forms,
   integration, navigation, realtime) move to `aidd_docs/memory/internal/`

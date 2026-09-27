@@ -57,16 +57,10 @@ code change to announce it. **Known related gaps — last confirmed 2026-09-11, 
   moved in v1.35; DNS/mailbox/Resend verification is still owner-side.
 
 Work on a feature branch and land it in `main` via a reviewed PR — merging
-a PR into `main` IS deploying to production.
-
-- **Feature branches** — every push gets its own Vercel preview deployment
-  (behind Vercel Authentication), so anything can be verified on a real
-  deployment before it merges.
-- **`preview` and `production` (git branches)** — historical. The repo
-  previously ran a two-branch model (`preview` = integration, `production` =
-  live) that Vercel's actual configuration never matched. Both branches
-  still exist but neither controls what's deployed; don't promote through
-  them or base new work on them.
+a PR into `main` IS deploying to production. Every push gets a Vercel
+preview. The `preview` and `production` git branches are historical: never
+promote through them or base work on them. Pipeline and environments:
+`aidd_docs/memory/deployment.md`, `aidd_docs/memory/vcs.md`.
 
 **CRM visibility is an env var, not a branch.** Whether the CRM is publicly
 reachable is controlled by `NEXT_PUBLIC_CRM_ENABLED`
@@ -108,15 +102,11 @@ pnpm crm:provision-test-users    # seed CRM role accounts for manual/e2e testing
 pnpm livecheck                   # scripts/livecheck.mjs — smoke-check a running deployment
 ```
 
-Run a single test file directly with Node's runner, e.g.
-`node --test tests/contactForm.test.mjs` or `node --test tests/crm/<file>.test.mjs`
-(glob a subset with `node --test tests/crm/*.test.mjs`, matching `test:crm`'s pattern).
-
-**`tests/*.test.mjs` is not the whole suite.** `pnpm test` is
-`node --test tests/*.test.mjs tests/crm/*.test.mjs` — two globs. Running only
-the first passes ~205 tests and silently skips every CRM contract; that is how
-a red `tests/crm/` assertion sat on `main` unnoticed. Run `pnpm test` before
-claiming the suite is green.
+**`tests/*.test.mjs` is not the whole suite.** `pnpm test` runs two globs
+(`tests/*.test.mjs tests/crm/*.test.mjs`); running only the first silently
+skips every CRM contract. Run `pnpm test` before claiming the suite is green.
+Gate order and single-file runs: `aidd_docs/memory/coding-assertions.md`,
+`aidd_docs/memory/testing.md`.
 
 There is no lint script configured in `package.json`; do not invent one.
 Run the relevant Node tests, verify application changes in a real browser,
@@ -125,100 +115,54 @@ pnpm in `package.json`; do not switch package managers.
 
 ### Local build gotchas
 
-- **`pnpm build` currently fails on Windows and passes on CI.** It dies
-  prerendering `/_global-error`, `/services` and `/contact` with
-  `TypeError: Cannot read properties of null (reading 'useContext')`.
-  Confirmed 2026-09-22 against unmodified `main` (`f0290ae`) with CI's env
-  vars, so it is not caused by whatever you are working on, and
-  `/_global-error` is a plain Sentry boundary that imports no app code. The
-  same commit reports `Build: success` on ubuntu CI and deploys cleanly on
-  Vercel. Don't spend a session chasing it; confirm against CI instead.
-  **Check `NODE_ENV` first.** On 2026-09-26 the identical error reproduced
-  on Linux (Claude Code cloud container, node 22) because the shell exported
-  `NODE_ENV=development`; prefixing the build with `NODE_ENV=production`
-  made the same commit build cleanly (60/60 pages). Whether that is also the
-  Windows cause has not been checked.
-- **`next build` and `next dev` rewrite `tsconfig.json`** — they flip
-  `"jsx": "preserve"` to `"react-jsx"` and reformat the arrays. It is a
-  generated artifact, not your edit. Check `git status` after any build and
+- **`pnpm build` fails locally with `Cannot read properties of null (reading
+  'useContext')`** while prerendering `/_global-error`, `/services`,
+  `/contact`. Check `NODE_ENV` first: an exported `NODE_ENV=development`
+  causes it (reproduced on Linux 2026-09-26; `NODE_ENV=production` fixed it).
+  On Windows it also reproduced against unmodified `main` (2026-09-22), cause
+  unconfirmed. It is not your change; confirm against CI instead of chasing it.
+- **`next build` and `next dev` rewrite `tsconfig.json`.** Run
   `git checkout -- tsconfig.json` before committing.
-- To reproduce the CI build locally, supply the placeholders its workflow
-  uses (`.github/workflows/docker-ci.yml`, `test` job), otherwise client env
-  vars throw:
+- Reproduce the CI build (`docker-ci.yml` `test` job) with its placeholders,
+  otherwise client env vars throw:
   ```bash
   NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co \
   NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key \
   NEXT_PUBLIC_APP_URL=https://placeholder.invalid \
-  pnpm build
+  NODE_ENV=production pnpm build
   ```
-- CI's merge gate is the `test` job in `.github/workflows/docker-ci.yml`: it
-  runs `pnpm test`, `pnpm test:marketing` and `pnpm build` in that order, on
-  ubuntu with node 24. `gh pr checks <n>` reads it; per-step results come from
-  `gh api repos/ethancrystal/crystalwebsolution.com/actions/jobs/<job-id>`.
+  `/release-check` runs the whole gate locally.
 
 ## Architecture
 
-### The core idiom: one RAF clock, per-frame state lives outside React
+The scroll pipeline, its diagrams and the reasoning behind these rules are in
+`aidd_docs/memory/architecture.md`. Rules for anything touching scroll or
+animation:
 
-This is the single most important thing to understand before editing
-anything that touches scroll or animation:
-
-- **One RAF clock.** `components/SmoothScroll.jsx` creates the single Lenis
-  instance and drives it from `gsap.ticker` (not its own rAF loop). Any new
-  per-frame animation should hook into this same ticker/ScrollTrigger setup
-  rather than starting an independent loop.
-- **Per-frame data lives in module-level singleton objects, never React
-  state.** `lib/scrollState.js` (`{ progress, velocity, focus }`),
-  `lib/pulse.js` (hero click "blast"), `lib/motionScale.js`, and
-  `lib/motionFlight.mjs` are plain mutable objects: DOM code writes to them, R3F
-  components read them inside `useFrame`. This avoids re-render storms for
-  values that change dozens of times a second. When adding a new
-  cross-boundary per-frame value, follow this same singleton pattern instead
-  of lifting it into React state or context.
-- **No allocation inside `useFrame`.** Pre-allocate `THREE.Vector3`/etc.
-  outside the component (see `components/three/CameraRig.jsx`) and mutate in
-  place.
-- **Damping** uses frame-rate-independent exponential decay:
-  `1 - Math.exp(-dt * k)`, not fixed lerp factors.
-- **Every animation-related `useEffect` returns a teardown** (kill
-  ScrollTriggers, remove listeners, disconnect observers) — see
-  `FocusVeil.jsx` and `SmoothScroll.jsx` for the pattern.
-- `next.config.js` has `reactStrictMode: false` intentionally, so the WebGL
-  context isn't double-created in dev. Don't turn it back on.
-
-### The camera journey is declarative data
-
-`lib/journey.js` defines `STOPS` (one per DOM section: position + look
-target) and `CLUSTERS` (named z-depths where the matching 3D object cluster
-is authored). `components/three/CameraRig.jsx` reads `scrollState.progress`
-each frame, finds which segment of `STOPS` it falls in, and lerps/damps the
-camera toward it, adding pointer parallax and velocity-based roll.
-
-Segment boundaries are **not** a uniform `index / (STOPS.length - 1)` split —
-sections vary hugely in scroll length (Lab's sticky flight stage is much taller
-than a standard beat).
-`lib/beatProgress.js` measures each section's real DOM position
-(`measureBeats`, called from `SmoothScroll.jsx` via a `ResizeObserver` on
-`<body>`, always against `lenis.limit` so the fractions share
-`scrollState.progress`'s exact baseline) and `CameraRig` looks up segments
-against those measured breakpoints instead.
-
-When adding or reordering a scroll section, `STOPS`/`CLUSTERS` in
-`lib/journey.js`, `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`
-(read by `measureBeats`), and any matching 3D actor in `Scene.jsx` all have to
-move together.
+- **One RAF clock.** Lenis runs on `gsap.ticker` in
+  `components/SmoothScroll.jsx`; hook new per-frame work into that ticker or
+  ScrollTrigger, never a second rAF loop.
+- **Per-frame values live in `lib/` singletons** (`scrollState`, `pulse`,
+  `motionScale`, `motionFlight`), never React state or context. DOM sections
+  talk to the canvas only through them or ScrollTrigger, never props.
+- **No allocation inside `useFrame`**; pre-allocate at module scope (see
+  `components/three/CameraRig.jsx`).
+- **Damping is `1 - Math.exp(-dt * k)`**, never a fixed lerp factor.
+- **Every animation `useEffect` returns a teardown.**
+- **`reactStrictMode: false` is intentional** (no double WebGL context).
+  Don't turn it back on.
+- **Camera segments use measured DOM breakpoints** (`lib/beatProgress.js`),
+  not a uniform `index / (STOPS.length - 1)` split. Adding or reordering a
+  beat moves four things together: `STOPS`/`CLUSTERS` in `lib/journey.js`,
+  `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`, and its actor
+  in `Scene.jsx`.
 
 ### Component layout
 
-- `Experience.jsx` renders the current beats in this order: Hero, About,
-  Services, Approach, Stories, Mark, Lab, Motion, Contact.
 - `Scene.jsx` mounts one Canvas with `CameraRig`, `Lights`, `Effects`,
   `FocusDimmer`, `Crystal`, `Sparks`, `ServiceRail`, `ApproachCompass`,
   `Particles`, and `BackdropMorph`. Lab and Motion do not mount separate scene
   actors.
-- Sections communicate with their 3D counterpart only through the
-  singletons above (or GSAP ScrollTrigger), never via props/context across
-  the DOM/canvas boundary.
 - Inner marketing pages do **not** use `Scene.jsx`. They render through
   `MarketingShell` -> `SubpageExperience`, which passes a stage name (or
   `null`) down via `StageContext`; `HeroStage` inside `PageHero` mounts the
@@ -235,10 +179,8 @@ move together.
   automatically. `.hero-caustics` in `app/styles/hero.css` is the same idiom
   on the homepage hero.
 - `FocusVeil.jsx` + `FocusDimmer.jsx` are a paired DOM/canvas mechanism: a
-  `[data-quiet]` DOM section (see markup in `components/sections/`) fades in
-  a gradient veil and raises `scrollState.focus`, which the in-canvas
-  `FocusDimmer` reads to step down scene exposure — keeping text legible
-  without a flat full-viewport wash.
+  `[data-quiet]` section raises `scrollState.focus` and the canvas dims to
+  keep text legible.
 
 ### `lib/` conventions
 
@@ -282,15 +224,11 @@ move together.
   database correctness from source tests alone; verify RLS and migration state
   against an isolated database or the approved read-only live boundary.
 
-  Roles are assigned by the database, never by the client. `handle_new_user()`
-  hardcodes every new account to `client`; the `account_type` chosen on
-  `/signup` only raises `profiles.requested_staff_access`, which an admin
-  clears through `admin_resolve_staff_request()` to grant `project_manager`.
-  The `admin` role is pinned to a single address by
-  `public.pinned_admin_email()` plus a partial unique index and a
-  `BEFORE INSERT OR UPDATE OF role` trigger (migration `0014`), so it is not
-  reachable from signup, invite, or role-change paths. Don't add a UI that
-  offers `admin` as an assignable role — it can only fail at the database.
+  Roles are assigned by the database, never by the client (flow in
+  `aidd_docs/memory/auth.md`). `admin` is pinned to one address by
+  `public.pinned_admin_email()` and a trigger (migration `0014`). Don't add a
+  UI that offers `admin` as an assignable role — it can only fail at the
+  database.
 
 ## Cursor project skills
 
