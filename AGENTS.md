@@ -29,6 +29,7 @@ pnpm dev         # http://localhost:3000
 pnpm test        # full Node test suite
 pnpm test:crm    # CRM-focused contracts
 pnpm test:marketing  # vitest/jsdom component tests (tests/marketing/*.test.jsx)
+pnpm test:components # every vitest/jsdom test (tests/**/*.test.jsx); the CI gate
 pnpm test:db     # Supabase database tests; requires the local stack
 pnpm build       # production build (standalone output)
 pnpm start       # serve the production build
@@ -51,59 +52,34 @@ daily schedule.
 
 ## Architecture
 
-### The core idiom: one RAF clock, per-frame state lives outside React
+The scroll pipeline, its diagrams and the reasoning behind these rules are in
+`aidd_docs/memory/architecture.md`; read it before editing scroll or
+animation code. Rules:
 
-This is the single most important thing to understand before editing
-anything that touches scroll or animation:
-
-- **One RAF clock.** `components/SmoothScroll.jsx` creates the single Lenis
-  instance and drives it from `gsap.ticker` (not its own rAF loop). Any new
-  per-frame animation should hook into this same ticker/ScrollTrigger setup
-  rather than starting an independent loop.
-- **Per-frame data lives in module-level singleton objects, never React
-  state.** `lib/scrollState.js` (`{ progress, velocity, focus }`),
-  `lib/pulse.js` (hero click "blast"), `lib/motionScale.js`, and
-  `lib/motionFlight.mjs` are plain mutable objects: DOM code writes to them, R3F
-  components read them inside `useFrame`. This avoids re-render storms for
-  values that change dozens of times a second. When adding a new
-  cross-boundary per-frame value, follow this same singleton pattern instead
-  of lifting it into React state or context.
-- **No allocation inside `useFrame`.** Pre-allocate `THREE.Vector3`/etc.
-  outside the component (see `components/three/CameraRig.jsx`) and mutate in
-  place.
-- **Damping** uses frame-rate-independent exponential decay:
-  `1 - Math.exp(-dt * k)`, not fixed lerp factors.
-- **Every animation-related `useEffect` returns a teardown** (kill
-  ScrollTriggers, remove listeners, disconnect observers) — see
-  `FocusVeil.jsx` and `SmoothScroll.jsx` for the pattern.
-- `next.config.js` has `reactStrictMode: false` intentionally, so the WebGL
-  context isn't double-created in dev. Don't turn it back on.
-
-### The camera journey is declarative data
-
-`lib/journey.js` defines `STOPS` (one per DOM section: position + look
-target) and `CLUSTERS` (named z-depths where the matching 3D object cluster
-is authored). `components/three/CameraRig.jsx` reads `scrollState.progress`
-each frame, finds which segment of `STOPS` it falls in, and lerps/damps the
-camera toward it, adding pointer parallax and velocity-based roll.
-
-Segment boundaries are **not** a uniform `index / (STOPS.length - 1)` split —
-sections vary hugely in scroll length (Lab's sticky flight stage is much taller
-than a standard beat).
-`lib/beatProgress.js` measures each section's real DOM position
-(`measureBeats`, always against `lenis.limit` so the fractions share
-`scrollState.progress`'s exact baseline) and `CameraRig` looks up segments
-against those measured breakpoints instead. Measure with `sectionTop()`
-(layout tops), never `getBoundingClientRect()`: rects include SectionHandoff's
-16px pre-reveal transform. SmoothScroll re-measures on the ticker frame
-Lenis's limit changes as well as from its `<body>` `ResizeObserver`, because
-Lenis updates the limit on its own debounced observer, after ours has fired.
-
-When adding or reordering a scroll section, `STOPS`/`CLUSTERS` in
-`lib/journey.js`, `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`
-(read by `measureBeats`), its label in `LABELS` in `lib/journeyNav.mjs` (the
-homepage section nav), and any matching 3D actor in `Scene.jsx` all have to
-move together.
+- **One RAF clock.** Lenis runs on `gsap.ticker` in
+  `components/SmoothScroll.jsx`; hook new per-frame work into that ticker or
+  ScrollTrigger, never a second rAF loop.
+- **Per-frame values live in `lib/` singletons** (`scrollState`, `pulse`,
+  `motionScale`, `motionFlight`), never React state or context. DOM sections
+  talk to the canvas only through them or ScrollTrigger, never props.
+- **No allocation inside `useFrame`**; pre-allocate at module scope (see
+  `components/three/CameraRig.jsx`).
+- **Damping is `1 - Math.exp(-dt * k)`**, never a fixed lerp factor.
+- **Every animation `useEffect` returns a teardown.**
+- **`reactStrictMode: false` is intentional** (no double WebGL context).
+  Don't turn it back on.
+- **Camera segments use measured DOM breakpoints** (`lib/beatProgress.js`),
+  not a uniform `index / (STOPS.length - 1)` split. Adding or reordering a
+  beat moves five things together: `STOPS`/`CLUSTERS` in `lib/journey.js`,
+  `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`, its label in
+  `LABELS` in `lib/journeyNav.mjs` (the homepage section nav), and its actor
+  in `Scene.jsx`.
+- **Measure beats with `sectionTop()`, never `getBoundingClientRect()`.**
+  Rects include `SectionHandoff`'s 16px pre-reveal transform, so rect-based
+  breakpoints disagree with where an anchor jump lands (v1.60/v1.61).
+  SmoothScroll re-measures on the ticker frame Lenis's limit changes as well as
+  from its `<body>` `ResizeObserver`: Lenis updates the limit on its own
+  debounced observer, after ours has fired.
 
 ### Component layout
 
@@ -122,14 +98,9 @@ move together.
   (postprocessing), `FocusDimmer`, `Crystal`, `Sparks`, `ServiceRail`,
   `ApproachCompass`, `Particles`, and `BackdropMorph`. Lab and Motion are DOM
   beats and do not mount separate scene actors.
-- Sections communicate with their 3D counterpart only through the
-  singletons above (or GSAP ScrollTrigger), never via props/context across
-  the DOM/canvas boundary.
 - `FocusVeil.jsx` + `FocusDimmer.jsx` are a paired DOM/canvas mechanism: a
-  `[data-quiet]` DOM section (see markup in `components/sections/`) fades in
-  a gradient veil and raises `scrollState.focus`, which the in-canvas
-  `FocusDimmer` reads to step down scene exposure — keeping text legible
-  without a flat full-viewport wash.
+  `[data-quiet]` section raises `scrollState.focus` and the canvas dims to
+  keep text legible.
 
 ### Routing (App Router)
 
@@ -147,10 +118,6 @@ move together.
 - `lib/site.js` — single source of truth for brand/contact info, read by
   Nav/footer/contact.
 - `lib/projects.js` — case study content (`PROJECTS`, `getProject`).
-- `lib/journey.js`, `lib/beatProgress.js` — camera choreography (see above).
-- `lib/scrollState.js`, `lib/pulse.js`, `lib/motionScale.js`, and
-  `lib/motionFlight.mjs` — per-frame
-  DOM→canvas singletons (see above).
 - `lib/easing.js` — named GSAP easing/duration tokens; prefer these over
   inline magic numbers in new choreography.
 - `lib/seo.mjs` — **canonical source of truth for every URL in the app**.
@@ -169,12 +136,13 @@ move together.
 - No TypeScript, no Tailwind — plain JSX and global CSS with the design
   tokens defined at the top of `app/globals.css` (`--bg`, `--ink`, `--cyan`,
   `--blue`, `--violet`, etc.).
-- Supabase is the live CRM boundary. Application clients live under `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL lives in `supabase/migrations/0001` through `0042`. `.mcp.json` configures a Supabase MCP server for queries.
+- Supabase is the live CRM boundary. Application clients live under `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL lives in `supabase/migrations/`, numbered from `0001` (check the directory for the head). `.mcp.json` configures a Supabase MCP server for queries.
 - The production host is `https://www.cdsportswearinc.com` (apex 308-redirects to `www`).
+- The client portal is served on `https://app.cdsportswearinc.com` by host-conditioned redirects in `lib/portalHost.mjs` (loaded by `next.config.js`): `www` portal paths 308 to `app`, and non-portal pages on `app` 308 to `www`. Add new portal route segments to `PORTAL_SEGMENTS`.
   All URLs must use the `www` host; never emit bare apex URLs in canonicals,
   sitemaps, or OG tags.
 - Data-access paths coexist: Project delivery reads go through `lib/crm/projects.js` against the `lib/crm/project-contract.mjs` contract shape (Centralized `TASK_PRIORITIES`, `TASK_STATUSES`, etc.); writes use `'use server'` actions in `app/actions/project-actions.js`. Other tables (companies/contacts/deals/tasks/users) query tables directly via browser client, scoped by RLS.
-- Roles are database-enforced; `handle_new_user()` defaults accounts to `client`; `requested_staff_access` is resolved by admins; `admin` role is pinned by database trigger to prevent unauthorized signup/invite modification.
+- Roles are database-enforced (flow in `aidd_docs/memory/auth.md`). `admin` is pinned by a database trigger; never offer it as an assignable role in UI.
 - Project attachments use reservation/finalization hooks (`reserve_project_attachment` / `finalize_project_attachment`) linking to Supabase storage. See `docs/CRM-OPERATIONS.md` and `docs/ux/` for CRM details.
 
 ## Cursor project skills
@@ -218,3 +186,38 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
    "Update branch"), check that `VERSION` and the top `CHANGELOG.md` heading
    still name this PR's version. That merge dropped the bump for v1.55, v1.57,
    v1.60 and v1.63.
+
+## Memory Management
+
+Project docs, memory, specs, and plans live in `aidd_docs/`.
+
+### Project memory
+
+<!-- aidd_project_memory:start -->
+
+@aidd_docs/memory/architecture.md
+@aidd_docs/memory/auth.md
+@aidd_docs/memory/codebase-map.md
+@aidd_docs/memory/coding-assertions.md
+@aidd_docs/memory/database.md
+@aidd_docs/memory/deployment.md
+@aidd_docs/memory/project-brief.md
+@aidd_docs/memory/testing.md
+@aidd_docs/memory/vcs.md
+
+<!-- read on demand, not auto-loaded -->
+- aidd_docs/memory/internal/api.md
+- aidd_docs/memory/internal/backlog.md
+- aidd_docs/memory/internal/decisions/memory-authority.md
+- aidd_docs/memory/internal/design.md
+- aidd_docs/memory/internal/ecosystem.md
+- aidd_docs/memory/internal/forms.md
+- aidd_docs/memory/internal/integration.md
+- aidd_docs/memory/internal/navigation.md
+- aidd_docs/memory/internal/realtime.md
+
+<!-- aidd_project_memory:end -->
+
+- If the block above is empty, run `ls -1tr aidd_docs/memory/` and read each file.
+- Load `aidd_docs/memory/external/*` when the user asks.
+- Load `aidd_docs/memory/internal/*` when the task needs it.

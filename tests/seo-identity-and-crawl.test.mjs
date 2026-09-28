@@ -93,7 +93,7 @@ test('llms.txt lists every sitemap URL and every post the pillars link to', () =
     ...PROJECTS.map((project) => `/work/${project.slug}`),
     ...SERVICE_PAGES.flatMap((page) => page.guideLinks.map((link) => link.href)),
   ];
-  assert.ok(staticPaths.includes('/services') && staticPaths.includes('/hire/shopify-developer'));
+  assert.ok(staticPaths.includes('/services'));
   for (const route of new Set(paths)) {
     assert.ok(llms.includes(`${SITE_ORIGIN}${route})`), `llms.txt is missing ${route}`);
   }

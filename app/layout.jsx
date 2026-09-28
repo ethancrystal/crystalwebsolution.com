@@ -4,7 +4,7 @@ import { SITE } from '../lib/site';
 import { SITE_ORIGIN, SOCIAL_IMAGE_PATH } from '../lib/seo.mjs';
 import Analytics from '../components/Analytics';
 import PageTransition from '../components/PageTransition';
-import { GTM_ID } from '../lib/analytics.mjs';
+import { GTM_ID, gtmHeadSnippet } from '../lib/analytics.mjs';
 
 const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
@@ -145,6 +145,10 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <head>
+        {/* Google Tag Manager, as high in <head> as possible. The snippet skips
+            CRM/auth pages and queues denied consent defaults before gtm.js, so
+            container tags wait for the cookie banner (lib/analytics.mjs). */}
+        {GTM_ID && <script dangerouslySetInnerHTML={{ __html: gtmHeadSnippet(GTM_ID) }} />}
         <script
           dangerouslySetInnerHTML={{
             // Safe: hardcoded string, no user input. Mirrors Loader.jsx's own
@@ -157,8 +161,9 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        {/* GTM's fallback for visitors without JavaScript. The script itself is
-            loaded by <Analytics />, after consent defaults, on public pages. */}
+        {/* Google Tag Manager (noscript): the fallback for visitors without
+            JavaScript, immediately after <body> as Google specifies. The
+            script itself is the gtmHeadSnippet in <head>. */}
         {GTM_ID && (
           <noscript>
             <iframe

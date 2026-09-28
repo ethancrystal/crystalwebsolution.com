@@ -1,26 +1,192 @@
-## v1.65 — 2026-09-27
+## v1.80 — 2026-09-28
 
 Docs only: CLAUDE.md and AGENTS.md catch up with v1.60/v1.61. No runtime
-change. This PR was opened as v1.62; v1.63 (#239) and v1.64 (#240) merged
-first, so it ships as v1.65 and **v1.62 was never deployed**. It also
-backfills the v1.63 entry below, which the same "Update branch" pitfall
-this PR documents dropped.
+change. This PR was opened as v1.62 and renumbered as other releases merged
+first. It ships as v1.80, above v1.79 (#244, open), so v1.62 and v1.65 were
+never deployed. It also backfills the v1.63 entry (placed above v1.64 below,
+in deploy order), which the "Update branch" pitfall this PR documents
+dropped.
 
-- The "adding or reordering a scroll section" checklist now includes the
-  section's label in `LABELS` in `lib/journeyNav.mjs`.
-- The beat-measurement notes say to measure with `sectionTop()` (layout
-  tops), never `getBoundingClientRect()`, and that SmoothScroll re-measures
-  when Lenis's limit changes as well as from its `<body>` ResizeObserver.
-- The component layout names `JourneyNav.jsx` (homepage section nav) and
-  says `ScrollProgress.jsx` is only the progress bar.
-- A new versioning rule: after merging `main` into a version-bump branch,
-  including GitHub's "Update branch", check that `VERSION` and the top
-  CHANGELOG heading still name the PR's version. That merge dropped the
-  bump for v1.55, v1.57, v1.60 and v1.63.
+- The beat checklist now includes the section's label in `LABELS` in
+  `lib/journeyNav.mjs`: adding or reordering a beat moves five things.
+- New rule: measure beats with `sectionTop()`, never
+  `getBoundingClientRect()`. SmoothScroll re-measures when Lenis's limit
+  changes as well as from its `<body>` ResizeObserver.
+- Component layout names `JourneyNav.jsx` (homepage section nav) and says
+  `ScrollProgress.jsx` is only the progress bar.
+- Versioning: after merging `main` into a version-bump branch, including
+  GitHub's "Update branch", check that `VERSION` and the top CHANGELOG
+  heading still name the PR's version. That merge dropped the bump for
+  v1.55, v1.57, v1.60 and v1.63.
+- Written into `main`'s condensed architecture rules (the long-form
+  explanation now lives in `aidd_docs/memory/architecture.md`).
+
+## v1.78 — 2026-09-28
+
+The client portal moves to `https://app.cdsportswearinc.com` (owner decision 2026-09-28). The marketing site stays on `www`. Numbered after v1.77 (#253, on `main`) and v1.71–v1.73, which are claimed by open PRs #244, #249 and #250. This PR was opened as v1.74, then renumbered to v1.76 after #252 merged and to v1.78 after #253 merged. v1.74 and v1.76 were never shipped.
+
+- `tests/analytics.test.mjs` now checks every `PORTAL_SEGMENTS` entry against the analytics skip list (it fell back to `/onboarding` alone until this module existed).
+- **Host split** (`lib/portalHost.mjs`, loaded by `next.config.js` `redirects()`). These are Vercel routing redirects, so they run before any page or middleware and add no function cost.
+  - On `www`, the portal paths (`/login`, `/signup`, `/forgot-password`, `/onboarding`, `/dashboard`, `/team`, `/admin`, `/auth/*`) 308 to the same path on `app`, keeping the query string. Bookmarks and emailed invite, confirm and reset links sent before the switch keep working.
+  - On `app`, `/` opens `/login`, where middleware already sends signed-in users to their own portal home. Every other non-portal page 308s to the same page on `www`.
+  - `/api/*` (the contact form, the pg_cron notification drain), `/_next`, `/_vercel` and static files work on both hosts.
+  - With `NEXT_PUBLIC_CRM_ENABLED=false`, only the app-to-`www` rule applies, so the app host cannot loop through `/login`.
+  - The rules match only the production host names, so preview deployments and localhost behave exactly as before.
+- **Supabase Auth**: `https://app.cdsportswearinc.com/**` added to `additional_redirect_urls` in `supabase/config.toml`. `www` stays listed for links sent before the switch.
+- **Owner steps**, outside the repo:
+  - Add the app host to Supabase Auth's redirect URLs and set its Site URL.
+  - Set `NEXT_PUBLIC_APP_URL=https://app.cdsportswearinc.com` in Vercel Production. It is inlined at build time, so a rebuild is needed.
+  - Portal sessions are per host, so signed-in users sign in once more on `app`.
+- **Tests**: `tests/portalHost.test.mjs` (7 tests). It checks every middleware-guarded path against `PORTAL_SEGMENTS`, the rule order, the path exclusions and the CRM-off case.
+- **Verified** on a production build with `Host` headers:
+  - `www`: `/login`, `/login/client?next=…`, `/dashboard/…`, `/admin/…` and `/auth/verify?token_hash=…` 308 to `app` with the query kept. `/` and `/about` return 200.
+  - `app`: `/` 307s to `/login`. `/login` returns 200. `/about` and `/work/…?x=1` 308 to `www`. `/api/contact`, `/robots.txt` and `/icon.png` are served.
+  - A `*.vercel.app` host is unchanged.
+- CLAUDE.md and AGENTS.md record the split.
+
+## v1.77 — 2026-09-28
+
+Google Tag Manager (`GTM-KJZPCQNM`) now loads from Google's own `<head>` snippet on every public page, instead of being injected after hydration (owner request 2026-09-28). The snippet is guarded so it keeps the two rules the old loader had: no GTM on portal pages, and no container tags before the cookie banner's answer. v1.76 is claimed by open PR #251.
+
+- `lib/analytics.mjs` `gtmHeadSnippet(id)` builds the inline script. `app/layout.jsx` renders it as the first script in `<head>`. In order, it:
+  1. stops on CRM/auth pages (`UNTRACKED_PREFIXES`);
+  2. queues the Consent Mode v2 defaults (all four signals denied, `wait_for_update: 500`) and replays a returning visitor's stored choice;
+  3. runs Google's snippet verbatim with the container ID.
+- The `ns.html` `<noscript>` iframe stays right after `<body>`, as Google specifies.
+- `/onboarding` added to `UNTRACKED_PREFIXES`. It is a portal page (`middleware.js`, `lib/pageTransition.mjs`) that was missing, so GA4 and GTM both skip it now.
+- The snippet and the module share window flags (`__cwsConsentQueued`, `__cwsGtmLoaded`), so neither the consent defaults nor `gtm.js` are ever queued twice. `loadTagManager()` in `components/Analytics.jsx` stays as a fallback for a visit that opens on a portal page and then client-navigates to a public one.
+- `tests/analytics.test.mjs` runs the real snippet in a `node:vm` sandbox. It covers:
+  - consent ordering;
+  - stored-choice replay, including blocked storage;
+  - every portal path;
+  - interplay with the module;
+  - rejection of malformed IDs.
+
+## v1.75 — 2026-09-28
+
+Google Tag Manager now loads the owner's new container **`GTM-KJZPCQNM`** instead of `GTM-5VKPC974`, which was published empty (owner request 2026-09-28). Numbered after v1.71–v1.74, which are claimed by open PRs #244, #249, #250 and #251.
+
+- `lib/analytics.mjs`: `DEFAULT_GTM_ID` is now `GTM-KJZPCQNM`. `NEXT_PUBLIC_GTM_ID` still overrides it, and `off` still disables it.
+- No change to how GTM loads. The site already emits the same `gtm.js` script and `ns.html` `<noscript>` iframe as Google's install snippet, with these differences:
+  - It loads in production builds only.
+  - It waits behind the consent banner, with Google Consent Mode defaults of "denied".
+  - It never loads on CRM or auth routes.
+  - It loads once per visit, not once per client-side navigation.
+
+  Pasting the raw snippet into `<head>` would have loaded the container before consent and on the portal.
+- `tests/analytics.test.mjs` pins the new ID.
+- **Conflicts with open PR #244 (v1.71)**, which removes the GTM default altogether. Merged after this, #244 would switch Tag Manager off again unless `NEXT_PUBLIC_GTM_ID=GTM-KJZPCQNM` is set in Vercel Production, or #244 keeps this default.
+
+## v1.70 — 2026-09-27
+
+Fixes a live bug in the CRM notification outbox. Adds migration
+`0045_fix_outbox_mark_coalesce.sql`, **checked in, not applied**: applying
+it to production is an owner action (`docs/CRM-OPERATIONS.md`
+§Migrations). Until it runs, each new notification email is claimed up to
+25 times and then stays `pending`, and failed sends are never recorded.
+v1.69 was already claimed by other open PRs, so this release takes v1.70.
+
+- **Root cause.** `0033` (live since 2026-08-17) redefined
+  `mark_notification_email_sent` and `mark_notification_email_failed` with
+  `pg_catalog.coalesce(...)`. COALESCE is SQL grammar, not a `pg_catalog`
+  function, so both RPCs raised 42883 on every call. plpgsql resolves calls
+  only when a statement runs, so CREATE accepted them. `0016` fixed the same
+  mistake once before.
+- **Effect.** The drain route sent each claimed row, could not mark it sent,
+  and reclaimed it once the lease expired. The four `lead.created` alerts
+  (2026-08-26 to 2026-09-03) used all 25 claims over 5 to 12 days and sit
+  `pending` with stale leases. Resend honours the idempotency key for 24
+  hours only, so reclaims a day or more apart could resend. All four went to
+  the admin account of the time (now a project manager), and every lead's
+  deal exists, so no lead was lost.
+- **Fix.** Both functions exactly as `0033` defines them, with bare
+  `coalesce(`: three substitutions and nothing else, so signatures,
+  security definer, search_path and grants are unchanged. A closing smoke
+  block calls both RPCs with nil ids, so the migration fails at apply time
+  if either body still cannot run.
+- **Stuck rows** are not touched by the migration. The PR proposes a guarded
+  one-off statement for owner approval that marks them terminal without
+  resetting `attempts`, which would resend month-old alerts.
+- **Tests.** `tests/crm/migration-0045-fix-outbox-mark-coalesce.test.mjs`
+  (source contract: each body equals 0033's apart from the three
+  substitutions) and `tests/crm/migration-grammar-guard.test.mjs`, which
+  replays every migration and fails if the latest definition of any function
+  schema-qualifies COALESCE, NULLIF, GREATEST or LEAST.
+  `supabase/tests/0045_fix_outbox_mark_coalesce.test.sql` adds 16 pgTAP
+  assertions. `pnpm test:db` was not run (no Docker here); the pgTAP file
+  was executed in PGlite (Postgres 17) against a replica of
+  `notifications_outbox` with `0033` and `0045` applied, passing 16/16, and
+  it fails against `0033` alone.
+- **Docs.** `docs/CRM-OPERATIONS.md` no longer says the idempotency key
+  prevents every duplicate send, and records migration state through `0045`.
+  The drain route's comments are corrected the same way (comments only).
+
+## v1.68 — 2026-09-27
+
+AI tooling and docs only; no application code, route or runtime change.
+Sets up the AIDD framework (aidd-context skills 00–09) for this repo.
+
+- **Project memory** (`aidd_docs/memory/`): 17 files covering the current
+  architecture, codebase map, auth, database, realtime, API, integrations,
+  deployment, testing, design, forms, navigation, VCS, backlog and the tool
+  ecosystem, plus a DOM → canvas scroll-pipeline diagram. They are imported
+  into `CLAUDE.md` and `AGENTS.md` through a new `## Memory Management`
+  block.
+- **`release-check` skill** (Claude + Cursor) reproduces the CI `test` job
+  locally (`pnpm test`, `test:marketing`, placeholder-env `build`), checks
+  the version bump, and restores `tsconfig.json`.
+- **`gatekeeper` agent** (Claude, Cursor, Codex) runs `release-check` and
+  returns a ready or blocked verdict without editing code.
+- **`/version-bump` command** (Claude + Cursor) picks the next unused
+  `vX.NN` from the merge log and open PRs.
+- **R3F frame-loop rule** (Claude + Cursor), scoped to `components/` and
+  `lib/`: no allocation in `useFrame`, one RAF clock, per-frame state in
+  singletons.
+- **`.claude/hooks/revert-generated-tsconfig.mjs`** restores `tsconfig.json`
+  after `next build` / `next dev` only when the diff is purely the Next.js
+  rewrite. It is wired in the gitignored `settings.local.json`, so it is
+  opt-in per checkout.
+- **Learnings** (`aidd-context:10-learn`): the next version skips numbers
+  open PRs already claim; private realtime broadcasts need private channels;
+  an ADR makes `aidd_docs/memory/` authoritative over root `MEMORY.md`. The
+  memory README list is now maintained by hand, because the AIDD
+  `SessionStart` hook wrote Windows-broken links into it.
+- **Deduplicated `CLAUDE.md` and `AGENTS.md`** against the memory bank:
+  the scroll/animation prose, test-run details, build gotchas, branch model
+  and role flow now live in `aidd_docs/memory/`, and the context files keep
+  the rules as one-liners with pointers. `CLAUDE.md` drops ~3.8 KB per
+  session. `AGENTS.md` also stops hardcoding the migration head.
+- **Token trim** (`aidd-context:12-cook` token-optimization recipe): 8
+  task-specific memory files (api, backlog, design, ecosystem, forms,
+  integration, navigation, realtime) move to `aidd_docs/memory/internal/`
+  and load on demand. That cuts the auto-loaded bank from ~24 KB to ~13 KB
+  per session. `gatekeeper` runs on `haiku`. `desktop-commander` is removed
+  from `.mcp.json`: its tool schema rode along every turn and it timed out at
+  startup.
+- **`.claude/settings.json` is now tracked** (removed from `.gitignore`) so
+  its `permissions.deny` rules are shared: reads of `.next/`, `node_modules/`,
+  `test-results/` and `.env*` stay out of agent context. Personal settings
+  still belong in the gitignored `settings.local.json`.
+
+## v1.67 — 2026-09-27
+
+SEO index fix for one page. Nothing else changes.
+
+- **`/hire/shopify-developer` is now `noindex, follow`.** The page is a
+  direct-response landing for ads, outreach and links. Shopify is not an
+  organic target in `docs/seo/STRATEGY.md`, and Search Console already lists
+  the URL as "Discovered – not indexed". `follow` keeps its links to the rest
+  of the site crawlable. It uses the same `robots` metadata pattern as
+  `/login` and `/signup`.
+- **Removed from `app/sitemap.js`**, so the sitemap no longer asks crawlers to
+  index a noindex URL.
+- **Tests:** `seo-onpage` now asserts the page is noindex, follow, stays
+  self-canonical, and is absent from the sitemap. The `llms.txt` test no longer
+  requires the page to be a sitemap route.
 
 ## v1.63 — 2026-09-27
 
-*Backfilled in v1.65.* PR #239 merged at `18edbc9` through an "Update
+*Backfilled in v1.80.* PR #239 merged at `18edbc9` through an "Update
 branch" merge that took `main`'s `VERSION` (v1.64) and `CHANGELOG.md`, so
 v1.63 deployed without this entry. It deployed after v1.64 (#240), which is
 why it sits above it. This is the entry as it stood on the shipped commit.
