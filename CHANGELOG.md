@@ -1,3 +1,25 @@
+## v1.87 — 2026-09-28
+
+Weekly SEO goal-monger run (docs only, no site or code change).
+
+- `docs/seo/runs/2026-09-28-goal-monger.md`: this week's measurement of the
+  `rfp web development` ranking goal. The exact query + page pair still has
+  0 reportable impressions and no position (Search Console, 2026-08-29 →
+  2026-09-25, final data). The guide has had no impression for any query
+  since at least 2026-07-01, and URL Inspection shows Google hasn't seen any
+  of the three internal links to it yet.
+- `docs/seo/goals.md`: status set to Behind, an Open fronts table added, and
+  this week's move recorded. Every front is gated on MJ.
+- `docs/seo/backlinks/outreach-drafts/2026-09-28-rfp-guide.md`: send-ready
+  drafts for the four Tier-1 RFP-guide backlink prospects. **Not sent**; each
+  needs MJ's yes. `docs/seo/backlinks/prospects.md` records the 2026-09-28
+  re-check (all four pages still 200, slots unchanged).
+- `.claude/goal-monger/seo.md`: the project's goal-monger SEO profile. It was
+  committed to PR #240's branch (`686815b`) after that PR merged, so it never
+  reached `main`. It lands here unchanged.
+
+Verification: docs-only, so no tests or build were run.
+
 ## v1.82 — 2026-09-28
 
 Dependency fix and security housekeeping from the 2026-09-28 triage.

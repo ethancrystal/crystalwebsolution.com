@@ -8,7 +8,9 @@
 
 **Baseline:** **0 clicks, 0 reportable impressions; average position unavailable** for the exact query/page pair, 2026-08-27–2026-09-23 (latest complete 28-day window queried on 2026-09-26; Pacific Time; GSC Search Analytics API, exact `query` AND `page` filters, final data). The unfiltered query and page tables returned no row for the exact target. Do not interpret position `0` as a rank. Property-wide totals for this range were 1 click, 23 impressions, CTR 4.35%, average position 5.65; these do not substitute for the target baseline.
 
-**Status:** Baseline recorded; no target-query visibility is reportable yet. Indexing milestone verified complete on 2026-09-26. Current milestone: earn the first reportable impression for the exact query/page pair. This is an operational ranking goal explicitly approved by MJ; it does **not** replace or amend the ratified business outcome goal in `STRATEGY.md` and `GOAL-FUNNEL.md` (qualified organic inquiries).
+**Status (2026-09-28):** **Behind.** Milestone 2 not met: exact pair still has 0 reportable impressions, position unavailable (2026-08-29–2026-09-25, `get_seo_goal_snapshot`, final data; sustain window 2026-09-12–2026-09-25 `insufficient-data`). Context: the page has had no reportable impression for *any* query since at least 2026-07-01, and Google has not yet seen any of the three internal links to it (see the 2026-09-28 run note). Every open front is gated on MJ. Run note: `docs/seo/runs/2026-09-28-goal-monger.md`.
+
+**Status (2026-09-26):** Baseline recorded; no target-query visibility is reportable yet. Indexing milestone verified complete on 2026-09-26. Current milestone: earn the first reportable impression for the exact query/page pair. This is an operational ranking goal explicitly approved by MJ; it does **not** replace or amend the ratified business outcome goal in `STRATEGY.md` and `GOAL-FUNNEL.md` (qualified organic inquiries).
 
 ## Milestones
 
@@ -19,10 +21,20 @@
 | 3 | Average position is ≤20 for the exact pair over a complete 28-day window. | GSC Search Analytics API, exact query + page filters, final data. | Not started | — |
 | 4 | Average position is ≤10 for the exact pair on each of 14 consecutive complete reporting days, by 2027-03-31. Missing/non-reportable days do not count. | GSC daily Search Analytics rows, exact query + page filters, final data. | Not started | — |
 
+## Open fronts
+
+| Front | State | Last move |
+|---|---|---|
+| Content: RFP worksheet + scorecard (`docs/seo/drafts/downloads/web-development-rfp-worksheet.md`) | **Gated** on MJ review; check 2026-10-03. Gated 1 run so far. Escalate if still gated at the next run | 2026-09-26 draft |
+| Discovery: Google hasn't crawled the three pages that link to the guide (`/services/web-development` last crawled 2026-09-02 with the retired `cdsportswearusa.com` canonical; `/services/web-design` discovered, not indexed; `/blog/custom-react-nextjs-web-development` unknown to Google) | **Gated** on MJ: GSC UI "Request indexing" for all three (no API for it) | 2026-09-28 found |
+| Authority: outreach to 4 Tier-1 RFP prospects (`docs/seo/backlinks/outreach-drafts/2026-09-28-rfp-guide.md`) | **Gated** on MJ's yes per message | 2026-09-28 drafts |
+| Hygiene: untracked `docs/seo/drafts/blog/web-development-rfp-template.md` in the main checkout (would publish a second `/blog/` URL for the owned query if approved) | **Gated** on MJ's OK to delete; not touched (another session's checkout) | 2026-09-28 found |
+
 ## Moves (newest first)
 
 | Week of | Move | Milestone | Baseline | Check date | Result | Lesson |
 |---|---|---|---|---|---|---|
+| 2026-09-28 | Re-verified the 4 Tier-1 RFP-guide backlink prospects (all HTTP 200, slots and terms unchanged) and drafted one gated, send-ready message each: Nonprofit WP, Choose Manassas, Mason SBDC, and an ASU Lodestar pre-pitch. Raised the Request-indexing owner action for the three linking pages. | 2 — first reportable impression | Exact pair: 0 impressions, position unavailable (GSC, 2026-08-29–2026-09-25). Target page, any query: 0 impressions (2026-07-01–2026-09-25). Referring domains: 0 (Ubersuggest estimate, 2026-09-10). | On MJ's yes per message. Referring domain shows in GSC Links about 2–4 weeks after a link goes live; remeasure the exact pair 28 days after the first live link or recrawl. | **Gated, not sent.** No ranking effect claimed. | The page isn't in striking distance of anything; it has no impressions for any query. The blocker is discovery and trust, not on-page match. Google knows only `/blog` as a referrer, so the internal links built in v1.48 haven't counted yet. |
 | 2026-09-26 | Prepare a review-ready, reusable RFP worksheet and scorecard package for the live guide; include the proposed contextual CTA and the existing web-development-pillar link; do not publish or alter CMS content in this run. | 2 — first reportable impression | 0 reportable clicks/impressions; average position unavailable (GSC, 2026-08-27–2026-09-23). | 2026-10-03 for approval/status; remeasure after any approved live change has aged 28 days. | **Draft ready for MJ review.** Not shipped to the live page; no ranking effect claimed. | The page is live, indexed, canonical, and already links to `/services/web-development`. Two currently visible RFP guides differentiate with downloadable editable templates. A practical worksheet is the most actionable content-gap draft; it is not a promise of ranking lift. |
 
 The 2026-09-26 move's draft lives at `docs/seo/drafts/downloads/web-development-rfp-worksheet.md` (moved out of `drafts/blog/` so the publish script can never turn it into a second `/blog/` URL for the owned query).

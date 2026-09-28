@@ -5,6 +5,12 @@ fetched each page that day and reported the evidence below; the run has not
 re-fetched them itself. **Research only — nothing has been sent.** Outreach is
 sent by MJ, or with MJ's explicit yes for each message (Operations Manual §4).
 
+**Re-checked 2026-09-28** (goal-monger weekly run, curl): prospects 1, 2, 4
+and 5 all return HTTP 200 and their link slots or terms are unchanged. Gated
+send-ready drafts for those four are in
+`docs/seo/backlinks/outreach-drafts/2026-09-28-rfp-guide.md`. Still nothing
+sent.
+
 **The baseline.** `cdsportswearinc.com`: DA 1, 0 backlinks, 0 referring domains
 (Ubersuggest `backlinks_overview`, 2026-09-10). There is nothing to trade on,
 so every prospect here is earned by contribution, membership or a genuinely
