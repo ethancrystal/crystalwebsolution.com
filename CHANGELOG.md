@@ -10,7 +10,7 @@ default, and the CRM component tests now run in CI.
   still opts one in. `G-B42BM1Q95J` is now the only Google tag the site
   loads. Google returns 404 for `gtag/js?id=G-B42BM1Q95J` (2026-09-27), so no
   GA4 data is collected until the stream is fixed — see `docs/ANALYTICS.md`.
-- **CRM component tests run.** `tests/crm/*.test.jsx` (3 files, 32 tests)
+- **CRM component tests run.** `tests/crm/*.test.jsx` (3 files, 34 tests)
   were never run by any script or CI job. New `pnpm test:crm-ui` runs them;
   it joins `crm:verify`, the CI `test` job and `release-check`.
 - **Security: auth redirect allow-list.** `supabase/config.toml` drops
