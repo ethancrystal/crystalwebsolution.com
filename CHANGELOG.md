@@ -1,3 +1,26 @@
+## v1.78 — 2026-09-28
+
+The client portal moves to `https://app.cdsportswearinc.com` (owner decision 2026-09-28). The marketing site stays on `www`. Numbered after v1.77 (#253, on `main`) and v1.71–v1.73, which are claimed by open PRs #244, #249 and #250. This PR was opened as v1.74, then renumbered to v1.76 after #252 merged and to v1.78 after #253 merged. v1.74 and v1.76 were never shipped.
+
+- `tests/analytics.test.mjs` now checks every `PORTAL_SEGMENTS` entry against the analytics skip list (it fell back to `/onboarding` alone until this module existed).
+- **Host split** (`lib/portalHost.mjs`, loaded by `next.config.js` `redirects()`). These are Vercel routing redirects, so they run before any page or middleware and add no function cost.
+  - On `www`, the portal paths (`/login`, `/signup`, `/forgot-password`, `/onboarding`, `/dashboard`, `/team`, `/admin`, `/auth/*`) 308 to the same path on `app`, keeping the query string. Bookmarks and emailed invite, confirm and reset links sent before the switch keep working.
+  - On `app`, `/` opens `/login`, where middleware already sends signed-in users to their own portal home. Every other non-portal page 308s to the same page on `www`.
+  - `/api/*` (the contact form, the pg_cron notification drain), `/_next`, `/_vercel` and static files work on both hosts.
+  - With `NEXT_PUBLIC_CRM_ENABLED=false`, only the app-to-`www` rule applies, so the app host cannot loop through `/login`.
+  - The rules match only the production host names, so preview deployments and localhost behave exactly as before.
+- **Supabase Auth**: `https://app.cdsportswearinc.com/**` added to `additional_redirect_urls` in `supabase/config.toml`. `www` stays listed for links sent before the switch.
+- **Owner steps**, outside the repo:
+  - Add the app host to Supabase Auth's redirect URLs and set its Site URL.
+  - Set `NEXT_PUBLIC_APP_URL=https://app.cdsportswearinc.com` in Vercel Production. It is inlined at build time, so a rebuild is needed.
+  - Portal sessions are per host, so signed-in users sign in once more on `app`.
+- **Tests**: `tests/portalHost.test.mjs` (7 tests). It checks every middleware-guarded path against `PORTAL_SEGMENTS`, the rule order, the path exclusions and the CRM-off case.
+- **Verified** on a production build with `Host` headers:
+  - `www`: `/login`, `/login/client?next=…`, `/dashboard/…`, `/admin/…` and `/auth/verify?token_hash=…` 308 to `app` with the query kept. `/` and `/about` return 200.
+  - `app`: `/` 307s to `/login`. `/login` returns 200. `/about` and `/work/…?x=1` 308 to `www`. `/api/contact`, `/robots.txt` and `/icon.png` are served.
+  - A `*.vercel.app` host is unchanged.
+- CLAUDE.md and AGENTS.md record the split.
+
 ## v1.77 — 2026-09-28
 
 Google Tag Manager (`GTM-KJZPCQNM`) now loads from Google's own `<head>` snippet on every public page, instead of being injected after hydration (owner request 2026-09-28). The snippet is guarded so it keeps the two rules the old loader had: no GTM on portal pages, and no container tags before the cookie banner's answer. v1.76 is claimed by open PR #251.

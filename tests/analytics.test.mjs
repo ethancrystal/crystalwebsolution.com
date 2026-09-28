@@ -505,12 +505,13 @@ test('the head snippet stands down on every CRM and auth page', async () => {
   }
 });
 
-// lib/portalHost.mjs lands with v1.76 (#251); until then this checks the one
-// segment that was missing from UNTRACKED_PREFIXES.
+// Every portal page must also be invisible to analytics. PORTAL_SEGMENTS is the
+// list the app-host redirects use (lib/portalHost.mjs).
 test('every portal segment is excluded from measurement', async () => {
-  const { PORTAL_SEGMENTS } = await import('../lib/portalHost.mjs').catch(() => ({}));
+  const { PORTAL_SEGMENTS } = await import('../lib/portalHost.mjs');
   const { mod } = await loadAnalytics();
-  for (const segment of PORTAL_SEGMENTS || ['onboarding']) {
+  assert.ok(PORTAL_SEGMENTS.length > 0);
+  for (const segment of PORTAL_SEGMENTS) {
     assert.equal(mod.isTrackablePath(`/${segment}`), false, `/${segment} is a portal page`);
   }
 });
