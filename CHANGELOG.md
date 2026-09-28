@@ -1,3 +1,21 @@
+## v1.77 — 2026-09-28
+
+Google Tag Manager (`GTM-KJZPCQNM`) now loads from Google's own `<head>` snippet on every public page, instead of being injected after hydration (owner request 2026-09-28). The snippet is guarded so it keeps the two rules the old loader had: no GTM on portal pages, and no container tags before the cookie banner's answer. v1.76 is claimed by open PR #251.
+
+- `lib/analytics.mjs` `gtmHeadSnippet(id)` builds the inline script. `app/layout.jsx` renders it as the first script in `<head>`. In order, it:
+  1. stops on CRM/auth pages (`UNTRACKED_PREFIXES`);
+  2. queues the Consent Mode v2 defaults (all four signals denied, `wait_for_update: 500`) and replays a returning visitor's stored choice;
+  3. runs Google's snippet verbatim with the container ID.
+- The `ns.html` `<noscript>` iframe stays right after `<body>`, as Google specifies.
+- `/onboarding` added to `UNTRACKED_PREFIXES`. It is a portal page (`middleware.js`, `lib/pageTransition.mjs`) that was missing, so GA4 and GTM both skip it now.
+- The snippet and the module share window flags (`__cwsConsentQueued`, `__cwsGtmLoaded`), so neither the consent defaults nor `gtm.js` are ever queued twice. `loadTagManager()` in `components/Analytics.jsx` stays as a fallback for a visit that opens on a portal page and then client-navigates to a public one.
+- `tests/analytics.test.mjs` runs the real snippet in a `node:vm` sandbox. It covers:
+  - consent ordering;
+  - stored-choice replay, including blocked storage;
+  - every portal path;
+  - interplay with the module;
+  - rejection of malformed IDs.
+
 ## v1.75 — 2026-09-28
 
 Google Tag Manager now loads the owner's new container **`GTM-KJZPCQNM`** instead of `GTM-5VKPC974`, which was published empty (owner request 2026-09-28). Numbered after v1.71–v1.74, which are claimed by open PRs #244, #249, #250 and #251.
