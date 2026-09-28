@@ -1,3 +1,22 @@
+## v1.81 — 2026-09-28
+
+Fix: the brand-logo link on every portal auth surface (`/login`, `/signup`,
+`PortalLoginForm`, `WorkspaceShell`) pointed at `href="/"`. On
+`app.cdsportswearinc.com` a relative `"/"` hits the app-host->`/login`
+redirect in `portalHostRedirects()` (`lib/portalHost.mjs`) and bounces
+straight back to the page the visitor is already on — a visible loop for a
+signed-out visitor clicking the logo.
+
+- New `lib/useMarketingHomeHref.js` hook: starts at `"/"` (matches SSR, no
+  hydration mismatch), then swaps to `SITE_ORIGIN` after mount only when
+  `window.location.hostname === APP_HOST`. Preview deployments and localhost
+  never match `APP_HOST`, so they keep using `"/"` as before.
+- Wired into `app/login/page.jsx`, `app/signup/page.jsx`,
+  `components/auth/PortalLoginForm.jsx`, and `components/crm/WorkspaceShell.jsx`.
+- `tests/marketingHomeHref.test.mjs`: asserts the hook's default/swap
+  behavior and that every listed surface uses it instead of a hardcoded
+  `href="/"`.
+
 ## v1.80 — 2026-09-28
 
 Docs only: CLAUDE.md and AGENTS.md catch up with v1.60/v1.61. No runtime
