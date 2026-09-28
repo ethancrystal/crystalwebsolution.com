@@ -24,10 +24,11 @@ Environment Variables:
   that doesn't match `/^G-[A-Z0-9]{4,}$/i` is ignored and the tag never
   renders. On 2026-09-27 Google returned 404 for `gtag/js?id=G-B42BM1Q95J`,
   so check the stream in GA4 Admin → Data streams if no data arrives.
-- `NEXT_PUBLIC_GTM_ID` — optional Google Tag Manager container, for non-GA4
-  tags only. Unset means no container loads; there is no default (v1.71
-  removed the empty `GTM-5VKPC974`). A container must never hold a GA4 tag
-  for the same property, or every pageview counts twice.
+- `NEXT_PUBLIC_GTM_ID` — optional override of the default Google Tag Manager
+  container, `GTM-KJZPCQNM` (v1.75, replacing the empty `GTM-5VKPC974`). Any
+  value that isn't a container ID (e.g. `off`) switches GTM off. The
+  container is for non-GA4 tags only: it must never hold a GA4 tag for the
+  same property, or every pageview counts twice.
 - `NEXT_PUBLIC_GSC_VERIFICATION` — the token from Search Console's *HTML tag*
   verification method (the `content` value only, not the whole `<meta>`).
   Optional; when unset no verification tag is emitted, which is what you want

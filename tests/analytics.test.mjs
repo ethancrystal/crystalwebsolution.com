@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import vm from 'node:vm';
 import { readResolvedGlobalsCss } from './helpers/resolvedGlobalsCss.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -371,12 +372,12 @@ test('contact form reports generate_lead only on success, with no PII', async ()
   assert.ok(!/values\.(name|email|brief|company)/.test(paramsObject), 'contact details must never be sent to GA4');
 });
 
-test('GTM resolves only in production, and only when a container is configured', async () => {
+test('GTM resolves only in production, defaults to the owner container, and can be switched off', async () => {
   const { mod } = await loadAnalytics();
   assert.equal(mod.resolveGtmId(undefined, 'development'), '', 'next dev must never fire container tags');
   assert.equal(mod.resolveGtmId('GTM-ABCD1234', 'test'), '');
-  assert.equal(mod.resolveGtmId(undefined, 'production'), '', 'no container loads by default');
-  assert.equal(mod.resolveGtmId('   ', 'production'), '', 'a blank value means no container');
+  assert.equal(mod.resolveGtmId(undefined, 'production'), 'GTM-KJZPCQNM');
+  assert.equal(mod.resolveGtmId('   ', 'production'), 'GTM-KJZPCQNM', 'a blank override falls back to the default');
   assert.equal(mod.resolveGtmId('  GTM-WXYZ9876  ', 'production'), 'GTM-WXYZ9876');
   for (const bad of ['off', 'G-ABCD1234', 'GTM-AB', 'GTM-OK"><script>']) {
     assert.equal(mod.resolveGtmId(bad, 'production'), '', `${JSON.stringify(bad)} must not reach the script src`);
@@ -384,25 +385,16 @@ test('GTM resolves only in production, and only when a container is configured',
   assert.equal(mod.isTagManagerEnabled(), false, 'the test runner is not a production build');
 });
 
-test('with GA4 configured and no container, GTM stays off', async () => {
-  const { mod, appended } = await loadAnalytics({ nodeEnv: 'production' });
-  assert.equal(mod.GTM_ID, '');
-  assert.equal(mod.isTagManagerEnabled(), false);
-  assert.equal(mod.loadTagManager(), false);
-  mod.pageview('/', '');
-  assert.deepEqual(appended, [], 'only gtag.js, rendered by <Analytics />, may load');
-});
-
 test('gtm.js loads once, after the denied consent defaults', async () => {
-  const { mod, appended, rawDataLayer, dataLayer } = await loadAnalytics({ id: '', nodeEnv: 'production', gtmId: 'GTM-WXYZ9876' });
-  assert.equal(mod.GTM_ID, 'GTM-WXYZ9876');
+  const { mod, appended, rawDataLayer, dataLayer } = await loadAnalytics({ id: '', nodeEnv: 'production' });
+  assert.equal(mod.GTM_ID, 'GTM-KJZPCQNM');
   assert.equal(mod.loadTagManager(), true);
   assert.equal(mod.loadTagManager(), false, 'client-side navigations must not inject a second container');
 
   assert.equal(appended.length, 1);
   assert.equal(appended[0].tagName, 'script');
   assert.equal(appended[0].async, true);
-  assert.equal(appended[0].src, 'https://www.googletagmanager.com/gtm.js?id=GTM-WXYZ9876');
+  assert.equal(appended[0].src, 'https://www.googletagmanager.com/gtm.js?id=GTM-KJZPCQNM');
 
   const raw = rawDataLayer();
   assert.deepEqual(dataLayer()[0].slice(0, 2), ['consent', 'default'], 'container tags would fire on their own defaults otherwise');
@@ -414,7 +406,7 @@ test('gtm.js loads once, after the denied consent defaults', async () => {
 });
 
 test('GTM and GA4 together queue the consent default only once', async () => {
-  const { mod, dataLayer } = await loadAnalytics({ nodeEnv: 'production', storage: fakeStorage('granted'), gtmId: 'GTM-WXYZ9876' });
+  const { mod, dataLayer } = await loadAnalytics({ nodeEnv: 'production', storage: fakeStorage('granted') });
   mod.loadTagManager();
   mod.pageview('/', '');
   const queue = dataLayer();
@@ -425,7 +417,7 @@ test('GTM and GA4 together queue the consent default only once', async () => {
 });
 
 test('with GTM but no GA4, consent choices still reach the tag', async () => {
-  const { mod, dataLayer } = await loadAnalytics({ id: '', nodeEnv: 'production', gtmId: 'GTM-WXYZ9876' });
+  const { mod, dataLayer } = await loadAnalytics({ id: '', nodeEnv: 'production' });
   assert.equal(mod.isConsentRequired(), true, 'the banner must still ask when only GTM is on');
   mod.setConsent('granted');
   const queue = dataLayer();
@@ -444,6 +436,112 @@ test('a disabled container touches nothing', async () => {
   assert.equal(mod.isConsentRequired(), false);
 });
 
+// Runs the inline <head> snippet the way a browser would: against a fake
+// window/document whose only existing <script> is the snippet itself, which is
+// what Google's loader inserts gtm.js in front of.
+function runHeadSnippet(snippet, { pathname = '/', storage = fakeStorage() } = {}) {
+  const inserted = [];
+  const window = { localStorage: storage };
+  const existing = { parentNode: { insertBefore: (element) => inserted.push(element) } };
+  const document = {
+    getElementsByTagName: (tag) => (tag === 'script' ? [existing] : []),
+    createElement: (tagName) => ({ tagName }),
+  };
+  const context = { window, document, location: { pathname } };
+  vm.runInNewContext(snippet, context);
+  return {
+    window,
+    inserted,
+    dataLayer: () => (window.dataLayer || []).map((entry) => (entry && typeof entry.length === 'number' ? Array.from(entry) : entry)),
+  };
+}
+
+test('the head snippet queues denied consent, then loads the container', async () => {
+  const { mod } = await loadAnalytics({ id: '', nodeEnv: 'production' });
+  const snippet = mod.gtmHeadSnippet(mod.GTM_ID);
+  const { window, inserted, dataLayer } = runHeadSnippet(snippet, { pathname: '/services' });
+
+  assert.equal(inserted.length, 1, 'exactly one gtm.js');
+  assert.equal(inserted[0].async, true);
+  assert.equal(inserted[0].src, 'https://www.googletagmanager.com/gtm.js?id=GTM-KJZPCQNM');
+
+  const queue = dataLayer();
+  assert.deepEqual(queue[0].slice(0, 2), ['consent', 'default'], 'container tags would fire on their own defaults otherwise');
+  assert.deepEqual({ ...queue[0][2], wait_for_update: undefined }, { ...DENIED, wait_for_update: undefined });
+  assert.equal(queue[0][2].wait_for_update, 500);
+  assert.equal(queue[1].event, 'gtm.js', 'gtm.start follows the consent default');
+  assert.equal(typeof queue[1]['gtm.start'], 'number');
+  assert.equal(typeof window.gtag, 'function', 'Tag Assistant looks for window.gtag');
+  assert.equal(window[mod.CONSENT_QUEUED_FLAG], true);
+  assert.equal(window[mod.GTM_LOADED_FLAG], true);
+});
+
+test('the head snippet replays a returning visitor\'s stored choice', async () => {
+  const { mod } = await loadAnalytics({ id: '', nodeEnv: 'production' });
+  const snippet = mod.gtmHeadSnippet(mod.GTM_ID);
+  for (const [stored, expected] of [['granted', GRANTED], ['denied', DENIED]]) {
+    const queue = runHeadSnippet(snippet, { storage: fakeStorage(stored) }).dataLayer();
+    assert.deepEqual(queue[1].slice(0, 2), ['consent', 'update']);
+    assert.deepEqual({ ...queue[1][2] }, expected);
+    assert.equal(queue[2].event, 'gtm.js');
+  }
+  for (const storage of [fakeStorage('yes please'), fakeStorage(null, { throws: true })]) {
+    const queue = runHeadSnippet(snippet, { storage }).dataLayer();
+    assert.equal(queue.filter((entry) => Array.isArray(entry) && entry[1] === 'update').length, 0, 'no stored choice means no update');
+    assert.equal(queue[1].event, 'gtm.js', 'blocked storage must not stop the container');
+  }
+});
+
+test('the head snippet stands down on every CRM and auth page', async () => {
+  const { mod } = await loadAnalytics({ id: '', nodeEnv: 'production' });
+  const snippet = mod.gtmHeadSnippet(mod.GTM_ID);
+  for (const pathname of ['/login', '/login/client', '/signup', '/forgot-password', '/onboarding', '/dashboard', '/dashboard/projects/abc', '/team', '/admin/users', '/auth/confirm', '/auth/reset-password']) {
+    const { window, inserted } = runHeadSnippet(snippet, { pathname });
+    assert.equal(inserted.length, 0, `${pathname} must not load the container`);
+    assert.equal(window.dataLayer, undefined, `${pathname} must not touch dataLayer`);
+  }
+  for (const pathname of ['/', '/about', '/blog/some-post', '/loginhelp', '/teams']) {
+    assert.equal(runHeadSnippet(snippet, { pathname }).inserted.length, 1, `${pathname} is public`);
+  }
+});
+
+// lib/portalHost.mjs lands with v1.76 (#251); until then this checks the one
+// segment that was missing from UNTRACKED_PREFIXES.
+test('every portal segment is excluded from measurement', async () => {
+  const { PORTAL_SEGMENTS } = await import('../lib/portalHost.mjs').catch(() => ({}));
+  const { mod } = await loadAnalytics();
+  for (const segment of PORTAL_SEGMENTS || ['onboarding']) {
+    assert.equal(mod.isTrackablePath(`/${segment}`), false, `/${segment} is a portal page`);
+  }
+});
+
+test('after the head snippet, the module neither reloads GTM nor re-queues defaults', async () => {
+  const { mod, appended, dataLayer } = await loadAnalytics({ nodeEnv: 'production', storage: fakeStorage('granted') });
+  // Run the snippet against the same window the module sees.
+  const document = {
+    getElementsByTagName: () => [{ parentNode: { insertBefore: () => {} } }],
+    createElement: (tagName) => ({ tagName }),
+  };
+  vm.runInNewContext(mod.gtmHeadSnippet(mod.GTM_ID), { window: globalThis.window, document, location: { pathname: '/' } });
+
+  assert.equal(mod.loadTagManager(), false, 'the client fallback must not inject a second container');
+  assert.deepEqual(appended, []);
+  mod.pageview('/', '');
+  mod.setConsent('denied');
+  const queue = dataLayer();
+  assert.equal(queue.filter((entry) => entry[0] === 'consent' && entry[1] === 'default').length, 1);
+  assert.deepEqual([...queue.filter((entry) => entry[0] === 'consent' && entry[1] === 'update').map((entry) => entry[2].analytics_storage)], ['granted', 'denied'], 'stored grant from the snippet, then the new choice');
+  assert.ok(queue.findIndex((entry) => entry[0] === 'config') > 0, 'GA4 config still follows the defaults');
+});
+
+test('the head snippet is empty for anything but a container ID', async () => {
+  const { mod } = await loadAnalytics();
+  for (const bad of ['', 'off', 'G-ABCD1234', 'GTM-OK"><script>', undefined]) {
+    assert.equal(mod.gtmHeadSnippet(bad), '');
+  }
+  assert.equal(mod.gtmHeadSnippet(), '', 'the test runner is not a production build');
+});
+
 test('GTM loads only from public pages, and ships a no-JS fallback the CSP allows', async () => {
   const component = source('components/Analytics.jsx');
   assert.match(component, /isTrackablePath\(pathname\)\) loadTagManager\(\)/, 'CRM and auth pages must not load the container');
@@ -453,6 +551,9 @@ test('GTM loads only from public pages, and ships a no-JS fallback the CSP allow
   assert.match(banner, /isConsentRequired\(\)/, 'the banner must ask when either tag is on');
 
   const layout = source('app/layout.jsx');
+  const head = layout.slice(layout.indexOf('<head>'), layout.indexOf('</head>'));
+  assert.match(head, /\{GTM_ID && <script dangerouslySetInnerHTML=\{\{ __html: gtmHeadSnippet\(GTM_ID\) \}\} \/>\}/, 'the GTM snippet belongs in <head>');
+  assert.ok(head.indexOf('gtmHeadSnippet') < head.indexOf('cws:intro-seen'), 'GTM goes as high in <head> as possible');
   assert.match(layout, /<noscript>\s*<iframe\s+src=\{`https:\/\/www\.googletagmanager\.com\/ns\.html\?id=\$\{GTM_ID\}`\}/);
   assert.match(layout, /\{GTM_ID && \(/, 'no fallback iframe when GTM is off');
 

@@ -1,16 +1,14 @@
-## v1.71 — 2026-09-27
+## v1.79 — 2026-09-28
 
 Staleness and dead-code sweep. Every claim below was checked against live
-production on 2026-09-27. One runtime change: Google Tag Manager is off by
-default. (The CRM component tests this sweep also found unrun were wired
-into CI by PR #246 while it was open.)
+production on 2026-09-27. No runtime change: the empty GTM default this
+sweep first removed was replaced by v1.75's container `GTM-KJZPCQNM`, and
+the unrun CRM component tests it found were wired into CI by PR #246,
+both while this PR was open.
 
-- **GTM off by default.** Container `GTM-5VKPC974` was published empty
-  (version 1, no tags) yet cost ~113 KiB of script on every public page.
-  `lib/analytics.mjs` no longer has a default container; `NEXT_PUBLIC_GTM_ID`
-  still opts one in. `G-B42BM1Q95J` is now the only Google tag the site
-  loads. Google returns 404 for `gtag/js?id=G-B42BM1Q95J` (2026-09-27), so no
-  GA4 data is collected until the stream is fixed — see `docs/ANALYTICS.md`.
+- **GA4 finding (docs only).** Google returns 404 for
+  `gtag/js?id=G-B42BM1Q95J` (2026-09-27), so no GA4 data is collected until
+  the stream is fixed. Recorded in `docs/ANALYTICS.md` and the ops manual.
 - **Security: auth redirect allow-list.** `supabase/config.toml` drops
   `crystalwebsolution.com` and `cdsportswearusa.com`. The former now serves a
   third-party gambling-spam site from Vercel's edge, and an allow-listed host
@@ -52,12 +50,46 @@ into CI by PR #246 while it was open.)
   `docs/plans/refactor-architecture-cleanup-1.md` are now relative.
 - **Versioning note** — gaps below this entry, recorded as for v1.43: v1.69
   names three merged PRs (#243, #245, #246), none of which touched
-  `VERSION` or `CHANGELOG.md`; v1.63
+  `VERSION` or `CHANGELOG.md` (open PRs #249 and #250 backfill #245 and
+  #246); v1.71 was this PR's number before it renumbered to v1.79; v1.63
   shipped as PR #239 with no entry (open PR #238 backfills it); v1.62 and
   v1.65 are held by open PR #238; v1.66 never shipped (it was the working
   title of #241's first commits, which shipped as v1.68); PR #208
   (2026-09-24) and PR #215 (2026-09-23) reused v1.41 and v1.44 without
   entries; PRs #193 and #195 (2026-09-13) merged unnumbered.
+
+## v1.77 — 2026-09-28
+
+Google Tag Manager (`GTM-KJZPCQNM`) now loads from Google's own `<head>` snippet on every public page, instead of being injected after hydration (owner request 2026-09-28). The snippet is guarded so it keeps the two rules the old loader had: no GTM on portal pages, and no container tags before the cookie banner's answer. v1.76 is claimed by open PR #251.
+
+- `lib/analytics.mjs` `gtmHeadSnippet(id)` builds the inline script. `app/layout.jsx` renders it as the first script in `<head>`. In order, it:
+  1. stops on CRM/auth pages (`UNTRACKED_PREFIXES`);
+  2. queues the Consent Mode v2 defaults (all four signals denied, `wait_for_update: 500`) and replays a returning visitor's stored choice;
+  3. runs Google's snippet verbatim with the container ID.
+- The `ns.html` `<noscript>` iframe stays right after `<body>`, as Google specifies.
+- `/onboarding` added to `UNTRACKED_PREFIXES`. It is a portal page (`middleware.js`, `lib/pageTransition.mjs`) that was missing, so GA4 and GTM both skip it now.
+- The snippet and the module share window flags (`__cwsConsentQueued`, `__cwsGtmLoaded`), so neither the consent defaults nor `gtm.js` are ever queued twice. `loadTagManager()` in `components/Analytics.jsx` stays as a fallback for a visit that opens on a portal page and then client-navigates to a public one.
+- `tests/analytics.test.mjs` runs the real snippet in a `node:vm` sandbox. It covers:
+  - consent ordering;
+  - stored-choice replay, including blocked storage;
+  - every portal path;
+  - interplay with the module;
+  - rejection of malformed IDs.
+
+## v1.75 — 2026-09-28
+
+Google Tag Manager now loads the owner's new container **`GTM-KJZPCQNM`** instead of `GTM-5VKPC974`, which was published empty (owner request 2026-09-28). Numbered after v1.71–v1.74, which are claimed by open PRs #244, #249, #250 and #251.
+
+- `lib/analytics.mjs`: `DEFAULT_GTM_ID` is now `GTM-KJZPCQNM`. `NEXT_PUBLIC_GTM_ID` still overrides it, and `off` still disables it.
+- No change to how GTM loads. The site already emits the same `gtm.js` script and `ns.html` `<noscript>` iframe as Google's install snippet, with these differences:
+  - It loads in production builds only.
+  - It waits behind the consent banner, with Google Consent Mode defaults of "denied".
+  - It never loads on CRM or auth routes.
+  - It loads once per visit, not once per client-side navigation.
+
+  Pasting the raw snippet into `<head>` would have loaded the container before consent and on the portal.
+- `tests/analytics.test.mjs` pins the new ID.
+- **Conflicts with open PR #244 (v1.71)**, which removes the GTM default altogether. Merged after this, #244 would switch Tag Manager off again unless `NEXT_PUBLIC_GTM_ID=GTM-KJZPCQNM` is set in Vercel Production, or #244 keeps this default.
 
 ## v1.70 — 2026-09-27
 
