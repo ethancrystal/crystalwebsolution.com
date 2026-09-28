@@ -1,3 +1,25 @@
+## v1.79 — 2026-09-28
+
+Staleness sweep: removes dead code, stale files and outdated instructions, and closes a sign-in hole left by the retired domains. The site's look and behaviour are unchanged. Numbered after v1.78 (#251, on `main`). v1.71–v1.73 are claimed by open PRs #249 and #250. This PR was opened as v1.71.
+
+- **Security — auth redirect allow-list** (`supabase/config.toml`). Removed `crystalwebsolution.com`, `cdsportswearusa.com` and their `www` hosts. `crystalwebsolution.com` was reported on 2026-09-27 to be serving a third-party spam site from another Vercel account, and an allow-listed host someone else controls can receive sign-in tokens.
+  - **Owner step:** remove the same entries from the live list in the Supabase dashboard (Authentication → URL Configuration → Redirect URLs). This file only configures the local stack.
+- **Deleted unused modules:** `lib/proceduralArt.js`, `components/three/FlyingCarousel.jsx`, `components/marketing/IdleScene.jsx`, `components/GlyphMask.jsx` and `components/BorderGlow.jsx`. The Lab section keeps using `lib/flyingCarouselLayout.mjs`.
+- **Deleted test-only modules**, with their tests and the CSS only they used: `ImageBlock.jsx` and its `.module.css`, `marketing/Layout.jsx`, `MarketingHeader.jsx` and `lib/motionStudies.mjs`.
+- **Deleted stale files:**
+  - `GEMINI.md`, a drifted third copy of the agent instructions;
+  - `docs/PLUGINS-AND-SKILLS.md`, which described integrations that never existed;
+  - `GOAL_CHECKPOINT.md`, `_gsc-crawled-urls-temp.txt`, `test_service_pages.sh`, a stray `.gitconfig` and an unreferenced `.docx`.
+- **Instructions and docs corrected:**
+  - the retired-domain status in `CLAUDE.md`, `lib/seo.mjs` and the SEO operations manual;
+  - the GA4 ID (`G-B42BM1Q95J`) and the GTM container (`GTM-KJZPCQNM`) in `docs/ANALYTICS.md`;
+  - the migration ledger in `docs/CRM-OPERATIONS.md`;
+  - a single version-numbering rule across `CLAUDE.md`, `AGENTS.md`, `VERSIONING.md` and `vcs.md`;
+  - the Windows build note, and the README and architecture drift;
+  - the Codex and Cursor agent definitions.
+- **CHANGELOG:** two out-of-order heading pairs are fixed, and a note records the known numbering gaps.
+- GTM, analytics and the `app` portal redirects are untouched: this release keeps `main`'s v1.75–v1.78 behaviour.
+
 ## v1.78 — 2026-09-28
 
 The client portal moves to `https://app.cdsportswearinc.com` (owner decision 2026-09-28). The marketing site stays on `www`. Numbered after v1.77 (#253, on `main`) and v1.71–v1.73, which are claimed by open PRs #244, #249 and #250. This PR was opened as v1.74, then renumbered to v1.76 after #252 merged and to v1.78 after #253 merged. v1.74 and v1.76 were never shipped.
