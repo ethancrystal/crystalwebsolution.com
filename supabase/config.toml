@@ -175,6 +175,10 @@ additional_redirect_urls = [
   "http://127.0.0.1:3000/**",
   "https://cdsportswearinc.com/**",
   "https://www.cdsportswearinc.com/**",
+  # The client portal's own host (lib/portalHost.mjs). www stays listed: auth
+  # links sent before NEXT_PUBLIC_APP_URL moved still point there and are
+  # redirected to this host with their query string intact.
+  "https://app.cdsportswearinc.com/**",
   # Retired domains, kept harmless in the allow-list rather than pruned:
   # crystalwebsolution.com is dark by design (see CLAUDE.md), and
   # cdsportswearusa.com is detached from Vercel (DEPLOYMENT_NOT_FOUND) as of
