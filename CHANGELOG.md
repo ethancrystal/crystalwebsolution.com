@@ -5,7 +5,7 @@ Fixes a live bug in the CRM notification outbox. Adds migration
 it to production is an owner action (`docs/CRM-OPERATIONS.md`
 §Migrations). Until it runs, each new notification email is claimed up to
 25 times and then stays `pending`, and failed sends are never recorded.
-v1.69 is reserved for the staleness-sweep branch.
+v1.69 was already claimed by other open PRs, so this release takes v1.70.
 
 - **Root cause.** `0033` (live since 2026-08-17) redefined
   `mark_notification_email_sent` and `mark_notification_email_failed` with
