@@ -130,6 +130,7 @@ animation code. Rules:
   `--blue`, `--violet`, etc.).
 - Supabase is the live CRM boundary. Application clients live under `lib/supabase/` (`browser.js`, `server.js`, `admin.js`), and canonical SQL lives in `supabase/migrations/`, numbered from `0001` (check the directory for the head). `.mcp.json` configures a Supabase MCP server for queries.
 - The production host is `https://www.cdsportswearinc.com` (apex 308-redirects to `www`).
+- The client portal is served on `https://app.cdsportswearinc.com` by host-conditioned redirects in `lib/portalHost.mjs` (loaded by `next.config.js`): `www` portal paths 308 to `app`, and non-portal pages on `app` 308 to `www`. Add new portal route segments to `PORTAL_SEGMENTS`.
   All URLs must use the `www` host; never emit bare apex URLs in canonicals,
   sitemaps, or OG tags.
 - Data-access paths coexist: Project delivery reads go through `lib/crm/projects.js` against the `lib/crm/project-contract.mjs` contract shape (Centralized `TASK_PRIORITIES`, `TASK_STATUSES`, etc.); writes use `'use server'` actions in `app/actions/project-actions.js`. Other tables (companies/contacts/deals/tasks/users) query tables directly via browser client, scoped by RLS.

@@ -1,62 +1,25 @@
-## v1.79 — 2026-09-28
+## v1.78 — 2026-09-28
 
-Staleness and dead-code sweep. Every claim below was checked against live
-production on 2026-09-27. No runtime change: the empty GTM default this
-sweep first removed was replaced by v1.75's container `GTM-KJZPCQNM`, and
-the unrun CRM component tests it found were wired into CI by PR #246,
-both while this PR was open.
+The client portal moves to `https://app.cdsportswearinc.com` (owner decision 2026-09-28). The marketing site stays on `www`. Numbered after v1.77 (#253, on `main`) and v1.71–v1.73, which are claimed by open PRs #244, #249 and #250. This PR was opened as v1.74, then renumbered to v1.76 after #252 merged and to v1.78 after #253 merged. v1.74 and v1.76 were never shipped.
 
-- **GA4 finding (docs only).** Google returns 404 for
-  `gtag/js?id=G-B42BM1Q95J` (2026-09-27), so no GA4 data is collected until
-  the stream is fixed. Recorded in `docs/ANALYTICS.md` and the ops manual.
-- **Security: auth redirect allow-list.** `supabase/config.toml` drops
-  `crystalwebsolution.com` and `cdsportswearusa.com`. The former now serves a
-  third-party gambling-spam site from Vercel's edge, and an allow-listed host
-  someone else controls can receive auth tokens. The live Supabase Auth
-  dashboard list needs the same pruning (owner action).
-- **Deleted (owner-approved):** unused `lib/proceduralArt.js`,
-  `components/three/FlyingCarousel.jsx` (Lab uses only
-  `lib/flyingCarouselLayout.mjs`), `components/marketing/IdleScene.jsx`,
-  `components/GlyphMask.jsx` and `components/BorderGlow.jsx`; test-only
-  `components/marketing/{ImageBlock.jsx,ImageBlock.module.css,Layout.jsx,MarketingHeader.jsx}`
-  and `lib/motionStudies.mjs`, with their tests and dead CSS rules;
-  `GEMINI.md` (a drifted third copy of the agent instructions: old brand,
-  wrong domain, CRM "hidden", migrations "through 0014");
-  `docs/PLUGINS-AND-SKILLS.md` (described a `.agnes/` skills folder and a
-  Builder.io integration that never existed); `GOAL_CHECKPOINT.md`,
-  `_gsc-crawled-urls-temp.txt`, `test_service_pages.sh`, a stray `.gitconfig`
-  and an unreferenced `.docx`.
-- **Stale facts corrected** in `CLAUDE.md`, `lib/seo.mjs`, `README.md`,
-  `docs/seo/OPERATIONS-MANUAL.md`, `docs/CRM-OPERATIONS.md` and
-  `docs/ARCHITECTURE.md`: `cdsportswearusa.com` now 301s to the live host
-  (was "DEPLOYMENT_NOT_FOUND"); `crystalwebsolution.com` serves spam (was
-  "dark"); the apex and CRM-flag checks are re-dated; the GA4 ID is
-  `G-B42BM1Q95J`, not `G-YENE9MFT5K`; resolved ops items are closed; the live
-  migration ledger is described accurately (43 of 45 files recorded, both
-  gaps harmless); README's brand, checkout path and drifted counts are fixed.
-- **One version rule.** `CLAUDE.md`, `AGENTS.md`, `VERSIONING.md` and
-  `aidd_docs/memory/vcs.md` disagreed on how to pick the next number, and
-  said PRs land as squash commits. All now say: one above the highest
-  `vX.NN` on `origin/main`, in `VERSION`, atop `CHANGELOG.md` or in an open PR
-  title; PRs land as merge commits whose message body carries the title.
-- **`.gitignore`** loses three redundant lines (a second `.vercel`, a second
-  `.env*`, and `.env.*`) that silently re-ignored `.env.example` despite its
-  `!.env.example` exception.
-- **Housekeeping:** v1.55/v1.56 and v1.10/v1.11 swapped into newest-first
-  order below (in each pair the later release was listed second); the Codex
-  `furious-reviewer` prompt loses 40 stray `\r` escapes; the Cursor
-  `gatekeeper` no longer hands failures to a `furious-reviewer` Cursor does
-  not have; machine-specific links in
-  `docs/plans/refactor-architecture-cleanup-1.md` are now relative.
-- **Versioning note** — gaps below this entry, recorded as for v1.43: v1.69
-  names three merged PRs (#243, #245, #246), none of which touched
-  `VERSION` or `CHANGELOG.md` (open PRs #249 and #250 backfill #245 and
-  #246); v1.71 was this PR's number before it renumbered to v1.79; v1.63
-  shipped as PR #239 with no entry (open PR #238 backfills it); v1.62 and
-  v1.65 are held by open PR #238; v1.66 never shipped (it was the working
-  title of #241's first commits, which shipped as v1.68); PR #208
-  (2026-09-24) and PR #215 (2026-09-23) reused v1.41 and v1.44 without
-  entries; PRs #193 and #195 (2026-09-13) merged unnumbered.
+- `tests/analytics.test.mjs` now checks every `PORTAL_SEGMENTS` entry against the analytics skip list (it fell back to `/onboarding` alone until this module existed).
+- **Host split** (`lib/portalHost.mjs`, loaded by `next.config.js` `redirects()`). These are Vercel routing redirects, so they run before any page or middleware and add no function cost.
+  - On `www`, the portal paths (`/login`, `/signup`, `/forgot-password`, `/onboarding`, `/dashboard`, `/team`, `/admin`, `/auth/*`) 308 to the same path on `app`, keeping the query string. Bookmarks and emailed invite, confirm and reset links sent before the switch keep working.
+  - On `app`, `/` opens `/login`, where middleware already sends signed-in users to their own portal home. Every other non-portal page 308s to the same page on `www`.
+  - `/api/*` (the contact form, the pg_cron notification drain), `/_next`, `/_vercel` and static files work on both hosts.
+  - With `NEXT_PUBLIC_CRM_ENABLED=false`, only the app-to-`www` rule applies, so the app host cannot loop through `/login`.
+  - The rules match only the production host names, so preview deployments and localhost behave exactly as before.
+- **Supabase Auth**: `https://app.cdsportswearinc.com/**` added to `additional_redirect_urls` in `supabase/config.toml`. `www` stays listed for links sent before the switch.
+- **Owner steps**, outside the repo:
+  - Add the app host to Supabase Auth's redirect URLs and set its Site URL.
+  - Set `NEXT_PUBLIC_APP_URL=https://app.cdsportswearinc.com` in Vercel Production. It is inlined at build time, so a rebuild is needed.
+  - Portal sessions are per host, so signed-in users sign in once more on `app`.
+- **Tests**: `tests/portalHost.test.mjs` (7 tests). It checks every middleware-guarded path against `PORTAL_SEGMENTS`, the rule order, the path exclusions and the CRM-off case.
+- **Verified** on a production build with `Host` headers:
+  - `www`: `/login`, `/login/client?next=…`, `/dashboard/…`, `/admin/…` and `/auth/verify?token_hash=…` 308 to `app` with the query kept. `/` and `/about` return 200.
+  - `app`: `/` 307s to `/login`. `/login` returns 200. `/about` and `/work/…?x=1` 308 to `www`. `/api/contact`, `/robots.txt` and `/icon.png` are served.
+  - A `*.vercel.app` host is unchanged.
+- CLAUDE.md and AGENTS.md record the split.
 
 ## v1.77 — 2026-09-28
 

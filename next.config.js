@@ -104,6 +104,14 @@ const nextConfig = {
   // needs into .next/standalone — required for the slim Docker runner stage.
   output: 'standalone',
   outputFileTracingRoot: __dirname,
+  // Marketing site on www, client portal on app.cdsportswearinc.com
+  // (lib/portalHost.mjs). Host-conditioned, so previews and localhost are
+  // unaffected. The CRM flag is read the same way lib/crmFlag.js reads it.
+  async redirects() {
+    const { portalHostRedirects } = await import('./lib/portalHost.mjs');
+    const crmEnabled = process.env.NEXT_PUBLIC_CRM_ENABLED?.trim().toLowerCase() !== 'false';
+    return portalHostRedirects({ crmEnabled });
+  },
   // Security + privacy response headers. Screaming Frog flagged all four as
   // missing on 38/47 URLs ("Security: Missing … Header", 80.85% of the crawl).
   // Applied to every route; the site is served behind Vercel, these are additive.
