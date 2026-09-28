@@ -1,6 +1,6 @@
-## v1.74 — 2026-09-28
+## v1.76 — 2026-09-28
 
-The client portal moves to `https://app.cdsportswearinc.com` (owner decision 2026-09-28). The marketing site stays on `www`. Numbered after v1.71–v1.73, which are claimed by open PRs #244, #249 and #250.
+The client portal moves to `https://app.cdsportswearinc.com` (owner decision 2026-09-28). The marketing site stays on `www`. Numbered after v1.75 (#252, on `main`) and v1.71–v1.73, which are claimed by open PRs #244, #249 and #250. This PR was opened as v1.74 before #252 merged.
 
 - **Host split** (`lib/portalHost.mjs`, loaded by `next.config.js` `redirects()`). These are Vercel routing redirects, so they run before any page or middleware and add no function cost.
   - On `www`, the portal paths (`/login`, `/signup`, `/forgot-password`, `/onboarding`, `/dashboard`, `/team`, `/admin`, `/auth/*`) 308 to the same path on `app`, keeping the query string. Bookmarks and emailed invite, confirm and reset links sent before the switch keep working.
@@ -19,6 +19,21 @@ The client portal moves to `https://app.cdsportswearinc.com` (owner decision 202
   - `app`: `/` 307s to `/login`. `/login` returns 200. `/about` and `/work/…?x=1` 308 to `www`. `/api/contact`, `/robots.txt` and `/icon.png` are served.
   - A `*.vercel.app` host is unchanged.
 - CLAUDE.md and AGENTS.md record the split.
+
+## v1.75 — 2026-09-28
+
+Google Tag Manager now loads the owner's new container **`GTM-KJZPCQNM`** instead of `GTM-5VKPC974`, which was published empty (owner request 2026-09-28). Numbered after v1.71–v1.74, which are claimed by open PRs #244, #249, #250 and #251.
+
+- `lib/analytics.mjs`: `DEFAULT_GTM_ID` is now `GTM-KJZPCQNM`. `NEXT_PUBLIC_GTM_ID` still overrides it, and `off` still disables it.
+- No change to how GTM loads. The site already emits the same `gtm.js` script and `ns.html` `<noscript>` iframe as Google's install snippet, with these differences:
+  - It loads in production builds only.
+  - It waits behind the consent banner, with Google Consent Mode defaults of "denied".
+  - It never loads on CRM or auth routes.
+  - It loads once per visit, not once per client-side navigation.
+
+  Pasting the raw snippet into `<head>` would have loaded the container before consent and on the portal.
+- `tests/analytics.test.mjs` pins the new ID.
+- **Conflicts with open PR #244 (v1.71)**, which removes the GTM default altogether. Merged after this, #244 would switch Tag Manager off again unless `NEXT_PUBLIC_GTM_ID=GTM-KJZPCQNM` is set in Vercel Production, or #244 keeps this default.
 
 ## v1.70 — 2026-09-27
 
