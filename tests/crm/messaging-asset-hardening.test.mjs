@@ -94,6 +94,26 @@ test('realtime refreshes through the authorized read model and does not append r
   assert.doesNotMatch(source, /payload\.body|new\.body|payload\.message/);
 });
 
+test('realtime subscribes on private, authed channels to match the private DB broadcasts', async () => {
+  // 0009/0032 broadcast with realtime.send(..., true). A private broadcast is
+  // only delivered to private channels, and a private join is authorized by
+  // the realtime.messages RLS policy against the socket's JWT. A public
+  // channel on the same topic silently receives nothing.
+  const hook = await readFile(threadHookPath, 'utf8');
+  for (const migration of ['0009_project_realtime_crm.sql', '0032_project_asset_lifecycle_hardening.sql']) {
+    const sql = await readFile(`supabase/migrations/${migration}`, 'utf8');
+    assert.match(sql, /realtime\.send\([\s\S]*?'project:'[\s\S]*?,\s*true\s*\)/, `${migration} broadcasts privately`);
+  }
+  assert.match(hook, /\.channel\([^)]*\{\s*config:\s*\{\s*private:\s*true\s*\}\s*\}\s*\)/);
+  assert.doesNotMatch(hook, /\.channel\(`project:\$\{projectId\}:\$\{visibility\}`\)/);
+  assert.match(hook, /await supabase\.realtime\.setAuth\(\)/);
+  const authAt = hook.indexOf('supabase.realtime.setAuth()');
+  const subscribeAt = hook.indexOf('.subscribe(');
+  assert.ok(authAt > -1 && authAt < subscribeAt, 'setAuth runs before the channels subscribe');
+  // Clients only ever open the shared topic; internal stays staff-only.
+  assert.match(hook, /profile\?\.role === 'client' \? \['shared'\] : \['shared', 'internal'\]/);
+});
+
 test('cron worker invokes stale attachment cleanup through the protected RPC', async () => {
   const source = await read(cronPath);
   assert.match(source, /cleanup_stale_project_attachments/);
