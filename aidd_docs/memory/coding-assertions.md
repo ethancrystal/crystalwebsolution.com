@@ -5,7 +5,7 @@
 | Order | Command | Checks |
 | ----- | ------- | ------ |
 | 1 | `pnpm test` | Node contract tests. Two globs: `tests/*.test.mjs` and `tests/crm/*.test.mjs`. |
-| 2 | `pnpm test:marketing` | vitest + jsdom component tests |
+| 2 | `pnpm test:components` | vitest + jsdom component tests: every `tests/**/*.test.jsx`, marketing and CRM |
 | 3 | `git status` | `tsconfig.json` untouched. `next build` and `next dev` rewrite it; revert with `git checkout -- tsconfig.json`. |
 
 ## Before push

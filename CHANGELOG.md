@@ -1,12 +1,46 @@
-## v1.69 — 2026-09-27
+## v1.70 — 2026-09-27
 
-AI tooling only; no application code, route or runtime change.
+Fixes a live bug in the CRM notification outbox. Adds migration
+`0045_fix_outbox_mark_coalesce.sql`, **checked in, not applied**: applying
+it to production is an owner action (`docs/CRM-OPERATIONS.md`
+§Migrations). Until it runs, each new notification email is claimed up to
+25 times and then stays `pending`, and failed sends are never recorded.
+v1.69 was already claimed by other open PRs, so this release takes v1.70.
 
-- **Codex tsconfig hook** (`.codex/hooks.json` + `.codex/hooks/revert-generated-tsconfig.mjs`):
-  the same PostToolUse hook Claude has, restoring `tsconfig.json` after
-  `next build` / `next dev` only when the diff is purely the Next.js
-  rewrite. The command resolves the script from `git rev-parse
-  --show-toplevel`, so it works from any checkout or worktree.
+- **Root cause.** `0033` (live since 2026-08-17) redefined
+  `mark_notification_email_sent` and `mark_notification_email_failed` with
+  `pg_catalog.coalesce(...)`. COALESCE is SQL grammar, not a `pg_catalog`
+  function, so both RPCs raised 42883 on every call. plpgsql resolves calls
+  only when a statement runs, so CREATE accepted them. `0016` fixed the same
+  mistake once before.
+- **Effect.** The drain route sent each claimed row, could not mark it sent,
+  and reclaimed it once the lease expired. The four `lead.created` alerts
+  (2026-08-26 to 2026-09-03) used all 25 claims over 5 to 12 days and sit
+  `pending` with stale leases. Resend honours the idempotency key for 24
+  hours only, so reclaims a day or more apart could resend. All four went to
+  the admin account of the time (now a project manager), and every lead's
+  deal exists, so no lead was lost.
+- **Fix.** Both functions exactly as `0033` defines them, with bare
+  `coalesce(`: three substitutions and nothing else, so signatures,
+  security definer, search_path and grants are unchanged. A closing smoke
+  block calls both RPCs with nil ids, so the migration fails at apply time
+  if either body still cannot run.
+- **Stuck rows** are not touched by the migration. The PR proposes a guarded
+  one-off statement for owner approval that marks them terminal without
+  resetting `attempts`, which would resend month-old alerts.
+- **Tests.** `tests/crm/migration-0045-fix-outbox-mark-coalesce.test.mjs`
+  (source contract: each body equals 0033's apart from the three
+  substitutions) and `tests/crm/migration-grammar-guard.test.mjs`, which
+  replays every migration and fails if the latest definition of any function
+  schema-qualifies COALESCE, NULLIF, GREATEST or LEAST.
+  `supabase/tests/0045_fix_outbox_mark_coalesce.test.sql` adds 16 pgTAP
+  assertions. `pnpm test:db` was not run (no Docker here); the pgTAP file
+  was executed in PGlite (Postgres 17) against a replica of
+  `notifications_outbox` with `0033` and `0045` applied, passing 16/16, and
+  it fails against `0033` alone.
+- **Docs.** `docs/CRM-OPERATIONS.md` no longer says the idempotency key
+  prevents every duplicate send, and records migration state through `0045`.
+  The drain route's comments are corrected the same way (comments only).
 
 ## v1.68 — 2026-09-27
 

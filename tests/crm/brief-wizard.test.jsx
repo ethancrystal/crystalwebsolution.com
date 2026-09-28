@@ -49,7 +49,10 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe('BriefWizard', () => {
+// getByRole over the full wizard DOM is slow in jsdom: the review/submit
+// tests take 3-9s, alone or when `pnpm test:components` runs every file in
+// parallel, which is past vitest's 5s default.
+describe('BriefWizard', { timeout: 20_000 }, () => {
   it('renders the first step with pre-filled answers', () => {
     render(<BriefWizard brief={brief()} />);
     expect(screen.getByRole('heading', { name: /Your website/ })).toBeInTheDocument();
