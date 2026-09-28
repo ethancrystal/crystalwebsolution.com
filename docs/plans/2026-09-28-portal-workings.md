@@ -130,6 +130,17 @@ In the owner's words, condensed:
 
 ---
 
+## 3a. Visual direction (owner, 2026-09-28)
+
+"Neat and clean, deliberate, not shiny." The owner chose **dark, flat and
+quiet**: solid dark navy surfaces, thin borders, one blue accent; no glows,
+gradients, glassy blur or cyan titles. Status is text + icon + colour
+(`CLAUDE-VISUAL-EXPERIENCE-PLAN.md` Phase 5). Rollout: **shared frame first**
+(one shell, navigation, page width, buttons, cards, tables, forms for all three
+portals), then client pages, then employee, then admin, one PR each so each can
+be checked on its Vercel preview. Transactional emails use the same dark, flat
+palette (v1.86).
+
 ## 4. Phases
 
 Client first, per the owner. Each phase is one or more PRs, each with its own
@@ -142,7 +153,7 @@ pgTAP tests (`aidd_docs/memory/testing.md`).
 |---|---|
 | C1.1 | Verify the salesperson-link path end to end on `app` host: signup → verify email → `/auth/callback` → `/onboarding` → `/dashboard`. Fix any dead end. |
 | C1.2 | First-run tutorial component on `/dashboard`: 4 steps, keyboard accessible, focus-managed, respects `prefers-reduced-motion`, Skip and Replay. |
-| C1.3 | Remember completion per user. Default: `localStorage` now, DB flag later if needed (see D2). |
+| C1.3 | Remember completion **per browser** in `localStorage` (owner decision D2); no SQL. |
 | C1.4 | Empty-state dashboard: one clear "Start your first project" action. |
 | Accept | New account reaches the dashboard, sees the tutorial once, can replay it; vitest covers step order, Skip, Replay, reduced motion. |
 
@@ -150,8 +161,8 @@ pgTAP tests (`aidd_docs/memory/testing.md`).
 
 | Task | Detail |
 |---|---|
-| C2.1 | Service cards: Website, Logo, Branding, Marketing, Automation, Something else (final list per D1). |
-| C2.2 | New brief templates in `lib/crm/brief-templates.mjs`: **Branding** and **Automation**; **Marketing** absorbs SEO and PPC as sub-choices (per D1). |
+| C2.1 | Service cards: **Website, Branding (logo + identity, one service), Marketing, Automation**, plus Something else (owner decision D1). |
+| C2.2 | Brief templates in `lib/crm/brief-templates.mjs`: the existing **Logo** brief becomes **Branding** (logo + identity questions in one brief); new **Automation** brief; **Marketing** absorbs SEO and PPC as sub-choices. Existing `logo`/`seo`/`ppc` rows stay valid. |
 | C2.3 | Migration `0046`: widen `project_briefs.brief_type` check to the new types; keep existing `seo`/`ppc` rows valid. |
 | C2.4 | Tests: template shape tests, migration contract, pgTAP for the constraint. |
 | Accept | Each card opens its own brief; submitting creates the project; admin and assigned staff are notified (existing `project.brief_submitted`). |
@@ -202,15 +213,15 @@ pgTAP tests (`aidd_docs/memory/testing.md`).
 
 ---
 
-## 5. Decisions needed from the owner
+## 5. Owner decisions
 
-| # | Question | Default if unanswered |
+| # | Topic | Decision / status |
 |---|---|---|
-| D1 | Final service list. Is **Logo** separate from **Branding**? Does **Marketing** cover SEO + PPC (+ social?) as sub-choices? What does **Automation** mean for your clients (e.g. CRM/email workflows, Zapier/Make, AI chat)? | Six cards: Website, Logo, Branding, Marketing (SEO / PPC / Social), Automation, Something else |
-| D2 | Tutorial shown once per **account** (all devices) or per **browser**? | Per browser first (no SQL); upgrade to per account if clients use several devices |
-| D3 | Does the salesperson have a portal account? Should the link they send credit them and auto-assign them to the client's first project? | No attribution in phase C1; revisit after C4 |
+| D1 | Service list | **Decided 2026-09-28:** Logo and Branding are **one** service. Still open: does Marketing cover SEO + PPC (+ social?), and what Automation means for clients. |
+| D2 | Tutorial memory | **Decided 2026-09-28:** once per **browser** (`localStorage`). |
+| D3 | Salesperson attribution | **Decided 2026-09-28:** no auto-assignment or attribution. Staff are assigned to a project after the client starts it (admin assigns, existing `assign_project_user`). |
 | D4 | Should clients approve / request changes inside the portal? (`docs/ux/crm-journey.md` says yes.) | Yes (Phase C3) |
-| D5 | Can admin create projects directly (e.g. from a won deal), or only clients via a brief? | Both (Phase A1.3) |
+| D5 | Admin-created projects | **Decided 2026-09-28:** yes, admin can start projects (Phase A1.3). |
 
 ## 6. Verification per phase
 

@@ -12,7 +12,13 @@ Docs only, no runtime change. Adds `docs/plans/2026-09-28-portal-workings.md`: h
   - the admin home doesn't link to projects, briefs or the pipeline;
   - admin status transitions disagree with `ALLOWED_TRANSITIONS`.
 - **Phases:** C1 arrival + tutorial, C2 service types + briefs (migration `0046`), C3 client actions + approvals (`0047`), C4 notifications, E1 employee queue, A1 admin control room.
-- **Owner decisions D1–D5:** the service list, how the tutorial remembers it was seen, salesperson attribution, client approvals, and admin-created projects.
+- **Owner decisions:** D1–D5 cover the service list, how the tutorial remembers it was seen, salesperson attribution, client approvals, and admin-created projects. Recorded on 2026-09-28:
+  - Logo and Branding are one service.
+  - The tutorial shows once per browser.
+  - No salesperson auto-assignment.
+  - Admin can start projects.
+  - Still open: Marketing sub-choices, what Automation covers, and client approvals (D4).
+- **Visual direction:** dark, flat and quiet. The shared frame comes first, then client, employee and admin pages.
 - `docs/plans/README.md` lists the plan as Planned.
 
 ## v1.82 — 2026-09-28
