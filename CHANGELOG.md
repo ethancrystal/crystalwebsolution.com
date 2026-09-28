@@ -1,3 +1,20 @@
+## v1.85 — 2026-09-28
+
+Docs only, no runtime change. Adds `docs/plans/2026-09-28-portal-workings.md`: how the client, employee and admin portals should work inside, what exists today (from a code read at v1.82), and a phased plan with the client portal first. Numbered after v1.83 (#256) and v1.84 (#257), both open.
+
+- **Client journey (owner, 2026-09-28):** salesperson sends the link → sign up → verify email → dashboard → first-run tutorial (create a project, fill the brief, message the team, upload images) → pick a service type (Website, Logo, Branding, Marketing, Automation) → that service's brief.
+- **Gaps found:**
+  - there is no tutorial;
+  - the briefs cover only logo, website, SEO and PPC, and the database constraint allows only those four;
+  - clients can't approve or request changes;
+  - there is no cross-project notifications inbox;
+  - `/team` is a flat list, without an internal/shared toggle, task editing or approval requests;
+  - the admin home doesn't link to projects, briefs or the pipeline;
+  - admin status transitions disagree with `ALLOWED_TRANSITIONS`.
+- **Phases:** C1 arrival + tutorial, C2 service types + briefs (migration `0046`), C3 client actions + approvals (`0047`), C4 notifications, E1 employee queue, A1 admin control room.
+- **Owner decisions D1–D5:** the service list, how the tutorial remembers it was seen, salesperson attribution, client approvals, and admin-created projects.
+- `docs/plans/README.md` lists the plan as Planned.
+
 ## v1.82 — 2026-09-28
 
 Dependency fix and security housekeeping from the 2026-09-28 triage.
