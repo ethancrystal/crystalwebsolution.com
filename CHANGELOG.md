@@ -1,3 +1,35 @@
+## v1.81 — 2026-09-28
+
+Docs only, no runtime change. Backfills v1.79 (#244), which deployed without its entry, and restores the versioning-rule text that the same "Update branch" merge dropped.
+
+- **CHANGELOG:** the v1.79 entry below, placed above v1.80 in deploy order.
+- **CLAUDE.md and AGENTS.md versioning rules:** the next number is one above the highest `vX.NN` named in `git log origin/main` (fetch first), `VERSION`, the top of `CHANGELOG.md`, or an open PR's title. #238's rule about checking `VERSION` after "Update branch" stays. It happened again here: #244 merged through an "Update branch" merge that reset `VERSION` to v1.80.
+- `VERSION` is v1.81.
+
+## v1.79 — 2026-09-28
+
+*Backfilled in v1.81.* PR #244 merged at `45dbc77` through GitHub's "Update branch" merge (`f749634`), which kept `main`'s `VERSION` (v1.80) and `CHANGELOG.md`, so this release deployed under its merge title, v1.79, without an entry. It deployed after v1.80 (#238), which is why it sits above it.
+
+Staleness sweep: removes dead code, stale files and outdated instructions, and closes a sign-in hole left by the retired domains. The site's look and behaviour are unchanged.
+
+- **Security — auth redirect allow-list** (`supabase/config.toml`). Removed `crystalwebsolution.com`, `cdsportswearusa.com` and their `www` hosts. `crystalwebsolution.com` was reported on 2026-09-27 to be serving a third-party spam site from another Vercel account, and an allow-listed host someone else controls can receive sign-in tokens.
+  - **Owner step:** remove the same entries from the live list in the Supabase dashboard (Authentication → URL Configuration → Redirect URLs). This file only configures the local stack.
+- **Deleted unused modules:** `lib/proceduralArt.js`, `components/three/FlyingCarousel.jsx`, `components/marketing/IdleScene.jsx`, `components/GlyphMask.jsx` and `components/BorderGlow.jsx`. The Lab section keeps using `lib/flyingCarouselLayout.mjs`.
+- **Deleted test-only modules**, with their tests and the CSS only they used: `ImageBlock.jsx` and its `.module.css`, `marketing/Layout.jsx`, `MarketingHeader.jsx` and `lib/motionStudies.mjs`.
+- **Deleted stale files:**
+  - `GEMINI.md`, a drifted third copy of the agent instructions;
+  - `docs/PLUGINS-AND-SKILLS.md`, which described integrations that never existed;
+  - `GOAL_CHECKPOINT.md`, `_gsc-crawled-urls-temp.txt`, `test_service_pages.sh`, a stray `.gitconfig` and an unreferenced `.docx`.
+- **Instructions and docs corrected:**
+  - the retired-domain status in `CLAUDE.md`, `lib/seo.mjs` and the SEO operations manual;
+  - the GA4 ID (`G-B42BM1Q95J`) and the GTM container (`GTM-KJZPCQNM`) in `docs/ANALYTICS.md`;
+  - the migration ledger in `docs/CRM-OPERATIONS.md`;
+  - a single version-numbering rule across `CLAUDE.md`, `AGENTS.md`, `VERSIONING.md` and `vcs.md`;
+  - the Windows build note, and the README and architecture drift;
+  - the Codex and Cursor agent definitions.
+- **CHANGELOG:** two misplaced entries (v1.55 and v1.10) are moved into newest-first order.
+- GTM, analytics and the `app` portal redirects are untouched: this release keeps `main`'s v1.75–v1.78 behaviour.
+
 ## v1.80 — 2026-09-28
 
 Docs only: CLAUDE.md and AGENTS.md catch up with v1.60/v1.61. No runtime
