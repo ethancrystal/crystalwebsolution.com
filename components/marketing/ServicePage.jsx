@@ -3,7 +3,10 @@ import PageHero from './PageHero';
 import ContentSection from './ContentSection';
 import ContactForm from './ContactForm';
 import ServiceEmblem from './ServiceEmblem';
+import ServiceThreadArc from './ServiceThreadArc';
+import ProjectVisual from '../ProjectVisual';
 import { getRelatedServices } from '../../lib/servicePages.mjs';
+import { getProject } from '../../lib/projects';
 import { SITE } from '../../lib/site';
 
 // ServicePage renders one full service record from lib/servicePages.mjs.
@@ -11,25 +14,36 @@ import { SITE } from '../../lib/site';
 // component. No homepage WebGL runtime is imported.
 export default function ServicePage({ page }) {
   const related = getRelatedServices(page);
+  const relatedWork = (page.relatedWorkSlugs || [])
+    .map((slug) => getProject(slug))
+    .filter(Boolean);
 
   return (
     <article className="mkt-service">
       <PageHero
         eyebrow={page.eyebrow}
-        title={page.title}
+        title={page.h1 || page.title}
         lede={page.hero}
       >
         <ServiceEmblem signal={page.signal} n={page.n} size={72} variant="3d" className="mkt-service-hero-emblem" />
       </PageHero>
 
       <ContentSection eyebrow="Overview" title="What this looks like in practice">
+        {page.scenario && <p className="mkt-prose">{page.scenario}</p>}
         <p className="mkt-prose">{page.introduction}</p>
         <p className="mkt-prose">{page.problem}</p>
       </ContentSection>
 
       <ContentSection eyebrow="Capabilities" title="What we do" tone="alt">
-        <ul className="mkt-list">
-          {page.capabilities.map((item) => <li key={item}>{item}</li>)}
+        <ul className="mkt-principles mkt-principles--service">
+          {page.capabilities.map((item, i) => (
+            <li key={item} className="mkt-principle">
+              <h3 className="mkt-principle-title">{item}</h3>
+              {page.capabilityDetails?.[i] && (
+                <p className="mkt-principle-body">{page.capabilityDetails[i]}</p>
+              )}
+            </li>
+          ))}
         </ul>
       </ContentSection>
 
@@ -37,6 +51,7 @@ export default function ServicePage({ page }) {
         <ul className="mkt-list">
           {page.deliverables.map((item) => <li key={item}>{item}</li>)}
         </ul>
+        {page.deliverablesNote && <p className="mkt-list-note">{page.deliverablesNote}</p>}
       </ContentSection>
 
       <ContentSection eyebrow="Process" title="How we work" tone="alt">
@@ -44,7 +59,12 @@ export default function ServicePage({ page }) {
           {page.process.map((step, i) => (
             <li key={step} className="mkt-step">
               <span className="mkt-step-index">{String(i + 1).padStart(2, '0')}</span>
-              <span className="mkt-step-text">{step}</span>
+              <span className="mkt-step-text">
+                {step}
+                {page.processDetails?.[i] && (
+                  <span className="mkt-list-detail"> — {page.processDetails[i]}</span>
+                )}
+              </span>
             </li>
           ))}
         </ol>
@@ -52,6 +72,7 @@ export default function ServicePage({ page }) {
 
       <ContentSection eyebrow="For you" title="Who this is for">
         <p className="mkt-prose">{page.idealClient}</p>
+        {page.notIdealClient && <p className="mkt-prose">{page.notIdealClient}</p>}
       </ContentSection>
 
       <ContentSection eyebrow="FAQ" title="Common questions" tone="alt">
@@ -70,9 +91,17 @@ export default function ServicePage({ page }) {
           <ul className="mkt-related">
             {related.map((service) => (
               <li key={service.slug}>
-                <Link href={`/services/${service.slug}`} className="mkt-related-link" data-cursor="View">
+                <Link href={`/services/${service.slug}`} className="mkt-related-link">
                   <span className="mkt-related-n">{service.n}</span>
                   <span className="mkt-related-title">{service.title}</span>
+                  <span className="mkt-related-arrow" aria-hidden="true">→</span>
+                </Link>
+              </li>
+            ))}
+            {(page.industryLinks || []).map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="mkt-related-link">
+                  <span className="mkt-related-title">{link.label}</span>
                   <span className="mkt-related-arrow" aria-hidden="true">→</span>
                 </Link>
               </li>
@@ -80,6 +109,55 @@ export default function ServicePage({ page }) {
           </ul>
         </ContentSection>
       )}
+
+      {page.guideLinks?.length > 0 && (
+        <ContentSection eyebrow="From the blog" title="Further reading" tone="alt">
+          <ul className="mkt-related">
+            {page.guideLinks.map((link) => (
+              <li key={link.href}>
+                <Link href={link.href} className="mkt-related-link">
+                  <span className="mkt-related-title">{link.label}</span>
+                  <span className="mkt-related-arrow" aria-hidden="true">→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </ContentSection>
+      )}
+
+      <ContentSection eyebrow="See our work" title={relatedWork.length ? 'Related projects' : 'Every project, one standard'}>
+        {relatedWork.length > 0 && (
+          <ul className="mkt-work-grid">
+            {relatedWork.map((project, i) => (
+              <li key={project.slug} className="mkt-work-card">
+                <Link href={`/work/${project.slug}`} className="mkt-work-card-link">
+                  <ProjectVisual
+                    palette={project.palette}
+                    title={project.title}
+                    variant={i}
+                    ratio="16 / 9"
+                    label={`${project.title} — ${project.category}`}
+                  />
+                  <span className="mkt-work-card-meta">
+                    <span className="mkt-work-card-title">{project.title}</span>
+                    <span className="mkt-work-card-category">{project.category}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+        <ul className="mkt-related">
+          <li>
+            <Link href="/work" className="mkt-related-link">
+              <span className="mkt-related-title">{relatedWork.length ? 'All selected work' : 'See the work'}</span>
+              <span className="mkt-related-arrow" aria-hidden="true">→</span>
+            </Link>
+          </li>
+        </ul>
+      </ContentSection>
+
+      <ServiceThreadArc />
 
       <ContentSection eyebrow="Start" title="Let’s talk">
         <p className="mkt-prose">{page.finalCta}</p>

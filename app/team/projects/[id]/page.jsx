@@ -9,6 +9,7 @@ import { getProjectWorkspace } from '@/lib/crm/projects';
 import { transitionProject, createProjectTask } from '@/app/actions/project-actions';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
 import ProjectOverview from '@/components/crm/ProjectOverview';
+import ProjectBriefs from '@/components/crm/ProjectBriefs';
 import ProjectTimeline from '@/components/crm/ProjectTimeline';
 import ProjectTasks from '@/components/crm/ProjectTasks';
 import ProjectFiles from '@/components/crm/ProjectFiles';
@@ -149,6 +150,7 @@ export default function TeamProjectPage() {
   return (
     <WorkspaceShell role="project_manager" title={project.title}>
       <ProjectOverview project={project} />
+      <ProjectBriefs projectId={projectId} />
       <ProjectTimeline history={workspace.statusHistory} />
       <ProjectTasks tasks={workspace.tasks ?? []} />
 

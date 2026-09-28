@@ -2,12 +2,32 @@ import { render } from '@testing-library/react';
 import ServiceSchema from '@/components/marketing/ServiceSchema';
 
 describe('ServiceSchema', () => {
-  it('generates correct JSON-LD for a service', () => {
+  it('generates Service JSON-LD aligned to visible copy without invented ratings', () => {
     const n = 'Web Design';
-    const title = 'Professional Web Design';
-    const description = 'Custom web design services for businesses';
+    const title = 'Custom web design for brands';
+    const description = 'A custom web design studio for brands.';
+    const url = 'https://www.cdsportswearinc.com/services/web-design';
+    const areaServed = [
+      {
+        '@type': 'City',
+        name: 'Manassas',
+        containedInPlace: {
+          '@type': 'State',
+          name: 'Virginia',
+        },
+      },
+      { '@type': 'Country', name: 'United States' },
+    ];
 
-    const { container } = render(<ServiceSchema n={n} title={title} description={description} />);
+    const { container } = render(
+      <ServiceSchema
+        n={n}
+        title={title}
+        description={description}
+        url={url}
+        areaServed={areaServed}
+      />,
+    );
     const scriptEl = container.querySelector('script[type="application/ld+json"]');
     expect(scriptEl).not.toBeNull();
 
@@ -19,10 +39,34 @@ describe('ServiceSchema', () => {
       serviceType: n,
       name: title,
       description,
+      url,
       provider: {
         '@type': 'Organization',
-        name: 'CD Sportswear USA',
+        '@id': 'https://www.cdsportswearinc.com/#organization',
+        name: 'CD Sportswear INC',
+        url: 'https://www.cdsportswearinc.com/',
       },
+      areaServed,
     });
+    expect(jsonLd.aggregateRating).toBeUndefined();
+    expect(jsonLd.review).toBeUndefined();
+    expect(jsonLd.offers).toBeUndefined();
+  });
+
+  it('defaults areaServed to the United States, matching the Organization', () => {
+    const { container } = render(
+      <ServiceSchema
+        n="Branding"
+        title="Branding systems that won’t blend in"
+        description="A branding studio for companies that refuse to blend in."
+        url="https://www.cdsportswearinc.com/services/branding"
+      />,
+    );
+    const jsonLd = JSON.parse(
+      container.querySelector('script[type="application/ld+json"]').textContent,
+    );
+
+    // UAE was dropped 2026-09-26: Sharjah is not a CD Sportswear INC location.
+    expect(jsonLd.areaServed).toEqual([{ '@type': 'Country', name: 'United States' }]);
   });
 });

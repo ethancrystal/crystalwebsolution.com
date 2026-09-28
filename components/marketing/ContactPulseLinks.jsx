@@ -1,11 +1,12 @@
 'use client';
 
 import { blast } from '../../lib/pulse';
-import { SITE } from '../../lib/site';
+import { SITE, cityStateZip } from '../../lib/site';
 
-// Direct-contact links for the Contact page. Hovering/focusing a link makes
-// the page's independent Crystal instance (see IdleScene 'contact' variant)
-// visibly react via the shared pulse singleton.
+// Direct-contact links for the Contact page. Hovering/focusing a link still
+// writes the shared pulse singleton (homepage Crystal reads it). The
+// Contact hero uses a DarkPageBackground module (letter-glitch), not an
+// idle Crystal.
 export default function ContactPulseLinks() {
   return (
     <ul className="mkt-contact-direct">
@@ -31,7 +32,22 @@ export default function ContactPulseLinks() {
           </a>
         </li>
       )}
-      <li><span className="mkt-contact-label">Studio</span><span>{SITE.city}</span></li>
+      {/* Service-area business: the physical address is published, but
+          nothing here invites a visit (no hours, no directions). */}
+      <li>
+        <span className="mkt-contact-label">Physical address</span>
+        <span className="mkt-contact-city">
+          <span>{SITE.address.streetAddress}</span>
+          <span>{cityStateZip(SITE.address)}</span>
+        </span>
+      </li>
+      <li>
+        <span className="mkt-contact-label">Mailing address</span>
+        <span className="mkt-contact-city">
+          <span>{SITE.mailingAddress.poBox}</span>
+          <span>{cityStateZip(SITE.mailingAddress)}</span>
+        </span>
+      </li>
     </ul>
   );
 }

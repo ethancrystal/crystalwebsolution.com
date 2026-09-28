@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.next/**)",
+      "Read(./node_modules/**)",
+      "Read(./test-results/**)",
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  }
+}

@@ -10,7 +10,7 @@ import { Renderer, Program, Triangle, Mesh } from 'ogl';
 // additionally from the cursor position when mouseInteraction is on.
 function RippleGrid({
   enableRainbow = false,
-  gridColor = '#ffffff',
+  gridColor = '#59f3ff',
   rippleIntensity = 0.05,
   gridSize = 10.0,
   gridThickness = 15.0,
@@ -199,6 +199,11 @@ void main() {
       mouseInfluenceRef.current = 0.0;
     };
 
+    // Track the container, not just the window: inside a marketing hero the
+    // box changes height after mount, and a window-only listener left the
+    // grid sized to its first measurement.
+    const ro = new ResizeObserver(resize);
+    ro.observe(containerRef.current);
     window.addEventListener('resize', resize);
     if (mouseInteraction) {
       containerRef.current.addEventListener('mousemove', handleMouseMove);
@@ -230,6 +235,7 @@ void main() {
     const container = containerRef.current;
     return () => {
       cancelAnimationFrame(animationFrameId);
+      ro.disconnect();
       window.removeEventListener('resize', resize);
       if (mouseInteraction && container) {
         container.removeEventListener('mousemove', handleMouseMove);
@@ -286,7 +292,20 @@ void main() {
 export default function RippleGridBackground() {
   return (
     <div className="ripple-grid-bg" aria-hidden="true">
-      <RippleGrid gridColor="#8a5cff" />
+      {/* Brand-tuned: vendor ships #8a5cff (purple). Site cyan on --bg, with
+          the glow, ripple and opacity pulled down so the grid reads as a
+          quiet surface texture behind the type, not a light show. */}
+      <RippleGrid
+        gridColor="#59f3ff"
+        rippleIntensity={0.022}
+        gridSize={13.0}
+        gridThickness={9.0}
+        glowIntensity={0.045}
+        opacity={0.42}
+        vignetteStrength={2.6}
+        fadeDistance={1.35}
+        mouseInteractionRadius={0.8}
+      />
       <style jsx>{`
         .ripple-grid-bg {
           position: fixed;

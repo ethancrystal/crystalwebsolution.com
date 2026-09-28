@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import SectionReveal from '../SectionReveal';
 import Magnetic from '../Magnetic';
 import ContactForm from '../marketing/ContactForm';
@@ -16,10 +17,10 @@ export default function Contact() {
       <SectionSkeleton />
       <div className="text-plate">
         <p className="eyebrow"><SectionReveal as="span" direction="left">From idea to outcome</SectionReveal></p>
-        <SectionReveal as="h2" direction="left" className="contact-line">Let&apos;s make</SectionReveal>
-        <SectionReveal as="h2" direction="left" className="contact-line contact-line-accent" delay={0.08}>something rare.</SectionReveal>
+        <SectionReveal as="h2" direction="left" className="contact-line">Let&apos;s build</SectionReveal>
+        <SectionReveal as="h2" direction="left" className="contact-line contact-line-accent" delay={0.08}>something worth the scroll.</SectionReveal>
         <SectionReveal className="contact-sub" direction="up" delay={0.1}>
-          <p>Send us your brief. We&apos;ll give you a straight read on scope, timeline, cost, and the first move if it&apos;s a fit.</p>
+          <p>Send your brief and get a straight read — scope, timeline, cost, and the first move — if it&apos;s a fit.</p>
         </SectionReveal>
       </div>
       <SectionReveal className="contact-form-wrap" direction="up" delay={0.1}>
@@ -31,7 +32,6 @@ export default function Contact() {
           <a
             href={`mailto:${SITE.email}`}
             className="btn btn-ghost contact-email"
-            data-cursor="Write us"
           >
             {SITE.email}
           </a>
@@ -53,11 +53,15 @@ export default function Contact() {
         )}
         <div className="footer-col">
           <p className="footer-label">Studio</p>
-          <p>{SITE.city}</p>
+          <p>Location in {SITE.city}</p>
           <p>Web, brand &amp; automation</p>
         </div>
         <p className="footer-bottom">
           © {new Date().getFullYear()} {SITE.name}. {SITE.tagline}
+          <span className="footer-legal">
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/terms">Terms &amp; Conditions</Link>
+          </span>
         </p>
       </SectionReveal>
     </section>

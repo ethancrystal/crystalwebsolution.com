@@ -6,7 +6,6 @@ import { readResolvedGlobalsCss } from './helpers/resolvedGlobalsCss.mjs';
 const featureModule = await import('../lib/experienceFeatures.mjs').catch(() => ({}));
 const layoutModule = await import('../lib/flyingCarouselLayout.mjs').catch(() => ({}));
 const motionModule = await import('../lib/motionFlight.mjs').catch(() => ({}));
-const studiesModule = await import('../lib/motionStudies.mjs').catch(() => ({}));
 const qualityModule = await import('../lib/renderQuality.mjs').catch(() => ({}));
 const activityModule = await import('../lib/sceneActivity.mjs').catch(() => ({}));
 const motionLayoutModule = await import('../lib/motionLayout.mjs').catch(() => ({}));
@@ -295,10 +294,7 @@ test('recording-derived phases finish the grid early and hold it', () => {
   assert.deepEqual(layoutModule.sampleFlyingCard(card, 0.94), card.target);
 });
 
-test('carousel cards enter and settle one by one with equal smooth timing windows', () => {
-  assert.equal(typeof studiesModule.createMotionStudyTiming, 'function');
-  if (!studiesModule.createMotionStudyTiming) return;
-
+test('carousel cards enter and settle one by one', () => {
   const layout = layoutModule.createFlyingCarouselLayout({ viewportWidth: 10 });
   assert.deepEqual(
     layout.map((card) => Number(card.revealDelay.toFixed(3))),
@@ -315,17 +311,6 @@ test('carousel cards enter and settle one by one with equal smooth timing window
   );
   assert.ok(revealScales[0] > revealScales[2]);
   assert.ok(revealScales[2] > revealScales[4]);
-
-  const timings = studiesModule.MOTION_STUDIES.map((_, index) =>
-    studiesModule.createMotionStudyTiming(index),
-  );
-  const starts = timings.map(({ revealStart }) => revealStart);
-  const settles = timings.map(({ settleStart }) => settleStart);
-  assert.ok(starts.every((value, index) => index === 0 || value > starts[index - 1]));
-  assert.ok(settles.every((value, index) => index === 0 || value > settles[index - 1]));
-  timings.forEach(({ revealStart, revealEnd }) => {
-    assert.ok(Math.abs(revealEnd - revealStart - 0.07) < 1e-10);
-  });
 });
 
 test('returning carousel cards stay face-readable while assembling the grid', () => {
@@ -376,17 +361,6 @@ test('carousel departure clears the frame without collapsing the flying cards', 
     assert.ok(cleared.some((sample) => sample.position[0] < 0));
     assert.ok(cleared.some((sample) => sample.position[0] > 0));
   }
-});
-
-test('shared motion studies name six CD Sportswear USA capabilities', () => {
-  assert.ok(Array.isArray(studiesModule.MOTION_STUDIES));
-  if (!Array.isArray(studiesModule.MOTION_STUDIES)) return;
-
-  assert.equal(studiesModule.MOTION_STUDIES.length, 6);
-  assert.deepEqual(
-    studiesModule.MOTION_STUDIES.map((study) => study.id),
-    ['web-design', 'development', 'brand', 'motion', 'ai-automation', 'workflow-automation'],
-  );
 });
 
 test('motion flight state can be reset to the preserved SVG fallback', () => {

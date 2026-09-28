@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import {
-  isAnalyticsEnabled,
+  isConsentRequired,
   isTrackablePath,
   readStoredConsent,
   setConsent,
@@ -18,7 +18,7 @@ export default function ConsentBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!isAnalyticsEnabled()) return;
+    if (!isConsentRequired()) return;
     // Nothing is measured on CRM/auth routes, so nothing needs consenting to.
     if (!isTrackablePath(pathname)) return;
     if (readStoredConsent()) return;
@@ -35,8 +35,9 @@ export default function ConsentBanner() {
   return (
     <div className="consent" role="region" aria-label="Analytics consent">
       <p className="consent-copy">
-        We use Google Analytics to see which pages bring people here. Nothing
-        you type is collected, and declining leaves the site fully working.
+        We use Google Analytics and Google Tag Manager to see which pages bring
+        people here. Nothing you type is collected, and declining leaves the
+        site fully working.
       </p>
       <div className="consent-actions">
         <button

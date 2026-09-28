@@ -173,8 +173,15 @@ site_url = "env(SUPABASE_AUTH_SITE_URL)"
 additional_redirect_urls = [
   "http://localhost:3000/**",
   "http://127.0.0.1:3000/**",
-  "https://crystalwebsolution.com/**",
-  "https://www.crystalwebsolution.com/**",
+  "https://cdsportswearinc.com/**",
+  "https://www.cdsportswearinc.com/**",
+  # The client portal's own host (lib/portalHost.mjs). www stays listed: auth
+  # links sent before NEXT_PUBLIC_APP_URL moved still point there and are
+  # redirected to this host with their query string intact.
+  "https://app.cdsportswearinc.com/**",
+  # Retired domains (crystalwebsolution.com, cdsportswearusa.com) are
+  # deliberately absent: a host we no longer control must never be a valid
+  # auth redirect target, or it can receive sign-in tokens.
 ]
 
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
@@ -263,7 +270,7 @@ otp_expiry = 3600
 # user = "resend"
 # pass = "env(RESEND_API_KEY)"
 # admin_email = "info@crystalwebsolution.com"
-# sender_name = "CD Sportswear USA"
+# sender_name = "CD Sportswear Inc"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

@@ -1,6 +1,6 @@
 # Sentry error tracking in Next.js
 
-This repository uses Next.js 15 App Router with plain JavaScript and JSX. Sentry is initialized separately for the browser, Node.js server, and Edge runtimes. The examples below show how to capture handled failures without exposing authentication, Supabase, or request data.
+This repository uses Next.js 16 App Router with plain JavaScript and JSX. Sentry is initialized separately for the browser, Node.js server, and Edge runtimes. The examples below show how to capture handled failures without exposing authentication, Supabase, or request data.
 
 ## API routes
 

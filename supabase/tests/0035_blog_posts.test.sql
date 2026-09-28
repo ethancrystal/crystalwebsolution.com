@@ -23,7 +23,7 @@ values
   ('00000000-0000-0000-0000-000000000000', 'a0000000-0000-0000-0000-000000000001', 'authenticated', 'authenticated', 'blog-client@example.test', '', now(), '{}', '{}', now(), now()),
   ('00000000-0000-0000-0000-000000000000', 'a0000000-0000-0000-0000-000000000002', 'authenticated', 'authenticated', 'blog-pm@example.test', '', now(), '{}', '{}', now(), now()),
   -- Must match public.pinned_admin_email() or 0014's trigger rejects the role.
-  ('00000000-0000-0000-0000-000000000000', 'a0000000-0000-0000-0000-000000000003', 'authenticated', 'authenticated', 'ethan@crystalwebsolution.com', '', now(), '{}', '{}', now(), now());
+  ('00000000-0000-0000-0000-000000000000', 'a0000000-0000-0000-0000-000000000003', 'authenticated', 'authenticated', public.pinned_admin_email(), '', now(), '{}', '{}', now(), now());
 
 update public.profiles
 set role = case id

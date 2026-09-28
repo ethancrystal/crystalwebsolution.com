@@ -1,4 +1,4 @@
-# MEMORY.md — CD Sportswear USA, consolidated agent knowledge
+# MEMORY.md — CD Sportswear INC, consolidated agent knowledge
 
 Read this before `AGENTS.md`/`CLAUDE.md`. Those are living *instructions*;
 this is consolidated *memory* — history, gotchas, current state — pulled
@@ -10,7 +10,7 @@ full picture in one read instead of re-discovering it the expensive way.
 
 - **Two halves:** (1) a cinematic one-page WebGL/scroll marketing site, (2)
   a Supabase-backed 3-role CRM (`client`/`project_manager`/`admin`) at
-  `/dashboard`, `/team`, `/admin`. Next.js 15 App Router, React 19, plain
+  `/dashboard`, `/team`, `/admin`. Next.js 16 App Router, React 19, plain
   JSX (no TS), no Tailwind, pnpm only.
 - **One canonical checkout:** `C:\Users\moizjmj\CD Sportswear USA`
   (mirrored 1:1 in WSL at `/home/moizjmj/CD Sportswear USA` — same repo,
@@ -40,13 +40,13 @@ full picture in one read instead of re-discovering it the expensive way.
 2. **The Client Collaboration CRM** — briefs, tasks, approvals,
    deliverables, a per-project message thread with email notifications.
 
-**Stack:** Next.js 15 App Router · React 19 · plain JSX (no TypeScript) ·
+**Stack:** Next.js 16 App Router · React 19 · plain JSX (no TypeScript) ·
 R3F + drei · `@react-three/postprocessing` · GSAP + ScrollTrigger · Lenis ·
 SplitType · Supabase (Auth/Postgres/Storage/RLS) · plain global CSS, tokens
 in `app/globals.css` (no Tailwind) · **pnpm only**.
 
 **Commands:** `pnpm dev` · `pnpm test` (full suite) · `pnpm test:crm` ·
-`pnpm test:db` (needs local Supabase/Docker) · `pnpm build` · `pnpm start`.
+`pnpm test:db` (needs local Supabase/Docker) · `pnpm build` · `pnpm start` · `pnpm crm:verify` · `pnpm crm:provision-test-users` · `pnpm livecheck`.
 No lint script — don't add one.
 
 ---
@@ -102,7 +102,7 @@ assume these exist yet.
 ## 4. Deployment model (resolved 2026-08-15)
 
 - **`main` = production.** Merge = deploy. Auto-deploys via Vercel's Git
-  integration to `crystalwebsolution.com`.
+  integration to `https://www.cdsportswearinc.com`.
 - **`preview`/`production` git branches are dead** — historical two-branch
   model Vercel's config never actually matched. Don't build on them.
 - **CRM visibility = `NEXT_PUBLIC_CRM_ENABLED` env var** (`lib/crmFlag.js`),
@@ -141,8 +141,8 @@ to `client`; `admin_resolve_staff_request()` is the only path to
 `project_manager`; `admin` is pinned to one real email by a DB trigger
 (migration `0014`) and unreachable from any UI.
 
-**Migrations:** canonical through `0023` (as of 2026-08-15 — re-check
-`list_migrations` via Supabase MCP, PR #69 was adding `0024`). `0007` is
+**Migrations:** canonical through `0042` (as of 2026-09-19 — re-check
+`list_migrations` via Supabase MCP).
 deliberately *not* applied live (superseded by `0008`). Project ref:
 `wmnjosiikehsuaqucvja`.
 
@@ -203,11 +203,10 @@ what this has already let slip through). Verify DB/RPC changes live.
 
 ---
 
-## 8. Open items (last checked 2026-08-13/15)
+## 8. Open items (last checked 2026-08-13/15 — items may have progressed; re-verify with owner)
 
 | Item | Status |
 | --- | --- |
-| Migration `0024` (PR #69) | Unmerged — re-check `list_migrations`, don't assume `0023` is still the ceiling |
 | `project_tasks` RLS has no `client_visible` predicate | App-level filter only; DB-level defense-in-depth recommended, not done |
 | Hardcoded priority/status arrays in a few files vs. centralized constants | One instance deliberately deferred (sibling test asserts the literal) |
 | PM assignment via admin UI | Implemented, **not fully live-verified** — pinned single-admin-email blocks a test account |

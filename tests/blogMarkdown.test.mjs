@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parseInline, parseMarkdown, safeHref } from '../lib/blogMarkdown.mjs';
+import { parseInline, parseMarkdown, safeHref, safeImageSrc } from '../lib/blogMarkdown.mjs';
 import { safeJsonLd } from '../lib/jsonLd.mjs';
 
 test('parseMarkdown maps each block form to its token type', () => {
@@ -98,6 +98,19 @@ test('safeHref admits only navigable schemes', () => {
   assert.equal(safeHref(null), null);
 });
 
+test('safeHref rewrites owned-host absolute URLs to site-relative paths', async () => {
+  const { SITE_ORIGIN, SITE_HOST, toSitePath } = await import('../lib/seo.mjs');
+
+  assert.equal(toSitePath(`${SITE_ORIGIN}/services/web-design`), '/services/web-design');
+  assert.equal(toSitePath(`https://${SITE_HOST}/services/branding`), '/services/branding');
+  assert.equal(toSitePath('https://cdsportswearusa.com/process'), '/process');
+  assert.equal(toSitePath('https://crystalwebsolution.com/contact'), '/contact');
+  assert.equal(toSitePath('https://example.test/elsewhere'), 'https://example.test/elsewhere');
+
+  assert.equal(safeHref('https://cdsportswearinc.com/services/web-design'), '/services/web-design');
+  assert.equal(safeHref(`${SITE_ORIGIN}/blog/web-development-rfp-guide`), '/blog/web-development-rfp-guide');
+});
+
 test('a link with an unsafe href degrades to its own text', () => {
   const tokens = parseInline('[click me](javascript:alert)');
 
@@ -153,4 +166,102 @@ test('safeJsonLd escapes the JavaScript line terminators', () => {
   assert.ok(!output.includes(String.fromCharCode(0x2028)), 'U+2028 escaped');
   assert.ok(!output.includes(String.fromCharCode(0x2029)), 'U+2029 escaped');
   assert.equal(JSON.parse(output).value, raw, 'value round-trips unchanged');
+});
+
+// 2026-09-26: 10 of 14 live posts open with `# <title>`, which used to render
+// as a literal "# ..." paragraph under the page's real <h1>.
+test('a leading # heading that restates the post title is dropped', () => {
+  const title = 'Custom React & Next.js Web Development: When It’s Worth Hiring a Studio';
+  const blocks = parseMarkdown(
+    `# Custom React & Next.js Web Development: When It's Worth Hiring a Studio\n\nFirst paragraph.`,
+    { title },
+  );
+
+  assert.equal(blocks.length, 1, 'only the paragraph remains');
+  assert.equal(blocks[0].type, 'paragraph');
+  assert.ok(
+    !blocks.some((block) => block.children?.some((token) => (token.value ?? '').startsWith('#'))),
+    'no literal "#" text survives',
+  );
+});
+
+test('a leading # heading that is the title minus a trailing qualifier is dropped too', () => {
+  // /blog/how-much-does-a-small-business-website-cost, verbatim.
+  const blocks = parseMarkdown('# How Much Does a Small Business Website Cost?\n\nBody.', {
+    title: 'How Much Does a Small Business Website Cost? (2026 Planning Guide)',
+  });
+  assert.deepEqual(blocks.map((block) => block.type), ['paragraph']);
+
+  const shortLead = parseMarkdown('# How\n\nBody.', { title: 'How Much Does a Website Cost?' });
+  assert.equal(shortLead[0].type, 'heading', 'a short generic heading is not mistaken for the title');
+});
+
+test('any other # heading is demoted to h2, never literal text', () => {
+  const differentLead = parseMarkdown('# Something else entirely\n\nBody.', { title: 'The real title' });
+  assert.equal(differentLead[0].type, 'heading');
+  assert.equal(differentLead[0].level, 2);
+
+  const midBody = parseMarkdown('Intro.\n\n# The real title\n\nMore.', { title: 'The real title' });
+  assert.deepEqual(midBody.map((block) => block.type), ['paragraph', 'heading', 'paragraph']);
+  assert.equal(midBody[1].level, 2, 'only a leading restatement is dropped');
+
+  const noTitle = parseMarkdown('# Heading');
+  assert.equal(noTitle[0].level, 2, 'without a title the heading is kept as h2');
+  assert.equal(parseMarkdown('#hashtag')[0].type, 'paragraph', '"#" without a space stays text');
+});
+
+// 2026-09-26: 3 live posts carry 6 `![alt](https://images.unsplash.com/...)`
+// images, which used to render as "!" plus a text link to the .jpg.
+test('Markdown images become image tokens with their alt text', () => {
+  const src = 'https://images.unsplash.com/photo-1762831063505-68022b6133a9?fm=jpg&q=80&w=1600&auto=format&fit=crop';
+  const blocks = parseMarkdown(`![Calculator, notebook, and glasses on a desk.](${src})`);
+
+  assert.equal(blocks.length, 1);
+  assert.deepEqual(blocks[0].children, [
+    { type: 'image', src, alt: 'Calculator, notebook, and glasses on a desk.' },
+  ]);
+  assert.ok(!blocks[0].children.some((token) => token.type === 'link'), 'no link to the image file');
+});
+
+test('image sources are limited to https and site-relative paths', () => {
+  assert.equal(safeImageSrc('https://images.unsplash.com/x.jpg'), 'https://images.unsplash.com/x.jpg');
+  assert.equal(safeImageSrc('/blog/cover.png'), '/blog/cover.png');
+  assert.equal(safeImageSrc('https://www.cdsportswearinc.com/a.png'), '/a.png');
+  for (const unsafe of ['http://example.com/x.jpg', '//example.com/x.jpg', 'data:image/png;base64,AAAA', 'javascript:alert(1)', '']) {
+    assert.equal(safeImageSrc(unsafe), null, unsafe);
+  }
+
+  const refused = parseInline('![alt words](javascript:alert)');
+  assert.deepEqual(refused, [{ type: 'text', value: 'alt words' }], 'a refused image degrades to its alt text');
+});
+
+// Edge cases from the adversarial review of v1.58.
+test('protocol-relative and backslash paths are refused for links and images', () => {
+  for (const unsafe of ['//evil.test/p.gif', '/\\evil.test/p.gif', 'https://www.cdsportswearinc.com//evil.test/p.gif']) {
+    assert.equal(safeImageSrc(unsafe), null, `image: ${unsafe}`);
+    assert.equal(safeHref(unsafe), null, `link: ${unsafe}`);
+  }
+  assert.equal(safeHref('/services/web-design'), '/services/web-design');
+});
+
+test('only the first line can be dropped as the title, and only on a word boundary', () => {
+  const twice = parseMarkdown('# My Title\n\n# My Title\n\nBody.', { title: 'My Title' });
+  assert.deepEqual(twice.map((block) => block.type), ['heading', 'paragraph'], 'the second copy is content');
+
+  const cut = parseMarkdown('# How Much Does a Small Bus\n\nBody.', {
+    title: 'How Much Does a Small Business Website Cost?',
+  });
+  assert.equal(cut[0].type, 'heading', 'a prefix that ends mid-word is not the title');
+});
+
+test('empty headings, closing hashes and a leading BOM', () => {
+  assert.deepEqual(parseMarkdown('# \n\nBody.').map((block) => block.type), ['paragraph'], 'no empty <h2>');
+  assert.deepEqual(parseMarkdown('## \n\nBody.').map((block) => block.type), ['paragraph']);
+
+  const closed = parseMarkdown('## Section ##');
+  assert.deepEqual(closed[0].children, [{ type: 'text', value: 'Section' }]);
+  assert.deepEqual(parseMarkdown('## Learn C#')[0].children, [{ type: 'text', value: 'Learn C#' }]);
+
+  const bom = parseMarkdown('﻿# The Title\n\nBody.', { title: 'The Title' });
+  assert.deepEqual(bom.map((block) => block.type), ['paragraph']);
 });

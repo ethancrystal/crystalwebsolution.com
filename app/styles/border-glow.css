@@ -97,7 +97,6 @@
   outline-offset: 2px;
 }
 /* Apply the focus ring to the concrete marketing controls. */
-.mkt-header-nav a:focus-visible,
 .mkt-footer a:focus-visible,
 .btn:focus-visible,
 .contact-form input:focus-visible,
@@ -111,26 +110,11 @@
   outline-offset: 2px;
 }
 
-/* Phase 1-2 additions for the reconciled inner-page shell (IdleScene,
-   SubpageNav, WorkLibrary). Appended from the inner-pages reconciliation plan. */
+/* Phase 1-2 additions for the reconciled inner-page shell (SubpageNav,
+   WorkLibrary). Appended from the inner-pages reconciliation plan. */
 
 .subpage-shell {
   background: transparent;
-}
-
-.subpage-scene-canvas,
-.subpage-scene-fallback {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.subpage-scene-fallback {
-  background:
-    radial-gradient(70% 55% at 68% 26%, rgba(89, 243, 255, 0.12), transparent 72%),
-    radial-gradient(55% 48% at 28% 66%, rgba(192, 132, 252, 0.09), transparent 74%),
-    var(--bg);
 }
 
 .subpage-page,

@@ -8,7 +8,8 @@ test('client workspace: dashboard and project detail use exact client guard and 
 
   assert.match(dashboard, /listProjectsForViewer/);
   assert.match(projectDetail, /getProjectWorkspace/);
-  assert.match(projectDetail, /listProjectMessages/);
+  // Messages are owned by ProjectThread (via useProjectThread), not the page.
+  assert.match(projectDetail, /ProjectThread/);
 
   assert.doesNotMatch(dashboard, /from\('deals'\)/);
   assert.doesNotMatch(projectDetail, /from\('deals'\)/);
@@ -16,7 +17,10 @@ test('client workspace: dashboard and project detail use exact client guard and 
 });
 
 test('client workspace: project components are project-scoped, not deal-scoped', async () => {
-  const thread = await readFile('components/crm/ProjectThread.jsx', 'utf8');
+  const thread = [
+    await readFile('components/crm/ProjectThread.jsx', 'utf8'),
+    await readFile('components/crm/useProjectThread.js', 'utf8'),
+  ].join('\n');
   const notes = await readFile('components/crm/NotesPanel.jsx', 'utf8');
 
   assert.match(thread, /project_id|projectId/);

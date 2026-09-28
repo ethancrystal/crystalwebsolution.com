@@ -70,8 +70,14 @@ test('Phase 1 UI surfaces task/approval/deliverable/notification fields', async 
   assert.match(approvals, /approval\.status/);
   assert.match(approvals, /approval\.requestedBy/);
   assert.match(files, /deliverables/);
-  assert.match(page, /listProjectDeliverables/);
-  assert.match(page, /listProjectTasks/);
-  assert.match(page, /listProjectApprovals/);
+  // The client project page reads one workspace payload and renders its
+  // tasks/approvals/deliverables from it (plan 3, Task 8) instead of
+  // re-fetching each list -- the standalone list functions above still exist
+  // for the staff pages and the server actions.
+  assert.match(page, /getProjectWorkspace/);
+  assert.match(page, /workspace\.tasks/);
+  assert.match(page, /workspace\.approvals/);
+  assert.match(page, /workspace\.deliverables/);
+  assert.doesNotMatch(page, /listProjectTasks|listProjectApprovals|listProjectDeliverables/);
   assert.match(page, /listNotifications/);
 });

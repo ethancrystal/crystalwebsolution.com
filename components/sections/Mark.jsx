@@ -134,7 +134,7 @@ export default function Mark() {
         <h2 className="mark-line mark-line-accent" ref={line2Ref}>assembled with intent.</h2>
       </div>
       <SectionReveal className="mark-sub" direction="up">
-        <p>Scroll on — the mark resolves the way every build does: shards first, then clarity, assembled on purpose.</p>
+        <p>Scroll on — the mark comes together the way every project does here: scattered pieces first, then a clear system, assembled on purpose instead of by accident.</p>
       </SectionReveal>
     </section>
   );

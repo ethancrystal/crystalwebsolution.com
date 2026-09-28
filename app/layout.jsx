@@ -1,9 +1,10 @@
 import './globals.css';
 import { Space_Grotesk, Inter, Space_Mono } from 'next/font/google';
 import { SITE } from '../lib/site';
-import { REVIEW_STATS } from '../lib/reviews';
 import { SITE_ORIGIN, SOCIAL_IMAGE_PATH } from '../lib/seo.mjs';
 import Analytics from '../components/Analytics';
+import PageTransition from '../components/PageTransition';
+import { GTM_ID, gtmHeadSnippet } from '../lib/analytics.mjs';
 
 const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
@@ -22,8 +23,10 @@ export const metadata = {
     template: `%s | ${SITE.name}`,
   },
   description:
-    'CD Sportswear USA designs and builds distinctive websites, brand systems, motion experiences, and AI automations for businesses ready to stand apart.',
-  alternates: { canonical: '/' },
+    'CD Sportswear INC designs and builds distinctive websites, brand systems, motion experiences, and AI automations for businesses ready to stand apart.',
+  // No `alternates.canonical` here: a layout canonical is inherited by every
+  // route that forgets its own, which silently canonicalises that route to
+  // the homepage (404s did exactly that). The homepage sets '/' in app/page.jsx.
   openGraph: {
     type: 'website',
     url: SITE_URL,
@@ -67,7 +70,8 @@ const JSON_LD = {
       '@type': ['Organization', 'ProfessionalService'],
       '@id': ORG_ID,
       name: SITE.name,
-      alternateName: SITE.short,
+      // Brand-search variants (MJ, 2026-09-24: track + rank for "cd sportswear").
+      alternateName: ['CD Sportswear', 'CD Sportswear Inc', SITE.short],
       url: `${SITE_URL}/`,
       email: SITE.email,
       telephone: SITE.phone,
@@ -91,29 +95,18 @@ const JSON_LD = {
         'AI automation',
         'motion design',
       ],
-      areaServed: [
-        { '@type': 'Country', name: 'United States' },
-        { '@type': 'Country', name: 'United Arab Emirates' },
-      ],
-      address: [
-        {
-          '@type': 'PostalAddress',
-          addressLocality: 'Manassas',
-          addressRegion: 'VA',
-          addressCountry: 'US',
-        },
-        {
-          '@type': 'PostalAddress',
-          addressLocality: 'Sharjah',
-          addressCountry: 'AE',
-        },
-      ],
+      // National, remote service-area business (docs/seo/STRATEGY.md §2).
+      areaServed: { '@type': 'Country', name: 'United States' },
+      // The one physical address (lib/site.js). No opening hours or geo: the
+      // business does not take walk-ins. The P.O. Box is deliberately absent —
+      // schema.org `address` means a physical location.
+      address: { '@type': 'PostalAddress', ...SITE.address },
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'sales',
         email: SITE.email,
         telephone: SITE.phone,
-        areaServed: ['US', 'AE'],
+        areaServed: 'US',
         availableLanguage: ['en'],
       },
       // Emitted only once real profiles exist in lib/site.js — an empty or
@@ -121,21 +114,17 @@ const JSON_LD = {
       ...(SITE.socials.length
         ? { sameAs: SITE.socials.map((s) => s.href) }
         : {}),
-      // Real, attributable client reviews — the strongest off-site trust
-      // signal the site owns outright. Google may render these as stars.
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        ratingValue: REVIEW_STATS.average,
-        reviewCount: REVIEW_STATS.total,
-        bestRating: 5,
-        worstRating: 1,
-      },
+      // No aggregateRating here (removed 2026-09-26, owner-approved). This
+      // graph is on every page, but the reviews are only visible on /reviews,
+      // and Google's review-snippet rules require the rating to be shown on
+      // the page that carries it. /reviews keeps its own per-review markup.
     },
     {
       '@type': 'WebSite',
       '@id': WEBSITE_ID,
       url: `${SITE_URL}/`,
       name: SITE.name,
+      alternateName: ['CD Sportswear', 'CD Sportswear Inc'],
       description:
         'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',
       publisher: { '@id': ORG_ID },
@@ -156,18 +145,36 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <head>
+        {/* Google Tag Manager, as high in <head> as possible. The snippet skips
+            CRM/auth pages and queues denied consent defaults before gtm.js, so
+            container tags wait for the cookie banner (lib/analytics.mjs). */}
+        {GTM_ID && <script dangerouslySetInnerHTML={{ __html: gtmHeadSnippet(GTM_ID) }} />}
         <script
           dangerouslySetInnerHTML={{
             // Safe: hardcoded string, no user input. Mirrors Loader.jsx's own
             // seen/reduced-motion skip so a returning or reduced-motion
             // visitor's scroll unlocks before hydration, instead of sitting
             // locked (see the html[data-scroll-unlocked] default in
-            // app/styles/cursor-loader.css) until React catches up.
+            // app/styles/loader.css) until React catches up.
             __html: "try{var s=sessionStorage.getItem('cws:intro-seen')==='1';var r=window.matchMedia('(prefers-reduced-motion: reduce)').matches;if(s)document.documentElement.dataset.cwsIntroSeen='1';if(s||r)document.documentElement.dataset.scrollUnlocked='1'}catch(e){}",
           }}
         />
       </head>
       <body>
+        {/* Google Tag Manager (noscript): the fallback for visitors without
+            JavaScript, immediately after <body> as Google specifies. The
+            script itself is the gtmHeadSnippet in <head>. */}
+        {GTM_ID && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+              height="0"
+              width="0"
+              style={{ display: 'none', visibility: 'hidden' }}
+              title="Google Tag Manager"
+            />
+          </noscript>
+        )}
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>
@@ -178,6 +185,7 @@ export default function RootLayout({ children }) {
         <main id="main-content" tabIndex={-1}>
           {children}
         </main>
+        <PageTransition />
         <Analytics />
       </body>
     </html>

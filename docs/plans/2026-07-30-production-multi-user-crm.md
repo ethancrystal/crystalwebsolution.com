@@ -1,5 +1,17 @@
 # Production Multi-User Project CRM Implementation Plan
 
+> **Historical note (added 2026-09-22):** this plan was authored against the
+> Next.js 15 baseline. The application now runs Next.js 16 (`package.json`
+> `next: ^16.3.5`), moved by dependabot in #204. The plan is kept as the dated
+> record of what was done at the time; validate any implementation detail
+> against the current `package.json` and test suite rather than the version
+> named below.
+> The platform contract test this plan creates was renamed from
+> `tests/crm/next15-upgrade.test.mjs` to
+> `tests/crm/next-platform-contract.test.mjs`, and its "Next.js 16 is not
+> installed" checklist item no longer reflects the current baseline.
+
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build a production-ready, multi-user project CRM in the existing application where clients create categorized projects, admins assign employees, and every authorized participant collaborates through one secure real-time project thread with status tracking and file attachments.

@@ -124,7 +124,6 @@ export default function WorkLibrary({ projects }) {
             <article key={project.slug} id={project.slug} className="work-row client-work-row">
               <Link
                 href={`/work/${project.slug}`}
-                data-cursor="View case"
                 aria-label={`${project.title} — view case study`}
                 className="work-row-visual"
               >
@@ -145,7 +144,7 @@ export default function WorkLibrary({ projects }) {
                   {isExpanded ? 'Show less' : 'Read more'}
                 </button>
                 <p className="client-work-links">
-                  <Link href={`/work/${project.slug}`} data-cursor="View case">
+                  <Link href={`/work/${project.slug}`}>
                     View the case →
                   </Link>
                 </p>

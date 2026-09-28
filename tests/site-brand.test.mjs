@@ -26,17 +26,16 @@ const PUBLIC_BRAND_FILES = [
   'components/auth/PortalLoginForm.jsx',
   'components/Menu.jsx',
   'components/Nav.jsx',
-  'components/marketing/MarketingHeader.jsx',
   'lib/site.js',
 ];
 
-test('the canonical site brand is CD Sportswear USA', async () => {
+test('the canonical site brand is CD Sportswear INC', async () => {
   const { SITE } = await import('../lib/site.js');
-  assert.equal(SITE.name, 'CD Sportswear USA');
+  assert.equal(SITE.name, 'CD Sportswear INC');
   assert.equal(SITE.short, 'CD');
 });
 
-test('the supplied CD Sportswear USA logo is the canonical runtime asset', () => {
+test('the supplied CD Sportswear Inc logo is the canonical runtime asset', () => {
   assert.ok(existsSync(new URL('../public/cd-sportswear-usa-logo.png', import.meta.url)));
   const siteSource = read('lib/site.js');
   assert.match(siteSource, /logoPath:\s*'\/cd-sportswear-usa-logo\.png'/);
@@ -44,7 +43,6 @@ test('the supplied CD Sportswear USA logo is the canonical runtime asset', () =>
   assert.doesNotMatch(read('components/BrandLogo.jsx'), /crystal-web-solution-(logo|icon)\.svg/);
   assert.match(read('app/login/page.jsx'), /SITE\.logoPath/);
   assert.match(read('components/auth/PortalLoginForm.jsx'), /SITE\.logoPath/);
-  assert.match(read('components/marketing/MarketingHeader.jsx'), /BrandLogo/);
   assert.match(read('components/crm/WorkspaceShell.jsx'), /SITE\.logoPath/);
 });
 
@@ -53,7 +51,7 @@ test('the app icon and root metadata use the new brand asset and name', () => {
   const layout = read('app/layout.jsx');
   assert.doesNotMatch(layout, new RegExp(['Crystal', 'Web', 'Solution'].join('\\s+')));
   assert.match(layout, /SITE\.logoPath/);
-  assert.match(layout, /CD Sportswear USA/);
+  assert.match(layout, /CD Sportswear INC/);
 });
 
 test('public page and shared chrome sources contain no old visible brand name', () => {

@@ -40,7 +40,24 @@ const GA_CONNECT_ORIGINS = [
 ];
 
 // The conversion linker uses an iframe; default-src 'self' would block it.
-const GA_FRAME_ORIGINS = ['https://td.doubleclick.net'];
+// www.googletagmanager.com serves GTM's <noscript> ns.html fallback iframe
+// (app/layout.jsx) for visitors without JavaScript.
+const GA_FRAME_ORIGINS = ['https://td.doubleclick.net', 'https://www.googletagmanager.com'];
+
+// Client Sentry (instrumentation-client.js) posts envelopes to the org's
+// ingest host. Without this token, production CSP blocks those requests and
+// browser errors never leave the page — confirmed on the 2026-09-03
+// Lighthouse baseline and still absent from connect-src on 2026-09-19.
+// The wildcard is the regional ingest pattern (`o<id>.ingest.us.sentry.io`);
+// a narrower origin would need the DSN baked into this config.
+const SENTRY_CONNECT_ORIGINS = ['https://*.ingest.us.sentry.io'];
+
+// hCaptcha (contact form, lib/hcaptcha.mjs). Per vendor docs the api.js loader,
+// the challenge iframe, its stylesheet and its XHR all come from *.hcaptcha.com
+// (newassets.hcaptcha.com, api.hcaptcha.com, ...), so the same origin list is
+// added to script-src, style-src, frame-src and connect-src. Nothing else on
+// the site talks to these hosts.
+const HCAPTCHA_ORIGINS = ['https://hcaptcha.com', 'https://*.hcaptcha.com'];
 
 // The dark auth pages used to load an UnicornStudio runtime from jsDelivr's
 // GitHub CDN, which is why script-src once allowed https://cdn.jsdelivr.net.
@@ -49,7 +66,7 @@ const GA_FRAME_ORIGINS = ['https://td.doubleclick.net'];
 // nothing, so the origin is gone. tests/login-background.test.mjs asserts it
 // stays gone — a stale allowlist entry widens the policy for no benefit.
 
-const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS]
+const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS, ...SENTRY_CONNECT_ORIGINS, ...HCAPTCHA_ORIGINS]
   .filter(Boolean)
   .join(' ');
 
@@ -65,14 +82,14 @@ const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS]
 // a narrower one will not do.
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: ${GA_SCRIPT_ORIGIN}`,
+  `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: ${GA_SCRIPT_ORIGIN} ${HCAPTCHA_ORIGINS.join(' ')}`,
   "worker-src 'self' blob:",
-  "style-src 'self' 'unsafe-inline'",
+  `style-src 'self' 'unsafe-inline' ${HCAPTCHA_ORIGINS.join(' ')}`,
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   `connect-src ${connectSrc}`,
   "media-src 'self' data: blob:",
-  `frame-src 'self' ${GA_FRAME_ORIGINS.join(' ')}`,
+  `frame-src 'self' ${[...GA_FRAME_ORIGINS, ...HCAPTCHA_ORIGINS].join(' ')}`,
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -87,6 +104,14 @@ const nextConfig = {
   // needs into .next/standalone — required for the slim Docker runner stage.
   output: 'standalone',
   outputFileTracingRoot: __dirname,
+  // Marketing site on www, client portal on app.cdsportswearinc.com
+  // (lib/portalHost.mjs). Host-conditioned, so previews and localhost are
+  // unaffected. The CRM flag is read the same way lib/crmFlag.js reads it.
+  async redirects() {
+    const { portalHostRedirects } = await import('./lib/portalHost.mjs');
+    const crmEnabled = process.env.NEXT_PUBLIC_CRM_ENABLED?.trim().toLowerCase() !== 'false';
+    return portalHostRedirects({ crmEnabled });
+  },
   // Security + privacy response headers. Screaming Frog flagged all four as
   // missing on 38/47 URLs ("Security: Missing … Header", 80.85% of the crawl).
   // Applied to every route; the site is served behind Vercel, these are additive.

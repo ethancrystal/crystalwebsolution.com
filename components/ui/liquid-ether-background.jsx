@@ -22,7 +22,9 @@ function LiquidEther({
   BFECC = true,
   resolution = 0.5,
   isBounce = false,
-  colors = ['#5227FF', '#89f7ff', '#B497CF'],
+  // Brand palette by default (vendor shipped ['#5227FF','#89f7ff','#B497CF']),
+  // so no code path can render the purple demo colors.
+  colors = ['#3c6cff', '#59f3ff', '#8b98b8'],
   style = {},
   className = '',
   autoDemo = true,
@@ -1175,7 +1177,15 @@ function LiquidEther({
 export default function LiquidEtherBackground() {
   return (
     <div className="liquid-ether-bg" aria-hidden="true">
-      <LiquidEther />
+      {/* Brand-tuned: vendor ships ['#5227FF','#89f7ff','#B497CF'] (purple).
+          Site blue -> cyan -> muted silver instead, with the sim slowed and
+          the auto-demo softened so it drifts rather than swirls. */}
+      <LiquidEther
+        colors={['#3c6cff', '#59f3ff', '#8b98b8']}
+        autoSpeed={0.28}
+        autoIntensity={1.1}
+        resolution={0.4}
+      />
       <style jsx>{`
         .liquid-ether-bg {
           position: fixed;

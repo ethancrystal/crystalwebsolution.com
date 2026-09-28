@@ -4,9 +4,11 @@ import ProjectVisual from '../../../components/ProjectVisual';
 import MarketingShell from '../../../components/marketing/MarketingShell';
 import CaseGallery from '../../../components/marketing/CaseGallery';
 import CaseNavRail from '../../../components/marketing/CaseNavRail';
+import ServiceGrid from '../../../components/marketing/ServiceGrid';
 import SectionReveal from '../../../components/SectionReveal';
 import BreadcrumbSchema from '../../../components/marketing/BreadcrumbSchema';
 import { PROJECTS, getProject } from '../../../lib/projects';
+import { getServicePageBySlug } from '../../../lib/servicePages.mjs';
 import { SITE } from '../../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../../lib/seo.mjs';
 
@@ -39,20 +41,31 @@ export async function generateMetadata({ params }) {
     ? `${project.summary.slice(0, 157).trimEnd()}…`
     : project.summary;
 
+  // Keep the rendered <title> at or under 65 chars (Ubersuggest flags longer ones
+  // as truncated in results). When "<title> — <category> | <brand>" is too long,
+  // fall back to the shorter "<title> — Case Study" stem so the brand survives.
+  const MAX_TITLE = 65;
+  const categoryStem = `${project.title} — ${project.category}`;
+  const titleStem = `${categoryStem} | ${SITE.name}`.length > MAX_TITLE
+    ? `${project.title} — Case Study`
+    : categoryStem;
+  const brandedTitle = `${titleStem} | ${SITE.name}`;
+  const titleRepeatsBrand = project.title === SITE.name;
+
   return {
-    title: `${project.title} — ${project.category}`,
+    title: titleRepeatsBrand ? { absolute: titleStem } : titleStem,
     description,
     alternates: { canonical: `/work/${project.slug}` },
     openGraph: {
       type: 'article',
-      title: `${project.title} — ${project.category} | ${SITE.name}`,
+      title: titleRepeatsBrand ? titleStem : brandedTitle,
       description,
       url: absoluteUrl(`/work/${project.slug}`),
       images: [{ url: SOCIAL_IMAGE_PATH }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${project.title} — ${project.category} | ${SITE.name}`,
+      title: titleRepeatsBrand ? titleStem : brandedTitle,
       description,
       images: [{ url: SOCIAL_IMAGE_PATH }],
     },
@@ -68,11 +81,14 @@ export default async function CaseStudy({ params }) {
   const prev = PROJECTS[(index - 1 + PROJECTS.length) % PROJECTS.length];
   const next = PROJECTS[(index + 1) % PROJECTS.length];
   const beats = beatsFor(project.body);
+  const relatedServices = (project.relatedServiceSlugs || [])
+    .map((slug) => getServicePageBySlug(slug))
+    .filter(Boolean);
 
   return (
     <MarketingShell>
       <article className="case mkt-inner">
-        <Link href="/work" className="case-back" data-cursor="Work">← All projects</Link>
+        <Link href="/work" className="case-back">← All projects</Link>
         <p className="eyebrow">
           <SectionReveal as="span" direction="left">Case study • {project.category}</SectionReveal>
         </p>
@@ -109,7 +125,32 @@ export default async function CaseStudy({ params }) {
           <CaseGallery palette={project.palette} title={project.title} />
         </SectionReveal>
 
+        {/* "Services behind this project" — added 2026-09-24 as part of the
+            Ubersuggest audit's low-word-count fix. Reuses ServiceGrid (the
+            /services index component) instead of the bare "Related service →"
+            links this replaces, so each internal link carries a descriptive,
+            topic-bearing anchor (the service's own title + hero line) rather
+            than the generic label "Related service". titleAs="h3" keeps this
+            page's heading order at h1 -> h2 -> h3, since this is the page's
+            first h2. */}
+        {relatedServices.length > 0 && (
+          <SectionReveal as="div" direction="up" className="case-gallery-wrap">
+            <p className="eyebrow">What we delivered</p>
+            <h2 className="mkt-section-title">Services behind {project.title}</h2>
+            <p className="case-summary">
+              {relatedServices.length > 1
+                ? 'The build drew on these connected offers — here’s how we scope and deliver each one.'
+                : 'The build drew on one focused offer — here’s how we scope and deliver it.'}
+            </p>
+            <ServiceGrid pages={relatedServices} titleAs="h3" />
+          </SectionReveal>
+        )}
+
         <CaseNavRail prev={prev} next={next} />
+        <Link href="/contact" className="case-next">
+          <span className="eyebrow">Start here</span>
+          <span className="case-next-title">Send a brief →</span>
+        </Link>
       </article>
       <BreadcrumbSchema
         trail={[

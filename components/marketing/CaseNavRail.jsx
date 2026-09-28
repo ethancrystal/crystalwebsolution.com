@@ -24,14 +24,14 @@ export default function CaseNavRail({ prev, next }) {
 
   return (
     <nav className="case-nav-rail" aria-label="Case study navigation">
-      <Link href={`/work/${prev.slug}`} className="case-nav-cell case-nav-prev" data-cursor="Previous case">
+      <Link href={`/work/${prev.slug}`} className="case-nav-cell case-nav-prev">
         <span className="case-nav-arrow" aria-hidden="true">←</span>
         <span className="case-nav-text">
           <span className="eyebrow">Previous case</span>
           <span className="case-nav-title">{prev.title}</span>
         </span>
       </Link>
-      <Link href={`/work/${next.slug}`} className="case-nav-cell case-nav-next" data-cursor="Next case">
+      <Link href={`/work/${next.slug}`} className="case-nav-cell case-nav-next">
         <span className="case-nav-text">
           <span className="eyebrow">Next case</span>
           <span className="case-nav-title">{next.title}</span>

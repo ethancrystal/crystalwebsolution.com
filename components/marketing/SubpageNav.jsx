@@ -5,6 +5,7 @@ import Link from 'next/link';
 import BrandLogo from '../BrandLogo';
 import Magnetic from '../Magnetic';
 import Menu from '../Menu';
+import HoverScramble from '../HoverScramble';
 import { SITE } from '../../lib/site';
 import { CRM_ENABLED } from '../../lib/crmFlag';
 
@@ -46,7 +47,6 @@ export default function SubpageNav() {
         <Link
           href="/"
           className="nav-logo"
-          data-cursor="Home"
           aria-label={`${SITE.name} home`}
         >
           <BrandLogo />
@@ -54,20 +54,20 @@ export default function SubpageNav() {
 
         <nav className="subpage-nav-links" aria-label="Marketing">
           {SITE.nav.map((item) => (
-            <Link key={item.label} href={item.href} data-cursor={item.label}>
-              {item.label}
+            <Link key={item.label} href={item.href}>
+              <HoverScramble>{item.label}</HoverScramble>
             </Link>
           ))}
         </nav>
 
         <div className="nav-right">
           {CRM_ENABLED && (
-            <Link href="/login" className="nav-login-link" data-cursor="Log in">
-              Log in
+            <Link href="/login" className="nav-login-link">
+              <HoverScramble>Log in</HoverScramble>
             </Link>
           )}
           <Magnetic>
-            <Link href="/contact" className="btn btn-ghost" data-cursor="Say hi">
+            <Link href="/contact" className="btn btn-ghost">
               Start a project
             </Link>
           </Magnetic>
@@ -79,7 +79,6 @@ export default function SubpageNav() {
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
               aria-controls="site-menu"
-              data-cursor={open ? 'Close' : 'Menu'}
             >
               <span />
               <span />

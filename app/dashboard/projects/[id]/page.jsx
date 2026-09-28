@@ -4,14 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import {
-  getProjectWorkspace,
-  listNotifications,
-  listProjectApprovals,
-  listProjectDeliverables,
-  listProjectMessages,
-  listProjectTasks,
-} from '@/lib/crm/projects';
+import { getProjectWorkspace, listNotifications } from '@/lib/crm/projects';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
 import ProjectOverview from '@/components/crm/ProjectOverview';
 import ProjectTimeline from '@/components/crm/ProjectTimeline';
@@ -21,6 +14,7 @@ import ProjectApprovals from '@/components/crm/ProjectApprovals';
 import ProjectThread from '@/components/crm/ProjectThread';
 import NotesPanel from '@/components/crm/NotesPanel';
 import NotificationsPanel from '@/components/crm/NotificationsPanel';
+import ProjectBriefs from '@/components/crm/ProjectBriefs';
 import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 export default function ClientProjectPage() {
@@ -28,12 +22,18 @@ export default function ClientProjectPage() {
   const projectId = params?.id;
   const [profile, setProfile] = useState(null);
   const [workspace, setWorkspace] = useState(null);
-  const [tasks, setTasks] = useState([]);
-  const [approvals, setApprovals] = useState([]);
-  const [deliverables, setDeliverables] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [justSubmitted, setJustSubmitted] = useState(false);
+
+  useEffect(() => {
+    // ?brief=submitted is set by BriefWizard after a successful submit.
+    if (new URLSearchParams(window.location.search).get('brief') === 'submitted') {
+      setJustSubmitted(true);
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
 
   const loadWorkspace = useCallback(async () => {
     if (!projectId) return;
@@ -66,18 +66,16 @@ export default function ClientProjectPage() {
       const viewerProfile = { profile: profileData };
       setProfile(profileData);
 
-      const [data, taskList, approvalList, deliverableList, notificationList] = await Promise.all([
+      // getProjectWorkspace already returns tasks, approvals and deliverables
+      // scoped to this viewer; fetching them again through the standalone list
+      // functions cost four extra `projects` and `profiles` round trips per load
+      // for identical rows.
+      const [data, notificationList] = await Promise.all([
         getProjectWorkspace(supabase, viewerProfile, projectId),
-        listProjectTasks(supabase, viewerProfile, projectId),
-        listProjectApprovals(supabase, viewerProfile, projectId),
-        listProjectDeliverables(supabase, viewerProfile, projectId),
         listNotifications(supabase, viewerProfile),
       ]);
 
       setWorkspace(data);
-      setTasks(taskList ?? []);
-      setApprovals(approvalList ?? []);
-      setDeliverables(deliverableList ?? []);
       setNotifications((notificationList ?? []).filter((notification) => notification.project_id === projectId));
     } catch (err) {
       setError(err.message || 'Unable to load this project.');
@@ -111,18 +109,25 @@ export default function ClientProjectPage() {
 
   return (
     <WorkspaceShell role="client" title={workspace.project.title}>
+      {justSubmitted && (
+        <div className="crm-brief-success" role="status">
+          Brief received. The team has been notified and will review it shortly. You can follow progress and message
+          us right here.
+        </div>
+      )}
       <ProjectOverview project={workspace.project} />
+      <ProjectBriefs projectId={projectId} canAddBriefs projectStatus={workspace.project.status} />
       <NotificationsPanel notifications={notifications} />
       <ProjectTimeline history={workspace.statusHistory} />
-      <ProjectTasks tasks={tasks} readOnly />
+      <ProjectTasks tasks={workspace.tasks ?? []} readOnly />
       <ProjectFiles
         files={workspace.attachments ?? []}
-        deliverables={deliverables}
+        deliverables={workspace.deliverables ?? []}
         canUpload={false}
         projectId={projectId}
         onChanged={loadWorkspace}
       />
-      <ProjectApprovals approvals={approvals} />
+      <ProjectApprovals approvals={workspace.approvals ?? []} />
       <ProjectThread projectId={projectId} profile={profile} />
       <NotesPanel projectId={projectId} />
 
@@ -157,6 +162,14 @@ export default function ClientProjectPage() {
 
         .crm-link-secondary:hover {
           text-decoration: underline;
+        }
+
+        .crm-brief-success {
+          background: rgba(120, 220, 160, 0.08);
+          border: 1px solid rgba(120, 220, 160, 0.3);
+          color: #a6e8c0;
+          padding: 0.9rem 1rem;
+          border-radius: 10px;
         }
 
         .crm-internal-note {

@@ -10,26 +10,50 @@ import { lightApproach, dimApproach } from '../../lib/beacon';
 const STEPS = [
   {
     title: 'Brief & Discovery',
+    summary: 'Questions before pixels — your goals, your customers, and the one job this project has to do.',
     description:
-      'We map your audience, goals, and constraints so the build starts from the right problem instead of the prettiest assumption.',
+      'Most projects go wrong right here, because the work starts on an assumption nobody wrote down. So you get asked first: what you sell, who you sell it to, and what has to change for this to be worth doing. Scope and cost are settled in writing before any design begins, so you decide with the whole picture in front of you.',
+    outputs: [
+      'A written brief you sign off on',
+      'Scope, cost, and timeline agreed up front',
+      'The measure we check the work against later',
+    ],
     colorTheme: 'blue',
   },
   {
     title: 'Design',
+    summary: 'You review real screens, not adjectives — layout, type, colour, and motion drawn as one system.',
     description:
-      'We turn direction into visual system, motion, and interaction craft that earns attention without shouting.',
+      'Direction, interface, and motion are designed together instead of bolted on in sequence, so the site holds its shape on every page — including the ones nobody demos. You give notes in rounds, and nothing moves to build until what you are looking at is what you want.',
+    outputs: [
+      'Key screens designed to production detail',
+      'A reusable system for pages you add later',
+      'Feedback rounds built into the schedule',
+    ],
     colorTheme: 'purple',
   },
   {
     title: 'Development',
+    summary: 'The people who designed it write the code, so what you approved is what ships.',
     description:
-      'Design and engineering move together, so polish survives build time and launch readiness is verified before cutover.',
+      'Hand-off is where good design quietly dies — a second team reinterprets the work and drops whatever is awkward to build. Here design and engineering are the same team, so nothing gets lost in translation. Your site is built to be fast, accessible, and readable by search engines, and tested on real devices before it goes anywhere near your customers.',
+    outputs: [
+      'A production build, tested on real devices',
+      'Accessible, fast, and search-ready by default',
+      'Code and content you own outright',
+    ],
     colorTheme: 'blue',
   },
   {
     title: 'Deployment',
+    summary: 'Launch is a checkpoint, not the finish — we stay on for what the first weeks teach you.',
     description:
-      'We launch, instrument, and improve with you—go-live is the beginning of a measurable feedback loop.',
+      'Your site goes live with analytics wired up, so you can see what visitors actually do rather than guess. Real traffic always exposes something a staging site cannot, and we stay close through that first stretch to fix it. When you want to add to the site months later, you are talking to the people who built it.',
+    outputs: [
+      'Launch checks and analytics in place',
+      'A walkthrough so your team can run it',
+      'Support after go-live, not just before',
+    ],
     colorTheme: 'purple',
   },
 ];
@@ -73,9 +97,22 @@ function ApproachStep({ step, index, isOpen, onToggle, onTriggerKeyDown, registe
         </button>
       </h3>
 
+      {/* Always visible, so the collapsed accordion reads as four described
+          steps rather than four bare labels. Sits outside the <button> to keep
+          the trigger's accessible name short. */}
+      <p className="approach-step-summary">{step.summary}</p>
+
       <div id={panelId} className="approach-step-panel" role="region" aria-labelledby={triggerId}>
         <div className="approach-step-panel-inner">
           <p className="approach-step-desc">{step.description}</p>
+          <div className="approach-step-outputs">
+            <p className="approach-step-outputs-label">What you get</p>
+            <ul>
+              {step.outputs.map((output) => (
+                <li key={output}>{output}</li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -129,6 +166,14 @@ export default function Approach() {
       <SectionSkeleton />
       <div className="text-plate">
         <SectionHeader eyebrow="How we work" title="Four steps. No shortcuts." />
+        <SectionReveal className="approach-intro" direction="up" delay={0.08}>
+          <p>
+            Every project runs these four steps in the same order, whether it is a
+            one-page site or a rebuild with automation behind it. You always know
+            which step you are in, what comes next, and what it costs before it
+            starts. Open any step to see what happens inside it.
+          </p>
+        </SectionReveal>
       </div>
 
       <div className="approach-accordion">

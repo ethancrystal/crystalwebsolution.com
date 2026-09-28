@@ -1,11 +1,20 @@
 'use client';
 // @ts-check
 
+import { useEffect, useState } from 'react';
+import AcidSquaresBackground from './acid-squares-background';
+import DotFieldBackground from './dot-field-background';
+import FaultyTerminalBackground from './faulty-terminal-background';
+import LetterGlitchBackground from './letter-glitch-background';
 import PrismBackground from './prism-background';
 import RippleGridBackground from './ripple-grid-background';
 import LiquidEtherBackground from './liquid-ether-background';
 
 const INTERACTIVE_BACKGROUNDS = {
+  'acid-squares': AcidSquaresBackground,
+  'dot-field': DotFieldBackground,
+  'faulty-terminal': FaultyTerminalBackground,
+  'letter-glitch': LetterGlitchBackground,
   prism: PrismBackground,
   'ripple-grid': RippleGridBackground,
   'liquid-ether': LiquidEtherBackground
@@ -13,25 +22,47 @@ const INTERACTIVE_BACKGROUNDS = {
 
 /**
  * @param {Object} props
- * @param {'prism'|'ripple-grid'|'liquid-ether'} [props.interactive]
+ * @param {'acid-squares'|'dot-field'|'faulty-terminal'|'letter-glitch'|'prism'|'ripple-grid'|'liquid-ether'} [props.interactive]
  * @returns {import('react').ReactElement}
  */
-export default function DarkPageBackground({ interactive = 'prism' }) {
-  const Interactive = INTERACTIVE_BACKGROUNDS[interactive] ?? PrismBackground;
+// Same condition each module's own CSS uses to hide itself. Hiding is not
+// enough: a display:none module still runs its requestAnimationFrame loop and
+// holds a WebGL context. So the module is not mounted at all under this query,
+// which stops the loop and frees the context for reduced-motion visitors and
+// small screens. The static .alive-overlay wash still renders either way.
+const STAGE_OFF_QUERY = '(prefers-reduced-motion: reduce), (max-width: 767px)';
+
+/**
+ * true once the client has confirmed the animated module may run. Starts false
+ * so nothing animates before the preference is known (including during SSR on
+ * the auth pages, which import this directly rather than via next/dynamic).
+ * @returns {boolean}
+ */
+function useStageAllowed() {
+  const [allowed, setAllowed] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia(STAGE_OFF_QUERY);
+    const update = () => setAllowed(!mql.matches);
+    update();
+    mql.addEventListener('change', update);
+    return () => mql.removeEventListener('change', update);
+  }, []);
+  return allowed;
+}
+
+export default function DarkPageBackground({ interactive = 'acid-squares' }) {
+  const Interactive = INTERACTIVE_BACKGROUNDS[interactive] ?? AcidSquaresBackground;
+  const stageAllowed = useStageAllowed();
 
   return (
     <>
-      <Interactive />
+      {stageAllowed && <Interactive />}
       <div className="alive-overlay" aria-hidden="true">
-        {/* Subtle floating ambient orbs */}
         <div className="alive-orb alive-orb-1" />
         <div className="alive-orb alive-orb-2" />
         <div className="alive-orb alive-orb-3" />
-        {/* Subtle noise grain */}
         <div className="alive-grain" />
-        {/* Soft vignette */}
         <div className="alive-vignette" />
-        {/* Horizon glow line */}
         <div className="alive-horizon" />
       </div>
       <style jsx global>{`
@@ -42,13 +73,12 @@ export default function DarkPageBackground({ interactive = 'prism' }) {
           pointer-events: none;
           overflow: hidden;
         }
-        
-        /* Floating ambient orbs — very subtle, slow drift */
+
         .alive-orb {
           position: absolute;
           border-radius: 50%;
           filter: blur(80px);
-          opacity: 0.12;
+          opacity: 0.08;
           mix-blend-mode: screen;
           will-change: transform;
         }
@@ -57,7 +87,7 @@ export default function DarkPageBackground({ interactive = 'prism' }) {
           height: 45vw;
           top: -10%;
           left: -5%;
-          background: radial-gradient(circle, rgba(89, 243, 255, 0.45), transparent 70%);
+          background: radial-gradient(circle, rgba(89, 243, 255, 0.4), transparent 70%);
           animation: orbDrift1 22s ease-in-out infinite;
         }
         .alive-orb-2 {
@@ -65,7 +95,7 @@ export default function DarkPageBackground({ interactive = 'prism' }) {
           height: 35vw;
           bottom: -5%;
           right: -10%;
-          background: radial-gradient(circle, rgba(60, 108, 255, 0.4), transparent 70%);
+          background: radial-gradient(circle, rgba(60, 108, 255, 0.38), transparent 70%);
           animation: orbDrift2 28s ease-in-out infinite;
         }
         .alive-orb-3 {
@@ -73,10 +103,10 @@ export default function DarkPageBackground({ interactive = 'prism' }) {
           height: 30vw;
           top: 40%;
           left: 50%;
-          background: radial-gradient(circle, rgba(192, 132, 252, 0.3), transparent 70%);
+          background: radial-gradient(circle, rgba(196, 205, 220, 0.28), transparent 70%);
           animation: orbDrift3 18s ease-in-out infinite;
         }
-        
+
         @keyframes orbDrift1 {
           0%, 100% { transform: translate(0, 0) scale(1); }
           33% { transform: translate(8%, 12%) scale(1.08); }
@@ -91,8 +121,7 @@ export default function DarkPageBackground({ interactive = 'prism' }) {
           0%, 100% { transform: translate(-50%, -50%) scale(1); }
           50% { transform: translate(-45%, -55%) scale(1.12); }
         }
-        
-        /* Subtle noise grain texture */
+
         .alive-grain {
           position: absolute;
           inset: 0;
@@ -101,8 +130,7 @@ export default function DarkPageBackground({ interactive = 'prism' }) {
           background-repeat: repeat;
           background-size: 128px 128px;
         }
-        
-        /* Soft vignette — darker edges */
+
         .alive-vignette {
           position: absolute;
           inset: 0;
@@ -112,8 +140,7 @@ export default function DarkPageBackground({ interactive = 'prism' }) {
             rgba(4, 6, 12, 0.5) 100%
           );
         }
-        
-        /* Horizon glow — subtle light at bottom */
+
         .alive-horizon {
           position: absolute;
           bottom: 0;
@@ -126,16 +153,16 @@ export default function DarkPageBackground({ interactive = 'prism' }) {
             transparent 100%
           );
         }
-        
+
         @media (prefers-reduced-motion: reduce) {
           .alive-orb {
             animation: none;
           }
         }
-        
+
         @media (max-width: 767px) {
           .alive-orb {
-            opacity: 0.08;
+            opacity: 0.06;
             filter: blur(50px);
           }
           .alive-orb-1 { width: 60vw; height: 60vw; }

@@ -1,9 +1,1580 @@
+## v1.82 — 2026-09-28
+
+Dependency fix and security housekeeping from the 2026-09-28 triage.
+
+- `pnpm-workspace.yaml` pins `fast-uri` to `>=3.1.6 <4.0.0`, closing 4
+  Dependabot HIGH alerts (SSRF via malformed IPv6/repeated hostname
+  percent-decoding normalization; host confusion via percent-encoded scheme
+  and skipped IDN canonicalization on scheme-relative references).
+  `fast-uri` is a transitive dependency of `ajv` (a build-tool dependency,
+  not a direct one) — `ajv@8.20.0` declares `fast-uri: ^3.0.1`, which the
+  pin satisfies, so no consumer needs to change. Bounded to the `3.x` line
+  already in use, same as the existing `postcss`/`cookie`/`nanoid`
+  overrides — `fast-uri` has since released a `4.x` major that an unbounded
+  override would otherwise pull in untested. `pnpm-lock.yaml` updates
+  `fast-uri@3.1.5` → `3.1.8`. No application code changed.
+- `.gitignore` now excludes `.cursor/mcp.json` (holds live MCP API tokens; a
+  plaintext GitHub PAT was committed there once, in a local-only commit that
+  was never pushed — confirmed via the GitHub API returning 404 for that
+  commit SHA. Not a public leak, but this stops the class of accident from
+  recurring).
+- `docs/ANALYTICS.md`: documents the live GA4 root cause found in this
+  triage — `NEXT_PUBLIC_GA_ID` is set to `G-B42BM1Q95J`, but that ID is a
+  linked *destination* under the account's actual installable Google tag
+  (`G-YENE9MFT5K`), not an independently installable measurement ID, which
+  is why `gtag/js?id=G-B42BM1Q95J` 404s. Fix is a Vercel env var change
+  (owner-side) to `G-YENE9MFT5K` plus a redeploy; not applied here.
+
+Verification: `pnpm test` 618/618.
+
+## v1.80 — 2026-09-28
+
+Docs only: CLAUDE.md and AGENTS.md catch up with v1.60/v1.61. No runtime
+change. This PR was opened as v1.62 and renumbered as other releases merged
+first. It ships as v1.80, above v1.79 (#244, open), so v1.62 and v1.65 were
+never deployed. It also backfills the v1.63 entry (placed above v1.64 below,
+in deploy order), which the "Update branch" pitfall this PR documents
+dropped.
+
+- The beat checklist now includes the section's label in `LABELS` in
+  `lib/journeyNav.mjs`: adding or reordering a beat moves five things.
+- New rule: measure beats with `sectionTop()`, never
+  `getBoundingClientRect()`. SmoothScroll re-measures when Lenis's limit
+  changes as well as from its `<body>` ResizeObserver.
+- Component layout names `JourneyNav.jsx` (homepage section nav) and says
+  `ScrollProgress.jsx` is only the progress bar.
+- Versioning: after merging `main` into a version-bump branch, including
+  GitHub's "Update branch", check that `VERSION` and the top CHANGELOG
+  heading still name the PR's version. That merge dropped the bump for
+  v1.55, v1.57, v1.60 and v1.63.
+- Written into `main`'s condensed architecture rules (the long-form
+  explanation now lives in `aidd_docs/memory/architecture.md`).
+
+## v1.78 — 2026-09-28
+
+The client portal moves to `https://app.cdsportswearinc.com` (owner decision 2026-09-28). The marketing site stays on `www`. Numbered after v1.77 (#253, on `main`) and v1.71–v1.73, which are claimed by open PRs #244, #249 and #250. This PR was opened as v1.74, then renumbered to v1.76 after #252 merged and to v1.78 after #253 merged. v1.74 and v1.76 were never shipped.
+
+- `tests/analytics.test.mjs` now checks every `PORTAL_SEGMENTS` entry against the analytics skip list (it fell back to `/onboarding` alone until this module existed).
+- **Host split** (`lib/portalHost.mjs`, loaded by `next.config.js` `redirects()`). These are Vercel routing redirects, so they run before any page or middleware and add no function cost.
+  - On `www`, the portal paths (`/login`, `/signup`, `/forgot-password`, `/onboarding`, `/dashboard`, `/team`, `/admin`, `/auth/*`) 308 to the same path on `app`, keeping the query string. Bookmarks and emailed invite, confirm and reset links sent before the switch keep working.
+  - On `app`, `/` opens `/login`, where middleware already sends signed-in users to their own portal home. Every other non-portal page 308s to the same page on `www`.
+  - `/api/*` (the contact form, the pg_cron notification drain), `/_next`, `/_vercel` and static files work on both hosts.
+  - With `NEXT_PUBLIC_CRM_ENABLED=false`, only the app-to-`www` rule applies, so the app host cannot loop through `/login`.
+  - The rules match only the production host names, so preview deployments and localhost behave exactly as before.
+- **Supabase Auth**: `https://app.cdsportswearinc.com/**` added to `additional_redirect_urls` in `supabase/config.toml`. `www` stays listed for links sent before the switch.
+- **Owner steps**, outside the repo:
+  - Add the app host to Supabase Auth's redirect URLs and set its Site URL.
+  - Set `NEXT_PUBLIC_APP_URL=https://app.cdsportswearinc.com` in Vercel Production. It is inlined at build time, so a rebuild is needed.
+  - Portal sessions are per host, so signed-in users sign in once more on `app`.
+- **Tests**: `tests/portalHost.test.mjs` (7 tests). It checks every middleware-guarded path against `PORTAL_SEGMENTS`, the rule order, the path exclusions and the CRM-off case.
+- **Verified** on a production build with `Host` headers:
+  - `www`: `/login`, `/login/client?next=…`, `/dashboard/…`, `/admin/…` and `/auth/verify?token_hash=…` 308 to `app` with the query kept. `/` and `/about` return 200.
+  - `app`: `/` 307s to `/login`. `/login` returns 200. `/about` and `/work/…?x=1` 308 to `www`. `/api/contact`, `/robots.txt` and `/icon.png` are served.
+  - A `*.vercel.app` host is unchanged.
+- CLAUDE.md and AGENTS.md record the split.
+
+## v1.77 — 2026-09-28
+
+Google Tag Manager (`GTM-KJZPCQNM`) now loads from Google's own `<head>` snippet on every public page, instead of being injected after hydration (owner request 2026-09-28). The snippet is guarded so it keeps the two rules the old loader had: no GTM on portal pages, and no container tags before the cookie banner's answer. v1.76 is claimed by open PR #251.
+
+- `lib/analytics.mjs` `gtmHeadSnippet(id)` builds the inline script. `app/layout.jsx` renders it as the first script in `<head>`. In order, it:
+  1. stops on CRM/auth pages (`UNTRACKED_PREFIXES`);
+  2. queues the Consent Mode v2 defaults (all four signals denied, `wait_for_update: 500`) and replays a returning visitor's stored choice;
+  3. runs Google's snippet verbatim with the container ID.
+- The `ns.html` `<noscript>` iframe stays right after `<body>`, as Google specifies.
+- `/onboarding` added to `UNTRACKED_PREFIXES`. It is a portal page (`middleware.js`, `lib/pageTransition.mjs`) that was missing, so GA4 and GTM both skip it now.
+- The snippet and the module share window flags (`__cwsConsentQueued`, `__cwsGtmLoaded`), so neither the consent defaults nor `gtm.js` are ever queued twice. `loadTagManager()` in `components/Analytics.jsx` stays as a fallback for a visit that opens on a portal page and then client-navigates to a public one.
+- `tests/analytics.test.mjs` runs the real snippet in a `node:vm` sandbox. It covers:
+  - consent ordering;
+  - stored-choice replay, including blocked storage;
+  - every portal path;
+  - interplay with the module;
+  - rejection of malformed IDs.
+
+## v1.75 — 2026-09-28
+
+Google Tag Manager now loads the owner's new container **`GTM-KJZPCQNM`** instead of `GTM-5VKPC974`, which was published empty (owner request 2026-09-28). Numbered after v1.71–v1.74, which are claimed by open PRs #244, #249, #250 and #251.
+
+- `lib/analytics.mjs`: `DEFAULT_GTM_ID` is now `GTM-KJZPCQNM`. `NEXT_PUBLIC_GTM_ID` still overrides it, and `off` still disables it.
+- No change to how GTM loads. The site already emits the same `gtm.js` script and `ns.html` `<noscript>` iframe as Google's install snippet, with these differences:
+  - It loads in production builds only.
+  - It waits behind the consent banner, with Google Consent Mode defaults of "denied".
+  - It never loads on CRM or auth routes.
+  - It loads once per visit, not once per client-side navigation.
+
+  Pasting the raw snippet into `<head>` would have loaded the container before consent and on the portal.
+- `tests/analytics.test.mjs` pins the new ID.
+- **Conflicts with open PR #244 (v1.71)**, which removes the GTM default altogether. Merged after this, #244 would switch Tag Manager off again unless `NEXT_PUBLIC_GTM_ID=GTM-KJZPCQNM` is set in Vercel Production, or #244 keeps this default.
+
+## v1.70 — 2026-09-27
+
+Fixes a live bug in the CRM notification outbox. Adds migration
+`0045_fix_outbox_mark_coalesce.sql`, **checked in, not applied**: applying
+it to production is an owner action (`docs/CRM-OPERATIONS.md`
+§Migrations). Until it runs, each new notification email is claimed up to
+25 times and then stays `pending`, and failed sends are never recorded.
+v1.69 was already claimed by other open PRs, so this release takes v1.70.
+
+- **Root cause.** `0033` (live since 2026-08-17) redefined
+  `mark_notification_email_sent` and `mark_notification_email_failed` with
+  `pg_catalog.coalesce(...)`. COALESCE is SQL grammar, not a `pg_catalog`
+  function, so both RPCs raised 42883 on every call. plpgsql resolves calls
+  only when a statement runs, so CREATE accepted them. `0016` fixed the same
+  mistake once before.
+- **Effect.** The drain route sent each claimed row, could not mark it sent,
+  and reclaimed it once the lease expired. The four `lead.created` alerts
+  (2026-08-26 to 2026-09-03) used all 25 claims over 5 to 12 days and sit
+  `pending` with stale leases. Resend honours the idempotency key for 24
+  hours only, so reclaims a day or more apart could resend. All four went to
+  the admin account of the time (now a project manager), and every lead's
+  deal exists, so no lead was lost.
+- **Fix.** Both functions exactly as `0033` defines them, with bare
+  `coalesce(`: three substitutions and nothing else, so signatures,
+  security definer, search_path and grants are unchanged. A closing smoke
+  block calls both RPCs with nil ids, so the migration fails at apply time
+  if either body still cannot run.
+- **Stuck rows** are not touched by the migration. The PR proposes a guarded
+  one-off statement for owner approval that marks them terminal without
+  resetting `attempts`, which would resend month-old alerts.
+- **Tests.** `tests/crm/migration-0045-fix-outbox-mark-coalesce.test.mjs`
+  (source contract: each body equals 0033's apart from the three
+  substitutions) and `tests/crm/migration-grammar-guard.test.mjs`, which
+  replays every migration and fails if the latest definition of any function
+  schema-qualifies COALESCE, NULLIF, GREATEST or LEAST.
+  `supabase/tests/0045_fix_outbox_mark_coalesce.test.sql` adds 16 pgTAP
+  assertions. `pnpm test:db` was not run (no Docker here); the pgTAP file
+  was executed in PGlite (Postgres 17) against a replica of
+  `notifications_outbox` with `0033` and `0045` applied, passing 16/16, and
+  it fails against `0033` alone.
+- **Docs.** `docs/CRM-OPERATIONS.md` no longer says the idempotency key
+  prevents every duplicate send, and records migration state through `0045`.
+  The drain route's comments are corrected the same way (comments only).
+
+## v1.68 — 2026-09-27
+
+AI tooling and docs only; no application code, route or runtime change.
+Sets up the AIDD framework (aidd-context skills 00–09) for this repo.
+
+- **Project memory** (`aidd_docs/memory/`): 17 files covering the current
+  architecture, codebase map, auth, database, realtime, API, integrations,
+  deployment, testing, design, forms, navigation, VCS, backlog and the tool
+  ecosystem, plus a DOM → canvas scroll-pipeline diagram. They are imported
+  into `CLAUDE.md` and `AGENTS.md` through a new `## Memory Management`
+  block.
+- **`release-check` skill** (Claude + Cursor) reproduces the CI `test` job
+  locally (`pnpm test`, `test:marketing`, placeholder-env `build`), checks
+  the version bump, and restores `tsconfig.json`.
+- **`gatekeeper` agent** (Claude, Cursor, Codex) runs `release-check` and
+  returns a ready or blocked verdict without editing code.
+- **`/version-bump` command** (Claude + Cursor) picks the next unused
+  `vX.NN` from the merge log and open PRs.
+- **R3F frame-loop rule** (Claude + Cursor), scoped to `components/` and
+  `lib/`: no allocation in `useFrame`, one RAF clock, per-frame state in
+  singletons.
+- **`.claude/hooks/revert-generated-tsconfig.mjs`** restores `tsconfig.json`
+  after `next build` / `next dev` only when the diff is purely the Next.js
+  rewrite. It is wired in the gitignored `settings.local.json`, so it is
+  opt-in per checkout.
+- **Learnings** (`aidd-context:10-learn`): the next version skips numbers
+  open PRs already claim; private realtime broadcasts need private channels;
+  an ADR makes `aidd_docs/memory/` authoritative over root `MEMORY.md`. The
+  memory README list is now maintained by hand, because the AIDD
+  `SessionStart` hook wrote Windows-broken links into it.
+- **Deduplicated `CLAUDE.md` and `AGENTS.md`** against the memory bank:
+  the scroll/animation prose, test-run details, build gotchas, branch model
+  and role flow now live in `aidd_docs/memory/`, and the context files keep
+  the rules as one-liners with pointers. `CLAUDE.md` drops ~3.8 KB per
+  session. `AGENTS.md` also stops hardcoding the migration head.
+- **Token trim** (`aidd-context:12-cook` token-optimization recipe): 8
+  task-specific memory files (api, backlog, design, ecosystem, forms,
+  integration, navigation, realtime) move to `aidd_docs/memory/internal/`
+  and load on demand. That cuts the auto-loaded bank from ~24 KB to ~13 KB
+  per session. `gatekeeper` runs on `haiku`. `desktop-commander` is removed
+  from `.mcp.json`: its tool schema rode along every turn and it timed out at
+  startup.
+- **`.claude/settings.json` is now tracked** (removed from `.gitignore`) so
+  its `permissions.deny` rules are shared: reads of `.next/`, `node_modules/`,
+  `test-results/` and `.env*` stay out of agent context. Personal settings
+  still belong in the gitignored `settings.local.json`.
+
+## v1.67 — 2026-09-27
+
+SEO index fix for one page. Nothing else changes.
+
+- **`/hire/shopify-developer` is now `noindex, follow`.** The page is a
+  direct-response landing for ads, outreach and links. Shopify is not an
+  organic target in `docs/seo/STRATEGY.md`, and Search Console already lists
+  the URL as "Discovered – not indexed". `follow` keeps its links to the rest
+  of the site crawlable. It uses the same `robots` metadata pattern as
+  `/login` and `/signup`.
+- **Removed from `app/sitemap.js`**, so the sitemap no longer asks crawlers to
+  index a noindex URL.
+- **Tests:** `seo-onpage` now asserts the page is noindex, follow, stays
+  self-canonical, and is absent from the sitemap. The `llms.txt` test no longer
+  requires the page to be a sitemap route.
+
+## v1.63 — 2026-09-27
+
+*Backfilled in v1.80.* PR #239 merged at `18edbc9` through an "Update
+branch" merge that took `main`'s `VERSION` (v1.64) and `CHANGELOG.md`, so
+v1.63 deployed without this entry. It deployed after v1.64 (#240), which is
+why it sits above it. This is the entry as it stood on the shipped commit.
+
+Moiz becomes the single CRM admin (owner-approved 2026-09-27). Numbered
+after v1.62 (PR #238, docs only).
+
+- **Migration `0044_pin_admin_to_moiz.sql`**: `public.pinned_admin_email()`
+  now returns `moizj00@gmail.com`. The existing admin (Ethan,
+  `ethan@cdsportswearinc.com`) is demoted to `project_manager`, so it keeps
+  `/team` access but not `/admin` or user management. Moiz's existing
+  account is then promoted to `admin`. No accounts are merged, renamed or
+  deleted. The 0027 revoke on the helper is re-asserted.
+- Consequences, also owner-approved: new contact-form leads are recorded
+  against Moiz (0026/0029 look up the pinned admin), and
+  `project.brief_submitted` alerts (in-app and email) go to Moiz.
+- `scripts/provision-crm-test-users.mjs` provisions the admin as
+  `moizj00@gmail.com` and no longer overwrites that account's name.
+- Tests: `supabase/tests/0044_pin_admin_to_moiz.test.sql` (5 pgTAP) and
+  `tests/crm/migration-0044-pin-admin-to-moiz.test.mjs`. The 0042 pgTAP
+  test now checks only that the pin no longer names the retired domain.
+  Locally, 0044 applied to a copy staged like live (Ethan admin, Moiz
+  client) gives Ethan `project_manager` and Moiz `admin`, re-applying it
+  changes nothing, and the pin-dependent pgTAP files (0009, 0035, 0041,
+  0042, 0043, 0044) pass 92/92.
+- CLAUDE.md: 0042 is recorded as applied live (2026-09-15), and 0044 as the
+  current admin pin.
+
+## v1.64 — 2026-09-26
+
+Docs only; no application code, route or runtime change. Lands the SEO
+goal-monger records that were sitting untracked in a local checkout.
+
+- **`docs/seo/goals.md`** — the active goal MJ approved on 2026-09-26: GSC
+  average position ≤10 for `rfp web development` on
+  `/blog/web-development-rfp-guide`, 14 consecutive complete reporting days,
+  by 2027-03-31. Baseline 0 reportable impressions (position unavailable);
+  indexing milestone closed. Does not replace the qualified-inquiry goal in
+  `STRATEGY.md`.
+- **First push run note** (`runs/2026-09-26-goal-monger.md`) and the
+  continuous SEO operating plan.
+- **RFP worksheet draft** at `drafts/downloads/web-development-rfp-worksheet.md`
+  (`approved: false`). Deliberately *not* in `drafts/blog/`: the publish
+  script would have turned it into `/blog/web-development-rfp-template`, a
+  second URL for a query the registry already assigns to the RFP guide.
+- **Agent Council records** (`council/`): the original brief (byte-identical
+  to the sha256 in the recorded verdict), its revised preflight brief, the
+  verdict JSON, and the GitHub Actions weekly-council proposal (proposal
+  only — no workflow is added).
+- **Templates** (`templates/`): weekly run note, SEO PR body, scheduler
+  handoff, and the draft `get_seo_goal_snapshot` tool schema for the
+  Search Console connector repo.
+
+## v1.61 — 2026-09-27
+
+Fixes for v1.60 (visual Phase 1b) from its adversarial review. They were
+pushed to PR #236 after the commit it merged at (`28346fd`), so they ship
+here. Also backfills the v1.60 entry below.
+
+- **Fix: jumping back to About, Services or Client stories named the
+  section above.** Breakpoints were measured with `getBoundingClientRect()`,
+  which includes SectionHandoff's 16px pre-reveal transform, while a jump
+  back to an already-revealed section lands on the real top. `sectionTop()`
+  in `lib/beatProgress.js` measures layout tops (offsetTop chain), and
+  SmoothScroll jumps homepage sections to that same number. The same
+  breakpoints drive `CameraRig`.
+- **Hero "See selected work" links to `/work`** (the real projects) instead
+  of `#motion`, whose marquee is third-party showcase screenshots that must
+  never read as CD Sportswear INC client work.
+- **SmoothScroll**: the limit check reads Lenis's raw dimensions (its
+  `limit` getter allocates an object per call) and resyncs
+  `scrollState.progress` on the same frame, since Lenis emits no scroll
+  event for a resize. In-page jumps now move focus to the target section
+  (`tabindex="-1"`, no ring), so the next Tab continues from there.
+- **JourneyNav**: after the page in DOM order, so keyboard users reach the
+  hero first; the phone list closes when focus leaves it, ignores an Escape
+  another component already handled, and scrolls within the viewport on
+  landscape phones and at 200% zoom.
+- Tests: transform-free layout tops, the jump target, focus-out and Escape
+  behaviour, and the `/work` CTA. `docs/HOMEPAGE-OVERHAUL-REUSE-INVENTORY.md`
+  no longer describes the removed "01/09" readout.
+- Verified in Chromium on a production build: 18 forward, backward and
+  random nav jumps each mark the right section at 1440, 1024 and 390px;
+  Tab after a jump lands inside the target section; the open phone list
+  fits and scrolls at 844×390; the resting rail overlaps no text at 1024 or
+  1180px.
+
+## v1.60 — 2026-09-27
+
+Visual experience Phase 1b: wayfinding and first-screen clarity
+(`docs/visual/PHASE-0-REPORT.md`, `docs/visual/UI-UX-REVIEW.md`). Numbered
+after v1.59 (PR #235, the v1.55/v1.57 CHANGELOG backfill).
+
+*Backfilled in v1.61.* PR #236 merged at `28346fd`, whose "Update branch"
+merge took `main`'s `VERSION` (v1.59) and `CHANGELOG.md`, so v1.60 deployed
+without its entry. This is the entry as it stood on the shipped commit.
+
+- **Section navigation** (`components/JourneyNav.jsx`,
+  `app/styles/journey-nav.css`, `lib/journeyNav.mjs`). The homepage's
+  aria-hidden "01/09" readout becomes a real `<nav aria-label="Page
+  sections">` of in-page links, one per beat, in the existing order.
+  The current section is marked `aria-current="location"`. On desktop it is
+  the same right-edge rail, with labels shown for the current section and
+  on hover or keyboard focus. At ≤900px it is a "03/09 · Services" button
+  (44px tall, bottom-right) that opens the list; Escape, tapping outside or
+  choosing a section closes it. Links are plain `#id` anchors, so
+  SmoothScroll's existing Lenis upgrade (and native scrolling under reduced
+  motion) handles the scroll. The active beat is read from the shared
+  `gsap.ticker`, and the DOM is written only when the beat changes.
+- **Plain-language labels**: Intro, About, Services, How we work, Client
+  stories, Brand systems, Capabilities, Selected work, Contact. Lab is
+  labelled *Capabilities*, not *Experiments*, because the section shows
+  what we build for clients.
+- **Hero**: a descriptor line above the headline ("Websites · Branding ·
+  Motion · Marketing · AI automation") and a secondary "See selected work"
+  CTA beside "Start a project". The headline, proof line and the rest of
+  the hero are unchanged.
+- **Fix: section boundaries were never measured on first load.** Lenis
+  updates `lenis.limit` on its own debounced ResizeObserver, after
+  SmoothScroll's body observer has already measured against the stale
+  value. Every breakpoint stayed at its evenly-spaced default until the
+  window resized, so the old "01/09" count ran one section behind from
+  About onward (e.g. "05" on Mark). SmoothScroll now re-measures on the
+  ticker frame the limit changes. `CameraRig` reads the same breakpoints,
+  so on first load the camera now paces to the real sections — what it
+  already did after any resize. `currentBeatIndex` also allows 2px of
+  slack, so a jump that lands a sub-pixel short of a section still names
+  it. Verified in Chromium: all nine nav jumps mark the right section at
+  1440px and 390px.
+- `ScrollProgress` loses its `sections` readout (now JourneyNav's job) and
+  keeps the progress bar; the matching `.scroll-progress-count` CSS is
+  removed.
+- Tests: `tests/journeyNav.test.mjs` and `tests/marketing/journeyNav.test.jsx`
+  (the second runs in CI's `test:marketing`). `tests/beatProgress.test.mjs`
+  now checks that only the homepage mounts the readout.
+
+## v1.59 — 2026-09-27
+
+Release-record backfill only; no code or runtime change.
+
+- `CHANGELOG.md` gains the missing **v1.57** (visual Phase 0 baseline +
+  Phase 1a fixes, PR #230) and **v1.55** (client service briefs, PR #229)
+  entries. Both PRs merged on 2026-09-26 minutes after v1.56 (#231), and
+  their "Update branch" merges took `main`'s `VERSION`/`CHANGELOG.md`,
+  dropping their own entries. They are placed in merge order below v1.58.
+- `VERSION` → v1.59 (one above the highest release named on `main`).
+
+## v1.58 — 2026-09-26
+
+Full SEO audit and the fixes it justified. Evidence, sources and everything
+left for the owner: `docs/seo/runs/2026-09-26-full-audit.md`. Numbered after
+v1.57, which is named in the merge log (`3d7479a`, PR #230) but has no entry
+here.
+
+- **Business identity** (owner-confirmed 2026-09-26). "Sharjah, DXB" is not a
+  CD Sportswear INC location and is removed from the footer, homepage contact
+  block, Contact page, About copy and FAQ, OG image and Privacy page;
+  `SITE.citySecondary` / `SITE.cityCompact` are gone. `lib/site.js` gains
+  `address` (8956 Dahlgren Ridge Rd, Manassas, VA 20111) and
+  `mailingAddress` (P.O. Box #41424, Arlington, VA 22204) plus a shared
+  `cityStateZip()` formatter. Contact now lists both; Privacy and Terms use
+  the P.O. Box instead of the undeliverable "Manassas, VA, United States"
+  (their "Last updated" moves to September 26, 2026). The Privacy
+  data-transfer clause is unchanged.
+- **Organization schema** (`app/layout.jsx`): one US `PostalAddress` with
+  the street address; `areaServed` United States; no P.O. Box, hours or geo.
+  The site-wide `AggregateRating` is removed — it was on every page while the
+  reviews are only visible on `/reviews` (which keeps its per-review markup).
+  Service schema `areaServed` drops the UAE.
+- **Canonical**: the homepage canonical moves from the root layout to
+  `app/page.jsx`, so 404s (and any future route that forgets its own) no
+  longer inherit a homepage canonical. Every other canonical is unchanged
+  (before/after crawl of the built site).
+- **robots.txt**: `*` and the named crawlers (GPTBot, OAI-SearchBot,
+  ChatGPT-User, ClaudeBot, PerplexityBot, Bingbot, Applebot, Google-Extended)
+  now share one group. Each used to have its own `Allow: /` group, and under
+  RFC 9309 a crawler obeys only its most specific group, so none of them
+  inherited the CRM/API/auth disallows. The non-standard `Host:` line is
+  dropped.
+- **Sitemap**: regenerates hourly (`revalidate = 3600`) so posts that reach
+  `blog_posts` outside the admin publish action appear without a redeploy
+  (seven "redeploy to refresh sitemap" commits since 2026-09-22). `lastmod`
+  is now emitted only for posts (`updated_at`); static, service and
+  case-study URLs used to report the build time.
+- **Blog rendering** (`lib/blogMarkdown.mjs`, `PostBody.jsx`): 10 of 14 live
+  posts open with `# <title>`, which printed as a literal "# ..." paragraph
+  under the real `<h1>`; a leading heading that restates the title is now
+  dropped and any other `#` becomes `<h2>`. `![alt](src)` images (6 across 3
+  posts) rendered as "!" plus a link to the `.jpg`; they now render as lazy
+  `<img class="post-image">` with the author's alt text. Image sources are
+  limited to https and site-relative paths.
+- **Internal links**: `/services/web-design`, `/services/web-development`,
+  `/services/ai-automation` and `/services/workflow-automation` link to the
+  six published posts that already linked up to them but got nothing back;
+  the eight posts published 2026-09-24 → 26 get pillar + sibling "Next" links
+  instead of the generic fallback. `/blog/website-redesign-services` is left
+  unlinked from the pillar pending the owner's ruling on the term it targets.
+- `public/llms.txt` now covers every sitemap URL (10 posts and
+  `/hire/shopify-developer` were missing) and describes Process as the six
+  steps the page shows.
+- Docs: keyword registry (10 unregistered live posts, the Shopify page's
+  state conflict), operations manual (Search Console now readable via the
+  GSC connector; new owner items 12–15), STRATEGY §8 current state, and a
+  CLAUDE.md build gotcha — `NODE_ENV=development` in the shell reproduces the
+  `useContext` prerender failure on Linux.
+- Follow-up from the adversarial review (same release): a failed post read
+  during an hourly sitemap regeneration now throws, so Next keeps serving the
+  last good sitemap instead of caching one with no posts (`next build` still
+  degrades to the static list; `listPublishedSlugs({ throwOnError })`).
+  `safeHref`/`safeImageSrc` refuse `//host` and `/\host` paths, including
+  ones produced by rewriting an owned-host URL. Title-drop applies to the
+  first line only and on a word boundary; empty headings are skipped; closing
+  `#`s and a leading BOM are handled. `.post-image` uses `max-width`. The
+  post editor's Markdown help mentions images and the H1 rule.
+- Tests: `tests/seo-identity-and-crawl.test.mjs` (location, schema, canonical
+  ownership, robots groups, sitemap freshness, llms.txt coverage),
+  `tests/marketing/postBody.test.jsx`, new parser cases in
+  `tests/blogMarkdown.test.mjs`; `content` and `serviceSchema` tests updated.
+
+## v1.57 — 2026-09-26
+
+Merged as PR #230 right after v1.55; its "Update branch" merge dropped this
+entry. Backfilled in v1.59 so the release is recorded.
+
+Visual experience Phase 0 baseline + Phase 1a defect fixes (owner-supplied
+brief: `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`).
+
+- **Phones no longer scroll sideways.** `.motion-stream-index` (Selected work
+  list) was `width: min(100%, 34rem)` plus a 6vw side margin, so it ran
+  19–23px past the right edge at every phone width and the fixed nav's menu
+  button was clipped. Now `width: auto; max-width: 34rem` (desktop unchanged).
+- **One `<main>` landmark.** `app/layout.jsx` already owns
+  `<main id="main-content">`; the homepage and subpage shells rendered a
+  second, nested `<main>` (axe: 3 landmark violations on every page). They
+  are now `<div>`s with the same classes.
+- **Reduced-motion hydration error fixed.** `SectionSkeleton` branched its
+  markup on `useReducedMotion()` (null on the server, true on the client),
+  throwing React #418 for exactly the visitors reduced motion protects. The
+  sweep element always renders; CSS hides it under reduced motion.
+- **WebGL failure no longer throws.** `Scene` probes WebGL once
+  (`lib/webglSupport.mjs`) and skips the canvas when it is unavailable; the
+  canvas is also wrapped in `CanvasFeatureBoundary`. The CSS backdrop and every
+  DOM section keep working.
+- **Homepage scene follows its quality tier.** `Scene.jsx` hardcoded DPR 1.75,
+  900 particles and full post-processing on every device, ignoring
+  `lib/renderQuality.mjs`. DPR, particle count and idle animation now follow
+  the tier, like `IdleScene` already did. Bloom + vignette stay on every tier
+  (eco includes 4-thread laptops such as the 2019 MacBook Air; owner decision)
+  — only the high tier gets mipmap blur + depth of field.
+- **Global focus ring.** Zero-specificity `:where(...):focus-visible` safety
+  net in `primitives.css` (component styles still win); dark ring on
+  `[data-nav-tone="light"]` surfaces where cyan fails contrast.
+- **Docs.** `CLAUDE-VISUAL-EXPERIENCE-PLAN.md`, `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`
+  and `docs/visual/` (UI/UX review, accessibility audit, accessibility test plan,
+  Phase 0 current-state map and baseline); `CLAUDE.md` points to them.
+- Measured on a production build (software WebGL — relative numbers only):
+  mobile scroll 9 → 30 fps, desktop scroll 4 → 8 fps, axe violations 3 → 0,
+  page errors in reduced-motion and no-WebGL modes → 0.
+- Tests: `tests/visualPhase1a.test.mjs` (7).
+
+## v1.56 — 2026-09-26
+
+Merge after v1.55 (client briefs, PR #229); this entry was renumbered from
+v1.55 so the two releases don't share a version.
+
+Door Dennis-style transitions (owner request, adapted from doordennis.nl's
+motion system — transitions only; none of its WebGL, media or copy).
+
+- **Page-to-page transition** (`components/PageTransition.jsx`, rules in
+  `lib/pageTransition.mjs`): internal link click -> page content fades out
+  (0.45s) -> Next navigates -> jump to top unless a `#hash` was requested ->
+  `ScrollTrigger.refresh()` -> fade in (0.6s). Mounted once in
+  `app/layout.jsx`. Opacity only, so the fixed WebGL stage and nav never
+  re-anchor. Skips CRM/auth routes, same-page hashes, new tabs, downloads,
+  modifier clicks, `data-no-page-transition`, and `ProjectHandoffLink`
+  (which keeps its own stripe wipe). A 5s safety net restores the page if a
+  route never commits.
+- **Blur-letter headings** (`components/BlurLetters.jsx`): letters turn in
+  from `rotateY(-90deg) scale(.9)` with an 8px blur while words rise, 0.75s
+  `power3.out`. Now used by `SectionHeader` (Services, Approach, Stories) and
+  the inner-page `PageHero` title, replacing their `SectionReveal` mask.
+- **Line/word rise** (`components/LineRise.jsx`): words rise per rendered
+  line, 0.15s between lines. Used by the `PageHero` lede.
+- **Hover letter scramble** (`components/HoverScramble.jsx`,
+  `lib/scramble.mjs`): 4 random-glyph frames 80ms apart, then the label
+  snaps back. Applied to the subpage nav links and Log in link; width is
+  locked and an sr-only copy keeps the accessible name stable.
+- Both text entrances revert their SplitType spans once settled, so final
+  headings are plain text again (a11y name, `text-wrap: balance`, resize).
+  Everything resolves instantly under `prefers-reduced-motion`.
+- Tests: `tests/pageTransition.test.mjs` (route rules, exclusions, scramble
+  frames).
+
+## v1.55 — 2026-09-26
+
+Merged as PR #229 *after* v1.56 (#231), so production shipped v1.56 first and
+`VERSION` read v1.56 when this landed; the PR's merge conflict was resolved
+without this entry. Backfilled in v1.59 so the release is recorded.
+
+Full client area: guided, service-specific briefs that start projects.
+
+- **Briefs by service.** New `/dashboard` with service cards for **Logo design, Website, SEO and PPC ads**, plus "Something else" (the existing free-text form). Each opens a step-by-step questionnaire (`lib/crm/brief-templates.mjs`) written for the designer, developer or marketer who picks it up. Examples: brand personality sliders, logo usage and file formats; pages, features, content readiness and reference sites; target locations, priority services, keywords, Search Console/GA4 status; platforms, ad spend, conversion goal, tracking and landing pages.
+- **Autosave and pre-fill.** Answers save about a second after the client stops typing, with a visible "Saved" status. The client can leave and resume from "Briefs in progress". Company name, website and industry are pre-filled from onboarding.
+- **Many briefs per project.** Submit either starts a new project (name and target date suggested from the answers) or adds the brief to an existing project. Project pages for client, team and admin gain a **Briefs** panel with the full answers laid out by section. Clients can add another brief from there.
+- **Studio alerts.** Submitting notifies the admin and any assigned staff in-app and by email (`project.brief_submitted`). The email links straight to the staff view of the project.
+- **Database (`0043_project_briefs.sql`).** New `project_briefs` table with forced RLS: drafts are author-only, submitted briefs are visible to project participants, and only drafts are writable. `submit_project_brief()` RPC is idempotent via `create_project()`'s key. Adds `project.brief_submitted` to the audit event list. **Applied to the live database on 2026-09-26**, before this merge.
+- **Fixes.** The free-text brief form's success handler received `{ projectId }` but navigated to `/dashboard/projects/[object Object]`. The brief wizard's step list no longer widens the page on phones.
+- **Hardening from review.**
+  - The dashboard loads projects independently of briefs, so a missing `0043` never blanks the project list.
+  - Pending edits save when the client leaves the wizard.
+  - Non-retryable save errors stop retrying, and other failures back off exponentially.
+  - Submit waits for, and requires, a successful save of the exact answers.
+  - A draft whose project was cancelled can be re-pointed.
+  - Specific submit error messages.
+  - Emoji-safe length caps.
+  - Brief ids are immutable, and an id colliding with an existing project key is refused.
+  - The answer size check leaves headroom under the database limit.
+- Tests: questionnaire data and validation, migration contract, server-action guards, email template (Node); wizard autosave/submit behaviour (vitest); 22 pgTAP assertions for RLS, submit, idempotency, id immutability and notifications, all run against a local Postgres 16 with every migration `0001`–`0043` applied.
+
+## v1.54 — 2026-09-25
+
+Google Tag Manager container `GTM-5VKPC974` added alongside the existing GA4
+integration, per owner request. The container is for other tags (ads pixels,
+conversions); it must not also carry a GA4 tag for the same property, or
+every pageview is counted twice.
+
+- **Loader** (`lib/analytics.mjs` `loadTagManager()`, called from
+  `components/Analytics.jsx`) injects `gtm.js` once, on the first public
+  page. CRM and auth routes (`UNTRACKED_PREFIXES`) never load it, matching
+  the existing GA4 privacy rule. Once loaded it stays for the session, so
+  container tags that auto-track page changes must exclude those paths.
+- **Consent** — the Consent Mode v2 defaults (all denied) are queued before
+  `gtm.js` reads `dataLayer`, and are shared with GA4 so they are pushed only
+  once. The consent banner now shows when either tag is active and names
+  both. Non-Google tags in the container still need their own consent
+  settings in GTM to respect a decline.
+- **Scope** — production builds only (`next dev` never fires container
+  tags). `NEXT_PUBLIC_GTM_ID` overrides the container; a non-container value
+  such as `off` disables it.
+- **No-JS fallback** — the `<noscript>` `ns.html` iframe sits at the top of
+  `<body>` in `app/layout.jsx`; `frame-src` now allows
+  `https://www.googletagmanager.com` for it (pinned in
+  `tests/csp-policy.test.mjs`). Any third-party script a container tag loads
+  still needs its origin added to the CSP before it can run.
+- Tests: GTM ID resolution, load-once, consent ordering with and without
+  GA4, disabled container, public-page gating, noscript fallback and CSP.
+
+## v1.53 — 2026-09-24
+
+Add a "Services behind this project" section to every /work/[slug] case study.
+
+- Reuses `ServiceGrid` (the /services index component) in place of the bare "Related service →" links case studies had. Each card is now a real `<a href>` with descriptive, keyword-bearing anchor text (the service's own title + hero line), verified to resolve for all six projects and their related services.
+- `ServiceGrid` gains a `titleAs` prop (default `h2`) so it can render its card titles as `h3` here, keeping each case study's heading order at h1 → h2 → h3 (this is the page's first h2). `/services` is unaffected — it doesn't pass the prop, so its cards stay `h2`.
+- Placed after the "The look" gallery, before `CaseNavRail`; "Send a brief →" stays last. Approved extension plan on file in the PR description.
+
+## v1.52 — 2026-09-24
+
+Resolve the 2026-09-24 Ubersuggest site audit (cdsportswearinc.com) and add the `cd sportswear` brand keyword.
+
+- **Brand keyword:** `cd sportswear` (320/mo, diff 22) added to Ubersuggest tracking and the Keyword Registry → homepage. Organization and WebSite JSON-LD now carry `alternateName: ['CD Sportswear', 'CD Sportswear Inc', …]` so brand searches resolve to this site.
+- **Thin auth pages:** `/login` and `/signup` are now `noindex, follow` (MJ, 2026-09-24 — reverses 2026-09-11). They stay crawlable in `robots.js` so the noindex is seen. `/login` title lengthened to `Client Portal Log In — CD Sportswear INC` (was 26 chars).
+- **URL-keyword check:** `/about` → `About Our Web Design & Branding Studio — CD Sportswear INC`; `/services` → `Services: Websites, Brands & Automation — CD Sportswear INC` (keeps clear of the web-design/branding pillar head terms).
+- **Long titles (>65 chars):** `/services/seo` seoTitle shortened; case-study titles over 65 chars fall back to `<Project> — Case Study | CD Sportswear INC`. Four blog `seo_title`s shortened directly in Supabase (branding-and-web-design-studio, web-design-manassas-va, how-much-does-a-small-business-website-cost, ai-automation-agency).
+- **Thin case studies:** Style and Prestige Online Learning each gain three approach paragraphs (~400 words on page). They only expand what the existing narrative already states: no new metrics, stack, or client claims.
+- **Not changed:** `/forgot-password` and `/login/{admin,client,employee}` stay disallowed in robots.txt on purpose (Ubersuggest's "blocked" flag is expected for them).
+
+## v1.51 — 2026-09-24
+
+Cherry-pick usable SEO branch work that was stuck behind conflicts on main.
+
+- **Brand-drift title fix (from PR #219):** about, blog, contact, and /services hub `SEO_TITLE` strings now use exact brand `CD Sportswear INC`, topic-first ordering, and spaced em dashes. The /services hub title is `Connected Services — CD Sportswear INC` so it no longer cannibalizes pillar head terms.
+- **Keyword registry (from PR #214 + #213):** logo vs brand-identity split ruling; map 7 theme-3 terms; map `business of web design` and `product page design`.
+- **Drafts (from PR #213, `approved: false`):** `docs/seo/drafts/blog/business-of-web-design.md` and `product-page-design.md`. Not published live.
+- Skipped: metro/geo doorway branches; stale superseded SEO branches already on main (#208/#212/#220/#222); obsolete #199 registry one-liner.
+
+## v1.50 — 2026-09-23
+
+Install the blog publish workflow. It was built in v1.25 but never installed.
+
+- **`docs/seo/seo-publish-blog.yml.pending` moves to
+  `.github/workflows/seo-publish-blog.yml`.** On every push to `main` that
+  touches `docs/seo/drafts/blog/**` or `scripts/seo/publish-blog-drafts.mjs`,
+  it runs the publish script. The script upserts drafts marked
+  `approved: true` into `blog_posts` as `status: draft`. It never publishes,
+  and it never overwrites a row that is already published. A person still
+  takes each post live from `/admin/blog`. It can also be run by hand from
+  the Actions tab, where it defaults to a dry run.
+- The `dry_run` input and the event name now reach the shell through `env:`
+  instead of being written into the script text.
+- The repo secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) and the
+  `SEO_BLOG_COVERS_BUCKET` variable were already set, so the workflow is live
+  as soon as this merges. Merging it does not trigger a run, because the
+  workflow file is not in its own `paths` filter.
+- **Known gap:** the `blog-covers` bucket that `SEO_BLOG_COVERS_BUCKET` names
+  does not exist in Supabase. No draft uses a cover image yet. Details are in
+  `docs/seo/OPERATIONS-MANUAL.md` item 8.
+
+## v1.49 — 2026-09-23
+
+Blog draft for Jira KAN-11, under SEO theme 2 (digital marketing). This is
+docs only, with no route or code change.
+
+- **`docs/seo/drafts/blog/sportswear-marketing-strategy.md`**, marked
+  `approved: false`. It's a B2B sportswear marketing strategy for brands that
+  sell to teams, clubs, schools and wholesale buyers. It covers the buying
+  committee, planning backwards from the season calendar, the reorder path,
+  how to show decoration work, channel choice and measurement. It targets
+  `sportswear marketing strategy` (390/mo, difficulty 27) and
+  `sportswear marketing plan` (50/mo, difficulty 24), both from Ubersuggest in
+  the US on 2026-09-23. The SERP is informational (Forbes, Deloitte,
+  launchmetrics), and one DA-14 agency blog ranks #8. It links internally to
+  `/services/digital-marketing`, `/services/seo`,
+  `/embroidery-screen-printing-web-design`, `/blog/web-development-rfp-guide`
+  and `/contact`. It contains no statistics, client names or outcomes.
+- Both keywords are added to `docs/seo/KEYWORD-REGISTRY.md`, mapped to
+  `/blog/sportswear-marketing-strategy`.
+- The publish pipeline only upserts drafts with `approved: true`, so this
+  lands nowhere until MJ approves it.
+
+## v1.48 — 2026-09-23
+
+SEO internal links and IndexNow fixes from Jira KAN-12 and KAN-15.
+
+- **Service pages now link back to their blog posts (KAN-12).** The blog
+  posts already linked to their service pillars, but no service page linked
+  to any post. `/services/branding` and `/services/logo-design` now link to
+  `/blog/branding-and-web-design-studio`. Web design, web development, AI
+  automation and workflow automation also link to their published posts. The
+  links sit in a "Further reading" section that reuses the existing
+  related-links markup, and the data is in `GUIDE_LINKS` in
+  `lib/servicePages.mjs`. `ai automation agency` is mapped to
+  `/services/ai-automation` in the keyword registry, so the anchor pointing at
+  `/blog/ai-automation-agency` avoids that term and doesn't make the post
+  compete with its own pillar.
+- **`/blog/ai-automation-agency` and `/blog/custom-react-nextjs-web-development`
+  get specific "Next" links (KAN-15).** They used to fall back to the generic
+  Services / Work / Contact set.
+- **Every IndexNow ping sent by `scripts/seo/indexnow-ping.mjs` had two
+  errors (KAN-15).** `host` was sent as `https://www.…` instead of a bare
+  hostname, and `keyLocation` pointed at `/public/<key>.txt`, which 404s
+  because Next.js serves `public/` at the root. The key file itself is live at
+  `/<key>.txt`. The payload now matches the IndexNow documentation. URLs are
+  filtered by exact origin, and the script only runs `main()` when it is
+  executed directly. IndexNow can answer 202 ("key validation pending"), so
+  the failures may never have shown up as errors.
+- New contract tests in `tests/seo-internal-links.test.mjs`.
+
+## v1.47 — 2026-09-22
+
+Follow-up to v1.44 to v1.46 (#217). Both fixes below were pushed to that branch just after it
+merged, so neither shipped with it.
+
+- **Hero backgrounds covered only part of the hero** (owner report, most
+  visible on `/services`). Three stage modules, dot-field, letter-glitch and
+  ripple-grid, resized only when the window resized, and two of them pin
+  the canvas to fixed pixel sizes. Inside a hero the box keeps changing
+  height after mount as fonts load and reveals run. So the canvas stayed at
+  its first, smaller measurement. All three now watch their container with
+  a ResizeObserver, like the other four already did, and a test pins it for
+  all seven. The viewport-tuned `.alive-overlay` vignette also crushed the
+  hero's side edges, and its third glow sat dead centre. Both are
+  re-tuned inside the hero so the light spans the full width.
+- **Reduced motion now stops the animation, not just hides it.** A module
+  hidden with `display: none` still ran its requestAnimationFrame loop and
+  held a WebGL context. `DarkPageBackground` no longer mounts the module under
+  `(prefers-reduced-motion: reduce), (max-width: 767px)`, and it unmounts the
+  module if the preference changes mid-session. This covers auth pages too.
+- A shared diagonal "brand streak" across every hero was tried and then
+  removed at the owner's request. It does not ship.
+- **Service marks start still.** `ServiceGlyph`'s reduced-motion hook started at
+  `false`, so the SMIL marks could animate for one render before the visitor's
+  preference was read. It now starts at `true`, and motion turns on only after
+  matchMedia confirms it is allowed.
+
+## v1.46 — 2026-09-22
+
+Make the service emblems mean something. The owner's read of the previous
+set — "these blue shapes that each page has" — was fair: every service page
+opened on an abstract 3D object that said nothing about the service.
+
+- **Root cause was motion, not just shape** — `ServiceEmblem3D` spun each
+  form a full 360 degrees on Y. The forms were authored to be read face-on
+  (a viewport with a cursor, a layered stack), so half of every cycle showed
+  them edge-on, collapsed into an unreadable sliver. The spin is replaced by
+  a bounded sway (about 23 degrees of yaw, 7 of pitch; `rotSpeed` still sets
+  each signal's tempo). The form now always faces the reader and still reads
+  as a solid with depth on its edges. Scale 1.35 to 1.5.
+- **Forms rebuilt as literal objects** in `lib/serviceSignalGeometry.mjs`,
+  still procedural primitives, still one source of truth shared with the
+  homepage rail: browser window (web), `</>` (development), tag with eyelet
+  (brand), constructed mark in a ring (logo), megaphone (marketing), play
+  button (animation, still the one wireframe form), thickened node network
+  (ai), thickened relay with arrow (workflow), magnifying glass (seo). The
+  brand form took three tries: two card-stack versions fused into one blob
+  in a single flat colour; the tag works because its outline alone is
+  iconic, the same reason the magnifier and play button work.
+- **Inline SMIL marks redesigned** and moved to `components/marketing/
+  ServiceGlyph.jsx` (single source, shared by `ServiceEmblem`). Each shows the
+  service's value rather than decorating: a headline that writes itself and
+  a CTA that lands, a funnel that converts, a result that climbs to first.
+  Reduced-motion still strips SMIL from the tree.
+- **Tooltip copy extracted** to `lib/serviceSignalBlurbs.mjs` so it is not
+  duplicated. `vitest.setup.js` gains a `matchMedia` shim, matching its
+  existing `ResizeObserver` one, so components that gate on reduced motion
+  can render under jsdom.
+- **Scope note** — an SVG-only hero variant was built and verified, then
+  dropped the same day when the owner chose to keep React Three Fiber. Only
+  the shared geometry, the sway, the SMIL glyphs and the blurb extraction
+  ship.
+
+## v1.45 — 2026-09-22
+
+Extend the hero stage to the four index/detail surfaces the owner asked for,
+each with its own React Bits module, restyled to site tokens and dimmed to a
+single shared level.
+
+- **New stages** — `/services/[slug]` gets prism, `/work` ripple-grid, `/blog`
+  liquid-ether, `/reviews` dot-field. Seven modules exist and the four
+  top-level pages already take one each, so `reviews` reuses dot-field, the
+  quietest of the set and the right register for a text-dense page.
+- **Brand colors enforced at the source** — ripple-grid shipped vendor purple
+  `#8a5cff` and liquid-ether `['#5227FF','#89f7ff','#B497CF']`. Both now
+  default to site tokens (`--blue` `#3c6cff`, `--cyan` `#59f3ff`, `--muted`
+  `#8b98b8`), so no code path can render the demo palette. Prism gained a
+  `saturation` prop (defaulting to the vendor value, so existing behavior is
+  unchanged) and the wrapper pulls it to near-monochrome with a cyan hue
+  shift, low glow/bloom and a slow `timeScale`.
+- **One prominence knob** — `.mkt-hero-stage { opacity }` sets how loud every
+  stage reads, instead of editing each module. Full-viewport auth surfaces
+  are unaffected.
+- **Band variant** — `/work`'s first section is the entire index, so it has no
+  hero box to fill. `HeroStage variant="band"` paints a height-capped band at
+  the top of the container, fading into `--bg` before the project library.
+- **Scope** — `/work/[slug]`, `/blog/[slug]`, the embroidery pillar,
+  `/privacy` and `/terms` were not requested and still get no stage. The
+  no-fallback rule from v1.44 is unchanged and still covered by tests.
+
+## v1.44 — 2026-09-22
+
+Scope the animated stage background to the hero on the four main marketing
+pages; remove it from every inner page it had leaked onto.
+
+- **Bug fix** — the cyan/silver stage (acid-squares, dot-field,
+  faulty-terminal, letter-glitch) rendered `position: fixed`, so it covered
+  the full scroll height of any page through `SubpageExperience`, and a
+  silent `|| 'acid-squares'` fallback meant it also showed on pages with no
+  assigned variant: `/services/[slug]`, `/work`, `/work/[slug]`, `/blog`,
+  `/blog/[slug]`, `/reviews`, `/privacy`, `/terms`, and the embroidery
+  pillar page.
+- **Fix** — the stage now mounts inside `PageHero`'s `.mkt-hero` section via
+  a new `HeroStage` component and `StageContext`, with CSS that forces the
+  shared background modules to `position: absolute` inside `.mkt-hero-stage`
+  so each one fills the hero box and fades out before section 2, instead of
+  running the page's full height. `marketingStageBackground()` no longer
+  falls back to `acid-squares`; only `/about`, `/services`, `/process`, and
+  `/contact` (the four `MARKETING_STAGE_BACKGROUNDS` entries) get a stage.
+  `/privacy` and `/terms` no longer pass a `sceneVariant`. Homepage
+  (`Scene.jsx`/crystal journey) and auth pages are unchanged.
+- **Tests** — `tests/marketing-stage-background.test.mjs` rewritten to
+  assert the stage is hero-scoped, has no fallback, and privacy/terms
+  request no variant.
+- **Platform-version reconciliation** — `package.json` has run Next 16
+  (`^16.3.5`) since dependabot's #204, but the contract test still asserted
+  major `15`, so `pnpm test` exited 1 on `main`. Updated the assertion to 16
+  and renamed the file from `tests/crm/next15-upgrade.test.mjs` to
+  `tests/crm/next-platform-contract.test.mjs` so the name stops naming one
+  version. The same stale "Next.js 15" claim was corrected in the active docs:
+  `README.md`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `MEMORY.md` and
+  `docs/SENTRY-NEXTJS.md`. Dated plans under `docs/plans/` keep their Next 15
+  wording as historical record; the two most likely to mislead now carry a
+  historical note instead.
+- **README migration range** — replaced the stale `0001` through `0011`
+  statement (the directory head is `0042`, 43 files) with a pointer to inspect
+  the directory, matching the rule already stated in `CLAUDE.md`.
+- **Versioning note** — this release takes v1.44, not v1.43. The merge commit
+  `f0290ae` was titled `v1.43 — AI visibility + technical SEO assets (#212)`
+  and deployed under that name, but it bumped neither `VERSION` nor
+  `CHANGELOG.md`, so the files stayed at v1.42. v1.43 is therefore already
+  spent on a shipped deploy; reusing it would put two different deploys under
+  one name. There is intentionally no v1.43 entry below.
+
+## v1.42 — 2026-09-20
+
+SEO content lane: publish-ready web-design-RFP blog draft for the /services/web-design pillar.
+
+- **Content** — Added `docs/seo/drafts/blog/how-to-write-a-web-design-rfp.md`:
+  a complete, publish-ready web-design-RFP writer's guide with copy-paste template, 6-criterion
+  scorecard, "before you send it" checklist, and call questions. Target keywords `web design rfp`
+  and `how to write a web design rfp` (both added to KEYWORD-REGISTRY.md; figures unavailable until
+  tracked in the Ubersuggest project). Supports the `/services/web-design` pillar (Theme 1) and
+  cross-links to the existing `/blog/web-development-rfp-guide`. `approved: false` — MJ-only gate.
+- **Keywords** — Registered two new mapped rows in KEYWORD-REGISTRY.md. No volume/difficulty/CPC
+  figures claimed; both marked unavailable pending tracking in project `109eb168…` (needs MJ's yes).
+
+## v1.41 — 2026-09-20
+
+Clean up stale identity, domain, and migration claims across agent
+instruction files and the CRM feature flag comment.
+
+- **Identity disambiguation** — CLAUDE.md and AGENTS.md now explicitly
+  distinguish repo name (`ethancrystal/crystalwebsolution.com`), business
+  name (CD Sportswear INC), and live domain
+  (`https://www.cdsportswearinc.com`). `crystalwebsolution.com` is
+  a retired domain, not a business name or current URL.
+- **Business name fix** — `CD Sportswear USA` corrected to `CD Sportswear INC`
+  in CLAUDE.md, AGENTS.md, and MEMORY.md project-overview sections
+  (matching `lib/site.js` `name: 'CD Sportswear INC'`).
+- **Migration count** — AGENTS.md and MEMORY.md updated from `0001` through
+  `0023` to `0001` through `0042` (verified against `supabase/migrations/`).
+- **Stale migration 0024 entry** removed from MEMORY.md.
+- **Deployment target** — MEMORY.md §4 corrected from `crystalwebsolution.com`
+  to `https://www.cdsportswearinc.com`.
+- **AGENTS.md gaps filled** — added missing commands (`pnpm test:db`,
+  `pnpm crm:verify`, `pnpm crm:provision-test-users`, `pnpm livecheck`),
+  `lib/seo.mjs` canonical-origin documentation, `www.cdsportswearinc.com`
+  host convention, `docker-ci.yml` reference (was `docker-publish.yml`),
+  and SEO agent (Hermes) section.
+- **Gap labeling** — CLAUDE.md gap claims now labeled as
+  `last confirmed 2026-09-11, owner to re-verify` instead of
+  presented as current facts. Migration `0042` claim is conditional
+  (verified applied to live DB is unknown).
+- **Retired domain block** — CLAUDE.md condensed ~25 lines of domain
+  transition history into a single factual sentence.
+- **lib/crmFlag.js** — comment updated to reflect CRM launched
+  2026-08-27 instead of `still in progress`.
+- **middleware.js** — CLAUDE.md reference corrected from literal
+  `middleware.js` file to conceptual `edge middleware`.
+
 # Changelog
 
 Every production deploy of crystalwebsolution.com gets one entry here, newest
 first. The version format and rules live in `VERSIONING.md`. The version in
 the top entry of this file is always the version currently in production (or
 about to be, if the PR hasn't merged yet).
+
+## v1.40 — 2026-09-20
+
+Animated backgrounds on inner marketing pages and auth. Homepage WebGL
+crystal journey is unchanged.
+
+- **Stage** — `SubpageExperience` mounts `DarkPageBackground` instead of the
+  idle Crystal canvas, which was hidden behind an opaque page fill.
+- **Family** — Acid Squares, Dot Field, Faulty Terminal, and Letter Glitch
+  (React Bits JS-CSS ports) restyled to cyan / silver / black-blue. About
+  uses acid-squares, services uses dot-field, process uses faulty-terminal,
+  contact uses letter-glitch. Login / portal use the CRT terminal; signup
+  uses the dot field; forgot / reset / confirm use letter glitch. Prism,
+  ripple-grid, and liquid-ether stay registered as fallbacks.
+- **Fill** — `.mkt-shell` and `.subpage` no longer paint solid `--bg`, so the
+  procedural stage reads through pitch-black heroes.
+
+## v1.39 — 2026-09-19
+
+SEO service page: `/services/seo`, the pillar for theme 4 of
+`docs/seo/STRATEGY.md` (head term "search engine optimization agencies";
+"seo agency near me" secondary on the same page). No homepage or WebGL rail
+change — the page is a **standalone** entry in `lib/servicePages.mjs`, not
+a ninth `SERVICES` signal, so the homepage keeps eight rows and eight rail
+instruments.
+
+- **`/services/seo`** — rendered by the existing `/services/[slug]` template
+  with a full content entry; conversion rate optimization is a capability,
+  a deliverable, a process step and an FAQ item of this page, not its own
+  page. Listed as "09 · SEO" on `/services` and in `/sitemap.xml` via
+  `SERVICE_PAGE_SLUGS`; Service / Breadcrumb / FAQ schema as the other eight.
+- **Internal links** — Web Design and Digital Marketing gain SEO in their
+  related services, so the pillar is not an orphan.
+- **Emblems** — a hand-drawn "results ladder" SVG glyph and a page-only 3D
+  "beacon" geometry (`getSignalGeometry('seo')`); `createSignalGeometries()`
+  (the rail) is unchanged at `SERVICES.length`.
+- **Tests** — `RAIL_SERVICE_PAGES` export; marketing tests split rail parity
+  (8) from the full page list (9) and assert the pillar has ≥2 inbound links.
+
+## v1.38 — 2026-09-19
+
+Evidence-based SEO audit pass. Extends the existing `lib/seo.mjs` origin
+architecture; does not add a second metadata or schema system. No homepage
+or WebGL visual change.
+
+- **Canonical host hygiene** — `toSitePath()` rewrites owned-host absolute
+  URLs (www, apex, retired `cdsportswearusa.com`, hijacked
+  `crystalwebsolution.com`) to site-relative paths. Blog markdown `safeHref`
+  uses it so published posts that still link the apex or a retired domain
+  do not send crawlers through a 308, a 404, or the Slot Gacor spam site
+  currently answering `crystalwebsolution.com`.
+- **Internal linking** — Blog added to `SITE.nav` and the marketing footer.
+  Service pages that have matching case studies now link them; case studies
+  link related services and Contact. Blog posts link the matching service
+  cluster plus other published posts. `/blog` listing gains a Contact CTA.
+- **Auth OG URLs** — `/login` and `/signup` now emit their own `og:url`
+  instead of inheriting the homepage URL.
+- **404 robots** — `app/not-found.jsx` is the single `noindex, nofollow`
+  signal for missing URLs (production currently emits both `noindex` and
+  the root layout's `index, follow`).
+- **Legal dates** — Privacy and Terms use a fixed `LAST_UPDATED` instead of
+  `new Date()` at render.
+- **Sentry CSP** — `connect-src` allows `https://*.ingest.us.sentry.io` so
+  client envelopes are not blocked (still absent on the live CSP as of
+  2026-09-19).
+- **Shopify landing** — `/hire/shopify-developer` is **not** built. Keyword
+  demand remains, but Shopify is not in the live service list. Parked in
+  `docs/seo/KEYWORD-REGISTRY.md`. Details in `docs/seo/runs/2026-09-19.md`.
+
+No invented rankings, traffic, or case-study outcomes. Measurement (GSC/GA4)
+remains Mode A — not live to this run.
+
+## v1.37 — 2026-09-11
+
+Owner-approved cutover of two live-database references that still named
+the retired `crystalwebsolution.com` host after the second domain move.
+
+- **pg_cron drain URL** — migration `0042` unschedules and reschedules
+  `drain-crm-outbox` to POST
+  `https://www.cdsportswearinc.com/api/cron/crm-notifications` (matches
+  `SITE_ORIGIN` in `lib/seo.mjs`). `0025` is left untouched as history.
+  Until this migration is applied on the live database, a previously
+  applied `0025` job still calls the dark host every five minutes; Vercel
+  Cron (`vercel.json`, daily 13:00 UTC) remains the backstop.
+- **Pinned admin mailbox** — `public.pinned_admin_email()` now returns
+  `ethan@cdsportswearinc.com`. If the old Auth user still exists and the
+  new address is free, the migration renames that login in place; if both
+  addresses exist, it demotes the old admin to `project_manager` and
+  promotes the named address. Lead-capture RPCs (0026, 0029) resolve the
+  admin actor through this function, so the pin and the login have to
+  move together.
+- Merging deploys the Next.js app; it does **not** run SQL. Applying
+  `0042` (and any earlier unapplied migrations, including `0041`) on the
+  live Supabase project is a separate owner action.
+- No layout, motion, or CRM UI changes.
+
+## v1.36 — 2026-09-11
+
+Closes part of the gap `CLAUDE.md` flags around the domain's second move
+(`cdsportswearusa.com` → `cdsportswearinc.com`, confirmed 2026-09-03):
+`supabase/config.toml`'s Auth `additional_redirect_urls` allow-list was
+never updated past the original `crystalwebsolution.com` entries from
+before either move. Password-reset, invite, and confirmation links are
+built in `lib/supabase/admin.js`'s `buildVerifyUrl()` as
+`${NEXT_PUBLIC_APP_URL}/auth/verify?...`, and Supabase's GoTrue validates
+that target against this allow-list server-side before `generateLink()`
+will even issue a link.
+
+- Added `https://cdsportswearinc.com/**` and `https://www.cdsportswearinc.com/**`
+  to `additional_redirect_urls`. Kept the retired `crystalwebsolution.com`
+  and `cdsportswearusa.com` entries in place (harmless — both are dead
+  hosts today) rather than pruning them.
+- This fixes the allow-list half of the gap only. The other half —
+  `NEXT_PUBLIC_APP_URL` in Vercel's Production environment variables, which
+  is what actually gets baked into the link's host — is a Vercel dashboard
+  setting outside this repo; verified 2026-09-11 that `cdsportswearusa.com`
+  now 404s (`DEPLOYMENT_NOT_FOUND`, detached from the Vercel project) while
+  `https://www.cdsportswearinc.com` is the live site, so if `NEXT_PUBLIC_APP_URL`
+  is still set to the old domain, reset/invite/confirm emails will keep
+  linking to a dead host until it's updated to
+  `https://www.cdsportswearinc.com` (matching `SITE_ORIGIN` in
+  `lib/seo.mjs`) and Production is redeployed — `NEXT_PUBLIC_*` values are
+  inlined at build time, so the env var alone won't fix already-built
+  deploys.
+- No application code changed; no layout, motion, or CRM behaviour changes.
+
+## v1.35 — 2026-09-10
+
+Brand name and contact-email text catch-up following v1.34's wordmark swap:
+the visible legal/brand name was still "CD Sportswear USA" and the sales
+inbox was still on the retired `cdsportswearusa.com` domain everywhere text
+renders it. `SITE.name` and `SITE.email` in `lib/site.js` are the single
+source of truth for the nav, footer, contact page, and page metadata, so
+updating those two fields there propagated the fix across the site. The
+phone number was already correct (`+1 804-280-4941`) and needed no change.
+
+- **Brand name** — `CD Sportswear USA` → `CD Sportswear Inc` in `SITE.name`,
+  the `crystal-web-solution` case-study title/body in `lib/projects.js`,
+  historical client review quotes in `lib/reviews.js`, and every page
+  metadata description/copy string across `app/**` and
+  `components/sections/{About,Lab,Motion}.jsx` that spelled the name out
+  literally instead of reading `SITE.name`.
+- **Sales email** — `sales@cdsportswearusa.com` → `sales@cdsportswearinc.com`
+  in `SITE.email`; the transactional-email sender address in
+  `lib/email/resend.js` moved from `no-reply@cdsportswearusa.com` to
+  `no-reply@cdsportswearinc.com` to match.
+- Updated the test suite's brand/email assertions
+  (`tests/site-brand.test.mjs`, `tests/email.test.mjs`,
+  `tests/content.test.mjs`, `tests/projects.test.mjs`,
+  `tests/marketing.test.mjs`, `tests/latestFeatures.test.mjs`,
+  `tests/crm/notification-coverage.test.mjs`,
+  `tests/marketing/serviceSchema.test.jsx`) to match.
+- No layout, motion, or CRM behaviour changes.
+
+## v1.34 — 2026-09-08
+
+Brand lockup swap: the supplied CD SPORTSWEAR INC wordmark replaces the
+outgoing USA wordmark everywhere it renders, and the browser/app icon is
+re-cut from the same art. Owner-supplied artwork; no layout, motion or CRM
+behaviour changes.
+
+- **Logo** (`public/cd-sportswear-usa-logo.png`) — replaced with the supplied
+  INC lockup at 2304x412. `SITE.logoPath` is the single source of truth, so
+  the swap propagates on its own to the homepage nav, the marketing header,
+  the subpage nav, the marketing footer, the CRM workspace shell, the portal
+  login form, `/login`, `/signup`, the transactional email header, and the
+  `logo` / `image` nodes in the site-wide JSON-LD graph. The filename is
+  deliberately unchanged: transactional emails already delivered reference
+  this absolute URL, and renaming would break the header image in every one
+  of them.
+- **Background key** — the supplied art arrived composited on solid black
+  (alpha 255 across the whole canvas). Every consumer needs transparency
+  instead: the nav inverts the mark via `.nav-on-light .nav-logo-art img`,
+  and the email header sits on a white body, so an opaque plate would have
+  shown as a black box and, inverted, as a white one. The black was keyed to
+  alpha with a 24/205 luminance knee — a straight key left the source's soft
+  glow as a grey halo that read as a smudge once inverted — and colours were
+  un-premultiplied so antialiased edges carry no dark fringe.
+- **Dimensions** (`lib/site.js`) — `logoHeight` 398 -> 412 to match the new
+  intrinsic height. `logoWidth` stays 2304. The canvas reproduces the
+  outgoing asset's padding ratio (content at ~84.5% of canvas height), so
+  every fixed `object-fit: contain` box renders the new lockup at the same
+  optical size as the old one and nothing reflows.
+- **Icon** (`app/icon.png`, `public/cd-sportswear-usa-icon.png`) — re-cut from
+  the CD mark of the new lockup at 512x512, replacing v1.33's navy chrome
+  mark, so the tab icon and the wordmark are the same artwork. The new mark
+  is white and cyan, which disappears entirely on a light browser tab strip
+  on a transparent background (checked at 16, 32, 64 and 180px), so it is
+  seated on a dark navy (#090e1c) rounded-square plate at 78% width and
+  centred — the inverse of v1.33's white plate, which existed for the same
+  reason when the mark was dark.
+- **Not changed** — `SITE.name` is still `CD Sportswear USA`, so the logo's
+  `alt` text, document titles and the Organization node still say USA while
+  the artwork now says INC. Renaming the brand touches metadata, JSON-LD and
+  the brand-name assertions in `tests/site-brand.test.mjs`, and is an owner
+  decision rather than an asset swap.
+- **Tests** — full suite green (493/493) and `pnpm build` clean.
+
+## v1.33 — 2026-09-08
+
+Contact phone number and browser/app icon refresh. Owner-supplied values; no
+layout, motion or CRM behaviour changes.
+
+- **Phone** (`lib/site.js`) — `SITE.phone` is now `+1 804-280-4941`, replacing
+  `+1 917-463-4214`. It is the single source for the number, so the change
+  propagates on its own to the contact section, the menu, the marketing footer,
+  the contact pulse links, and the `telephone` field on the Organization node
+  in the site-wide JSON-LD graph. Each surface derives its own `tel:` href by
+  stripping non-digits, so the dial target is `tel:+18042804941`.
+- **Icon** (`app/icon.png`, `public/cd-sportswear-usa-icon.png`) — both replaced
+  with the supplied CD mark, rendered at 512x512. The mark ships on a
+  transparent background and is dark navy, which would have gone near-invisible
+  on dark browser chrome and would have been composited onto black as an iOS
+  home-screen icon, so it is seated on a white rounded-square plate at 84% width
+  and centred. `SITE.iconPath` and the `icons` block in `app/layout.jsx` are
+  unchanged — the paths already pointed at these two files.
+- **Not changed** — `public/cd-sportswear-usa-logo.png`, the wide wordmark used
+  by the nav, CRM login, workspace shell and transactional email header. The
+  supplied art is an icon-proportioned mark, not a wordmark.
+- **Tests** (`tests/content.test.mjs`) — the exact-value phone assertion tracks
+  the new number. Full suite green (493/493).
+
+## v1.32 — 2026-09-06
+
+SEO H1/title + Service JSON-LD pass for six `/services/[slug]` pages. Taxonomy
+labels on the homepage and `/services` index stay the same; only the detail
+page heading, document title, meta description, and Service schema change.
+
+- **Config** (`lib/servicePages.mjs`) — added `h1` (visible heading) beside
+  the existing `title` taxonomy label. Updated `seoTitle` + unique
+  `metaDescription` for ai-automation, web-design, branding, logo-design,
+  web-development, and digital-marketing. Short first-paragraph tweaks on
+  web-design, web-development, and logo-design so schema matches visible copy.
+- **Page** (`app/services/[slug]/page.jsx`, `ServicePage.jsx`) — H1 reads
+  `page.h1`; metadata title is the `seoTitle` stem (root layout appends
+  `| CD Sportswear USA`).
+- **Schema** (`ServiceSchema.jsx`) — Service `name`/`description` align with
+  the new H1/meta; adds canonical `url` and Organization `provider` (`@id`
+  + name). `areaServed` is country-level (US/AE) except web-design, which
+  also names Manassas, VA because that city is already on the page footer.
+  Northern VA is not claimed. No AggregateRating, reviews, or offers.
+
+## v1.31 — 2026-09-06
+
+Privacy and Terms pages (`/privacy` and `/terms`) now return 200 instead of
+404, resolving broken footer links and completing the site's legal foundation.
+
+- **Privacy page** (`app/privacy/page.jsx`) — Full privacy policy matching the
+  site's craft-forward tone. Covers information collection/use/sharing,
+  security measures, data retention, user rights, cookies, third-party
+  services, international transfers, and contact info. Uses `MarketingShell`
+  and follows the same structure as About/Contact pages.
+- **Terms page** (`app/terms/page.jsx`) — Terms of service for website and
+  client services. Covers acceptable use, intellectual property, client portal
+  access, payment terms, warranties, liability, dispute resolution, and general
+  provisions. Matches the existing legal/brand voice.
+- **Footer links** (`MarketingFooter.jsx`) — Privacy and Terms links added to
+  footer bottom row, visible on all marketing pages that use `MarketingShell`.
+  Styled with flexbox layout separating copyright and legal links.
+- **Sitemap** (`app/sitemap.js`) — Added `/privacy` and `/terms` entries with
+  priority 0.3 and yearly change frequency.
+- **Styles** (`app/styles/service-pages.css`) — `.mkt-footer-bottom` now uses
+  flexbox with space-between to separate copyright and legal links.
+  `.mkt-footer-legal` provides gap-separated link group with hover states.
+
+No invented legal claims beyond what's already on the site (Manassas VA,
+Sharjah, sales@cdsportswearusa.com, founded 2016). Dates are dynamic
+(`new Date()`) so they stay current without manual updates.
+
+Blog posts from Supabase are already in the sitemap via the existing
+`listPublishedSlugs()` integration (line 17 of `app/sitemap.js`). No
+redeploy-specific notes needed — the sitemap is async and regenerates on
+publish revalidation per existing architecture.
+
+## v1.30 — 2026-09-03
+
+hCaptcha on the public contact form (every `ContactForm` instance: homepage
+Contact beat, `/contact`, `/about`, `/process`, and the eight
+`/services/[slug]` pages). It sits alongside the existing honeypot and
+Upstash rate limit; nothing about the fields, payload or success copy
+changes.
+
+- **Client** — `components/marketing/HCaptcha.jsx` injects `js.hcaptcha.com`
+  once per page from the form's mount effect and renders the dark checkbox
+  widget below the brief. The form refuses to submit without a token, sends it
+  as `hcaptchaToken`, and resets the widget after every response (tokens are
+  single-use). If the loader is blocked (ad blocker, proxy) or times out, the
+  form says so and offers the direct email address instead of waiting forever.
+- **Server** — `app/api/contact` verifies the token with hCaptcha's
+  `siteverify` after field validation and before the webhook, CRM write and
+  emails. Enforcement is on only when `HCAPTCHA_SECRET` is set (same
+  fail-open-when-unconfigured contract as `lib/rateLimit.mjs`). An explicit
+  rejection returns 400; a network/5xx failure reaching hCaptcha lets the
+  brief through and logs, so a vendor outage does not drop leads.
+- **Keys** — the site key is public and ships as the default in
+  `lib/hcaptcha.mjs` (`NEXT_PUBLIC_HCAPTCHA_SITE_KEY` overrides it for
+  previews). The secret is read only from `HCAPTCHA_SECRET` and is **not in
+  the repo**: set it in Vercel → Project → Environment Variables (Production
+  and Preview) and in `.env.local`, then redeploy. Until it is set the widget
+  shows but the server does not verify.
+- **CSP** — `script-src`, `style-src`, `frame-src` and `connect-src` gain
+  `https://hcaptcha.com https://*.hcaptcha.com`; `tests/csp-policy.test.mjs`
+  pins the new tokens.
+- Tests: `tests/hcaptcha.test.mjs` (verification unit tests with a fake
+  fetch, route/form source contracts, and a guard that no secret literal is
+  committed).
+- Not included: signup/login. Supabase Auth has native hCaptcha support
+  (Dashboard → Auth → Bot and Abuse Protection) that only needs the same
+  site key plus a `captchaToken` on `signUp()`; that is a follow-up once the
+  dashboard side is enabled.
+
+## v1.29 — 2026-09-03
+
+Adds migration `0041_client_read_scope_hardening.sql` — **checked in, not
+applied**. Production application is an owner-approved step per
+`docs/CRM-OPERATIONS.md` §Migrations; until it runs, the three holes below
+remain open in the live database. Plan:
+`docs/plans/audit-followups-crm-hardening-3.md` Tasks 10–11.
+
+- **`project_approvals` SELECT** now follows the deliverable: clients see
+  project-level approvals (`deliverable_id is null`) and approvals on
+  `shared` deliverables; approvals on `internal` deliverables — and their
+  reviewer notes — become staff-only. Policy renamed to "Project
+  participants can view visible approvals".
+- **`notifications_outbox` SELECT** limited to the recipient's `in_app`
+  rows, matching `mark_notifications_read()`. Users could previously read
+  their own email-queue rows (message excerpts; lead PII for the admin), and
+  the dashboard panel rendered every event twice. `NotificationsPanel`
+  drops the channel label and the `channel === 'in_app'` guard.
+- **`deals`**: drops the 0001 "Company members can view deals" and 0003
+  "Company members can submit a project brief" policies. No page outside
+  `/admin` reads or writes deals; `create_project()` and
+  `can_access_deal()` are SECURITY DEFINER and unaffected.
+- Two audit claims verified already-resolved and left alone:
+  `private.shares_project_with` grant (0040) and RLS enable/force on every
+  `project_*` table (0009/0010).
+- Tests: `tests/crm/migration-0041-client-read-scope-hardening.test.mjs`
+  (source contract) and `supabase/tests/0041_client_read_scope.test.sql`
+  (pgTAP: client sees 2 of 3 approvals and cannot read the internal note,
+  1 of 2 outbox rows, 0 deals and cannot insert one; PM sees all 3
+  approvals; admin still reads deals). `pnpm test:db` was not runnable in
+  this environment (no Docker / Supabase CLI) — run it, or apply on an
+  isolated branch database, before production.
+
+## v1.28 — 2026-09-03
+
+Frontend follow-ups from `docs/plans/audit-followups-crm-hardening-3.md`
+(Tasks 5–8). No homepage/WebGL scene logic touched; the only marketing-file
+edits delete inert attributes.
+
+- **Custom-cursor leftovers removed.** The dot+ring cursor shipped in the
+  initial commit and was removed in PR #10 (2026-07-13) by design review;
+  three later audits misread its remains as an unbuilt feature. Deleted the
+  51 `data-cursor` and one `data-hover` attributes across 21 JSX files,
+  the `.cursor-*` rules (`app/styles/cursor-loader.css` → `loader.css`),
+  and the `html.has-cursor` rule in `reset.css`. Nothing read any of
+  them. `tests/no-dead-cursor-markup.test.mjs` keeps them out; restoring
+  the cursor is `git show 1a2807c^:components/Cursor.jsx`.
+- **One admin form chrome.** `AdminFormShell` loses its `variant` prop:
+  all eight `/admin/<entity>/{new,edit}` pages now share the 800px frame,
+  0.9rem unweighted labels, `0.75rem 1rem` inputs, `#64c8ff` focus ring
+  and a 1.5rem/2rem actions row. Companies/deals widen from 700px and lose
+  the bold label; contacts/tasks gain the stronger focus colour. Page markup
+  is unchanged apart from the frame class (contacts/tasks now render
+  `.crm-form-card` like the others); both selector families and both cancel
+  controls are kept, which the byte-identity test still proves against the
+  frozen pre-Phase-3 fixtures.
+- **Admin CRUD gaps closed** (recorded, not fixed, in v1.20): contacts and
+  tasks edit pages now `.select()` the updated row and throw
+  `Update failed - no rows changed (check permissions).` like companies and
+  deals; `tasks/new` gets the same admin redirect + skeleton gate as the
+  other three new pages (task INSERT is `is_admin()`, migration 0005).
+  `tests/crm/admin-crud-guards.test.mjs` pins all eight pages symmetric.
+- **CRM read-model waste.** `getProjectWorkspace` no longer fetches a
+  50-message page nobody rendered (ProjectThread owns that read) and skips
+  the `project_assignments` query for clients (RLS returns zero rows for
+  them anyway); `listProjectsForViewer` skips the companies fetch for
+  clients. The client project page renders `workspace.tasks/approvals/
+  deliverables` instead of re-fetching them, cutting four `projects` and
+  four `profiles` round trips per load to one each. Dead
+  `getUserProfile` server action removed. Two source-contract tests
+  updated in step.
+
+Verification: `pnpm test` 474/474, `pnpm test:marketing` 35/35,
+`pnpm build` 57/57 pages, First Load JS unchanged (`/` 378 kB, shared
+228 kB).
+
+## v1.27 — 2026-09-03
+
+Docs only — no runtime code changes. Closes the refactor plan ledger and
+records what the 2026-09-02 audits got wrong before anyone acts on them.
+
+- **`docs/plans/README.md`** (new): status table for every plan file, the
+  "where results live" order of authority (CHANGELOG → `docs/reports/` →
+  `STATUS.md`), and an agent protocol requiring a real code review of each
+  cited `file:line` before acting on any plan row.
+- **`docs/plans/refactor-architecture-cleanup-2.md`** marked Complete;
+  the 25 blank Phase 1–4 task rows back-filled from CHANGELOG v1.18–v1.23
+  and the three phase reports. Plan v1 marked Complete (its Phases 4–5
+  shipped through v2).
+- **`docs/plans/audit-followups-crm-hardening-3.md`** (new): the plan for
+  the ten open items, with a §0 table of audit claims re-verified against
+  code and the live catalog. Five did not hold: `shares_project_with` was
+  already re-granted by migration 0040; every `project_*` table already
+  has enable+force RLS in 0009/0010; the blog-actions old-slug read and
+  the NotesPanel read are both correct; and the custom cursor was never
+  "unbuilt" — it shipped and was removed in PR #10 by design.
+- **`docs/reports/lighthouse-baseline-2026-09-03.md`** (new): first
+  Lighthouse run against production (`www.cdsportswearinc.com`). Homepage
+  mobile perf 34 / LCP 13.5 s, script-bound (WebGL + GSAP boot under 4× CPU
+  throttle); inner pages still load the Three.js chunk; Sentry envelopes
+  are blocked by CSP `connect-src` in production.
+- `docs/reports/phase-1-*.md` cursor section and `docs/CRM-OPERATIONS.md`
+  migration head corrected.
+- Housekeeping outside the PR: the five merged `refactor/phase-*` and
+  `claude/app-refactoring-plan-*` remote branches were deleted 2026-09-03.
+
+## v1.26 — 2026-09-03
+
+Production moved to a new custom domain outside git, the same way
+crystalwebsolution.com -> cdsportswearusa.com did (#164): someone changed
+the Vercel project's attached domain to cdsportswearinc.com, and
+cdsportswearusa.com — production since 2026-08-27 — was left unattached.
+Every route on the old domain returned Vercel's `DEPLOYMENT_NOT_FOUND`
+(DNS still resolves there; the domain just isn't on the project anymore).
+Owner confirmed 2026-09-03 that cdsportswearinc.com is the intended domain.
+
+- `lib/seo.mjs` — `SITE_ORIGIN` now `https://www.cdsportswearinc.com`
+  (re-verified the apex->www 308 redirect on the new host). Every
+  canonical, sitemap `<loc>`, JSON-LD `@id` and `og:url` is built from
+  this one constant, so they all move with it. Adds `SITE_HOST` (bare
+  domain, derived from `SITE_ORIGIN`) for prose contexts.
+- `lib/email/templates.js` — the contact-form email footer note now
+  reads `SITE_HOST` instead of a hardcoded domain string; its test in
+  `tests/email.test.mjs` derives the same way, so it can't drift out of
+  sync again (the same fix v1.17 already made once for the canonical-logo
+  assertion).
+- `CLAUDE.md` — documents the new domain, records both retired domains'
+  actual state (crystalwebsolution.com: dead DNS, deliberate; the
+  cdsportswearusa.com: DEPLOYMENT_NOT_FOUND, not yet 301'd — the same
+  equity-decay risk called out for the previous domain), and lists what's
+  still unverified: `NEXT_PUBLIC_APP_URL`, Supabase Auth's
+  `SUPABASE_AUTH_SITE_URL` / redirect allow-list, and whether
+  `sales@cdsportswearusa.com` (`lib/site.js`) and the Resend sender
+  domain (`lib/email/resend.js`) move with the site.
+- **Deliberately not changed:** `SITE.email` and the Resend `DEFAULT_FROM`
+  sender still reference `cdsportswearusa.com`. Moving them requires a
+  working mailbox and Resend domain verification on the new address,
+  which only the owner can confirm — changing the displayed contact
+  address without one would silently drop real inquiries.
+- Re-attaching `cdsportswearusa.com` in Vercel as a redirect to preserve
+  its ~1 week of accrued link equity is still an open owner action, not
+  done here.
+
+## v1.25 — 2026-09-02
+
+Fixes the second batch of live editorial placeholders (CRY-30): 24
+`[CONFIRM: …]` strings in `lib/servicePages.mjs` — three per service
+across all eight `/services/[slug]` pages — visible to visitors in the
+deliverables list and in two FAQ answers (and their `FaqSchema` JSON-LD).
+Same approach as v1.21: honest interim copy, no invented figures.
+
+- **deliverablesNote** — removed from all eight services rather than
+  filled with made-up round counts or turnarounds; `ServicePage.jsx`
+  already renders the note conditionally, so the list shows cleanly
+  without it.
+- **"What does this cost, and how long does it take?"** — now the same
+  scope-dependent, quote-only answer v1.21 shipped on `/services`.
+- **"What's not included?"** — now states that every engagement is
+  scoped in a written proposal up front and mid-project requests are
+  estimated separately with sign-off.
+- Adds `tests/no-live-placeholders.test.mjs`, which fails `pnpm test`
+  if `[CONFIRM` or `PLACEHOLDER` appears in `lib/servicePages.mjs` or
+  any `app/**/page.jsx`, so a third batch can't reach production.
+
+No homepage/WebGL scene files touched.
+
+## v1.24 — 2026-09-02
+
+Docs-only: repairs the version ledger after the six PRs below merged out
+of order on 2026-09-02. Each merge resolved its `VERSION`/`CHANGELOG.md`
+conflict by keeping `main`'s side, so four deploys went out without their
+entry and `VERSION` stayed at `v1.19` while the deployed commit was titled
+`v1.23`. No runtime code changes.
+
+- Restores the `v1.20`, `v1.21`, `v1.22` and `v1.23` entries below, verbatim
+  from their PRs, and sets `VERSION` to the next number.
+- Every number `v1.18`–`v1.23` maps to exactly one deploy (commit titles in
+  Vercel's deploy list); only the deploy order differs from the numeric
+  order:
+
+  | deploy order | version | commit | PR |
+  | --- | --- | --- | --- |
+  | 1 | v1.18 | `cd2fdd0` | #166 |
+  | 2 | v1.21 | `0e0b9e0` | #162 |
+  | 3 | v1.22 | `339f540` | #163 |
+  | 4 | v1.19 | `e2f1ff2` | #167 |
+  | 5 | v1.20 | `17427e2` | #168 |
+  | 6 | v1.23 | `ceae722` | #169 |
+
+## v1.23 — 2026-09-02
+
+Phase 4 of `docs/plans/refactor-architecture-cleanup-2.md`: oversized-file
+decomposition, the last phase of the plan. Report in
+`docs/reports/phase-4-oversized-file-decomposition-2026-09-02.md`.
+
+- **`components/crm/ProjectThread.jsx` split** into a data hook
+  (`components/crm/useProjectThread.js`: state, read-model load, Realtime
+  subscription, every mutation) and a presentation component that renders
+  from it. A verbatim move: the hook body and the JSX/CSS are diffed
+  identical to the original. No visual or behavioural change intended.
+- **New behavioural test** `tests/crm/project-thread-behaviour.test.jsx`
+  (11 tests) pins the Conversation panel's Realtime subscription
+  lifecycle, project-switch guard, inline edit and send idempotency — the
+  flows STATUS.md records as having regressed past every automated gate.
+  Written and green before the split, green after.
+- **`app/actions/project-actions.js` deliberately not split**: five CRM
+  contract tests assert against this one file's source text (RPC
+  allowlist, no direct table writes, result contract). That gate is worth
+  more than the split; the report records what would unlock it.
+- `lib/servicePages.mjs` and `components/ui/liquid-ether-background.jsx`
+  triaged as large but cohesive; no split.
+
+## v1.22 — 2026-09-02
+
+Homepage copy pass across all nine scroll beats. (The canonical-domain fix
+this PR originally carried landed separately as #164.)
+
+- **Hero** — subhead tightened to end on the business outcome ("so the
+  click turns into the client") instead of stopping at the aesthetic one.
+- **About** — kicker sharpened; picks up the Hero's "scroll" language on
+  purpose, paid off again at Mark and Contact.
+- **Services** — adds a one-line bridge under the header ("Eight
+  disciplines, one team...") between the About statement and the row list;
+  the 8 row descriptions in `lib/services.mjs` are untouched.
+- **Stories** — one-word tighten ("No" → "Zero invented case studies").
+- **Mark** — sub tightened to tie "assembled on purpose" explicitly back to
+  the actual process described in Approach.
+- **Lab** — caption tightened; also fixes the decorative `aria-hidden`
+  label reading "CDS" when `SITE.short` is `"CD"`.
+- **Contact** — headline reworked from "Let's make something rare." (a
+  vibes line with no concrete client benefit) to "Let's build something
+  worth the scroll." — the closing beat of the "scroll" thread started in
+  Hero. Sub tightened for rhythm, same commitments.
+- Approach and Motion are unchanged — both were substantially rewritten in
+  v1.16 and reviewed here, not touched again.
+
+## v1.21 — 2026-09-02
+
+Fixes literal `PLACEHOLDER — confirm …` strings that v1.15 shipped live to
+production on `/about`, `/contact`, `/process`, `/services`, and `/reviews`
+— visible to real visitors and inside each page's `FaqSchema` structured
+data. v1.15 intentionally left these as explicit placeholders pending
+founder input rather than inventing facts; this closes that gap with the
+owner's actual answers where given, and honest, non-fabricated interim
+copy where not:
+
+- **Contact** — reply-time FAQ and hero lede now say "within 1 business
+  day"; NDA FAQ says "yes, on request."
+- **About** — team-size FAQ now describes a small, senior,
+  cross-disciplinary team (design, engineering, motion/AI-automation)
+  without an invented headcount.
+- **Services** — pricing FAQ now states scope-dependent, quote-only
+  pricing (matching the tone already shipped on the embroidery landing
+  page's cost FAQ) instead of asking whether to disclose ranges.
+- **Reviews** — "leave a review" FAQ now points to Contact/email instead
+  of a placeholder platform link that doesn't exist yet.
+- **Process** — the 6 steps' `duration`/`deliverable` fields are removed
+  rather than filled with invented numbers; `ProcessStepsRail` already
+  renders that meta row conditionally, so the steps show cleanly without
+  it until real figures are confirmed.
+- Removes a few stale `PLACEHOLDER`-referencing code comments left over
+  from v1.15 (embroidery page, Process, Services, Contact, About) that no
+  longer describe the code.
+
+No homepage/WebGL scene files touched.
+
+## v1.20 — 2026-09-02
+
+Phase 3 of `docs/plans/refactor-architecture-cleanup-2.md`: admin CRUD
+duplication audit and extraction. No visual or behavioural change intended;
+report in `docs/reports/phase-3-admin-crud-duplication-audit-2026-09-02.md`.
+
+- The eight `/admin/<entity>/{new,[id]/edit}` pages shared their page
+  chrome and ~150 lines of inline styled-jsx each, not their form logic.
+  New `components/crm/AdminFormShell.jsx` owns the wrapper, header, error
+  banner, form card and field/button CSS; every entity's loaders, guards,
+  cascades, payload coercion and submit flow are untouched. Pages: 3,322 →
+  1,965 lines.
+- The pages had drifted into two chrome styles (companies/deals 700px
+  "card", contacts/tasks 800px "container"); the shell keeps both as an
+  explicit `variant` so nothing changes on screen. Unifying them is listed
+  as an owner decision.
+- Characterization test `tests/crm/admin-form-shell.test.jsx` renders the
+  frozen pre-refactor pages (`tests/crm/fixtures/admin-forms-pre-phase3/`)
+  against the new ones and asserts byte-identical markup; the old CSS was
+  diffed selector-by-selector against the shell.
+- Two pre-existing gaps recorded, not fixed: contacts/tasks edit pages lack
+  the "no rows changed" post-update check; `tasks/new` has no admin guard.
+
+## v1.19 — 2026-09-02
+
+Phase 2 of `docs/plans/refactor-architecture-cleanup-2.md`: testing and
+documentation. No runtime code changes.
+
+- New `tests/marketing/work-marquee.test.jsx` (9 tests: video-vs-image tile
+  selection by extension, replacement-media cycling, eager/lazy loading, row
+  offsetting) and `tests/marketing/motion.test.jsx` (4 tests: Motion wires
+  `WorkMarquee` to `CLIENT_TILE_IMAGES`/`REPLACEMENT_IMAGES`, accessible
+  project list independent of the decorative marquee).
+- `README.md` gains "Component directory conventions" and "Styling"
+  sections describing what actually shipped (28-file global `app/styles/`
+  split with global class names on purpose; `ImageBlock.module.css` as the
+  one CSS Modules exception).
+- New `docs/ARCHITECTURE.md`: sections → components → lib dependency map,
+  the per-frame singleton pattern, and the two CRM data-access shapes with
+  which entities use which.
+
+## v1.18 — 2026-09-02
+
+Phase 1 of `docs/plans/refactor-architecture-cleanup-2.md`: dead-code and
+performance audit. Findings and evidence in
+`docs/reports/phase-1-dead-code-performance-audit-2026-09-01.md`.
+
+- **Fix** — `pnpm livecheck` was broken outright: `scripts/livecheck.mjs`
+  imported from `playwright`, which is not a direct dependency under pnpm's
+  strict layout. Now imports `chromium` from the already-installed
+  `@playwright/test`; verified clean across all nine marketing routes on a
+  production build.
+- Verified, no change needed: `dynamic(..., { ssr: false })` is used only on
+  the three WebGL boundaries; Three.js/R3F stays out of the shared and CRM
+  bundles (chunk-manifest comparison); `depcheck`'s `typescript` flag is a
+  false positive (required by `tsconfig.json`'s `@/*` alias); CSP comment and
+  `public/d/02-messenger.gif` size unchanged.
+- Owner-decision item left open: 51 inert `data-cursor` attributes plus an
+  unwired `.cursor-dot`/`.cursor-ring` block in `app/styles/cursor-loader.css`
+  (an unfinished custom-cursor feature) — remove or finish, not decided here.
+
+## v1.17 — 2026-09-01
+
+Refactor plan Phase 0 (`docs/plans/refactor-architecture-cleanup-2.md`):
+establishes a genuinely green baseline before the CRM/architecture refactor
+begins.
+
+- `tests/email.test.mjs` — the "canonical logo" assertion hardcoded the
+  retired `www.crystalwebsolution.com` domain; `lib/email/templates.js`
+  correctly renders the logo from `SITE_ORIGIN` (`lib/seo.mjs`), which was
+  intentionally repointed to `cdsportswearusa.com` in v1.16's follow-up fix
+  (#164). The test never caught up. Now derives its expectation from
+  `SITE_ORIGIN` directly instead of a second hardcoded literal, so it can't
+  drift out of sync with the source of truth again.
+- No other code changed. `pnpm test` 452/452, `pnpm test:marketing` 22/22,
+  `pnpm build` clean (57/57 routes) — recorded as the refactor's baseline.
+
+## v1.16 — 2026-08-31
+
+Updates the studio location shown site-wide (footer, contact links, contact
+section, and About page) to a two-line "Location in X / Also Located in Y"
+format, and confirms the enquiry email/phone already match the approved
+contact details.
+
+- `lib/site.js` — `SITE.city` is now the short primary location
+  (`Manassas, VA`), with a new `SITE.citySecondary` (`Sharjah, DXB`) for the
+  second studio; `SITE.cityCompact` combines both for single-line contexts
+  (OG image).
+- `MarketingFooter`, `ContactPulseLinks`, and the homepage `Contact` footer
+  now render both locations as separate lines instead of one combined
+  string; the About page's prose and FAQ answer read from the same fields.
+- No change to `SITE.email` (`sales@cdsportswearusa.com`) or `SITE.phone` —
+  already correct.
+- **Footer logo** — the marketing footer showed only the plain-text brand
+  name; it now renders the same `BrandLogo` image as the header, linked to
+  home, sized by a new `.mkt-footer-logo` rule.
+- **Homepage copy** — the Approach accordion read as four bare labels until a
+  visitor clicked one. Each of the four steps now carries an always-visible
+  summary line, a deeper description, and a "What you get" list; the section
+  gains a lede explaining that every project runs the same four steps. The
+  Motion beat's heading no longer near-duplicates Stories' "no invented case
+  studies" line — it leads on what the work changed and adds a short intro.
+
+## v1.15 — 2026-08-30
+
+Deepens all six inner marketing pages (About, Services, Work, Contact,
+Process, Reviews) plus the embroidery-screen-printing landing page, closing
+the content-depth gap identified against the site's own deepest reference
+pages (the `/services/[slug]` template and the embroidery long-form page).
+
+- **About** — adds an FAQ + `FaqSchema`, a "who this is for" section,
+  cross-links to `/work`/`/process`/`/reviews`, a live review-count/rating
+  sentence sourced from `REVIEW_STATS`, and an embedded contact form
+  replacing the previous bare "start a project" link.
+- **Services** — extends each of the 8 `lib/servicePages.mjs` records with a
+  concrete opening scenario, a counter-audience ("not for you if…")
+  paragraph, one elaboration sentence per capability/process step (kept as
+  parallel `*Details` arrays — `capabilities`/`process`/`deliverables` stay
+  plain `string[]`, since the homepage's `Services.jsx` row chips read
+  `capabilities` directly and key off the string value), and 3 new FAQ
+  entries per service. Adds services-index body copy explaining why the
+  eight offers run as one team.
+- **Work** — adds an FAQ + `FaqSchema`, cross-links, and a closing CTA to
+  the work index.
+- **Contact** — adds an FAQ + `FaqSchema`, a "who this is for" section, and
+  a "what happens after you submit" section, closing the page's near-total
+  content gap.
+- **Process** — adds `duration`/`deliverable` fields to each of the 6 steps,
+  rendered as a meta row in `ProcessStepsRail.jsx`.
+- **Embroidery landing page** — adds an FAQ + `FaqSchema` and cross-links to
+  the Development service page and Contact.
+- **Fixes a homepage bug** found while auditing the same content:
+  `app/styles/refraction.css`'s `.service-row:not([data-active='true'])
+  .service-desc` rule unconditionally clipped the first 7% of every
+  description on load — matching every row before any row had gone active —
+  cutting off the start of the "Development"/"Branding" text. Added a
+  `:has()` guard so the clip only applies once a sibling row is actually
+  active.
+- Adds a visible link treatment (`color` + `underline`) for inline links in
+  body copy (`.mkt-prose a`), which previously inherited the invisible
+  global `a` reset.
+
+Facts only the founder has — team headcount, response-time commitments,
+per-service pricing/timelines, process durations, review sourcing — are left
+as explicit `PLACEHOLDER`/`[CONFIRM: …]` strings rather than invented; none
+of the eight `SERVICE_PAGES` copy uses the literal word "placeholder" so the
+existing banned-copy test (`tests/marketing.test.mjs`) still passes. No
+homepage/WebGL journey files touched beyond the one CSS bug fix above.
 
 ## v1.14 — 2026-08-29
 
@@ -115,17 +1686,6 @@ No look, feel, or functional changes beyond the above; `pnpm build` clean,
 `pnpm test` 449/449, `pnpm test:marketing` 22/22 (includes 2 new assertions
 for the SVG reduced-motion fix), `tsc --noEmit` clean.
 
-## v1.10 — 2026-08-29
-
-- Fix two stale/miscalibrated claims in `CLAUDE.md` surfaced by an
-  evidence-calibration review: the "CRM is launched" line now says when it
-  was last directly HTTP-verified and prompts a re-check rather than
-  reading as a permanently-settled fact, since several merges to `main`
-  have deployed since that check ran. The migration-count line ("0001
-  through 0035 as of 2026-08-20") was stale (real head is now `0038`) and
-  is replaced with guidance to always check the directory instead of
-  citing a number that goes stale within days during active periods.
-
 ## v1.11 — 2026-08-29
 
 - Fix `updateProjectTask`'s revalidation bug: it passed the RPC-returned task
@@ -143,6 +1703,17 @@ for the SVG reduced-motion fix), `tsc --noEmit` clean.
   this PR would have added and documented the existing `test:marketing`
   command in `AGENTS.md`/`CLAUDE.md` instead, rather than ship two
   differently-named commands that do the same thing.
+
+## v1.10 — 2026-08-29
+
+- Fix two stale/miscalibrated claims in `CLAUDE.md` surfaced by an
+  evidence-calibration review: the "CRM is launched" line now says when it
+  was last directly HTTP-verified and prompts a re-check rather than
+  reading as a permanently-settled fact, since several merges to `main`
+  have deployed since that check ran. The migration-count line ("0001
+  through 0035 as of 2026-08-20") was stale (real head is now `0038`) and
+  is replaced with guidance to always check the directory instead of
+  citing a number that goes stale within days during active periods.
 
 ## v1.09 — 2026-08-29
 

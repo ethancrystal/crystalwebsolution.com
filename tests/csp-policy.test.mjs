@@ -28,11 +28,13 @@ const EXPECTED_CSP = {
   'default-src': ["'self'"],
   // 'unsafe-inline'/'unsafe-eval' are required by Next's inline bootstrap and
   // the R3F/GSAP runtime; removing them needs a nonce refactor, tracked
-  // separately. blob: is for Three.js shader workers. The only third-party
-  // origin is gtag.js — see analytics.test.mjs for why it must stay.
-  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'blob:', 'https://www.googletagmanager.com'],
+  // separately. blob: is for Three.js shader workers. www.googletagmanager.com
+  // serves both gtag.js (GA4) and gtm.js (Tag Manager) — see analytics.test.mjs.
+  // hCaptcha (v1.30, contact form): loader script, challenge iframe, its
+  // stylesheet and its XHR all come from *.hcaptcha.com -- see lib/hcaptcha.mjs.
+  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'blob:', 'https://www.googletagmanager.com', 'https://hcaptcha.com', 'https://*.hcaptcha.com'],
   'worker-src': ["'self'", 'blob:'],
-  'style-src': ["'self'", "'unsafe-inline'"],
+  'style-src': ["'self'", "'unsafe-inline'", 'https://hcaptcha.com', 'https://*.hcaptcha.com'],
   // Deliberately wide: img-src permits any https host. Images cannot execute,
   // so this trades a real risk reduction for not having to enumerate every
   // CMS/CDN host the marketing pages reference. Narrow it if that changes.
@@ -50,9 +52,14 @@ const EXPECTED_CSP = {
     'https://stats.g.doubleclick.net',
     'https://*.g.doubleclick.net',
     'https://www.google.com',
+    'https://*.ingest.us.sentry.io',
+    'https://hcaptcha.com',
+    'https://*.hcaptcha.com',
   ],
   'media-src': ["'self'", 'data:', 'blob:'],
-  'frame-src': ["'self'", 'https://td.doubleclick.net'],
+  // www.googletagmanager.com: GTM's <noscript> ns.html fallback iframe in
+  // app/layout.jsx. Only rendered for visitors with JavaScript off.
+  'frame-src': ["'self'", 'https://td.doubleclick.net', 'https://www.googletagmanager.com', 'https://hcaptcha.com', 'https://*.hcaptcha.com'],
   'frame-ancestors': ["'self'"],
   'base-uri': ["'self'"],
   'form-action': ["'self'"],

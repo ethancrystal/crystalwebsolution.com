@@ -4,28 +4,56 @@ import PageHero from '../../components/marketing/PageHero';
 import ContentSection from '../../components/marketing/ContentSection';
 import ContactForm from '../../components/marketing/ContactForm';
 import ContactPulseLinks from '../../components/marketing/ContactPulseLinks';
+import FaqSchema from '../../components/marketing/FaqSchema';
 import { SITE } from '../../lib/site';
+import { REVIEW_STATS } from '../../lib/reviews';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
+const CONTACT_FAQ = [
+  {
+    q: 'Do you take on smaller projects?',
+    a: 'Yes. Our budget ranges start under $5k, and if a lighter option fits better than a full custom build, we’ll tell you before you spend anything.',
+  },
+  {
+    q: 'What should I put in the project brief?',
+    a: 'The goal, the current state, your timing, and what a strong outcome looks like — the same thing the form itself asks for. That’s enough for us to give you a real answer on scope, timeline, and cost.',
+  },
+  {
+    q: 'Do you work with clients outside the United States?',
+    a: 'Yes. The studio is based in Manassas, Virginia and works remotely by default, so where you are doesn’t change how a project runs.',
+  },
+  {
+    q: 'How quickly will you respond?',
+    a: 'Within 1 business day.',
+  },
+  {
+    q: 'Will you sign an NDA before reviewing our brief?',
+    a: 'Yes, on request — just ask when you send your brief.',
+  },
+];
+
 const TITLE = 'Contact';
+// Exact <title> flagged by Ubersuggest and specified by MJ (2026-09-11). Wrapped
+// in `absolute` so the root layout's `%s | <brand>` template does not append to it.
+const SEO_TITLE = 'Send Your Project Brief — CD Sportswear INC';
 const DESCRIPTION =
-  'Start a project with CD Sportswear USA. Send your brief and get a straight read on scope, timeline, cost, and the first move if it’s a fit.';
+  'Start a project with CD Sportswear INC. Send your brief and get a straight read on scope, timeline, cost, and the first move if it’s a fit.';
 
 export const metadata = {
-  title: TITLE,
+  title: { absolute: SEO_TITLE },
   description: DESCRIPTION,
   alternates: { canonical: '/contact' },
   openGraph: {
     type: 'website',
     url: absoluteUrl('/contact'),
-    title: `${TITLE} | ${SITE.name}`,
+    title: SEO_TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${TITLE} | ${SITE.name}`,
+    title: SEO_TITLE,
     description: DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
@@ -37,20 +65,53 @@ export default function ContactPage() {
       <PageHero
         eyebrow="Contact"
         title="Send us your brief."
-        lede="Tell us what you are building and what success looks like. We’ll reply by email with a straight read."
+        lede="Tell us what you are building and what success looks like. We’ll reply by email within 1 business day with a straight read."
       />
       <ContentSection eyebrow="Project brief" title="The form">
         <div className="mkt-contact-wrap">
           <ContactForm variant="marketing" />
         </div>
       </ContentSection>
+      <ContentSection eyebrow="Who this is for" title="Early-stage is fine" tone="alt">
+        <p className="mkt-prose">
+          This page is for people who can describe a real goal, even an early one. Budget ranges start
+          under $5k, so early-stage doesn’t rule you out — what we need is a specific brief, not a
+          finished plan. Still deciding which service fits? <Link href="/services">Browse services</Link> first;
+          the right page names the fit before you write anything here.
+        </p>
+      </ContentSection>
+      <ContentSection eyebrow="Next" title="What happens after you submit">
+        <p className="mkt-prose">
+          Every brief gets a straight read by email: whether it’s a fit, a rough scope, and the first
+          move if it is. If it’s a fit, everything after that follows the same six-stage path we use on
+          every project, from discovery through hand-off.
+        </p>
+        <Link href="/process" className="mkt-related-link">
+          <span className="mkt-related-title">See how we work</span>
+          <span className="mkt-related-arrow" aria-hidden="true">→</span>
+        </Link>
+      </ContentSection>
       <ContentSection eyebrow="Direct" title="Prefer email or a call?" tone="alt">
         <p className="mkt-prose">
-          Reach us directly and we’ll route your note to the right person.
+          Reach us directly and we’ll route your note to the right person. We’re based in Manassas,
+          Virginia and work with clients across the United States — remote is the default here, not an exception. Not ready
+          to write a brief yet? Read {REVIEW_STATS.total} <Link href="/reviews">client reviews</Link>, published
+          in full, or look through recent <Link href="/work">work</Link> first.
         </p>
         <ContactPulseLinks />
       </ContentSection>
+      <ContentSection eyebrow="FAQ" title="Common questions">
+        <dl className="mkt-faq">
+          {CONTACT_FAQ.map((item) => (
+            <div className="mkt-faq-item" key={item.q}>
+              <dt>{item.q}</dt>
+              <dd>{item.a}</dd>
+            </div>
+          ))}
+        </dl>
+      </ContentSection>
       <BreadcrumbSchema trail={[{ name: 'Contact', path: '/contact' }]} />
+      <FaqSchema faq={CONTACT_FAQ} />
     </MarketingShell>
   );
 }

@@ -3,8 +3,29 @@ import { REVIEWS, REVIEW_STATS } from '../../lib/reviews';
 import { SITE } from '../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import MarketingShell from '../../components/marketing/MarketingShell';
+import HeroStage from '../../components/marketing/HeroStage';
 import SectionReveal from '../../components/SectionReveal';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
+import FaqSchema from '../../components/marketing/FaqSchema';
+
+const REVIEWS_FAQ = [
+  {
+    q: 'Are all of your reviews shown on this page?',
+    a: `Yes. Every one of the ${REVIEW_STATS.total} published reviews appears here in full, including the critical ones — nothing gets filtered out before it reaches this page.`,
+  },
+  {
+    q: 'Why publish a negative review instead of removing it?',
+    a: 'Because a page that only shows five-star reviews is not evidence of anything. The response standard below applies to every review equally, good or bad — removing the hard ones would mean it only applied when it was easy.',
+  },
+  {
+    q: 'How do you decide what to say in a public reply?',
+    a: 'The same standard every time: acknowledge the concern, state what can be confirmed, keep project specifics out of a public thread, and offer one real way to reach us next.',
+  },
+  {
+    q: 'Can I leave a review of a project we worked on together?',
+    a: 'Yes — reach out through Contact or email us directly and we’ll point you to the right place to leave it.',
+  },
+];
 
 // schema.org datePublished must be ISO 8601; lib/reviews.js stores
 // human-readable strings like "June 15, 2026". Returns undefined rather than
@@ -17,7 +38,7 @@ function isoDate(value) {
 
 const REVIEWS_TITLE = 'Client Reviews';
 const REVIEWS_DESCRIPTION =
-  `Read all ${REVIEW_STATS.total} published client reviews for CD Sportswear USA, with ratings, dates, feedback, and company replies.`;
+  `Read all ${REVIEW_STATS.total} published client reviews for CD Sportswear INC, with ratings, dates, feedback, and company replies.`;
 
 export const metadata = {
   title: REVIEWS_TITLE,
@@ -49,9 +70,10 @@ function Rating({ value }) {
 
 export default function ReviewsPage() {
   return (
-    <MarketingShell>
+    <MarketingShell sceneVariant="reviews">
       <main className="reviews-index mkt-inner">
         <section className="reviews-hero" aria-labelledby="reviews-title">
+          <HeroStage />
           <p className="eyebrow"><SectionReveal as="span" direction="left">Client feedback</SectionReveal></p>
           <SectionReveal as="h1" id="reviews-title" className="page-title" direction="left" delay={0.05}>
             What clients said, in their own words.
@@ -125,6 +147,44 @@ export default function ReviewsPage() {
           </div>
         </section>
 
+        <section className="reviews-faq" aria-labelledby="reviews-faq-title">
+          <SectionReveal as="div" className="reviews-faq-heading" direction="up">
+            <p className="eyebrow">FAQ</p>
+            <h2 id="reviews-faq-title">Common questions</h2>
+          </SectionReveal>
+          <SectionReveal as="dl" className="mkt-faq" direction="up" delay={0.1}>
+            {REVIEWS_FAQ.map((item) => (
+              <div className="mkt-faq-item" key={item.q}>
+                <dt>{item.q}</dt>
+                <dd>{item.a}</dd>
+              </div>
+            ))}
+          </SectionReveal>
+        </section>
+
+        <section className="reviews-related" aria-label="More about the studio">
+          <SectionReveal as="ul" className="mkt-related" direction="up">
+            <li>
+              <Link href="/work" className="mkt-related-link">
+                <span className="mkt-related-title">Selected work — the projects behind these reviews.</span>
+                <span className="mkt-related-arrow" aria-hidden="true">→</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/services" className="mkt-related-link">
+                <span className="mkt-related-title">Services — the eight offers these clients hired us for.</span>
+                <span className="mkt-related-arrow" aria-hidden="true">→</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/about" className="mkt-related-link">
+                <span className="mkt-related-title">About — meet the studio behind the work.</span>
+                <span className="mkt-related-arrow" aria-hidden="true">→</span>
+              </Link>
+            </li>
+          </SectionReveal>
+        </section>
+
         <section className="reviews-close">
           <p className="eyebrow"><SectionReveal as="span" direction="left">From idea to outcome</SectionReveal></p>
           <SectionReveal as="h2" direction="left" delay={0.05}>Let&apos;s make something rare.</SectionReveal>
@@ -137,10 +197,13 @@ export default function ReviewsPage() {
         </section>
       </main>
       <BreadcrumbSchema trail={[{ name: REVIEWS_TITLE, path: '/reviews' }]} />
-      {/* Google requires AggregateRating to be backed by actual Review nodes
-          with named authors. These are real, attributable client reviews —
-          never synthesise entries here, and keep parseDate in sync with the
-          human-readable `date` strings in lib/reviews.js. */}
+      <FaqSchema faq={REVIEWS_FAQ} />
+      {/* Review nodes for the reviews shown on this page, each with a named
+          author. These are real, attributable client reviews — never
+          synthesise entries here, and keep parseDate in sync with the
+          human-readable `date` strings in lib/reviews.js. (The site-wide
+          AggregateRating these once backed was removed on 2026-09-26: it sat
+          on every page, not just this one.) */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { REVIEWS, REVIEW_STATS } from '../lib/reviews.js';
-import { SITE } from '../lib/site.js';
+import { SITE, cityStateZip } from '../lib/site.js';
 
 const STORIES_SOURCE = readFileSync(
   new URL('../components/sections/Stories.jsx', import.meta.url),
@@ -39,15 +39,37 @@ test('homepage uses three complete, attributable reviews', () => {
 });
 
 test('global content publishes authorized studio facts and contact details', () => {
-  assert.equal(SITE.name, 'CD Sportswear USA');
+  assert.equal(SITE.name, 'CD Sportswear INC');
   assert.equal(SITE.founded, 2016);
   assert.equal(SITE.experience, '10+ years');
   assert.equal(SITE.projectsShipped, '60+ projects shipped');
-  assert.equal(SITE.phone, '+1 917-463-4214');
-  assert.equal(SITE.city, 'Manassas, Virginia • Sharjah, UAE');
-  assert.equal(SITE.cityCompact, 'Manassas, VA + Sharjah, UAE');
+  assert.equal(SITE.phone, '+1 804-280-4941');
+  assert.equal(SITE.city, 'Manassas, VA');
+  // Owner-supplied addresses (2026-09-26). The physical one is schema.org
+  // `address`; the P.O. Box is post-only.
+  assert.deepEqual(SITE.address, {
+    streetAddress: '8956 Dahlgren Ridge Rd',
+    addressLocality: 'Manassas',
+    addressRegion: 'VA',
+    postalCode: '20111',
+    addressCountry: 'US',
+  });
+  assert.deepEqual(SITE.mailingAddress, {
+    poBox: 'P.O. Box #41424',
+    addressLocality: 'Arlington',
+    addressRegion: 'VA',
+    postalCode: '22204',
+    addressCountry: 'US',
+  });
+  assert.equal(cityStateZip(SITE.address), 'Manassas, VA 20111');
+  assert.equal(cityStateZip(SITE.mailingAddress), 'Arlington, VA 22204');
+  // Sharjah is not a CD Sportswear INC location (owner, 2026-09-26).
+  assert.equal('citySecondary' in SITE, false);
+  assert.equal('cityCompact' in SITE, false);
+  assert.doesNotMatch(JSON.stringify(SITE), /Sharjah|DXB|United Arab Emirates/);
   assert.deepEqual(SITE.socials, []);
   assert.ok(SITE.nav.some((item) => item.href === '/reviews'));
+  assert.ok(SITE.nav.some((item) => item.href === '/blog'));
 });
 
 test('review attribution keeps the published towing company spelling', () => {

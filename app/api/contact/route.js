@@ -4,6 +4,7 @@ import { sendTemplate, isEmailConfigured, getOperationsAddress } from '@/lib/ema
 import { contactSubmissionEmail, contactAckEmail } from '@/lib/email/templates';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit.mjs';
+import { HCAPTCHA_TOKEN_FIELD, verifyHCaptchaToken } from '@/lib/hcaptcha.mjs';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
 
@@ -80,6 +81,20 @@ export async function POST(request) {
       ok: false,
       message: 'Some details could not be validated. Review the marked fields and submit again.',
       errors: validation.errors,
+    }, 400);
+  }
+
+  // hCaptcha, enforced only when HCAPTCHA_SECRET is configured (lib/hcaptcha.mjs).
+  // Runs after the cheap checks above and before anything with a cost: the
+  // webhook, the CRM write, and the two emails.
+  const captcha = await verifyHCaptchaToken(body?.[HCAPTCHA_TOKEN_FIELD], {
+    remoteIp: getClientIp(request.headers),
+  });
+  if (!captcha.ok) {
+    return json({
+      ok: false,
+      message: 'Please complete the security check and submit again.',
+      errors: { hcaptcha: 'Please complete the security check.' },
     }, 400);
   }
 

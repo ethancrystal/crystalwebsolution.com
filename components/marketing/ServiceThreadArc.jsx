@@ -1,6 +1,6 @@
 'use client';
 
-// ServiceThreadArc — Services page only.
+// ServiceThreadArc — Services index + service detail pages.
 //
 // A small decorative SVG motif placed above the "Pick a thread" header:
 // a dashed arc connecting eight nodes, evoking the eight services listed

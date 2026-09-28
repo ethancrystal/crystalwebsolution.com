@@ -144,6 +144,9 @@ export default function Services() {
       <div className="services-catalogue">
         <div className="text-plate services-intro">
           <SectionHeader eyebrow="What we do" title="Focused vision. Measured execution." />
+          <SectionReveal className="services-intro-line" direction="up" delay={0.08}>
+            <p>Eight disciplines, one team — bring us the whole build, or just the piece that's stuck.</p>
+          </SectionReveal>
         </div>
         <div
           className="services-list"
@@ -180,7 +183,7 @@ export default function Services() {
                 data-service-index={i}
                 data-active="false"
               >
-                <h3 className="service-title" data-hover data-cursor="✦">
+                <h3 className="service-title">
                   <span className="service-title-inner">{s.title}</span>
                 </h3>
                 <p className="service-desc">{s.desc}</p>

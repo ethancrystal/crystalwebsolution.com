@@ -1,4 +1,7 @@
-# CD Sportswear USA
+# CD Sportswear INC
+
+Live at https://www.cdsportswearinc.com. The repository keeps its original
+name, `crystalwebsolution.com`; that domain is retired and is not ours to serve.
 
 A dark, cinematic, scroll-driven agency homepage. The whole viewport is a fixed
 WebGL stage; the DOM scrolls over it while a virtual camera flies through one
@@ -12,7 +15,7 @@ reacts on click) — all copy, visuals and code here are original.
 
 ## Stack
 
-Next.js 15 (App Router, JSX) and React 19 power both the public experience and
+Next.js 16 (App Router, JSX) and React 19 power both the public experience and
 the authenticated CRM. The marketing surface uses React Three Fiber + drei,
 @react-three/postprocessing, GSAP + ScrollTrigger, Lenis, and SplitType. The
 CRM uses Supabase Auth/Postgres/Storage/RLS through bounded server actions.
@@ -27,6 +30,8 @@ pnpm install --frozen-lockfile
 pnpm dev        # http://localhost:3000
 pnpm test       # full Node test suite
 pnpm test:crm   # CRM-focused contracts
+pnpm test:marketing  # vitest/jsdom marketing component tests
+pnpm test:components  # every vitest/jsdom test; the CI gate
 pnpm test:db    # Supabase database tests; requires the local stack
 pnpm test:e2e   # planned Playwright gate; tests/e2e is not yet checked in
 pnpm build      # production build
@@ -62,11 +67,10 @@ docker run -p 3000:3000 --env-file .env.local ghcr.io/ethancrystal/crystalwebsol
 
 ## Canonical checkout
 
-Use `C:\Users\moizjmj\CD Sportswear USA` on `main` as the authoritative
-local checkout. Do not assume a linked worktree is current. The audited
-worktree inventory, cleanup status, and recovery instructions live in
-[`docs/archive/WORKTREE-STATE.md`](docs/archive/WORKTREE-STATE.md).
-The August 2026 lean-repository audit and exact keep/remove decisions are in
+Work from an up-to-date `origin/main` (or a branch cut from it); do not assume
+a linked worktree or a local `main` is current. The August 2026 worktree and
+cleanup audits are archived in
+[`docs/archive/WORKTREE-STATE.md`](docs/archive/WORKTREE-STATE.md) and
 [`docs/archive/REPOSITORY-CLEANUP-2026-08-02.md`](docs/archive/REPOSITORY-CLEANUP-2026-08-02.md).
 
 ## Application surfaces
@@ -74,8 +78,10 @@ The August 2026 lean-repository audit and exact keep/remove decisions are in
 - `/` and `/work/*` — public cinematic marketing experience and case studies.
 - `/login/*` — role-specific client, employee, and admin entry points.
 - `/dashboard`, `/team`, and `/admin` — Supabase-backed CRM portals.
-- `supabase/migrations/0001` through `0011` — canonical checked-in database
-  history; migration changes require database-aware verification.
+- `supabase/migrations/` — canonical checked-in database history, numbered
+  sequentially from `0001`. Always inspect the directory for the current
+  migration head rather than trusting a number written in docs; migration
+  changes require database-aware verification.
 
 ## What to look for at each scroll beat
 
@@ -95,6 +101,45 @@ The August 2026 lean-repository audit and exact keep/remove decisions are in
    procedural case studies.
 9. **Contact** — the project-brief form, direct email fallback, and footer close
    the journey without replaying the hero crystal.
+
+## Component directory conventions
+
+- `components/` (top level) — cross-cutting DOM/canvas plumbing shared by
+  the whole marketing experience: `Experience.jsx` (beat order), `Scene.jsx`
+  (the WebGL stage), navigation (`Nav.jsx`, `Menu.jsx`), and singletons-driven
+  primitives (`DecodeText.jsx`, `Magnetic.jsx`, `Reveal.jsx`).
+- `components/sections/` — one file per homepage scroll beat (`Hero.jsx`,
+  `About.jsx`, `Services.jsx`, ..., `Motion.jsx`), rendered in order by
+  `Experience.jsx`. Mirrors `STOPS`/`CLUSTERS` in `lib/journey.js` and
+  `BEAT_IDS` in `lib/beatProgress.js` — adding or reordering a beat means
+  moving all three together (see "Architecture rules" below).
+- `components/marketing/` — reusable DOM components for the inner marketing
+  pages (`/about`, `/services`, `/work`, etc.): layout shells, schema/SEO
+  components, case-study rails, the service emblem.
+- `components/ui/` — small, mostly presentational primitives with no
+  section-specific meaning (`work-marquee.jsx`, `GlowCard.jsx`, background
+  effects).
+- `components/three/` — R3F scene actors mounted once by `Scene.jsx`
+  (`CameraRig`, `Lights`, `Crystal`, `ServiceRail`, `Particles`, ...). Lab
+  and Motion render DOM/CSS-3D card experiences over the same canvas and do
+  **not** add their own actors here.
+- `components/crm/` — Supabase-backed CRM UI (`/dashboard`, `/team`,
+  `/admin`), independent of the marketing/animation stack above.
+
+## Styling
+
+Plain global CSS, split across `app/styles/*.css`. `app/globals.css` is an
+**import manifest only** — the import order *is* the cascade order. Class names are intentionally left global (not scoped/hashed)
+because `Menu.jsx`, `Services.jsx`, and `WorkLibrary.jsx` select DOM nodes
+via `querySelectorAll('.menu-link')` / `.service-row` / `.work-row`, and GSAP
+animates those exact class names — CSS Modules would hash them and silently
+break the animations. Add a new stylesheet by creating `app/styles/<name>.css`
+and inserting its `@import` at the point in `globals.css` where it should
+cascade.
+
+There are no CSS Modules today. A co-located `*.module.css` is acceptable only
+for a component whose classes nothing selects by name from outside it;
+anything sections or GSAP might select stays in `app/styles/*.css`.
 
 ## Architecture rules (read before editing)
 

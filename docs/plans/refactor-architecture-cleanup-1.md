@@ -4,7 +4,7 @@ version: 1.2
 date_created: 2026-08-28
 last_updated: 2026-08-28
 owner: Crystal Web Solution
-status: In Progress — Phase 1 done (PR #133), Phase 2 done (PR #136), Phase 3 done (branch refactor+css-modularization-phase1, v1.09)
+status: Complete — Phases 0–3 shipped (PR #133, PR #136, v1.09); Phases 4–5 were carried verbatim into refactor-architecture-cleanup-2.md and shipped as v1.18 / v1.19 (2026-09-02). Post-plan SEO work in PR #193 (v1.36, 2026-09-13) is noted below.
 tags: [refactor, architecture, css, typescript, cleanup]
 ---
 
@@ -210,10 +210,54 @@ This plan delivers a surgical, phased refactor of the crystalwebsolution.com Nex
 | ASSUMPTION-001 | The user will approve each phase before the next begins (stop-gate per phase) | — | Built into plan structure |
 | ASSUMPTION-002 | No new features will be merged into `main` during the refactor window | — | Coordinate with team |
 
-## 8. Related Specifications / Further Reading
+## 9. Post-Plan Follow-On: PR #193 (SEO Meta Titles + /login & /signup Indexing)
 
-- [TRIONN-ADAPTATION.md](C:\Users\moizjmj\Crystal Web Solution\TRIONN-ADAPTATION.md) — current motion/animation architecture decisions
-- [MOTION-BUNDLE-AUDIT.md](C:\Users\moizjmj\Crystal Web Solution\MOTION-BUNDLE-AUDIT.md) — existing bundle analysis
-- [ADR-001-auth-flow.md](C:\Users\moizjmj\Crystal Web Solution\ADR-001-auth-flow.md) — auth architecture
-- [ADR-002-contact-form-rate-limiting.md](C:\Users\moizjmj\Crystal Web Solution\ADR-002-contact-form-rate-limiting.md) — contact form decisions
+> **Status: Shipped — v1.37, 2026-09-13 (commit `885573b`, PR #193).**
+> These changes are **not** part of the refactor's scope above; they're recorded here
+> so the architecture doc reflects the current shipped state rather than the August 2026
+> baseline when this plan was written.
+
+### What changed
+
+PR #193 addressed two SEO items:
+
+1. **Exact meta titles on five marketing pages** — the page-level `<title>` on
+   `/about`, `/blog`, `/contact`, `/process`, and `/services` was set to the exact
+   strings flagged by Ubersuggest (rather than Next.js-derived defaults). Files:
+   `app/about/page.jsx`, `app/blog/page.jsx`, `app/contact/page.jsx`,
+   `app/process/page.jsx`, `app/services/page.jsx`. Each is a 9-line edit adjusting
+   `export const metadata = { title: ... }`.
+
+2. **`/login` and `/signup` re-enabled for indexing** — the earlier `noindex` on these
+   two public entry points was reversed. The matching `Disallow: /login` and `Disallow:
+   /signup` lines were removed from `app/robots.js`, and `app/login/layout.jsx` /
+   `app/signup/layout.jsx` now declare `robots: { index: true, follow: true }`.
+   - The three role-specific portals under `/login/{admin,client,employee}` stay
+     disallowed in `robots.js` and each declares its own `robots: { index: false }`.
+   - `/forgot-password`, `/auth/`, `/dashboard`, `/admin`, `/team`, and `/api/` stay
+     disallowed — they are thin, duplicate-titled, or behind auth.
+
+### Why it matters for this doc
+
+The refactor's **REQ-006** (preserve SEO metadata, structured data, OpenGraph, sitemap)
+still holds — these changes **added** metadata rather than removing it. No refactor task
+is invalidated by PR #193. If a future refactor phase touches `app/robots.js` or the
+`/login`/`/signup` segment layouts, the `robots: { index: true }` directives and the
+robots.txt allowlist for those two paths must be preserved.
+
+### Files not touched by PR #193 that this doc still references
+
+| Doc reference | File | Notes |
+|---|---|---|
+| FILE-008 | `next.config.js` | CSP documentation only; no change |
+| FILE-009 | `README.md` | Conventions not yet updated (see TASK-031, incomplete) |
+| FILE-010 | `docs/ARCHITECTURE.md` | Not yet created (see TASK-032, incomplete) |
+| Phases 4–5 (TASK-022 through TASK-033) | various | Carried to `refactor-architecture-cleanup-2.md`; not yet done |
+
+## 10. Related Specifications / Further Reading
+
+- [TRIONN-ADAPTATION.md](../../TRIONN-ADAPTATION.md) — current motion/animation architecture decisions
+- [motion-bundle-audit.md](../motion-bundle-audit.md) — existing bundle analysis
+- [ADR-001-auth-flow.md](../adr/ADR-001-auth-flow.md) — auth architecture
+- [ADR-002-contact-form-rate-limiting.md](../adr/ADR-002-contact-form-rate-limiting.md) — contact form decisions
 - Next.js CSS Modules docs: https://nextjs.org/docs/app/building-your-application/styling/css-modules

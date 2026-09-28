@@ -12,7 +12,7 @@ const DEEP_LINK_PROGRESS = 0.32;
 // lives in the accessible project list below, sourced from lib/projects.js.
 // The marquee tiles themselves are third-party Awwwards showcase
 // screenshots used only as visual texture (see
-// public/projects/clients/SOURCES.md); they are not CD Sportswear USA
+// public/projects/clients/SOURCES.md); they are not CD Sportswear INC
 // client work and should never be presented as such.
 // Animated media for the duplicated (second-half) tiles in the marquee.
 // WebM is preferred for smaller file size and better quality; GIF is used
@@ -42,10 +42,18 @@ export default function Motion() {
     >
       <header className="motion-header">
         <div>
-          <p className="eyebrow">Named client record</p>
-          <h2>Real names. Real businesses. No invented case studies.</h2>
+          <p className="eyebrow">Selected work</p>
+          {/* Stories (the reviews beat) already carries the "real clients, no
+              invented case studies" claim in the client's own words. This beat
+              is the work itself, so it leads on what the work changed rather
+              than restating the same line one section later. */}
+          <h2>The work, and what it changed.</h2>
+          <p className="motion-intro">
+            Every case study names the client, the problem they hired us to fix,
+            and what moved once it shipped. Open any one and judge it yourself.
+          </p>
         </div>
-        <Link href="/work" className="motion-link" data-cursor="All projects">
+        <Link href="/work" className="motion-link">
           View all work <span aria-hidden="true">→</span>
         </Link>
       </header>
@@ -61,7 +69,6 @@ export default function Motion() {
               className="motion-stream-item"
               style={{ '--rail-accent': project.palette[0] }}
               aria-label={`${project.title} — view case study`}
-              data-cursor="View case"
             >
               <span className="motion-stream-item-index" aria-hidden="true">
                 0{index + 1}

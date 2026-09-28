@@ -9,9 +9,29 @@
 - `/team` — employee home
 - `/admin` — admin home
 
+## RLS helper grants
+
+- Any `private.*` function used inside a policy `USING` / `WITH CHECK`
+  expression must stay executable by `authenticated`: policy expressions run
+  as the querying role, and a revoke makes every statement on that table fail
+  at planning (`42501 permission denied for function ...`). Migration `0027`
+  did this to `private.shares_project_with(uuid)` and took every portal login
+  down for every role until `0040` restored the grant.
+  `tests/crm/migration-0040-restore-shares-project-with-grant.test.mjs`
+  enforces the rule across the migration chain.
+
 ## Invitations and Cleanup
 
 - Invite through `app/admin/users/actions.js`.
+- The invite email's link goes to `/auth/verify`, which signs the invitee in
+  from the one-time token and lands them on `/auth/reset-password` to choose
+  a password. `updatePassword()` then sends them to their role's portal home
+  (`/team` for project managers). They sign in afterwards at `/login/employee`.
+- Until the invitee sets a password, `middleware.js` refuses every portal
+  path and returns them to `/auth/reset-password?reason=invite`. It decides
+  through `current_user_must_set_password()` (migration `0039`), which reads
+  `auth.users` for the caller only; nothing about this is stored in
+  `profiles`, so there is no flag to reset by hand.
 - Role is provisioned through the authoritative database path.
 - If email delivery or role assignment fails, the newly created auth user is deleted.
 
@@ -19,6 +39,18 @@
 
 - Status transitions are validated by `lib/crm/project-contract.mjs`.
 - Writes use bounded server actions in `app/actions/project-actions.js`.
+
+## Client Briefs
+
+Clients start projects from guided, service-specific briefs (migration `0043_project_briefs.sql`).
+
+- Questionnaires are data in `lib/crm/brief-templates.mjs`: `logo`, `website`, `seo`, `ppc`. Adding a question is a data change there. Adding a brief *type* also needs the `project_briefs_type_check` constraint and the category mapping in `submit_project_brief()`, both in a new migration. Briefs never ask for passwords; access is arranged separately.
+- `/dashboard` shows service cards, drafts in progress, and projects. `/dashboard/briefs/[id]` is the step-by-step wizard. It autosaves drafts through `saveBriefDraft` (`app/actions/brief-actions.js`) and pre-fills name, website and industry from the client's company record. The free-text form (`BriefSubmissionForm`) remains as "Something else".
+- Drafts are private to their author under RLS. Admin and PMs never see unsent drafts. Only drafts can be inserted, updated or deleted.
+- Submit goes through `submit_project_brief()`. It creates a new project through the idempotent `create_project()` (the brief id is the idempotency key), or attaches the brief to one of the client's existing, non-cancelled projects. A project can carry several briefs. Resubmitting returns the same project.
+- Submission writes a `project.brief_submitted` audit event and notifies the admin plus any assigned staff (in-app and email). The email links staff to `/admin/projects/<id>` or `/team/projects/<id>`. The submitting client is not notified.
+- Submitted briefs appear in the "Briefs" panel on the client, team and admin project pages. Clients can add another brief from there.
+- Behavioural proof: `supabase/tests/0043_project_briefs.test.sql` (`pnpm test:db`).
 
 ## Storage and Cleanup
 
@@ -32,11 +64,11 @@ The CRM writes notification rows to `public.notifications_outbox`. The queue kee
 
 `app/api/cron/crm-notifications/route.js` is a protected Node.js worker. It accepts Vercel's `Authorization: Bearer` credential or the explicit `x-cron-secret` header, fails closed when no secret is configured, claims at most 25 due email rows through `claim_notification_email_batch`, and records outcomes only through lease-owned completion RPCs. It returns counts only; it never returns recipients, payloads, provider responses, lease tokens, or secrets.
 
-The worker uses a stable provider idempotency key, `outbox-{id}`. Delivery is **at least once** at the queue boundary: if a provider response is ambiguous or a completion update loses its lease, the row may be reclaimed after expiry, but the stable provider key prevents a duplicate provider send. A completion affected-row count of zero is a lease conflict, not a successful delivery.
+The worker uses a stable provider idempotency key, `outbox-{id}`. Delivery is **at least once** at the queue boundary: if a provider response is ambiguous or a completion update loses its lease, the row may be reclaimed after expiry. Resend honours the key for 24 hours only, so a reclaim inside that window is suppressed but a later one sends again. A row that keeps failing to complete can therefore be delivered more than once. That happened after `0033`, whose completion RPCs raised 42883 on every call, so each sent row was reclaimed until it had used all 25 claims (fixed by `0045`). A completion affected-row count of zero is a lease conflict, not a successful delivery.
 
 ## Scheduler and Secrets
 
-Supabase `pg_cron` is the primary scheduler. The live `drain-crm-outbox` job runs every five minutes and calls the production route through `pg_net`, loading the `x-cron-secret` value from Vault secret `crm_cron_secret`. Vercel Cron is the daily backstop at `0 13 * * *` for `/api/cron/crm-notifications`. Both paths may overlap; database claim leases, not scheduler timing assumptions, provide ownership.
+Supabase `pg_cron` is the primary scheduler. The live `drain-crm-outbox` job runs every five minutes and POSTs to `https://www.cdsportswearinc.com/api/cron/crm-notifications` through `pg_net` (migration `0042`; `0025` originally pointed at the retired `crystalwebsolution.com` host), loading the `x-cron-secret` value from Vault secret `crm_cron_secret`. Vercel Cron is the daily backstop at `0 13 * * *` for `/api/cron/crm-notifications`. Both paths may overlap; database claim leases, not scheduler timing assumptions, provide ownership. `0042` was applied live on 2026-09-15, and a read-only check on 2026-09-27 confirmed the job posts to the `www.cdsportswearinc.com` URL.
 
 The owner-controlled secret must be synchronized between Supabase Vault `crm_cron_secret` and the Vercel `CRON_SECRET`/`CRM_CRON_SECRET` environment value. Keep secret values out of git, logs, issue comments, test fixtures, and audit exports. Rotate by updating the receiving environment and then the scheduler source, verifying an authorized smoke request and an unauthorized request without printing the secret.
 
@@ -78,7 +110,7 @@ Any unread cleanup must use an explicit owner-selected cutoff, update only `in_a
 
 ## Migrations
 
-The checked-in migration directory currently contains the CRM chain through `0033_notification_claim_leases.sql`, with historical numbering gaps. `0033` is additive: it adds lease and failure metadata, a bounded claim index, atomic claim/reclaim behavior, lease-owned success/failure transitions, fixed `search_path` functions, and trusted-worker grants. It intentionally does not introduce a `processing` status.
+The checked-in migration directory currently contains the CRM chain through `0045_fix_outbox_mark_coalesce.sql` (no `0024`; `0009b` and `0014b` are reconciliation files). On 2026-09-27 the live ledger (`list_migrations`) recorded 43 of the 46 checked-in files, through `0044_pin_admin_to_moiz` (version `20260927011021`). `0045` is checked in, **not applied**, until the owner runs it against the live project. The other two without an entry are harmless: `0008_auth_rbac_repair` drops and replaces every notes policy `0007` created (the live policies match `0008`), and `0030` only brought the repo in line with a `transition_project_status` fix that was already live (its effect is present). Always `ls supabase/migrations/` for the real head, and query the live ledger for what is applied, rather than trusting this sentence. The `0033` notes below are kept because that migration is the one with a cutover rehearsal. `0033` is additive: it adds lease and failure metadata, a bounded claim index, atomic claim/reclaim behavior, lease-owned success/failure transitions, fixed `search_path` functions, and trusted-worker grants. It intentionally does not introduce a `processing` status. It also broke both completion RPCs: they schema-qualified COALESCE, which is SQL grammar rather than a `pg_catalog` function, so every call raised 42883 until `0045`. `tests/crm/migration-grammar-guard.test.mjs` now fails any migration whose latest function body does that.
 
 Repository numeric filenames are not proof of production application. The live Supabase migration ledger uses timestamped versions and has previously diverged from the checked-in chain. Before applying `0033`, reconcile the live ledger, inspect exact live function definitions with `pg_get_functiondef`, verify grants and scheduler state, run the migration on an isolated database, and rehearse the old-worker/new-worker cutover. Do not edit or replay historical migration files.
 

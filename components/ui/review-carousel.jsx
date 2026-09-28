@@ -132,7 +132,7 @@ export function ReviewCarousel({
             <span className="review-carousel-name">{active.reviewer}</span>
             <span className="review-carousel-credit">{active.credit}</span>
             {active.reviewHref ? (
-              <a className="review-carousel-link" href={active.reviewHref} data-cursor="Read">
+              <a className="review-carousel-link" href={active.reviewHref}>
                 Read full review →
               </a>
             ) : null}

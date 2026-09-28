@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import DecodeText from '../DecodeText';
@@ -70,7 +71,6 @@ export default function Hero() {
       className="section hero hero-off-axis hero-refraction"
       id="hero"
       onClick={onBlast}
-      data-cursor="Tap"
       data-quiet
     >
       <div className="hero-refraction-sweep" aria-hidden="true" />
@@ -78,6 +78,12 @@ export default function Hero() {
         <span className="caustic-ray" />
       </div>
       <div className="text-plate">
+        {/* Plain-language descriptor (visual Phase 1b): the headline sells a
+            feeling, so this line says what the studio actually does before
+            the visitor has to scroll to find out. */}
+        <Reveal className="hero-kicker" delay={introDelay}>
+          <p>Websites · Branding · Motion · Marketing · AI automation</p>
+        </Reveal>
         <h1 className="hero-title">
           <DecodeText as="span" text="Built to be" speed={0.045} delay={introDelay + 0.1} className="hero-line" />
           {/* Whitespace text node between the two block-level .hero-line spans.
@@ -90,23 +96,35 @@ export default function Hero() {
         </h1>
         <Reveal className="hero-sub" delay={introDelay + 1}>
           <p>
-            When your site blends into the scroll, visitors forget it before
-            the next tab — so we build brands and interactive 3D experiences
-            that are faster than your old site, sharper than the field, and
-            unmistakably yours.
+            Visitors forget a site that blends into the scroll before they have
+            even left the tab. We build brands and interactive 3D experiences
+            fast enough to hold attention, sharp enough to beat the competition,
+            and built only for you — so the click turns into the client.
           </p>
         </Reveal>
         <Reveal className="hero-cta" delay={introDelay + 1.3}>
-          <Magnetic>
-            <a
-              href="/#contact"
-              className="btn btn-solid"
-              data-cursor="Let's go"
+          <div className="hero-cta-row">
+            <Magnetic>
+              <a
+                href="/#contact"
+                className="btn btn-solid"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Start a project <span className="btn-arrow">→</span>
+              </a>
+            </Magnetic>
+            {/* Secondary path for visitors who want proof before a brief.
+                /work, not #motion: Motion opens on a decorative marquee of
+                third-party showcase screenshots that must never read as our
+                client work; /work lists the real projects. */}
+            <Link
+              href="/work"
+              className="btn btn-ghost"
               onClick={(e) => e.stopPropagation()}
             >
-              Start a project <span className="btn-arrow">→</span>
-            </a>
-          </Magnetic>
+              See selected work
+            </Link>
+          </div>
         </Reveal>
         {/* Inline proof line under the CTA. Reads from SITE rather than
             restating the figure, so the homepage and /about (which already

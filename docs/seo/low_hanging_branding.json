@@ -1,0 +1,471 @@
+[
+  {
+    "keyword": "branding and brand positioning",
+    "volume": 2900,
+    "difficulty": 6,
+    "cpc": 7.915,
+    "intent": null,
+    "competition": 0.03
+  },
+  {
+    "keyword": "branding identity design services",
+    "volume": 6600,
+    "difficulty": 8,
+    "cpc": 10.895,
+    "intent": null,
+    "competition": 0.05
+  },
+  {
+    "keyword": "waldorf astoria branding",
+    "volume": 40500,
+    "difficulty": 10,
+    "cpc": 2.22,
+    "intent": [
+      3
+    ],
+    "competition": 0.12
+  },
+  {
+    "keyword": "boutique hotel branding",
+    "volume": 2900,
+    "difficulty": 14,
+    "cpc": 8.37,
+    "intent": [
+      2,
+      3
+    ],
+    "competition": 0.12
+  },
+  {
+    "keyword": "branding skincare",
+    "volume": 6600,
+    "difficulty": 14,
+    "cpc": 2.6,
+    "intent": [
+      3,
+      2
+    ],
+    "competition": 0.9
+  },
+  {
+    "keyword": "branding tires",
+    "volume": 12100,
+    "difficulty": 14,
+    "cpc": 2.38,
+    "intent": [
+      3,
+      2
+    ],
+    "competition": 0.41
+  },
+  {
+    "keyword": "branding barrel",
+    "volume": 6600,
+    "difficulty": 14,
+    "cpc": 1.07,
+    "intent": [
+      4,
+      3
+    ],
+    "competition": 0.02
+  },
+  {
+    "keyword": "fridge branding",
+    "volume": 4400,
+    "difficulty": 15,
+    "cpc": 1.48,
+    "intent": [
+      3,
+      4
+    ],
+    "competition": 0.93
+  },
+  {
+    "keyword": "branding a company",
+    "volume": 2400,
+    "difficulty": 16,
+    "cpc": 9.165,
+    "intent": null,
+    "competition": 0.09
+  },
+  {
+    "keyword": "branding bible",
+    "volume": 4400,
+    "difficulty": 16,
+    "cpc": 6.67,
+    "intent": [
+      1
+    ],
+    "competition": 0.1
+  },
+  {
+    "keyword": "ranch branding generator",
+    "volume": 4400,
+    "difficulty": 17,
+    "cpc": 2.21,
+    "intent": [
+      3,
+      2
+    ],
+    "competition": 0.13
+  },
+  {
+    "keyword": "branding cowboy hat",
+    "volume": 2900,
+    "difficulty": 17,
+    "cpc": 1.9,
+    "intent": [
+      4,
+      3
+    ],
+    "competition": 1
+  },
+  {
+    "keyword": "branding outdoor",
+    "volume": 4400,
+    "difficulty": 17,
+    "cpc": 1.75,
+    "intent": [
+      3,
+      2
+    ],
+    "competition": 1
+  },
+  {
+    "keyword": "branding and tattoos",
+    "volume": 3600,
+    "difficulty": 18,
+    "cpc": 5.41,
+    "intent": [
+      1,
+      2
+    ],
+    "competition": 0.02
+  },
+  {
+    "keyword": "branding for food",
+    "volume": 4400,
+    "difficulty": 18,
+    "cpc": 5.14,
+    "intent": null,
+    "competition": 0.13
+  },
+  {
+    "keyword": "salon branding",
+    "volume": 2400,
+    "difficulty": 18,
+    "cpc": 2.59,
+    "intent": [
+      2,
+      3
+    ],
+    "competition": 0.27
+  },
+  {
+    "keyword": "marketing & branding",
+    "volume": 4400,
+    "difficulty": 19,
+    "cpc": 9.52,
+    "intent": null,
+    "competition": 0.14
+  },
+  {
+    "keyword": "strategy of branding",
+    "volume": 5400,
+    "difficulty": 19,
+    "cpc": 6.365,
+    "intent": null,
+    "competition": 0.15
+  },
+  {
+    "keyword": "branding speakers",
+    "volume": 3600,
+    "difficulty": 19,
+    "cpc": 6.27,
+    "intent": [
+      3,
+      4
+    ],
+    "competition": 0.95
+  },
+  {
+    "keyword": "branding experiences",
+    "volume": 2400,
+    "difficulty": 20,
+    "cpc": 7.395,
+    "intent": null,
+    "competition": 0.04
+  },
+  {
+    "keyword": "branding source",
+    "volume": 2900,
+    "difficulty": 20,
+    "cpc": 6.035,
+    "intent": null,
+    "competition": 0.06
+  },
+  {
+    "keyword": "smirnoff branding",
+    "volume": 60500,
+    "difficulty": 20,
+    "cpc": 0.64,
+    "intent": [
+      3
+    ],
+    "competition": 0.63
+  },
+  {
+    "keyword": "rose branding",
+    "volume": 6600,
+    "difficulty": 21,
+    "cpc": 0.5,
+    "intent": [
+      3,
+      1
+    ],
+    "competition": 0.26
+  },
+  {
+    "keyword": "branding building",
+    "volume": 6600,
+    "difficulty": 22,
+    "cpc": 9.29,
+    "intent": null,
+    "competition": 0.09
+  },
+  {
+    "keyword": "branding identity design",
+    "volume": 18100,
+    "difficulty": 22,
+    "cpc": 5.36,
+    "intent": null,
+    "competition": 0.11
+  },
+  {
+    "keyword": "branding agnecy",
+    "volume": 9900,
+    "difficulty": 24,
+    "cpc": 11.375,
+    "intent": null,
+    "competition": 0.11
+  },
+  {
+    "keyword": "branding & design",
+    "volume": 4400,
+    "difficulty": 24,
+    "cpc": 5.17,
+    "intent": null,
+    "competition": 0.33
+  },
+  {
+    "keyword": "razor branding",
+    "volume": 3600,
+    "difficulty": 24,
+    "cpc": 3.08,
+    "intent": [
+      1,
+      2,
+      3
+    ],
+    "competition": 0.7
+  },
+  {
+    "keyword": "branding boots",
+    "volume": 9900,
+    "difficulty": 24,
+    "cpc": 1.33,
+    "intent": [
+      3,
+      4,
+      2
+    ],
+    "competition": 0.99
+  },
+  {
+    "keyword": "branding marketing",
+    "volume": 3600,
+    "difficulty": 25,
+    "cpc": 9.58,
+    "intent": null,
+    "competition": 0.18
+  },
+  {
+    "keyword": "purple branding",
+    "volume": 49500,
+    "difficulty": 25,
+    "cpc": 0.47,
+    "intent": [
+      2,
+      1,
+      3
+    ],
+    "competition": 0.9
+  },
+  {
+    "keyword": "gas station branding",
+    "volume": 2900,
+    "difficulty": 26,
+    "cpc": 10.13,
+    "intent": [
+      1,
+      2
+    ],
+    "competition": 0.01
+  },
+  {
+    "keyword": "types of car branding",
+    "volume": 5400,
+    "difficulty": 26,
+    "cpc": 6.32,
+    "intent": [
+      1
+    ],
+    "competition": 0.03
+  },
+  {
+    "keyword": "pest control branding",
+    "volume": 2900,
+    "difficulty": 26,
+    "cpc": 4.06,
+    "intent": [
+      2,
+      3
+    ],
+    "competition": 0.21
+  },
+  {
+    "keyword": "laundry branding",
+    "volume": 6600,
+    "difficulty": 26,
+    "cpc": 0.4,
+    "intent": [
+      3
+    ],
+    "competition": 0.96
+  },
+  {
+    "keyword": "luxury skincare branding",
+    "volume": 49500,
+    "difficulty": 27,
+    "cpc": 3.27,
+    "intent": [
+      3,
+      1
+    ],
+    "competition": 0.04
+  },
+  {
+    "keyword": "mineral water branding",
+    "volume": 4400,
+    "difficulty": 27,
+    "cpc": 0.78,
+    "intent": [
+      3,
+      1,
+      4
+    ],
+    "competition": 0.91
+  },
+  {
+    "keyword": "kroger branding",
+    "volume": 4400,
+    "difficulty": 27,
+    "cpc": 0.605,
+    "intent": [
+      1,
+      2,
+      3
+    ],
+    "competition": 0
+  },
+  {
+    "keyword": "eagle branding",
+    "volume": 2400,
+    "difficulty": 27,
+    "cpc": 0.44,
+    "intent": [
+      1,
+      3,
+      2
+    ],
+    "competition": 0.31
+  },
+  {
+    "keyword": "popsicle branding",
+    "volume": 6600,
+    "difficulty": 27,
+    "cpc": 0.34,
+    "intent": [
+      1,
+      3
+    ],
+    "competition": 0.78
+  },
+  {
+    "keyword": "branding cowboy boots",
+    "volume": 8100,
+    "difficulty": 29,
+    "cpc": 2.2,
+    "intent": [
+      4,
+      3
+    ],
+    "competition": 1
+  },
+  {
+    "keyword": "grill branding",
+    "volume": 3600,
+    "difficulty": 29,
+    "cpc": 1.54,
+    "intent": [
+      3,
+      2
+    ],
+    "competition": 0.93
+  },
+  {
+    "keyword": "branding cattle",
+    "volume": 8100,
+    "difficulty": 29,
+    "cpc": 1.04,
+    "intent": [
+      1,
+      3
+    ],
+    "competition": 0.23
+  },
+  {
+    "keyword": "otc branding",
+    "volume": 3600,
+    "difficulty": 30,
+    "cpc": 4.56,
+    "intent": [
+      2,
+      1,
+      3
+    ],
+    "competition": 0
+  },
+  {
+    "keyword": "branding headphones",
+    "volume": 3600,
+    "difficulty": 30,
+    "cpc": 3.91,
+    "intent": [
+      4,
+      3
+    ],
+    "competition": 0.83
+  },
+  {
+    "keyword": "clothes branding name",
+    "volume": 5400,
+    "difficulty": 30,
+    "cpc": 1.545,
+    "intent": [
+      1,
+      3
+    ],
+    "competition": 0.51
+  }
+]

@@ -1,12 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendInviteEmail } from '../lib/email/resend.js';
 
-const ADMIN_EMAIL = 'ethan@crystalwebsolution.com';
+// Must match public.pinned_admin_email() (migration 0044). This is the
+// owner's real account, so its name is never overwritten: fullName is left
+// out and setProfileRole only writes the fields it is given.
+const ADMIN_EMAIL = 'moizj00@gmail.com';
 const EMPLOYEE_EMAIL = 'ethan+employee@crystalwebsolution.com';
 const CLIENT_EMAIL = 'ethan+client@crystalwebsolution.com';
 
 const TEST_USERS = Object.freeze([
-  { email: ADMIN_EMAIL, role: 'admin', fullName: 'Ethan Admin' },
+  { email: ADMIN_EMAIL, role: 'admin' },
   { email: EMPLOYEE_EMAIL, role: 'project_manager', fullName: 'Ethan Employee' },
   { email: CLIENT_EMAIL, role: 'client', fullName: 'Ethan Client' },
 ]);
@@ -70,7 +73,7 @@ async function ensureAuthUser(supabase, email) {
 async function setProfileRole(supabase, userId, role, fullName) {
   const { data, error } = await supabase
     .from('profiles')
-    .upsert({ id: userId, role, full_name: fullName }, { onConflict: 'id' })
+    .upsert(fullName ? { id: userId, role, full_name: fullName } : { id: userId, role }, { onConflict: 'id' })
     .select('id, role, full_name')
     .single();
 
