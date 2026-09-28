@@ -1,3 +1,19 @@
+## v1.86 — 2026-09-28
+
+Every transactional email gets a clean, professional light layout (owner request 2026-09-28). The sign-up confirmation email's button was invisible on phones. No behaviour change: same emails, same links, same senders. Numbered after v1.83 (#256), v1.84 (#257) and v1.85 (#259), which are all open.
+
+- **Root cause of the invisible button:** it was painted with a CSS `linear-gradient`. Outlook mobile and several other clients strip gradients, which left dark text on a dark card.
+  - Every background is now a solid colour, set both as a `bgcolor` attribute and as inline CSS, so a client that drops one still renders the other.
+- **Layout** (`lib/email/templates.js` `emailLayout`):
+  - a light grey page and a white card with dark, readable 16px text;
+  - the logo on a navy header band (the logo is a white mark made for dark backgrounds);
+  - a solid blue button (white text at 5.9:1 contrast);
+  - the raw link moved below a divider, under "If the button doesn't work…";
+  - the footer email address is now a mail link.
+  - `color-scheme: light` is declared, so mobile dark modes don't invert it into low contrast.
+- **Sign-up confirmation wording** now says what happens next: the client portal, starting a project, sharing a brief and files.
+- **Verified:** `pnpm test`, including `tests/email.test.mjs`. The confirmation and message emails were rendered in Chromium at 390px and 700px.
+
 ## v1.82 — 2026-09-28
 
 Dependency fix and security housekeeping from the 2026-09-28 triage.
