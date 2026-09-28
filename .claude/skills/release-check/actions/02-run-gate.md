@@ -18,7 +18,7 @@ One exit code per step, and the first failing line when a step fails.
 3. **Components.** Run `pnpm test:components`.
    - It runs every `tests/**/*.test.jsx` file. Never substitute `pnpm test:marketing`, which skips `tests/crm/*.test.jsx`.
 4. **Build.** Run `pnpm build` with `NODE_ENV=production`, `NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co`, `NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key`, and `NEXT_PUBLIC_APP_URL=https://placeholder.invalid`.
-   - On Windows, a prerender `useContext` null error is a known local-only failure. Mark the step `unverified locally`, not failed, and point to the CI run.
+   - A prerender `useContext` null error means `NODE_ENV=production` did not reach the build. With it set, the build passes on Windows and Linux.
 5. **Stop.** On the first non-zero exit, skip the remaining steps.
 
 ## Test

@@ -59,7 +59,7 @@ export default function Scene() {
           {/* Approach beat — step-markers orbiting a small core */}
           <ApproachCompass position={[0, 0, CLUSTERS.approach]} animate={quality.animate} />
 
-          {/* Tier-driven like IdleScene (lib/renderQuality.mjs): particle density
+          {/* Tier-driven (lib/renderQuality.mjs): particle density
               and DPR step down on compact, low-memory, save-data and
               reduced-motion devices instead of every device paying high-tier
               cost. Post-processing deliberately never goes fully 'off' here:

@@ -63,34 +63,7 @@
 }
 .mkt-main { flex: 1 0 auto; }
 
-/* --- header / footer --- */
-.mkt-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem clamp(1.25rem, 5vw, 4rem);
-  background: rgba(4, 7, 13, 0.72);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
-}
-.mkt-logo { display: inline-flex; align-items: center; gap: 0.5rem; }
-.mkt-logo .nav-logo-art { width: clamp(4.75rem, 9vw, 7rem); height: clamp(3.25rem, 6vw, 4.75rem); }
-.mkt-logo-monogram {
-  font-family: var(--font-display);
-  font-weight: 700;
-  color: var(--cyan);
-  letter-spacing: 0.04em;
-}
-.mkt-logo-name { font-family: var(--font-display); font-size: 0.95rem; color: var(--ink); }
-.mkt-header-nav { display: flex; align-items: center; gap: clamp(0.75rem, 2vw, 1.6rem); }
-.mkt-header-nav a { color: var(--muted); font-size: 0.92rem; transition: color 0.2s; }
-.mkt-header-nav a:hover, .mkt-header-nav a:focus-visible { color: var(--ink); }
-.mkt-header-login { color: var(--cyan) !important; }
-
+/* --- footer --- */
 .mkt-footer {
   margin-top: auto;
   padding: clamp(2.5rem, 6vw, 5rem) clamp(1.25rem, 5vw, 4rem) 2rem;
@@ -418,8 +391,6 @@
 
 /* --- responsive --- */
 @media (max-width: 720px) {
-  .mkt-header-nav { gap: 0.75rem; }
-  .mkt-header-nav a:not(.btn) { display: none; }
   .mkt-footer-top { flex-direction: column; gap: 1.75rem; }
 }
 

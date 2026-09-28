@@ -67,7 +67,6 @@ tsconfig.tsbuildinfo
 
 .copilot-tracking/
 *.docx
-.env.*
 *.env
 credentials.json
 *.pem
@@ -85,6 +84,3 @@ supabase/.temp
 # Skill-pack bytecode if an agent runs a bundled Python helper
 .cursor/skills/**/__pycache__/
 .cursor/skills/**/*.pyc
-
-.vercel
-.env*

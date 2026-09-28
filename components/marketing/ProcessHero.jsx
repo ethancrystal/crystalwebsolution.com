@@ -14,7 +14,7 @@ import { useRenderQuality } from '../../lib/useRenderQuality';
 //      engines, screen readers, and every visitor see first (no LCP gated on
 //      GPU init).
 //   2. After mount, if the site's render-quality policy allows animation
-//      (eco tier = no canvas, same gate IdleScene uses) AND the browser has
+//      (eco tier = no canvas) AND the browser has
 //      WebGPU, ShapeWaves mounts client-only and renders the same headline
 //      as negative space in the field. On its first presented frame the H1
 //      fades to opacity 0 (still in the accessibility tree) as the canvas
