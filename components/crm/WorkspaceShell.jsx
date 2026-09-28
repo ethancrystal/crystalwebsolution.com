@@ -3,18 +3,20 @@
 import { useState } from 'react';
 import { homeForRole } from '@/lib/auth/roles.mjs';
 import { SITE } from '@/lib/site';
+import { useMarketingHomeHref } from '@/lib/useMarketingHomeHref';
 
 const SECTION_CLASSES = 'crm-workspace-section';
 
 export default function WorkspaceShell({ role = 'client', title, children }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const projectsHref = homeForRole(role) ?? '/dashboard';
+  const homeHref = useMarketingHomeHref();
 
   return (
     <div className="crm-workspace">
       <header className="crm-workspace-header">
         <div className="crm-workspace-header-main">
-          <a className="crm-workspace-brand" href="/" aria-label={`${SITE.name} home`}>
+          <a className="crm-workspace-brand" href={homeHref} aria-label={`${SITE.name} home`}>
             <img src={SITE.logoPath} alt={SITE.name} width={SITE.logoWidth} height={SITE.logoHeight} />
           </a>
           <div>

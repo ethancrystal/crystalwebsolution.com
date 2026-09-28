@@ -189,7 +189,7 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
 5. After merging `main` into a version-bump branch (including GitHub's
    "Update branch"), check that `VERSION` and the top `CHANGELOG.md` heading
    still name this PR's version. That merge dropped the bump for v1.55, v1.57,
-   v1.60, v1.63 and v1.79.
+   v1.60, v1.63, v1.79 and v1.81.
 
 ## Memory Management
 

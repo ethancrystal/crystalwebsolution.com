@@ -293,8 +293,8 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
 6. **GitHub's "Update branch" can silently drop the bump.** When `main` has
    moved its own `VERSION`/`CHANGELOG.md`, that merge can resolve both to
    `main`'s side, and the PR then deploys under its title with no entry.
-   It happened to v1.55, v1.57, v1.60, v1.63 and v1.79 (backfilled in v1.59,
-   v1.61, v1.80 and v1.81).
+   It happened to v1.55, v1.57, v1.60, v1.63, v1.79 and v1.81 (backfilled in
+   v1.59, v1.61, v1.80 and v1.84).
    After any merge of `main` into a version-bump branch, check that `VERSION`
    and the top `CHANGELOG.md` heading still name this PR's version before it
    merges.

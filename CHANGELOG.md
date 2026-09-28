@@ -1,14 +1,64 @@
+## v1.84 — 2026-09-28
+
+Docs only, no runtime change. Backfills two releases that deployed without a `CHANGELOG.md` entry, and restores the versioning-rule text that the first of them dropped. Both went through GitHub's "Update branch" merge, which resolved `VERSION` and `CHANGELOG.md` to `main`'s side. Numbered after v1.83, which is claimed by open PR #256. This PR was opened as v1.81.
+
+- **v1.79 (#244)** and **v1.81 (#254)**: entries restored below in deploy order. #244 deployed after v1.80, and #254 deployed after v1.82.
+- **CLAUDE.md and AGENTS.md versioning rules:** the next number is one above the highest `vX.NN` named in `git log origin/main` (fetch first), `VERSION`, the top of `CHANGELOG.md`, or an open PR's title. The "Update branch" rule's list of incidents now includes v1.79 and v1.81.
+- `VERSION` is v1.84.
+
 ## v1.81 — 2026-09-28
 
-Docs only, no runtime change. Backfills v1.79 (#244), which deployed without its entry, and restores the versioning-rule text that the same "Update branch" merge dropped.
+*Backfilled in v1.84.* PR #254 merged at `5caf5ab` through GitHub's "Update branch" merge (`dff2015`), which kept `main`'s `VERSION` (v1.82) and `CHANGELOG.md`, so this release deployed under its merge title, v1.81, without an entry. It deployed after v1.82 (#255), which is why it sits above it. This is the entry as it stood on the PR's own commit (`498f460`).
 
-- **CHANGELOG:** the v1.79 entry below, placed above v1.80 in deploy order.
-- **CLAUDE.md and AGENTS.md versioning rules:** the next number is one above the highest `vX.NN` named in `git log origin/main` (fetch first), `VERSION`, the top of `CHANGELOG.md`, or an open PR's title. #238's rule about checking `VERSION` after "Update branch" stays. It happened again here: #244 merged through an "Update branch" merge that reset `VERSION` to v1.80.
-- `VERSION` is v1.81.
+Fix: the brand-logo link on every portal auth surface (`/login`, `/signup`,
+`PortalLoginForm`, `WorkspaceShell`) pointed at `href="/"`. On
+`app.cdsportswearinc.com` a relative `"/"` hits the app-host->`/login`
+redirect in `portalHostRedirects()` (`lib/portalHost.mjs`) and bounces
+straight back to the page the visitor is already on — a visible loop for a
+signed-out visitor clicking the logo.
+
+- New `lib/useMarketingHomeHref.js` hook: starts at `"/"` (matches SSR, no
+  hydration mismatch), then swaps to `SITE_ORIGIN` after mount only when
+  `window.location.hostname === APP_HOST`. Preview deployments and localhost
+  never match `APP_HOST`, so they keep using `"/"` as before.
+- Wired into `app/login/page.jsx`, `app/signup/page.jsx`,
+  `components/auth/PortalLoginForm.jsx`, and `components/crm/WorkspaceShell.jsx`.
+- `tests/marketingHomeHref.test.mjs`: asserts the hook's default/swap
+  behavior and that every listed surface uses it instead of a hardcoded
+  `href="/"`.
+
+## v1.82 — 2026-09-28
+
+Dependency fix and security housekeeping from the 2026-09-28 triage.
+
+- `pnpm-workspace.yaml` pins `fast-uri` to `>=3.1.6 <4.0.0`, closing 4
+  Dependabot HIGH alerts (SSRF via malformed IPv6/repeated hostname
+  percent-decoding normalization; host confusion via percent-encoded scheme
+  and skipped IDN canonicalization on scheme-relative references).
+  `fast-uri` is a transitive dependency of `ajv` (a build-tool dependency,
+  not a direct one) — `ajv@8.20.0` declares `fast-uri: ^3.0.1`, which the
+  pin satisfies, so no consumer needs to change. Bounded to the `3.x` line
+  already in use, same as the existing `postcss`/`cookie`/`nanoid`
+  overrides — `fast-uri` has since released a `4.x` major that an unbounded
+  override would otherwise pull in untested. `pnpm-lock.yaml` updates
+  `fast-uri@3.1.5` → `3.1.8`. No application code changed.
+- `.gitignore` now excludes `.cursor/mcp.json` (holds live MCP API tokens; a
+  plaintext GitHub PAT was committed there once, in a local-only commit that
+  was never pushed — confirmed via the GitHub API returning 404 for that
+  commit SHA. Not a public leak, but this stops the class of accident from
+  recurring).
+- `docs/ANALYTICS.md`: documents the live GA4 root cause found in this
+  triage — `NEXT_PUBLIC_GA_ID` is set to `G-B42BM1Q95J`, but that ID is a
+  linked *destination* under the account's actual installable Google tag
+  (`G-YENE9MFT5K`), not an independently installable measurement ID, which
+  is why `gtag/js?id=G-B42BM1Q95J` 404s. Fix is a Vercel env var change
+  (owner-side) to `G-YENE9MFT5K` plus a redeploy; not applied here.
+
+Verification: `pnpm test` 618/618.
 
 ## v1.79 — 2026-09-28
 
-*Backfilled in v1.81.* PR #244 merged at `45dbc77` through GitHub's "Update branch" merge (`f749634`), which kept `main`'s `VERSION` (v1.80) and `CHANGELOG.md`, so this release deployed under its merge title, v1.79, without an entry. It deployed after v1.80 (#238), which is why it sits above it.
+*Backfilled in v1.84.* PR #244 merged at `45dbc77` through GitHub's "Update branch" merge (`f749634`), which kept `main`'s `VERSION` (v1.80) and `CHANGELOG.md`, so this release deployed under its merge title, v1.79, without an entry. It deployed after v1.80 (#238), which is why it sits above it.
 
 Staleness sweep: removes dead code, stale files and outdated instructions, and closes a sign-in hole left by the retired domains. The site's look and behaviour are unchanged.
 
