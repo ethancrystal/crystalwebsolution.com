@@ -126,7 +126,7 @@ not Google metrics. Where a figure could not be sourced it says so.
 - **Asset / route:** the template and scorecard under their "Other Resources"
   heading; strongest after presenting at one of their workshops.
 - **Contact route (verified 2026-09-28, curl):** `/contact/` returns 200 and publishes **`help@masonsbdc.org`** as a plain `mailto:`, alongside a Fusion contact form. This is the only Tier-1/2 RFP-guide prospect with a directly usable address.
-- **Send status 2026-09-28:** message finalised (signature filled, workshop offer removed per MJ). **Not sent.** Must go by hand from the `sales@cdsportswearinc.com` mailbox — Resend's AUP prohibits cold outreach and that account carries the CRM's transactional mail.
+- **SENT 2026-09-28.** Channel: email, by hand by MJ from the `sales@cdsportswearinc.com` mailbox (not Resend — its AUP forbids cold outreach and that account carries the CRM's transactional mail). To `help@masonsbdc.org`, subject "A resource on hiring a website developer, for your Business Resources page", signed Ethan Ray / Founder; workshop offer removed. The message as sent is in `outreach-drafts/2026-09-28-rfp-guide.md` §3. **Reply: none yet.** Check for a reply ~2026-10-08. No follow-up without a fresh yes from MJ. If a link goes live, expect it in GSC Links roughly 2–4 weeks later; a referring domain is a leading indicator, not progress on the ranking finish line.
 - **Evidence:** fetched 2026-09-10 — seven categories including "Other
   Resources", outbound links to bos.sbsd.virginia.gov, certify.sba.gov, sba.gov,
   uspto.gov, grants.gov, mec-fairfax.org, virginiasbdc.org. Lists Prince William
