@@ -4,6 +4,7 @@ import Link from 'next/link';
 import SectionReveal from '../SectionReveal';
 import Magnetic from '../Magnetic';
 import ContactForm from '../marketing/ContactForm';
+import TrustpilotWidget from '../marketing/TrustpilotWidget';
 import SectionSkeleton from '../ui/section-skeleton';
 import { SITE } from '../../lib/site';
 
@@ -55,6 +56,13 @@ export default function Contact() {
           <p className="footer-label">Studio</p>
           <p>Location in {SITE.city}</p>
           <p>Web, brand &amp; automation</p>
+        </div>
+        <div className="footer-col footer-reviews">
+          <p className="footer-label">Reviews</p>
+          <TrustpilotWidget className="footer-trustbox" />
+          <a href={SITE.trustpilot.writeReviewUrl} target="_blank" rel="noopener noreferrer">
+            Review us on Trustpilot
+          </a>
         </div>
         <p className="footer-bottom">
           © {new Date().getFullYear()} {SITE.name}. {SITE.tagline}
