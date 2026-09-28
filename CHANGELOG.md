@@ -1,3 +1,64 @@
+## v1.69 — 2026-09-27
+
+Staleness and dead-code sweep. Every claim below was checked against live
+production on 2026-09-27. Two runtime changes: Google Tag Manager is off by
+default, and the CRM component tests now run in CI.
+
+- **GTM off by default.** Container `GTM-5VKPC974` was published empty
+  (version 1, no tags) yet cost ~113 KiB of script on every public page.
+  `lib/analytics.mjs` no longer has a default container; `NEXT_PUBLIC_GTM_ID`
+  still opts one in. `G-B42BM1Q95J` is now the only Google tag the site
+  loads. Google returns 404 for `gtag/js?id=G-B42BM1Q95J` (2026-09-27), so no
+  GA4 data is collected until the stream is fixed — see `docs/ANALYTICS.md`.
+- **CRM component tests run.** `tests/crm/*.test.jsx` (3 files, 32 tests)
+  were never run by any script or CI job. New `pnpm test:crm-ui` runs them;
+  it joins `crm:verify`, the CI `test` job and `release-check`.
+- **Security: auth redirect allow-list.** `supabase/config.toml` drops
+  `crystalwebsolution.com` and `cdsportswearusa.com`. The former now serves a
+  third-party gambling-spam site from Vercel's edge, and an allow-listed host
+  someone else controls can receive auth tokens. The live Supabase Auth
+  dashboard list needs the same pruning (owner action).
+- **Deleted (owner-approved):** unused `lib/proceduralArt.js`,
+  `components/three/FlyingCarousel.jsx` (Lab uses only
+  `lib/flyingCarouselLayout.mjs`), `components/marketing/IdleScene.jsx`,
+  `components/GlyphMask.jsx` and `components/BorderGlow.jsx`; test-only
+  `components/marketing/{ImageBlock.jsx,ImageBlock.module.css,Layout.jsx,MarketingHeader.jsx}`
+  and `lib/motionStudies.mjs`, with their tests and dead CSS rules;
+  `GEMINI.md` (a drifted third copy of the agent instructions: old brand,
+  wrong domain, CRM "hidden", migrations "through 0014");
+  `docs/PLUGINS-AND-SKILLS.md` (described a `.agnes/` skills folder and a
+  Builder.io integration that never existed); `GOAL_CHECKPOINT.md`,
+  `_gsc-crawled-urls-temp.txt`, `test_service_pages.sh`, a stray `.gitconfig`
+  and an unreferenced `.docx`.
+- **Stale facts corrected** in `CLAUDE.md`, `lib/seo.mjs`, `README.md`,
+  `docs/seo/OPERATIONS-MANUAL.md`, `docs/CRM-OPERATIONS.md` and
+  `docs/ARCHITECTURE.md`: `cdsportswearusa.com` now 301s to the live host
+  (was "DEPLOYMENT_NOT_FOUND"); `crystalwebsolution.com` serves spam (was
+  "dark"); the apex and CRM-flag checks are re-dated; the GA4 ID is
+  `G-B42BM1Q95J`, not `G-YENE9MFT5K`; resolved ops items are closed; the live
+  migration ledger is described accurately (43 of 45 files recorded, both
+  gaps harmless); README's brand, checkout path and drifted counts are fixed.
+- **One version rule.** `CLAUDE.md`, `AGENTS.md`, `VERSIONING.md` and
+  `aidd_docs/memory/vcs.md` disagreed on how to pick the next number, and
+  said PRs land as squash commits. All now say: one above the highest
+  `vX.NN` on `origin/main`, in `VERSION`, atop `CHANGELOG.md` or in an open PR
+  title; PRs land as merge commits whose message body carries the title.
+- **`.gitignore`** loses three redundant lines (a second `.vercel`, a second
+  `.env*`, and `.env.*`) that silently re-ignored `.env.example` despite its
+  `!.env.example` exception.
+- **Housekeeping:** v1.55/v1.56 and v1.10/v1.11 swapped into newest-first
+  order below (in each pair the later release was listed second); the Codex
+  `furious-reviewer` prompt loses 40 stray `\r` escapes; the Cursor
+  `gatekeeper` no longer hands failures to a `furious-reviewer` Cursor does
+  not have; machine-specific links in
+  `docs/plans/refactor-architecture-cleanup-1.md` are now relative.
+- **Versioning note** — gaps below this entry, recorded as for v1.43: v1.63
+  shipped as PR #239 with no entry (open PR #238 backfills it); v1.62 and
+  v1.65 are held by open PR #238; v1.66 never shipped (it was the working
+  title of #241's first commits, which shipped as v1.68); PR #208
+  (2026-09-24) and PR #215 (2026-09-23) reused v1.41 and v1.44 without
+  entries; PRs #193 and #195 (2026-09-13) merged unnumbered.
+
 ## v1.68 — 2026-09-27
 
 AI tooling and docs only; no application code, route or runtime change.
@@ -293,32 +354,6 @@ brief: `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`).
   page errors in reduced-motion and no-WebGL modes → 0.
 - Tests: `tests/visualPhase1a.test.mjs` (7).
 
-## v1.55 — 2026-09-26
-
-Merged as PR #229 *after* v1.56 (#231), so production shipped v1.56 first and
-`VERSION` read v1.56 when this landed; the PR's merge conflict was resolved
-without this entry. Backfilled in v1.59 so the release is recorded.
-
-Full client area: guided, service-specific briefs that start projects.
-
-- **Briefs by service.** New `/dashboard` with service cards for **Logo design, Website, SEO and PPC ads**, plus "Something else" (the existing free-text form). Each opens a step-by-step questionnaire (`lib/crm/brief-templates.mjs`) written for the designer, developer or marketer who picks it up. Examples: brand personality sliders, logo usage and file formats; pages, features, content readiness and reference sites; target locations, priority services, keywords, Search Console/GA4 status; platforms, ad spend, conversion goal, tracking and landing pages.
-- **Autosave and pre-fill.** Answers save about a second after the client stops typing, with a visible "Saved" status. The client can leave and resume from "Briefs in progress". Company name, website and industry are pre-filled from onboarding.
-- **Many briefs per project.** Submit either starts a new project (name and target date suggested from the answers) or adds the brief to an existing project. Project pages for client, team and admin gain a **Briefs** panel with the full answers laid out by section. Clients can add another brief from there.
-- **Studio alerts.** Submitting notifies the admin and any assigned staff in-app and by email (`project.brief_submitted`). The email links straight to the staff view of the project.
-- **Database (`0043_project_briefs.sql`).** New `project_briefs` table with forced RLS: drafts are author-only, submitted briefs are visible to project participants, and only drafts are writable. `submit_project_brief()` RPC is idempotent via `create_project()`'s key. Adds `project.brief_submitted` to the audit event list. **Applied to the live database on 2026-09-26**, before this merge.
-- **Fixes.** The free-text brief form's success handler received `{ projectId }` but navigated to `/dashboard/projects/[object Object]`. The brief wizard's step list no longer widens the page on phones.
-- **Hardening from review.**
-  - The dashboard loads projects independently of briefs, so a missing `0043` never blanks the project list.
-  - Pending edits save when the client leaves the wizard.
-  - Non-retryable save errors stop retrying, and other failures back off exponentially.
-  - Submit waits for, and requires, a successful save of the exact answers.
-  - A draft whose project was cancelled can be re-pointed.
-  - Specific submit error messages.
-  - Emoji-safe length caps.
-  - Brief ids are immutable, and an id colliding with an existing project key is refused.
-  - The answer size check leaves headroom under the database limit.
-- Tests: questionnaire data and validation, migration contract, server-action guards, email template (Node); wizard autosave/submit behaviour (vitest); 22 pgTAP assertions for RLS, submit, idempotency, id immutability and notifications, all run against a local Postgres 16 with every migration `0001`–`0043` applied.
-
 ## v1.56 — 2026-09-26
 
 Merge after v1.55 (client briefs, PR #229); this entry was renumbered from
@@ -351,6 +386,32 @@ motion system — transitions only; none of its WebGL, media or copy).
   Everything resolves instantly under `prefers-reduced-motion`.
 - Tests: `tests/pageTransition.test.mjs` (route rules, exclusions, scramble
   frames).
+
+## v1.55 — 2026-09-26
+
+Merged as PR #229 *after* v1.56 (#231), so production shipped v1.56 first and
+`VERSION` read v1.56 when this landed; the PR's merge conflict was resolved
+without this entry. Backfilled in v1.59 so the release is recorded.
+
+Full client area: guided, service-specific briefs that start projects.
+
+- **Briefs by service.** New `/dashboard` with service cards for **Logo design, Website, SEO and PPC ads**, plus "Something else" (the existing free-text form). Each opens a step-by-step questionnaire (`lib/crm/brief-templates.mjs`) written for the designer, developer or marketer who picks it up. Examples: brand personality sliders, logo usage and file formats; pages, features, content readiness and reference sites; target locations, priority services, keywords, Search Console/GA4 status; platforms, ad spend, conversion goal, tracking and landing pages.
+- **Autosave and pre-fill.** Answers save about a second after the client stops typing, with a visible "Saved" status. The client can leave and resume from "Briefs in progress". Company name, website and industry are pre-filled from onboarding.
+- **Many briefs per project.** Submit either starts a new project (name and target date suggested from the answers) or adds the brief to an existing project. Project pages for client, team and admin gain a **Briefs** panel with the full answers laid out by section. Clients can add another brief from there.
+- **Studio alerts.** Submitting notifies the admin and any assigned staff in-app and by email (`project.brief_submitted`). The email links straight to the staff view of the project.
+- **Database (`0043_project_briefs.sql`).** New `project_briefs` table with forced RLS: drafts are author-only, submitted briefs are visible to project participants, and only drafts are writable. `submit_project_brief()` RPC is idempotent via `create_project()`'s key. Adds `project.brief_submitted` to the audit event list. **Applied to the live database on 2026-09-26**, before this merge.
+- **Fixes.** The free-text brief form's success handler received `{ projectId }` but navigated to `/dashboard/projects/[object Object]`. The brief wizard's step list no longer widens the page on phones.
+- **Hardening from review.**
+  - The dashboard loads projects independently of briefs, so a missing `0043` never blanks the project list.
+  - Pending edits save when the client leaves the wizard.
+  - Non-retryable save errors stop retrying, and other failures back off exponentially.
+  - Submit waits for, and requires, a successful save of the exact answers.
+  - A draft whose project was cancelled can be re-pointed.
+  - Specific submit error messages.
+  - Emoji-safe length caps.
+  - Brief ids are immutable, and an id colliding with an existing project key is refused.
+  - The answer size check leaves headroom under the database limit.
+- Tests: questionnaire data and validation, migration contract, server-action guards, email template (Node); wizard autosave/submit behaviour (vitest); 22 pgTAP assertions for RLS, submit, idempotency, id immutability and notifications, all run against a local Postgres 16 with every migration `0001`–`0043` applied.
 
 ## v1.54 — 2026-09-25
 
@@ -1503,17 +1564,6 @@ No look, feel, or functional changes beyond the above; `pnpm build` clean,
 `pnpm test` 449/449, `pnpm test:marketing` 22/22 (includes 2 new assertions
 for the SVG reduced-motion fix), `tsc --noEmit` clean.
 
-## v1.10 — 2026-08-29
-
-- Fix two stale/miscalibrated claims in `CLAUDE.md` surfaced by an
-  evidence-calibration review: the "CRM is launched" line now says when it
-  was last directly HTTP-verified and prompts a re-check rather than
-  reading as a permanently-settled fact, since several merges to `main`
-  have deployed since that check ran. The migration-count line ("0001
-  through 0035 as of 2026-08-20") was stale (real head is now `0038`) and
-  is replaced with guidance to always check the directory instead of
-  citing a number that goes stale within days during active periods.
-
 ## v1.11 — 2026-08-29
 
 - Fix `updateProjectTask`'s revalidation bug: it passed the RPC-returned task
@@ -1531,6 +1581,17 @@ for the SVG reduced-motion fix), `tsc --noEmit` clean.
   this PR would have added and documented the existing `test:marketing`
   command in `AGENTS.md`/`CLAUDE.md` instead, rather than ship two
   differently-named commands that do the same thing.
+
+## v1.10 — 2026-08-29
+
+- Fix two stale/miscalibrated claims in `CLAUDE.md` surfaced by an
+  evidence-calibration review: the "CRM is launched" line now says when it
+  was last directly HTTP-verified and prompts a re-check rather than
+  reading as a permanently-settled fact, since several merges to `main`
+  have deployed since that check ran. The migration-count line ("0001
+  through 0035 as of 2026-08-20") was stale (real head is now `0038`) and
+  is replaced with guidance to always check the directory instead of
+  citing a number that goes stale within days during active periods.
 
 ## v1.09 — 2026-08-29
 

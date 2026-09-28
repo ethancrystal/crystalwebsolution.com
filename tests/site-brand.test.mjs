@@ -26,7 +26,6 @@ const PUBLIC_BRAND_FILES = [
   'components/auth/PortalLoginForm.jsx',
   'components/Menu.jsx',
   'components/Nav.jsx',
-  'components/marketing/MarketingHeader.jsx',
   'lib/site.js',
 ];
 
@@ -44,7 +43,6 @@ test('the supplied CD Sportswear Inc logo is the canonical runtime asset', () =>
   assert.doesNotMatch(read('components/BrandLogo.jsx'), /crystal-web-solution-(logo|icon)\.svg/);
   assert.match(read('app/login/page.jsx'), /SITE\.logoPath/);
   assert.match(read('components/auth/PortalLoginForm.jsx'), /SITE\.logoPath/);
-  assert.match(read('components/marketing/MarketingHeader.jsx'), /BrandLogo/);
   assert.match(read('components/crm/WorkspaceShell.jsx'), /SITE\.logoPath/);
 });
 

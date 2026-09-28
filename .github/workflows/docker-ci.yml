@@ -40,6 +40,9 @@ jobs:
       - name: Run marketing component suite
         run: pnpm test:marketing
 
+      - name: Run CRM component suite
+        run: pnpm test:crm-ui
+
       - name: Build
         run: pnpm build
         env:

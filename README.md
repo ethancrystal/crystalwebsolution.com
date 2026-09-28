@@ -1,4 +1,7 @@
-# CD Sportswear USA
+# CD Sportswear INC
+
+Live at https://www.cdsportswearinc.com. The repository keeps its original
+name, `crystalwebsolution.com`; that domain is retired and is not ours to serve.
 
 A dark, cinematic, scroll-driven agency homepage. The whole viewport is a fixed
 WebGL stage; the DOM scrolls over it while a virtual camera flies through one
@@ -27,6 +30,8 @@ pnpm install --frozen-lockfile
 pnpm dev        # http://localhost:3000
 pnpm test       # full Node test suite
 pnpm test:crm   # CRM-focused contracts
+pnpm test:marketing  # vitest/jsdom marketing component tests
+pnpm test:crm-ui     # vitest/jsdom CRM component tests
 pnpm test:db    # Supabase database tests; requires the local stack
 pnpm test:e2e   # planned Playwright gate; tests/e2e is not yet checked in
 pnpm build      # production build
@@ -62,11 +67,10 @@ docker run -p 3000:3000 --env-file .env.local ghcr.io/ethancrystal/crystalwebsol
 
 ## Canonical checkout
 
-Use `C:\Users\moizjmj\CD Sportswear USA` on `main` as the authoritative
-local checkout. Do not assume a linked worktree is current. The audited
-worktree inventory, cleanup status, and recovery instructions live in
-[`docs/archive/WORKTREE-STATE.md`](docs/archive/WORKTREE-STATE.md).
-The August 2026 lean-repository audit and exact keep/remove decisions are in
+Work from an up-to-date `origin/main` (or a branch cut from it); do not assume
+a linked worktree or a local `main` is current. The August 2026 worktree and
+cleanup audits are archived in
+[`docs/archive/WORKTREE-STATE.md`](docs/archive/WORKTREE-STATE.md) and
 [`docs/archive/REPOSITORY-CLEANUP-2026-08-02.md`](docs/archive/REPOSITORY-CLEANUP-2026-08-02.md).
 
 ## Application surfaces
@@ -124,10 +128,8 @@ The August 2026 lean-repository audit and exact keep/remove decisions are in
 
 ## Styling
 
-Plain global CSS, split into 28 files under `app/styles/*.css`.
-`app/globals.css` is a 41-line **import manifest only** — the import order
-*is* the cascade order, reproducing what was originally one 4,324-line file
-byte-for-byte. Class names are intentionally left global (not scoped/hashed)
+Plain global CSS, split across `app/styles/*.css`. `app/globals.css` is an
+**import manifest only** — the import order *is* the cascade order. Class names are intentionally left global (not scoped/hashed)
 because `Menu.jsx`, `Services.jsx`, and `WorkLibrary.jsx` select DOM nodes
 via `querySelectorAll('.menu-link')` / `.service-row` / `.work-row`, and GSAP
 animates those exact class names — CSS Modules would hash them and silently
@@ -135,12 +137,9 @@ break the animations. Add a new stylesheet by creating `app/styles/<name>.css`
 and inserting its `@import` at the point in `globals.css` where it should
 cascade.
 
-The one deliberate exception is `components/marketing/ImageBlock.module.css`,
-a genuine (hashed) CSS Module — safe there because nothing targets
-`ImageBlock`'s classes by name from outside the component. Prefer the global
-`app/styles/*.css` approach for anything sections/GSAP might select; reach
-for a co-located `*.module.css` only for a component in the same isolated
-position as `ImageBlock`.
+There are no CSS Modules today. A co-located `*.module.css` is acceptable only
+for a component whose classes nothing selects by name from outside it;
+anything sections or GSAP might select stays in `app/styles/*.css`.
 
 ## Architecture rules (read before editing)
 

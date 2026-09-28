@@ -16,18 +16,25 @@ GA4 measurement for crystalwebsolution.com, plus Search Console verification.
 
 ## Setup
 
-Two environment variables, both set in Vercel -> Project Settings ->
+Environment variables, all set in Vercel -> Project Settings ->
 Environment Variables:
 
-- `NEXT_PUBLIC_GA_ID` — the GA4 measurement ID, `G-XXXXXXXXXX`. Anything that
-  doesn't match `/^G-[A-Z0-9]{4,}$/i` is ignored and the tag never renders.
+- `NEXT_PUBLIC_GA_ID` — the GA4 measurement ID. Production uses
+  `G-B42BM1Q95J`, the only valid ID; no other GA4 ID should fire. Anything
+  that doesn't match `/^G-[A-Z0-9]{4,}$/i` is ignored and the tag never
+  renders. On 2026-09-27 Google returned 404 for `gtag/js?id=G-B42BM1Q95J`,
+  so check the stream in GA4 Admin → Data streams if no data arrives.
+- `NEXT_PUBLIC_GTM_ID` — optional Google Tag Manager container, for non-GA4
+  tags only. Unset means no container loads; there is no default (v1.69
+  removed the empty `GTM-5VKPC974`). A container must never hold a GA4 tag
+  for the same property, or every pageview counts twice.
 - `NEXT_PUBLIC_GSC_VERIFICATION` — the token from Search Console's *HTML tag*
   verification method (the `content` value only, not the whole `<meta>`).
   Optional; when unset no verification tag is emitted, which is what you want
   on preview deploys so they don't claim the property.
 
-Both are `NEXT_PUBLIC_*`, so **they are inlined at build time**. Setting or
-changing either one in Vercel does nothing until `main` is redeployed. Editing
+All are `NEXT_PUBLIC_*`, so **they are inlined at build time**. Setting or
+changing any of them in Vercel does nothing until `main` is redeployed. Editing
 the variable alone changes nothing — same trap as `NEXT_PUBLIC_CRM_ENABLED`
 (see `CLAUDE.md`).
 

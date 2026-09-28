@@ -37,7 +37,7 @@ assets and compatibility URLs. CRM routes live under `/login`, `/dashboard`,
 
 **`main` is the production branch.** Vercel's Production Branch setting is
 `main` (verified against the Vercel API 2026-08-15): every merge into `main`
-auto-deploys to the Production environment. **The production host is `https://www.cdsportswearinc.com`** (apex 308-redirects to `www`, verified 2026-09-03). `lib/seo.mjs`'s `SITE_ORIGIN` is the single record of this host. Two previous domains retired without redirects: `cdsportswearusa.com` (production 2026-08-27 to 2026-09-03, now returns DEPLOYMENT_NOT_FOUND) and `crystalwebsolution.com` (dark since before 2026-08-27). Re-attaching either as a redirect to `www.cdsportswearinc.com` is an open owner action — unredirected backlinks decay. See `docs/seo/` for the PBN-spam finding that makes the `crystalwebsolution.com` state deliberate.
+auto-deploys to the Production environment. **The production host is `https://www.cdsportswearinc.com`** (apex 308-redirects to `www`, verified 2026-09-27). `lib/seo.mjs`'s `SITE_ORIGIN` is the single record of this host. Two previous domains are retired. `cdsportswearusa.com` (production 2026-08-27 to 2026-09-03) now 301-redirects to `www.cdsportswearinc.com` (verified 2026-09-27). `crystalwebsolution.com` serves a third-party gambling-spam site from Vercel's edge (verified 2026-09-27), so another Vercel account has it attached: never link to it, redirect to it, or allow-list it. Reclaiming it is an owner action. See `docs/seo/backlinks/pbn-watch.md` for the related PBN-spam finding.
 
 **Treat the live domain as something to re-verify (`curl -I` the apex and
 `www` host), not trust indefinitely** — it has now moved twice without a
@@ -49,8 +49,10 @@ code change to announce it. **Known related gaps — last confirmed 2026-09-11, 
   `app/admin/users/actions.js`, `app/api/cron/crm-notifications/route.js`).
   Dashboard setting; `NEXT_PUBLIC_*` values are inlined at build time, so
   changing the variable alone does nothing until Production is rebuilt.
-- Supabase Auth's dashboard `SITE_URL`. The repo allow-list in
-  `supabase/config.toml` was updated in v1.36.
+- Supabase Auth's dashboard `SITE_URL` and redirect allow-list. The repo
+  allow-list in `supabase/config.toml` dropped both retired domains in v1.69;
+  the dashboard list needs the same pruning, since `crystalwebsolution.com`
+  now serves hostile content.
 - Migration `0042` (`0042_repoint_cron_and_pinned_admin.sql`) was applied to the live database on 2026-09-15 (verified via Supabase MCP `list_migrations` on 2026-09-27). Migration `0044` (v1.63) then moved the single admin pin from `ethan@cdsportswearinc.com` to `moizj00@gmail.com`, demoting Ethan's account to `project_manager` (owner-approved 2026-09-27). Re-check live state with `select public.pinned_admin_email()` rather than trusting this line.
 - Mailbox and Resend domain verification for `cdsportswearinc.com`:
   `SITE.email` and the Resend sender in `lib/email/resend.js` already
@@ -69,8 +71,9 @@ Variables for the Production environment: it gates whether the edge middleware
 redirects `/admin`, `/dashboard`, `/team`, `/login*`, `/signup`,
 `/forgot-password` straight home, and whether `components/Nav.jsx` /
 `Menu.jsx` show the Log in / Client access links. **The CRM is launched** (publicly reachable in Production), but
-last directly verified by HTTP-checking the live site on 2026-08-27;
-several merges to `main` have deployed since, so re-verify
+last directly verified by HTTP-checking the live site on 2026-09-27
+(`/login` 200, `/dashboard` 307 to `/login/client`); merges to `main` deploy
+continuously, so re-verify
 (`curl` the portal login routes, or check the flag's value in Vercel) rather
 than trusting this line indefinitely — it documents a decision, not a
 continuously-monitored state. To hide it again, set the flag to `false` and
@@ -91,6 +94,7 @@ pnpm dev         # http://localhost:3000
 pnpm test        # full Node test suite
 pnpm test:crm    # CRM-focused contracts
 pnpm test:marketing  # vitest/jsdom component tests (tests/marketing/*.test.jsx)
+pnpm test:crm-ui     # vitest/jsdom CRM component tests (tests/crm/*.test.jsx)
 pnpm test:db     # Supabase database tests; requires the local stack
 pnpm test:e2e    # planned gate; tests/e2e is not yet checked in
 pnpm build       # production build
@@ -117,10 +121,10 @@ pnpm in `package.json`; do not switch package managers.
 
 - **`pnpm build` fails locally with `Cannot read properties of null (reading
   'useContext')`** while prerendering `/_global-error`, `/services`,
-  `/contact`. Check `NODE_ENV` first: an exported `NODE_ENV=development`
-  causes it (reproduced on Linux 2026-09-26; `NODE_ENV=production` fixed it).
-  On Windows it also reproduced against unmodified `main` (2026-09-22), cause
-  unconfirmed. It is not your change; confirm against CI instead of chasing it.
+  `/contact` when the shell exports `NODE_ENV=development`, as Claude Code
+  sessions here do. Prefix the build with `NODE_ENV=production`: that fixed
+  it on Linux (2026-09-26), and with it the build passes on Windows too
+  (2026-09-27, 60/60 pages).
 - **`next build` and `next dev` rewrite `tsconfig.json`.** Run
   `git checkout -- tsconfig.json` before committing.
 - Reproduce the CI build (`docker-ci.yml` `test` job) with its placeholders,
@@ -233,8 +237,8 @@ animation:
 ## Cursor project skills
 
 Reusable agent skills live in `.cursor/skills/` (one folder per skill, each
-with `SKILL.md`). Inventory: `.cursor/skills/README.md` and
-`docs/PLUGINS-AND-SKILLS.md`. SEO, keyword, and blog skills in that tree do
+with `SKILL.md`). Inventory: `.cursor/skills/README.md`. SEO, keyword, and
+blog skills in that tree do
 **not** override `docs/seo/STRATEGY.md`.
 
 ## Planning docs (not yet implemented)
@@ -258,16 +262,19 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
 
 1. Bump the `VERSION` file and add the matching entry at the top of
    `CHANGELOG.md` in the same PR.
-2. Title the PR (and its merge/squash commit) `vX.NN — <summary>` so the
-   deploy is identifiable in Vercel's deploy list.
+2. Title the PR `vX.NN — <summary>`. PRs land as merge commits whose message
+   body starts with that title, which is how a deploy traces back to it.
 3. `package.json`'s `version` field is NOT part of this scheme — leave it.
-4. Never skip or reuse numbers; next = top of `CHANGELOG.md` + 0.01.
-5. **Check the merge log, not just the files.** A PR can be *titled* `vX.NN`
-   and deploy under that name while bumping neither file, so `VERSION` can lag
-   what production is actually called. That happened with v1.43 (`f0290ae`),
-   which is why v1.43 has no `CHANGELOG.md` entry and v1.44 follows v1.42.
-   Before picking a number, run `git log --oneline -5 main` and take one above
-   the highest version *named there*, not just the highest in the file.
+4. Never reuse a number. Next = one above the highest `vX.NN` named in
+   `git log --oneline -15 origin/main`, `VERSION`, the top of `CHANGELOG.md`,
+   or an open PR's title (`gh pr list --base main`). `/version-bump` applies
+   this.
+5. **Check the merge log and open PRs, not just the files.** A PR can be
+   *titled* `vX.NN` and deploy under that name while bumping neither file, so
+   `VERSION` can lag what production is actually called. That happened with
+   v1.43 (`f0290ae`), which is why v1.43 has no `CHANGELOG.md` entry and v1.44
+   follows v1.42. `git fetch` first: a local `main` can be many merges behind
+   `origin/main`.
 
 ## Visual experience execution brief
 

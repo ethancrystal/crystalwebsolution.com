@@ -16,13 +16,14 @@ One exit code per step, and the first failing line when a step fails.
 2. **Test.** Run `pnpm test`.
    - It runs both globs, `tests/*.test.mjs` and `tests/crm/*.test.mjs`. Never substitute one glob.
 3. **Marketing.** Run `pnpm test:marketing`.
-4. **Build.** Run `pnpm build` with `NODE_ENV=production`, `NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co`, `NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key`, and `NEXT_PUBLIC_APP_URL=https://placeholder.invalid`.
-   - On Windows, a prerender `useContext` null error is a known local-only failure. Mark the step `unverified locally`, not failed, and point to the CI run.
-5. **Stop.** On the first non-zero exit, skip the remaining steps.
+4. **CRM UI.** Run `pnpm test:crm-ui`.
+5. **Build.** Run `pnpm build` with `NODE_ENV=production`, `NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co`, `NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key`, and `NEXT_PUBLIC_APP_URL=https://placeholder.invalid`.
+   - A prerender `useContext` null error means `NODE_ENV=production` did not reach the build. With it set, the build passes on Windows and Linux.
+6. **Stop.** On the first non-zero exit, skip the remaining steps.
 
 ## Test
 
 | Case | Pass |
 | --- | --- |
-| All steps pass | three exit codes of `0` are recorded |
-| `pnpm test` fails | marketing and build are recorded as skipped |
+| All steps pass | four exit codes of `0` are recorded |
+| `pnpm test` fails | marketing, CRM UI and build are recorded as skipped |

@@ -35,14 +35,14 @@ State column verified 2026-09-10 unless noted.
 | System | Role | Identifier | State (2026-09-10) |
 |---|---|---|---|
 | Live site | Production | `https://www.cdsportswearinc.com` | **Live.** Homepage self-canonicalises to `https://www.cdsportswearinc.com`; `/sitemap.xml` lists 25 URLs, all on this host (WebFetch, 2026-09-10) |
-| Previous domain | Dead | `cdsportswearusa.com` | **Resolves but serves HTTP 404** on both apex and `www` (WebFetch ×2, 2026-09-10). DNS points at Vercel IPs (`getent hosts`, 2026-09-10). See §12 |
-| Old domain | Retired | `crystalwebsolution.com` | **Still dark.** No DNS resolution (`getent hosts`, 2026-09-10). Registered to 2027-02-07. See §7 |
+| Previous domain | Retired | `cdsportswearusa.com` | **301 to `https://www.cdsportswearinc.com/`** on apex and `www` (curl, 2026-09-27). Was a 404 on 2026-09-10. See §12 |
+| Old domain | Hostile | `crystalwebsolution.com` | **Serves a third-party gambling-spam site from Vercel's edge** on apex; `www` 307s to it (curl, 2026-09-27). Was unresolvable on 2026-09-10. Registered to 2027-02-07. Never link, redirect or allow-list it. See §7 |
 | GitHub | Site source, and this memory | `ethancrystal/crystalwebsolution.com`, `main` = production | Merge = deploy. Connector is **read-only** to the run: `403 Resource not accessible by integration` on `POST /git/refs`, 2026-09-10. See §11 |
 | Vercel | Deployment | team `team_tpYaICaSl1suJW6Lfpa67Ye9`, project `prj_CxPzQkaSkNnYAl1BBlTjmcKrvwTy` | Not re-verified this run |
 | Supabase | CRM, auth, blog table, storage | project ref `wmnjosiikehsuaqucvja` | `blog_posts` holds 4 rows, all `published` (SQL, 2026-09-10) |
 | Ubersuggest | Keyword, backlink, domain data; rank tracking | project `109eb16879ab6b871522949b04ab791df52a888ebbab4b2037450214d037b7cf` (`cdsportswearinc.com`, en/2840), tier1, weekly refresh | Created 2026-09-09 15:20 UTC. **54/125 keywords, 5/5 competitors.** `google_analytics_profile: null` |
 | — previous project | Deleted | `5dfd943c8a27…` (`cdsportswearusa.com`) | **Gone.** `get_project` → `HTTP 404 Project not found`, 2026-09-10 |
-| GA4 | Engagement, conversions | `G-YENE9MFT5K` (code shipped) | **Not verified live.** Not connected to the Ubersuggest project |
+| GA4 | Engagement, conversions | `G-B42BM1Q95J` (the only valid ID), via `NEXT_PUBLIC_GA_ID` | **Tag loads, no data.** Every public page requests `gtag/js?id=G-B42BM1Q95J`, but Google returns 404 for that ID (curl and PageSpeed, 2026-09-27), so nothing is collected. The empty GTM container was removed in v1.69. Not connected to the Ubersuggest project |
 | Search Console | Impressions, indexing | Domain property `sc-domain:cdsportswearinc.com` | **Readable by agents via the GSC connector** (siteOwner, 2026-09-26): performance, sitemaps and URL Inspection all return data. Sitemap submitted 2026-09-21, 39 URLs at the 2026-09-26 download, 0 errors. Coverage on 2026-09-26: 12 of 26 inspected URLs indexed, 13 "Discovered – currently not indexed" (all five theme pillars among them), `/services` unknown — see `runs/2026-09-26-full-audit.md` |
 | Linear | Execution queue | Team *Crystal Web Solution*, prefix `CRY` | **Not reachable.** `list_teams` returns one team, `TMS`, 2026-09-10. Whether the team was deleted or the connector now points at a different workspace is unknown. `CRY-*` references below are historical |
 | Notion | Former archive | — | **Dropped 2026-09-02.** Not used |
@@ -169,7 +169,7 @@ Check the most recent `runs/YYYY-MM-DD.md` to see which lane ran last.
   on `seo/<slug>` following `CLAUDE.md`. Never publish in the same run a
   draft was written.
 - **Backlinks** — pull `backlinks_overview`, `backlinks`, `linking_domains`
-  for `cdsportswearinc.com` **and** for `cdsportswearusa.com` while the dead
+  for `cdsportswearinc.com` **and** for `cdsportswearusa.com` while the retired
   domain still attracts links; score referring domains; check every new one
   against `backlinks/pbn-watch.md`; research 5–10 new prospects with named
   target URLs and specific reasons; write the scored shortlist to
@@ -260,21 +260,22 @@ be evidenced either way.
 
 | # | Item | Why it matters |
 |---|---|---|
-| 1 | **Decide what `cdsportswearusa.com` should do.** It resolves to Vercel and serves 404 on apex and `www`. Either 301 it to `https://www.cdsportswearinc.com` or detach it | It was the production host 2026-08-27 → 2026-09-03. Anything indexed or linked from that week is currently a dead end (§12) |
+| 1 | ~~Decide what `cdsportswearusa.com` should do.~~ **RESOLVED by 2026-09-27** — it 301s to `https://www.cdsportswearinc.com/` on apex and `www` (curl, 2026-09-27) | — |
 | 2 | **Grant the GitHub connector Contents + Pull requests write** on `ethancrystal/crystalwebsolution.com` | Still `403` as of 2026-09-10 on the MCP connector. **2026-09-11: a workaround exists** — this account also has GitHub connected through Zapier (`ethancrystal`, full write access, used for PR #190) — but that is one more moving part to depend on long-term. Fixing the MCP connector's permissions directly is still the right long-term fix |
 | 3 | **Restore an issue queue.** The Linear team *Crystal Web Solution* is not present in the workspace this run can reach — `list_teams` returns only `TMS` (2026-09-10); deleted or different workspace is unknown | The run has nowhere to file findings. `CRY-17…30` history is unreachable |
 | 4 | **Connect GA4 and Search Console** to Ubersuggest project `109eb168…`, on the **`cdsportswearinc.com`** property | Until then every run is Mode A and no page can be verified past T+0 |
 | 5 | ~~Install the blog publish workflow.~~ **RESOLVED 2026-09-23 (v1.50)** — moved from `docs/seo/seo-publish-blog.yml.pending` to `.github/workflows/seo-publish-blog.yml`. The repo secrets `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` already existed (set 2026-09-03) | — |
 | 6 | ~~Rule on the strategy split in §3.~~ **RESOLVED 2026-09-19** — broad head terms via pillar + cluster; see `STRATEGY.md` §3. The Manassas post stays live as a supporting page but local terms are never a pillar | — |
-| 7 | ~~Settle the brand name.~~ **RESOLVED 2026-09-11** — CD Sportswear INC, shipped in PR #190 (open, awaiting MJ's merge) | — |
+| 7 | ~~Settle the brand name.~~ **RESOLVED 2026-09-11** — CD Sportswear INC, shipped in PR #190 (merged 2026-09-11) | — |
 | 8 | **Fix the cover-image bucket.** The repo variable `SEO_BLOG_COVERS_BUCKET` is `blog-covers`, but that bucket does not exist in Supabase project `wmnjosiikehsuaqucvja`. It only has `project-files` and a public `SEO` bucket, created 2026-09-02 (checked 2026-09-23). Either set the variable to `SEO` or create a public `blog-covers` bucket | No draft uses `cover_image` yet, so nothing fails today. The first draft that does will fail its upload |
 | 9 | Submit the four live blog URLs in Search Console once #4 exists | They are in the sitemap; nothing else can be done without the property |
 | 10 | **Approve or decline two paid backlink routes** — Prince William Chamber membership (dues not published) and NTEN membership | Both are §4 paid-placement gates; the research is done and blocked on a yes/no (`backlinks/prospects.md`, 2026-09-10) |
-| 11 | Carried forward, unverified since 2026-09-02: confirm the live `cron.job` row for `drain-crm-outbox` and repoint it, and add the **current** domain to the Supabase auth redirect allow-list | Was scoped to `cdsportswearusa.com`; the domain move makes it more likely to be stale, not less |
+| 11 | **Prune the Supabase Auth dashboard redirect allow-list.** Remove every `crystalwebsolution.com` and `cdsportswearusa.com` entry; `supabase/config.toml` dropped them in v1.69. The cron half of this item is done: `drain-crm-outbox` targets `https://www.cdsportswearinc.com/api/cron/crm-notifications` (SQL, 2026-09-27) | `crystalwebsolution.com` now serves someone else's site, and an allow-listed host another party controls can receive auth tokens |
 | 12 | **Request indexing in Search Console** (URL Inspection → Request indexing) for the five pillars, `/services`, `/work`, `/reviews`, `/process`, and re-request `/contact`, `/about`, `/services/web-development`, `/services/workflow-automation`, `/services/animation`, `/work/style`, `/embroidery-screen-printing-web-design` | The pillars are "Discovered – currently not indexed"; the indexed pages were last crawled 2026-09-02/03 and Google still stores their old `cdsportswearusa.com` canonical (2026-09-26 audit, E4–E5). The API cannot request indexing; the GSC UI can |
-| 13 | **Rule on `/hire/shopify-developer`** — confirm Shopify as a sold offer, or retire the URL | Live and in the sitemap, but parked in the registry and excluded by STRATEGY §2; no page links to it (2026-09-26 audit, E14) |
+| 13 | ~~Rule on `/hire/shopify-developer`.~~ **RESOLVED 2026-09-27 (v1.67)** — kept live as an ads/outreach landing page, `noindex, follow`, out of the sitemap (curl, 2026-09-27) | — |
 | 14 | **Rule on `website redesign services`** — pillar (`/services/web-design`) or the live post `/blog/website-redesign-services` | Both target it; the pillar does not link to the post until this is decided (2026-09-26 audit, E17) |
 | 15 | **Decide on lazy-loading Sentry Session Replay** | Replay is the largest initial script on every public page (538 KB raw / 166 KB gzip of 1,117 / 357 KB on `/about`, local build). Lazy-loading it cuts that cost but loses replays of errors in the first seconds of a visit (2026-09-26 audit, E26) |
+| 16 | **Fix the GA4 stream for `G-B42BM1Q95J`.** In GA4 Admin → Data streams, confirm the stream exists and its Measurement ID matches exactly; Google returns 404 for `gtag/js?id=G-B42BM1Q95J` (2026-09-27) | The site loads that tag on every public page, but no analytics data is collected until Google serves it |
 
 ## 12. Domain history — and what the last move cost
 

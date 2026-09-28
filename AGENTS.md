@@ -29,6 +29,7 @@ pnpm dev         # http://localhost:3000
 pnpm test        # full Node test suite
 pnpm test:crm    # CRM-focused contracts
 pnpm test:marketing  # vitest/jsdom component tests (tests/marketing/*.test.jsx)
+pnpm test:crm-ui     # vitest/jsdom CRM component tests (tests/crm/*.test.jsx)
 pnpm test:db     # Supabase database tests; requires the local stack
 pnpm build       # production build (standalone output)
 pnpm start       # serve the production build
@@ -137,7 +138,7 @@ animation code. Rules:
 
 ## Cursor project skills
 
-Reusable agent skills live in `.cursor/skills/` (one folder per skill, each with `SKILL.md`). Inventory: `.cursor/skills/README.md` and `docs/PLUGINS-AND-SKILLS.md`. SEO, keyword, and blog skills in that tree do **not** override `docs/seo/STRATEGY.md`.
+Reusable agent skills live in `.cursor/skills/` (one folder per skill, each with `SKILL.md`). Inventory: `.cursor/skills/README.md`. SEO, keyword, and blog skills in that tree do **not** override `docs/seo/STRATEGY.md`.
 
 ## SEO agent (Hermes)
 
@@ -168,10 +169,14 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
 
 1. Bump the `VERSION` file and add the matching entry at the top of
    `CHANGELOG.md` in the same PR.
-2. Title the PR (and its merge/squash commit) `vX.NN — <summary>` so the
-   deploy is identifiable in Vercel's deploy list.
+2. Title the PR `vX.NN — <summary>`. PRs land as merge commits whose message
+   body starts with that title, which is how a deploy traces back to it.
 3. `package.json`'s `version` field is NOT part of this scheme — leave it.
-4. Never skip or reuse numbers; next = top of `CHANGELOG.md` + 0.01.
+4. Never reuse a number. Next = one above the highest `vX.NN` named in
+   `git log --oneline -15 origin/main` (fetch first), `VERSION`, the top of
+   `CHANGELOG.md`, or an open PR's title (`gh pr list --base main`). A PR can
+   deploy under a `vX.NN` title while bumping neither file, so the files alone
+   can lag production.
 
 ## Memory Management
 

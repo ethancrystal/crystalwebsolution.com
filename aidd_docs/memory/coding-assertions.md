@@ -5,8 +5,9 @@
 | Order | Command | Checks |
 | ----- | ------- | ------ |
 | 1 | `pnpm test` | Node contract tests. Two globs: `tests/*.test.mjs` and `tests/crm/*.test.mjs`. |
-| 2 | `pnpm test:marketing` | vitest + jsdom component tests |
-| 3 | `git status` | `tsconfig.json` untouched. `next build` and `next dev` rewrite it; revert with `git checkout -- tsconfig.json`. |
+| 2 | `pnpm test:marketing` | vitest + jsdom marketing component tests |
+| 3 | `pnpm test:crm-ui` | vitest + jsdom CRM component tests (`tests/crm/*.test.jsx`) |
+| 4 | `git status` | `tsconfig.json` untouched. `next build` and `next dev` rewrite it; revert with `git checkout -- tsconfig.json`. |
 
 ## Before push
 
@@ -14,7 +15,7 @@
 | ----- | ------- | ------ |
 | 1 | `pnpm build` with the CI placeholder env and `NODE_ENV=production` | Routes and imports compile. This mirrors the CI `test` job. |
 | 2 | `pnpm test:db` | RLS and migrations under pgTAP. Needs the local Supabase stack, so run it when SQL changed. |
-| 3 | `VERSION` + `CHANGELOG.md` bumped | Required for every PR to `main`. Take the number from `git log main` and open PR titles, not from the file. |
+| 3 | `VERSION` + `CHANGELOG.md` bumped | Required for every PR to `main`. Take the number from `git log origin/main` (fetch first) and open PR titles, not from the file. |
 
 ## Behavior
 
