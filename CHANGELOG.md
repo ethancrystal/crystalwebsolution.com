@@ -1,6 +1,6 @@
-## v1.87 — 2026-09-28
+## v1.88 — 2026-09-28
 
-The shared frame for all three portals: step 1 of the portal redesign (owner direction 2026-09-28: "neat and clean, deliberate, not shiny"; dark, flat and quiet; shared frame first). Numbered after v1.83–v1.86 (#256, #257, #259, #260), which are all open.
+The shared frame for all three portals: step 1 of the portal redesign (owner direction 2026-09-28: "neat and clean, deliberate, not shiny"; dark, flat and quiet; shared frame first). Numbered after v1.83–v1.87 (#256, #257, #259, #260, #261), which are all open; this PR was opened as v1.87 alongside #261 and renumbered.
 
 - **`app/styles/crm.css`** (new, imported last in `app/globals.css`): one token set and one set of primitives for the CRM.
   - Tokens: solid dark surfaces, 1px borders, one blue accent, status colour pairs.
