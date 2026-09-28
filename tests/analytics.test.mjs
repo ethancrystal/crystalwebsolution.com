@@ -375,8 +375,8 @@ test('GTM resolves only in production, defaults to the owner container, and can 
   const { mod } = await loadAnalytics();
   assert.equal(mod.resolveGtmId(undefined, 'development'), '', 'next dev must never fire container tags');
   assert.equal(mod.resolveGtmId('GTM-ABCD1234', 'test'), '');
-  assert.equal(mod.resolveGtmId(undefined, 'production'), 'GTM-5VKPC974');
-  assert.equal(mod.resolveGtmId('   ', 'production'), 'GTM-5VKPC974', 'a blank override falls back to the default');
+  assert.equal(mod.resolveGtmId(undefined, 'production'), 'GTM-KJZPCQNM');
+  assert.equal(mod.resolveGtmId('   ', 'production'), 'GTM-KJZPCQNM', 'a blank override falls back to the default');
   assert.equal(mod.resolveGtmId('  GTM-WXYZ9876  ', 'production'), 'GTM-WXYZ9876');
   for (const bad of ['off', 'G-ABCD1234', 'GTM-AB', 'GTM-OK"><script>']) {
     assert.equal(mod.resolveGtmId(bad, 'production'), '', `${JSON.stringify(bad)} must not reach the script src`);
@@ -386,14 +386,14 @@ test('GTM resolves only in production, defaults to the owner container, and can 
 
 test('gtm.js loads once, after the denied consent defaults', async () => {
   const { mod, appended, rawDataLayer, dataLayer } = await loadAnalytics({ id: '', nodeEnv: 'production' });
-  assert.equal(mod.GTM_ID, 'GTM-5VKPC974');
+  assert.equal(mod.GTM_ID, 'GTM-KJZPCQNM');
   assert.equal(mod.loadTagManager(), true);
   assert.equal(mod.loadTagManager(), false, 'client-side navigations must not inject a second container');
 
   assert.equal(appended.length, 1);
   assert.equal(appended[0].tagName, 'script');
   assert.equal(appended[0].async, true);
-  assert.equal(appended[0].src, 'https://www.googletagmanager.com/gtm.js?id=GTM-5VKPC974');
+  assert.equal(appended[0].src, 'https://www.googletagmanager.com/gtm.js?id=GTM-KJZPCQNM');
 
   const raw = rawDataLayer();
   assert.deepEqual(dataLayer()[0].slice(0, 2), ['consent', 'default'], 'container tags would fire on their own defaults otherwise');

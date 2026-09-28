@@ -1,3 +1,18 @@
+## v1.75 — 2026-09-28
+
+Google Tag Manager now loads the owner's new container **`GTM-KJZPCQNM`** instead of `GTM-5VKPC974`, which was published empty (owner request 2026-09-28). Numbered after v1.71–v1.74, which are claimed by open PRs #244, #249, #250 and #251.
+
+- `lib/analytics.mjs`: `DEFAULT_GTM_ID` is now `GTM-KJZPCQNM`. `NEXT_PUBLIC_GTM_ID` still overrides it, and `off` still disables it.
+- No change to how GTM loads. The site already emits the same `gtm.js` script and `ns.html` `<noscript>` iframe as Google's install snippet, with these differences:
+  - It loads in production builds only.
+  - It waits behind the consent banner, with Google Consent Mode defaults of "denied".
+  - It never loads on CRM or auth routes.
+  - It loads once per visit, not once per client-side navigation.
+
+  Pasting the raw snippet into `<head>` would have loaded the container before consent and on the portal.
+- `tests/analytics.test.mjs` pins the new ID.
+- **Conflicts with open PR #244 (v1.71)**, which removes the GTM default altogether. Merged after this, #244 would switch Tag Manager off again unless `NEXT_PUBLIC_GTM_ID=GTM-KJZPCQNM` is set in Vercel Production, or #244 keeps this default.
+
 ## v1.70 — 2026-09-27
 
 Fixes a live bug in the CRM notification outbox. Adds migration
