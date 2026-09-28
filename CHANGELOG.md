@@ -1,7 +1,8 @@
-## v1.76 — 2026-09-28
+## v1.78 — 2026-09-28
 
-The client portal moves to `https://app.cdsportswearinc.com` (owner decision 2026-09-28). The marketing site stays on `www`. Numbered after v1.75 (#252, on `main`) and v1.71–v1.73, which are claimed by open PRs #244, #249 and #250. This PR was opened as v1.74 before #252 merged.
+The client portal moves to `https://app.cdsportswearinc.com` (owner decision 2026-09-28). The marketing site stays on `www`. Numbered after v1.77 (#253, on `main`) and v1.71–v1.73, which are claimed by open PRs #244, #249 and #250. This PR was opened as v1.74, then renumbered to v1.76 after #252 merged and to v1.78 after #253 merged. v1.74 and v1.76 were never shipped.
 
+- `tests/analytics.test.mjs` now checks every `PORTAL_SEGMENTS` entry against the analytics skip list (it fell back to `/onboarding` alone until this module existed).
 - **Host split** (`lib/portalHost.mjs`, loaded by `next.config.js` `redirects()`). These are Vercel routing redirects, so they run before any page or middleware and add no function cost.
   - On `www`, the portal paths (`/login`, `/signup`, `/forgot-password`, `/onboarding`, `/dashboard`, `/team`, `/admin`, `/auth/*`) 308 to the same path on `app`, keeping the query string. Bookmarks and emailed invite, confirm and reset links sent before the switch keep working.
   - On `app`, `/` opens `/login`, where middleware already sends signed-in users to their own portal home. Every other non-portal page 308s to the same page on `www`.
@@ -19,6 +20,24 @@ The client portal moves to `https://app.cdsportswearinc.com` (owner decision 202
   - `app`: `/` 307s to `/login`. `/login` returns 200. `/about` and `/work/…?x=1` 308 to `www`. `/api/contact`, `/robots.txt` and `/icon.png` are served.
   - A `*.vercel.app` host is unchanged.
 - CLAUDE.md and AGENTS.md record the split.
+
+## v1.77 — 2026-09-28
+
+Google Tag Manager (`GTM-KJZPCQNM`) now loads from Google's own `<head>` snippet on every public page, instead of being injected after hydration (owner request 2026-09-28). The snippet is guarded so it keeps the two rules the old loader had: no GTM on portal pages, and no container tags before the cookie banner's answer. v1.76 is claimed by open PR #251.
+
+- `lib/analytics.mjs` `gtmHeadSnippet(id)` builds the inline script. `app/layout.jsx` renders it as the first script in `<head>`. In order, it:
+  1. stops on CRM/auth pages (`UNTRACKED_PREFIXES`);
+  2. queues the Consent Mode v2 defaults (all four signals denied, `wait_for_update: 500`) and replays a returning visitor's stored choice;
+  3. runs Google's snippet verbatim with the container ID.
+- The `ns.html` `<noscript>` iframe stays right after `<body>`, as Google specifies.
+- `/onboarding` added to `UNTRACKED_PREFIXES`. It is a portal page (`middleware.js`, `lib/pageTransition.mjs`) that was missing, so GA4 and GTM both skip it now.
+- The snippet and the module share window flags (`__cwsConsentQueued`, `__cwsGtmLoaded`), so neither the consent defaults nor `gtm.js` are ever queued twice. `loadTagManager()` in `components/Analytics.jsx` stays as a fallback for a visit that opens on a portal page and then client-navigates to a public one.
+- `tests/analytics.test.mjs` runs the real snippet in a `node:vm` sandbox. It covers:
+  - consent ordering;
+  - stored-choice replay, including blocked storage;
+  - every portal path;
+  - interplay with the module;
+  - rejection of malformed IDs.
 
 ## v1.75 — 2026-09-28
 
