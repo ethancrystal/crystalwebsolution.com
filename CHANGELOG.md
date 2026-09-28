@@ -1,3 +1,13 @@
+## v1.69 — 2026-09-27
+
+AI tooling only; no application code, route or runtime change.
+
+- **Codex tsconfig hook** (`.codex/hooks.json` + `.codex/hooks/revert-generated-tsconfig.mjs`):
+  the same PostToolUse hook Claude has, restoring `tsconfig.json` after
+  `next build` / `next dev` only when the diff is purely the Next.js
+  rewrite. The command resolves the script from `git rev-parse
+  --show-toplevel`, so it works from any checkout or worktree.
+
 ## v1.68 — 2026-09-27
 
 AI tooling and docs only; no application code, route or runtime change.
