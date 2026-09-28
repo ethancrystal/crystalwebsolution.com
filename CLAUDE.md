@@ -156,12 +156,25 @@ animation:
   Don't turn it back on.
 - **Camera segments use measured DOM breakpoints** (`lib/beatProgress.js`),
   not a uniform `index / (STOPS.length - 1)` split. Adding or reordering a
-  beat moves four things together: `STOPS`/`CLUSTERS` in `lib/journey.js`,
-  `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`, and its actor
+  beat moves five things together: `STOPS`/`CLUSTERS` in `lib/journey.js`,
+  `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`, its label in
+  `LABELS` in `lib/journeyNav.mjs` (the homepage section nav), and its actor
   in `Scene.jsx`.
+- **Measure beats with `sectionTop()`, never `getBoundingClientRect()`.**
+  Rects include `SectionHandoff`'s 16px pre-reveal transform, so rect-based
+  breakpoints disagree with where an anchor jump lands (v1.60/v1.61).
+  SmoothScroll re-measures on the ticker frame Lenis's limit changes as well as
+  from its `<body>` `ResizeObserver`: Lenis updates the limit on its own
+  debounced observer, after ours has fired.
 
 ### Component layout
 
+- `JourneyNav.jsx` (homepage only, mounted after `.page` so keyboard users
+  reach the hero first) is the section nav: plain `#id` links with
+  `aria-current="location"`, driven from `gsap.ticker` via
+  `currentBeatIndex()`. `ScrollProgress.jsx` is only the progress bar;
+  subpages mount it without JourneyNav, because the homepage ids don't resolve
+  there.
 - `Scene.jsx` mounts one Canvas with `CameraRig`, `Lights`, `Effects`,
   `FocusDimmer`, `Crystal`, `Sparks`, `ServiceRail`, `ApproachCompass`,
   `Particles`, and `BackdropMorph`. Lab and Motion do not mount separate scene
@@ -271,6 +284,14 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
    which is why v1.43 has no `CHANGELOG.md` entry and v1.44 follows v1.42.
    Before picking a number, run `git log --oneline -5 main` and take one above
    the highest version *named there*, not just the highest in the file.
+6. **GitHub's "Update branch" can silently drop the bump.** When `main` has
+   moved its own `VERSION`/`CHANGELOG.md`, that merge can resolve both to
+   `main`'s side, and the PR then deploys under its title with no entry.
+   It happened to v1.55, v1.57, v1.60 and v1.63 (backfilled in v1.59, v1.61
+   and v1.80).
+   After any merge of `main` into a version-bump branch, check that `VERSION`
+   and the top `CHANGELOG.md` heading still name this PR's version before it
+   merges.
 
 ## Visual experience execution brief
 

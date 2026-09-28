@@ -1,3 +1,26 @@
+## v1.80 — 2026-09-28
+
+Docs only: CLAUDE.md and AGENTS.md catch up with v1.60/v1.61. No runtime
+change. This PR was opened as v1.62 and renumbered as other releases merged
+first. It ships as v1.80, above v1.79 (#244, open), so v1.62 and v1.65 were
+never deployed. It also backfills the v1.63 entry (placed above v1.64 below,
+in deploy order), which the "Update branch" pitfall this PR documents
+dropped.
+
+- The beat checklist now includes the section's label in `LABELS` in
+  `lib/journeyNav.mjs`: adding or reordering a beat moves five things.
+- New rule: measure beats with `sectionTop()`, never
+  `getBoundingClientRect()`. SmoothScroll re-measures when Lenis's limit
+  changes as well as from its `<body>` ResizeObserver.
+- Component layout names `JourneyNav.jsx` (homepage section nav) and says
+  `ScrollProgress.jsx` is only the progress bar.
+- Versioning: after merging `main` into a version-bump branch, including
+  GitHub's "Update branch", check that `VERSION` and the top CHANGELOG
+  heading still name the PR's version. That merge dropped the bump for
+  v1.55, v1.57, v1.60 and v1.63.
+- Written into `main`'s condensed architecture rules (the long-form
+  explanation now lives in `aidd_docs/memory/architecture.md`).
+
 ## v1.78 — 2026-09-28
 
 The client portal moves to `https://app.cdsportswearinc.com` (owner decision 2026-09-28). The marketing site stays on `www`. Numbered after v1.77 (#253, on `main`) and v1.71–v1.73, which are claimed by open PRs #244, #249 and #250. This PR was opened as v1.74, then renumbered to v1.76 after #252 merged and to v1.78 after #253 merged. v1.74 and v1.76 were never shipped.
@@ -160,6 +183,37 @@ SEO index fix for one page. Nothing else changes.
 - **Tests:** `seo-onpage` now asserts the page is noindex, follow, stays
   self-canonical, and is absent from the sitemap. The `llms.txt` test no longer
   requires the page to be a sitemap route.
+
+## v1.63 — 2026-09-27
+
+*Backfilled in v1.80.* PR #239 merged at `18edbc9` through an "Update
+branch" merge that took `main`'s `VERSION` (v1.64) and `CHANGELOG.md`, so
+v1.63 deployed without this entry. It deployed after v1.64 (#240), which is
+why it sits above it. This is the entry as it stood on the shipped commit.
+
+Moiz becomes the single CRM admin (owner-approved 2026-09-27). Numbered
+after v1.62 (PR #238, docs only).
+
+- **Migration `0044_pin_admin_to_moiz.sql`**: `public.pinned_admin_email()`
+  now returns `moizj00@gmail.com`. The existing admin (Ethan,
+  `ethan@cdsportswearinc.com`) is demoted to `project_manager`, so it keeps
+  `/team` access but not `/admin` or user management. Moiz's existing
+  account is then promoted to `admin`. No accounts are merged, renamed or
+  deleted. The 0027 revoke on the helper is re-asserted.
+- Consequences, also owner-approved: new contact-form leads are recorded
+  against Moiz (0026/0029 look up the pinned admin), and
+  `project.brief_submitted` alerts (in-app and email) go to Moiz.
+- `scripts/provision-crm-test-users.mjs` provisions the admin as
+  `moizj00@gmail.com` and no longer overwrites that account's name.
+- Tests: `supabase/tests/0044_pin_admin_to_moiz.test.sql` (5 pgTAP) and
+  `tests/crm/migration-0044-pin-admin-to-moiz.test.mjs`. The 0042 pgTAP
+  test now checks only that the pin no longer names the retired domain.
+  Locally, 0044 applied to a copy staged like live (Ethan admin, Moiz
+  client) gives Ethan `project_manager` and Moiz `admin`, re-applying it
+  changes nothing, and the pin-dependent pgTAP files (0009, 0035, 0041,
+  0042, 0043, 0044) pass 92/92.
+- CLAUDE.md: 0042 is recorded as applied live (2026-09-15), and 0044 as the
+  current admin pin.
 
 ## v1.64 — 2026-09-26
 
