@@ -37,8 +37,11 @@ jobs:
       - name: Run test suite
         run: pnpm test
 
-      - name: Run marketing component suite
-        run: pnpm test:marketing
+      # Every tests/**/*.test.jsx file (vitest.config.js `include`), not only
+      # tests/marketing — the CRM component tests were silently skipped
+      # while this step ran `pnpm test:marketing`.
+      - name: Run component suite
+        run: pnpm test:components
 
       - name: Build
         run: pnpm build
