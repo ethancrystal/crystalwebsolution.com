@@ -1,3 +1,18 @@
+## v1.72 — 2026-09-27
+
+Changelog backfill only; no code change. Records what PR #245 shipped,
+because it merged without a version of its own. Its "Update branch" merge
+took `main`'s side of the `VERSION`/`CHANGELOG.md` conflict, so `VERSION`
+stayed at v1.70 (already #247's) and its v1.69 entry was dropped. Its title
+said v1.69, which #246 also used.
+
+- **Codex tsconfig hook** (from #245, merge `684afb5`): `.codex/hooks.json`
+  and `.codex/hooks/revert-generated-tsconfig.mjs` mirror the Claude
+  PostToolUse hook. After `next build` / `next dev` it restores
+  `tsconfig.json` only when the diff is purely the Next.js rewrite. The
+  command resolves the script from `git rev-parse --show-toplevel`, so it
+  works from any checkout or worktree.
+
 ## v1.70 — 2026-09-27
 
 Fixes a live bug in the CRM notification outbox. Adds migration
