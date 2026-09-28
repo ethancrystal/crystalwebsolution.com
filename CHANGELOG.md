@@ -1,35 +1,46 @@
-## v1.69 — 2026-09-27
+## v1.70 — 2026-09-27
 
-CRM fix: live project-thread updates were never delivered. The message
-triggers (migrations 0009, 0032) broadcast with `realtime.send(..., true)`,
-i.e. **private** broadcasts, but `components/crm/useProjectThread.js` joined
-**public** channels on the same topics. Supabase treats a private and a public
-channel with the same topic as different channels, so
-`project_message_created` / `project_message_updated` never reached the
-browser and threads only refreshed on the viewer's own actions or a reload.
+Fixes a live bug in the CRM notification outbox. Adds migration
+`0045_fix_outbox_mark_coalesce.sql`, **checked in, not applied**: applying
+it to production is an owner action (`docs/CRM-OPERATIONS.md`
+§Migrations). Until it runs, each new notification email is claimed up to
+25 times and then stays `pending`, and failed sends are never recorded.
+v1.69 was already claimed by other open PRs, so this release takes v1.70.
 
-- **`useProjectThread.js`** — channels are created with
-  `{ config: { private: true } }` after an explicit
-  `await supabase.realtime.setAuth()`, so the join carries the user's JWT and
-  is authorized by the existing `realtime.messages` RLS policy
-  (`private.can_subscribe_project_topic`). supabase-js 2.112.3 only refreshes
-  the realtime token asynchronously on connect, so without the await the
-  first join of a fresh socket could race to the anon key. The effect is now
-  async with a `cancelled` guard (no channel opens after unmount/project
-  switch), and `CHANNEL_ERROR` / `TIMED_OUT` are logged instead of silent.
-  Clients still open only the `shared` topic.
-- **Tests** — new node contract in
-  `tests/crm/messaging-asset-hardening.test.mjs` (private config, `setAuth`
-  before `subscribe`, both migrations still send privately, client topics
-  shared-only); fails against the previous hook. The ProjectThread vitest
-  mock now records channel options and auth ordering, plus a test that an
-  unmount before auth resolves opens no channel.
-- Verified live (read-only / synthetic topic): a private `realtime.send` to a
-  random `project:<uuid>:shared` topic is not received by a public
-  subscriber while a public control send is; impersonated in a rolled-back
-  transaction, a client may subscribe to its project's `shared` topic but
-  not `internal` or another project's, and an admin may subscribe to both.
-- No migration, no schema change.
+- **Root cause.** `0033` (live since 2026-08-17) redefined
+  `mark_notification_email_sent` and `mark_notification_email_failed` with
+  `pg_catalog.coalesce(...)`. COALESCE is SQL grammar, not a `pg_catalog`
+  function, so both RPCs raised 42883 on every call. plpgsql resolves calls
+  only when a statement runs, so CREATE accepted them. `0016` fixed the same
+  mistake once before.
+- **Effect.** The drain route sent each claimed row, could not mark it sent,
+  and reclaimed it once the lease expired. The four `lead.created` alerts
+  (2026-08-26 to 2026-09-03) used all 25 claims over 5 to 12 days and sit
+  `pending` with stale leases. Resend honours the idempotency key for 24
+  hours only, so reclaims a day or more apart could resend. All four went to
+  the admin account of the time (now a project manager), and every lead's
+  deal exists, so no lead was lost.
+- **Fix.** Both functions exactly as `0033` defines them, with bare
+  `coalesce(`: three substitutions and nothing else, so signatures,
+  security definer, search_path and grants are unchanged. A closing smoke
+  block calls both RPCs with nil ids, so the migration fails at apply time
+  if either body still cannot run.
+- **Stuck rows** are not touched by the migration. The PR proposes a guarded
+  one-off statement for owner approval that marks them terminal without
+  resetting `attempts`, which would resend month-old alerts.
+- **Tests.** `tests/crm/migration-0045-fix-outbox-mark-coalesce.test.mjs`
+  (source contract: each body equals 0033's apart from the three
+  substitutions) and `tests/crm/migration-grammar-guard.test.mjs`, which
+  replays every migration and fails if the latest definition of any function
+  schema-qualifies COALESCE, NULLIF, GREATEST or LEAST.
+  `supabase/tests/0045_fix_outbox_mark_coalesce.test.sql` adds 16 pgTAP
+  assertions. `pnpm test:db` was not run (no Docker here); the pgTAP file
+  was executed in PGlite (Postgres 17) against a replica of
+  `notifications_outbox` with `0033` and `0045` applied, passing 16/16, and
+  it fails against `0033` alone.
+- **Docs.** `docs/CRM-OPERATIONS.md` no longer says the idempotency key
+  prevents every duplicate send, and records migration state through `0045`.
+  The drain route's comments are corrected the same way (comments only).
 
 ## v1.68 — 2026-09-27
 
