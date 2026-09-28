@@ -35,8 +35,10 @@ function RouteTracker() {
   return null;
 }
 
-// GTM loads on the first public page and never on CRM/auth routes. The loader
-// lives in lib/analytics.mjs so consent defaults are always queued first.
+// GTM normally loads from the inline <head> snippet (app/layout.jsx). This is
+// the fallback for a document that opened on a CRM/auth page, where the snippet
+// stands down, and then navigated to a public page without a reload.
+// loadTagManager() is a no-op once the snippet has loaded the container.
 function TagManagerLoader() {
   const pathname = usePathname();
 
