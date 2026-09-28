@@ -108,30 +108,57 @@ export function useProjectThread({ projectId, profile }) {
 
   // Realtime is an acceleration layer. Payloads contain identifiers only;
   // every refresh goes back through the visibility-filtered read model.
+  //
+  // The DB triggers (migrations 0009, 0032) call realtime.send(..., true), and
+  // a private broadcast only reaches *private* channels -- a public channel
+  // with the same topic is a different channel and never sees it. Private
+  // joins are authorized by the realtime.messages RLS policy
+  // (private.can_subscribe_project_topic), so the socket must carry the
+  // user's JWT before the join is pushed; supabase-js only refreshes the
+  // token asynchronously on connect, hence the explicit setAuth() first.
   useEffect(() => {
     if (!threadId) return undefined;
 
     const supabase = createClient();
     const visibilityTopics = profile?.role === 'client' ? ['shared'] : ['shared', 'internal'];
-    const channels = visibilityTopics.map((visibility) => {
-      const refreshForEvent = ({ payload }) => {
-        if (
-          payload?.project_id !== projectId ||
-          payload?.visibility !== visibility
-        ) {
-          return;
-        }
-        void load();
-      };
+    let cancelled = false;
+    let channels = [];
 
-      return supabase
-        .channel(`project:${projectId}:${visibility}`)
-        .on('broadcast', { event: 'project_message_created' }, refreshForEvent)
-        .on('broadcast', { event: 'project_message_updated' }, refreshForEvent)
-        .subscribe();
-    });
+    (async () => {
+      try {
+        await supabase.realtime.setAuth();
+      } catch (err) {
+        console.warn('Project thread realtime auth failed; live updates are off.', err);
+        return;
+      }
+      if (cancelled) return;
+
+      channels = visibilityTopics.map((visibility) => {
+        const topic = `project:${projectId}:${visibility}`;
+        const refreshForEvent = ({ payload }) => {
+          if (
+            payload?.project_id !== projectId ||
+            payload?.visibility !== visibility
+          ) {
+            return;
+          }
+          void load();
+        };
+
+        return supabase
+          .channel(topic, { config: { private: true } })
+          .on('broadcast', { event: 'project_message_created' }, refreshForEvent)
+          .on('broadcast', { event: 'project_message_updated' }, refreshForEvent)
+          .subscribe((status, err) => {
+            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+              console.warn(`Project thread realtime ${topic}: ${status}`, err);
+            }
+          });
+      });
+    })();
 
     return () => {
+      cancelled = true;
       channels.forEach((channel) => {
         supabase.removeChannel(channel);
       });
