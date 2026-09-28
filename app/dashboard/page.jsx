@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/browser';
-import { signOut } from '@/app/auth/actions';
 import { homeForRole } from '@/lib/auth/roles.mjs';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Delete02Icon } from '@hugeicons/core-free-icons';
@@ -181,16 +180,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <WorkspaceShell role="client" title="Client Dashboard">
-      <header className="crm-dashboard-header">
-        <div className="crm-header-content">
-          <h1>Projects</h1>
-          <p>Welcome, {profile?.full_name || user?.email}</p>
-        </div>
-        <form action={signOut}>
-          <button type="submit" className="crm-logout-btn">Sign Out</button>
-        </form>
-      </header>
+    <WorkspaceShell
+      role="client"
+      title="Projects"
+      subtitle={`Welcome, ${profile?.full_name || user?.email || ''}`}
+    >
 
       {error && (
         <div className="crm-dashboard-error">
@@ -329,35 +323,9 @@ export default function DashboardPage() {
       <style jsx>{`
         .crm-dashboard {
           min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          color: #e0e0e0;
+          background: var(--crm-bg);
+          color: var(--crm-text);
           font-family: inherit;
-        }
-
-        .crm-dashboard-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 1rem;
-          margin-bottom: 1.5rem;
-        }
-
-        .crm-header-content h1 {
-          font-size: 1.6rem;
-          color: #64c8ff;
-        }
-
-        .crm-header-content p {
-          color: #999;
-        }
-
-        .crm-logout-btn {
-          background: rgba(255, 100, 100, 0.1);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff9999;
-          padding: 0.5rem 1rem;
-          border-radius: 6px;
-          cursor: pointer;
         }
 
         .crm-dashboard-error {

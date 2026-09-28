@@ -1,0 +1,604 @@
+/* ---------- CRM portal frame ----------
+   One flat, quiet dark system for the client (/dashboard), employee (/team)
+   and admin (/admin) portals. Owner direction 2026-09-28: neat and clean,
+   deliberate, nothing shiny. So: solid surfaces, 1px borders, one blue
+   accent, no gradients, glows, glass blur or hover lifts. Status is shown as
+   text + colour (never colour alone).
+
+   Contrast (WCAG 2.2 AA, measured against --crm-surface #111624):
+   text 15.2:1, muted 8.0:1, subtle 5.1:1, link 7.9:1; white on --crm-accent
+   5.4:1; every status pair 8:1 or better. Focus rings are 2px --crm-focus
+   (8.5:1 against the page).
+
+   Page-specific <style jsx> blocks still exist on older pages; they are
+   scoped (higher specificity) and are being retired page by page in favour
+   of the primitives below (docs/plans/2026-09-28-portal-workings.md). */
+
+:root {
+  --crm-bg: #0a0d16;
+  --crm-surface: #111624;
+  --crm-surface-2: #161c2d;
+  --crm-border: #232b3e;
+  --crm-border-strong: #33405a;
+  --crm-text: #e8ecf4;
+  --crm-muted: #a3adc2;
+  --crm-subtle: #7e89a1;
+  --crm-accent: #2f5fe8;
+  --crm-accent-hover: #2752cc;
+  --crm-link: #8aa9ff;
+  --crm-focus: #8aa9ff;
+  --crm-danger: #e5484d;
+  --crm-radius: 8px;
+  --crm-radius-sm: 6px;
+  --crm-page-width: 1200px;
+
+  /* Status pairs: solid tinted background + readable text (>= 4.5:1). */
+  --crm-status-neutral-bg: #1b2233;
+  --crm-status-neutral-fg: #c3cbdb;
+  --crm-status-info-bg: #15213f;
+  --crm-status-info-fg: #9db6ff;
+  --crm-status-success-bg: #12291f;
+  --crm-status-success-fg: #7dd8a6;
+  --crm-status-warning-bg: #2d2412;
+  --crm-status-warning-fg: #f0c46b;
+  --crm-status-danger-bg: #2e1518;
+  --crm-status-danger-fg: #ff9b9b;
+}
+
+/* ---------- shell ---------- */
+
+.crm-shell {
+  min-height: 100vh;
+  background: var(--crm-bg);
+  color: var(--crm-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.crm-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--crm-surface);
+  border-bottom: 1px solid var(--crm-border);
+}
+
+.crm-topbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: var(--crm-page-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  min-height: 60px;
+}
+
+.crm-brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  border-radius: var(--crm-radius-sm);
+}
+
+.crm-brand img {
+  display: block;
+  width: 132px;
+  height: auto;
+}
+
+.crm-nav {
+  display: flex;
+  align-items: stretch;
+  gap: 0.25rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: stretch;
+}
+
+.crm-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  color: var(--crm-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.crm-nav-link:hover {
+  color: var(--crm-text);
+}
+
+.crm-nav-link[aria-current='page'] {
+  color: var(--crm-text);
+  border-bottom-color: var(--crm-accent);
+}
+
+.crm-topbar-end {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+}
+
+.crm-role-label {
+  color: var(--crm-subtle);
+  font-size: 0.8125rem;
+}
+
+/* Scoped under .crm-topbar so it outranks the later .crm-button display. */
+.crm-topbar .crm-menu-toggle {
+  display: none;
+}
+
+.crm-main {
+  max-width: var(--crm-page-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* Title row rendered by the shell (and by pages without it). */
+.crm-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.crm-page-header h1,
+.crm-page-title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--crm-text);
+}
+
+.crm-page-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--crm-muted);
+  font-size: 0.9375rem;
+}
+
+.crm-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.crm-breadcrumb {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--crm-subtle);
+}
+
+.crm-breadcrumb a {
+  color: var(--crm-muted);
+  text-decoration: none;
+}
+
+.crm-breadcrumb a:hover {
+  color: var(--crm-text);
+  text-decoration: underline;
+}
+
+/* Standalone pages (admin blog, older routes) that don't mount the shell. */
+.crm-page {
+  max-width: var(--crm-page-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  color: var(--crm-text);
+  font-family: var(--font-body);
+}
+
+/* The shell's content column. Children bring their own cards. */
+.crm-workspace-section {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+/* ---------- surfaces ---------- */
+
+.crm-card {
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  padding: 1.25rem 1.5rem;
+}
+
+.crm-card > h2,
+.crm-section-title {
+  margin: 0 0 1rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--crm-text);
+}
+
+.crm-empty {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: var(--crm-muted);
+  background: var(--crm-surface);
+  border: 1px dashed var(--crm-border-strong);
+  border-radius: var(--crm-radius);
+}
+
+/* ---------- buttons ---------- */
+
+.crm-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 38px;
+  padding: 0 1rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--crm-text);
+  text-decoration: none;
+  background: var(--crm-surface-2);
+  border: 1px solid var(--crm-border-strong);
+  border-radius: var(--crm-radius-sm);
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.crm-button:hover {
+  background: #1c2338;
+  border-color: #3d4b69;
+}
+
+.crm-button-primary {
+  color: #ffffff;
+  background: var(--crm-accent);
+  border-color: var(--crm-accent);
+}
+
+.crm-button-primary:hover {
+  background: var(--crm-accent-hover);
+  border-color: var(--crm-accent-hover);
+}
+
+.crm-button-ghost {
+  background: transparent;
+  border-color: var(--crm-border-strong);
+}
+
+.crm-button-danger {
+  color: var(--crm-status-danger-fg);
+  background: transparent;
+  border-color: #5a2a2e;
+}
+
+.crm-button-danger:hover {
+  background: var(--crm-status-danger-bg);
+  border-color: #7a3238;
+}
+
+.crm-button-small {
+  min-height: 30px;
+  padding: 0 0.7rem;
+  font-size: 0.8125rem;
+}
+
+.crm-button:disabled,
+.crm-button[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- status ---------- */
+
+.crm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: 999px;
+  color: var(--crm-status-neutral-fg);
+  background: var(--crm-status-neutral-bg);
+  white-space: nowrap;
+}
+
+.crm-badge-info { color: var(--crm-status-info-fg); background: var(--crm-status-info-bg); }
+.crm-badge-success { color: var(--crm-status-success-fg); background: var(--crm-status-success-bg); }
+.crm-badge-warning { color: var(--crm-status-warning-fg); background: var(--crm-status-warning-bg); }
+.crm-badge-danger { color: var(--crm-status-danger-fg); background: var(--crm-status-danger-bg); }
+
+/* ---------- tables and lists ---------- */
+
+.crm-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+
+.crm-table th {
+  text-align: left;
+  padding: 0.7rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--crm-muted);
+  background: var(--crm-surface-2);
+  border-bottom: 1px solid var(--crm-border);
+}
+
+.crm-table td {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--crm-border);
+  vertical-align: middle;
+}
+
+.crm-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.crm-table a {
+  color: var(--crm-text);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.crm-table a:hover {
+  color: var(--crm-link);
+  text-decoration: underline;
+}
+
+.crm-table-sub {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.8125rem;
+  color: var(--crm-subtle);
+}
+
+/* A table cell stays a cell (flex would break the row borders); a wrapper
+   element lays its buttons out in a row. */
+td.crm-row-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+td.crm-row-actions > * + * {
+  margin-left: 0.4rem;
+}
+
+.crm-row-actions:not(td) {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.crm-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+}
+
+.crm-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--crm-border);
+}
+
+.crm-list-item:last-child {
+  border-bottom: 0;
+}
+
+.crm-list-item a {
+  color: var(--crm-text);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.crm-list-item a:hover {
+  color: var(--crm-link);
+  text-decoration: underline;
+}
+
+/* ---------- forms ---------- */
+
+.crm-form {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 760px;
+}
+
+.crm-fieldset {
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+  display: grid;
+  gap: 1rem;
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+}
+
+.crm-fieldset legend {
+  padding: 0 0.35rem;
+  font-weight: 600;
+  color: var(--crm-text);
+}
+
+.crm-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.crm-field label,
+.crm-field > span:first-child {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--crm-text);
+}
+
+.crm-field input,
+.crm-field select,
+.crm-field textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--crm-text);
+  background: var(--crm-bg);
+  border: 1px solid var(--crm-border-strong);
+  border-radius: var(--crm-radius-sm);
+}
+
+.crm-field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.crm-field input:hover,
+.crm-field select:hover,
+.crm-field textarea:hover {
+  border-color: #3d4b69;
+}
+
+.crm-field-hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--crm-subtle);
+}
+
+.crm-field-error {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--crm-status-danger-fg);
+}
+
+.crm-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.crm-form-error,
+.crm-form-success {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: var(--crm-radius-sm);
+  font-size: 0.9rem;
+}
+
+.crm-form-error {
+  color: var(--crm-status-danger-fg);
+  background: var(--crm-status-danger-bg);
+  border: 1px solid #5a2a2e;
+}
+
+.crm-form-success {
+  color: var(--crm-status-success-fg);
+  background: var(--crm-status-success-bg);
+  border: 1px solid #1f4a36;
+}
+
+.crm-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- focus: one visible ring for every interactive element ---------- */
+
+.crm-shell :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible,
+.crm-page :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--crm-focus);
+  outline-offset: 2px;
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 768px) {
+  .crm-topbar-inner {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .crm-topbar .crm-menu-toggle {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+  .crm-nav {
+    display: none;
+    order: 3;
+    flex-basis: 100%;
+    flex-direction: column;
+    gap: 0;
+    padding-bottom: 0.5rem;
+  }
+
+  .crm-nav.is-open {
+    display: flex;
+  }
+
+  .crm-nav-link {
+    min-height: 44px;
+    padding: 0 0.25rem;
+    border-bottom: 1px solid var(--crm-border);
+  }
+
+  .crm-nav-link[aria-current='page'] {
+    border-bottom-color: var(--crm-border);
+    box-shadow: inset 3px 0 0 var(--crm-accent);
+    padding-left: 0.75rem;
+  }
+
+  .crm-topbar-end .crm-role-label {
+    display: none;
+  }
+
+  .crm-main,
+  .crm-page {
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  .crm-table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .crm-table th,
+  .crm-table td {
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crm-button {
+    transition: none;
+  }
+}

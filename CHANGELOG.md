@@ -1,3 +1,33 @@
+## v1.87 — 2026-09-28
+
+The shared frame for all three portals: step 1 of the portal redesign (owner direction 2026-09-28: "neat and clean, deliberate, not shiny"; dark, flat and quiet; shared frame first). Numbered after v1.83–v1.86 (#256, #257, #259, #260), which are all open.
+
+- **`app/styles/crm.css`** (new, imported last in `app/globals.css`): one token set and one set of primitives for the CRM.
+  - Tokens: solid dark surfaces, 1px borders, one blue accent, status colour pairs.
+  - Primitives: page header, card, button (primary, ghost, danger, small), badge, table, list, form field, fieldset, empty state, form messages.
+  - No gradients, glows, glass blur or hover lifts.
+  - Contrast (measured, WCAG AA): text 15.2:1, muted 8.0:1, subtle 5.1:1, button text 5.4:1, every status pair ≥ 8:1.
+  - One visible 2px focus ring for every interactive element in the portal.
+  - The admin blog pages (and `/team`) already used these class names, which were defined nowhere, so they now render styled instead of as plain HTML.
+- **`WorkspaceShell`**: rebuilt as a flat top bar.
+  - It shows the logo, role-based navigation with the current page marked, the portal name and **Sign out**; the shell had no sign-out before.
+  - Navigation by role:
+    - Admin: Overview, Projects, Pipeline, Deals, Companies, Contacts, Tasks, Users, Blog.
+    - Client: Projects.
+    - Employee: My projects.
+  - The page title and optional subtitle and actions sit in the content column.
+  - On phones the navigation collapses behind a Menu button.
+  - The glass header, gradient background, cyan title and one-link sidebar are gone.
+- **Client dashboard:** the duplicate header (a second title and a second Sign Out) is removed. The shell shows "Projects" and "Welcome, …".
+- **Employee home (`/team`):** now inside the shell, as a clean list of assigned projects with status badges.
+- **Pages not changed in this step:** most admin pages and several project panels still carry their own older scoped styles. They move onto these primitives in the next steps (client pages, then employee, then admin; `docs/plans/2026-09-28-portal-workings.md` §3a).
+- **Tests:** `tests/crm/auth-portals.test.mjs` now checks that the employee home renders the shell and that the shell provides sign-out, instead of looking for `signOut` in the page file.
+- **Verified:**
+  - `pnpm test` and `pnpm test:components`;
+  - the placeholder-env production build;
+  - Chromium screenshots of the frame at 1280px and 390px, for the client and admin roles;
+  - the mobile menu opening and closing, with its `aria-expanded` state and keyboard focus ring.
+
 ## v1.82 — 2026-09-28
 
 Dependency fix and security housekeeping from the 2026-09-28 triage.
