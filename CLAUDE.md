@@ -50,7 +50,7 @@ code change to announce it. **Known related gaps — last confirmed 2026-09-11, 
   Dashboard setting; `NEXT_PUBLIC_*` values are inlined at build time, so
   changing the variable alone does nothing until Production is rebuilt.
 - Supabase Auth's dashboard `SITE_URL` and redirect allow-list. The repo
-  allow-list in `supabase/config.toml` dropped both retired domains in v1.69;
+  allow-list in `supabase/config.toml` dropped both retired domains in v1.71;
   the dashboard list needs the same pruning, since `crystalwebsolution.com`
   now serves hostile content.
 - Migration `0042` (`0042_repoint_cron_and_pinned_admin.sql`) was applied to the live database on 2026-09-15 (verified via Supabase MCP `list_migrations` on 2026-09-27). Migration `0044` (v1.63) then moved the single admin pin from `ethan@cdsportswearinc.com` to `moizj00@gmail.com`, demoting Ethan's account to `project_manager` (owner-approved 2026-09-27). Re-check live state with `select public.pinned_admin_email()` rather than trusting this line.

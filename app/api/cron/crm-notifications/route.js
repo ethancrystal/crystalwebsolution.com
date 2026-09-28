@@ -226,8 +226,8 @@ async function drain(request) {
       await sendTemplate(template, {
         to: recipient.email,
         tags: ['crm-notification'],
-        // Resend de-duplicates on this key, so a retry after an ambiguous
-        // failure cannot deliver the same notification twice.
+        // Resend de-duplicates on this key for 24 hours, so a retry inside
+        // that window cannot deliver the same notification twice.
         idempotencyKey: `outbox-${row.id}`,
       });
 
@@ -240,8 +240,9 @@ async function drain(request) {
       );
 
       if (updateError) {
-        // The mail went out; a future reclaim may call Resend again, but the
-        // stable idempotency key above makes that provider retry harmless.
+        // The mail went out; a future reclaim may call Resend again. The key
+        // above suppresses that only within 24 hours, so a row that keeps
+        // failing to complete can be delivered again (0033, fixed in 0045).
         console.error(`Outbox row ${row.id} sent completion failed:`, updateError.message);
       }
 

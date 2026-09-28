@@ -25,7 +25,7 @@ Environment Variables:
   renders. On 2026-09-27 Google returned 404 for `gtag/js?id=G-B42BM1Q95J`,
   so check the stream in GA4 Admin → Data streams if no data arrives.
 - `NEXT_PUBLIC_GTM_ID` — optional Google Tag Manager container, for non-GA4
-  tags only. Unset means no container loads; there is no default (v1.69
+  tags only. Unset means no container loads; there is no default (v1.71
   removed the empty `GTM-5VKPC974`). A container must never hold a GA4 tag
   for the same property, or every pageview counts twice.
 - `NEXT_PUBLIC_GSC_VERIFICATION` — the token from Search Console's *HTML tag*
