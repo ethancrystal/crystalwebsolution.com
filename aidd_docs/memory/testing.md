@@ -21,7 +21,7 @@
 
 ## Run
 
-- `pnpm test`, `pnpm test:crm`, `pnpm test:marketing`, `pnpm test:crm-ui`, `pnpm test:db`, `pnpm crm:verify`.
+- `pnpm test`, `pnpm test:crm`, `pnpm test:components` (all vitest files), `pnpm test:marketing` (marketing only), `pnpm test:db`, `pnpm crm:verify`.
 - A single file: `node --test tests/<file>.test.mjs`.
 
 ## Browser QA

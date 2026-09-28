@@ -29,7 +29,7 @@ pnpm dev         # http://localhost:3000
 pnpm test        # full Node test suite
 pnpm test:crm    # CRM-focused contracts
 pnpm test:marketing  # vitest/jsdom component tests (tests/marketing/*.test.jsx)
-pnpm test:crm-ui     # vitest/jsdom CRM component tests (tests/crm/*.test.jsx)
+pnpm test:components # every vitest/jsdom test (tests/**/*.test.jsx); the CI gate
 pnpm test:db     # Supabase database tests; requires the local stack
 pnpm build       # production build (standalone output)
 pnpm start       # serve the production build

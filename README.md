@@ -31,7 +31,7 @@ pnpm dev        # http://localhost:3000
 pnpm test       # full Node test suite
 pnpm test:crm   # CRM-focused contracts
 pnpm test:marketing  # vitest/jsdom marketing component tests
-pnpm test:crm-ui     # vitest/jsdom CRM component tests
+pnpm test:components  # every vitest/jsdom test; the CI gate
 pnpm test:db    # Supabase database tests; requires the local stack
 pnpm test:e2e   # planned Playwright gate; tests/e2e is not yet checked in
 pnpm build      # production build

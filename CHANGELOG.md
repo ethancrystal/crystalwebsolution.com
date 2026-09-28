@@ -1,8 +1,9 @@
 ## v1.71 — 2026-09-27
 
 Staleness and dead-code sweep. Every claim below was checked against live
-production on 2026-09-27. Two runtime changes: Google Tag Manager is off by
-default, and the CRM component tests now run in CI.
+production on 2026-09-27. One runtime change: Google Tag Manager is off by
+default. (The CRM component tests this sweep also found unrun were wired
+into CI by PR #246 while it was open.)
 
 - **GTM off by default.** Container `GTM-5VKPC974` was published empty
   (version 1, no tags) yet cost ~113 KiB of script on every public page.
@@ -10,9 +11,6 @@ default, and the CRM component tests now run in CI.
   still opts one in. `G-B42BM1Q95J` is now the only Google tag the site
   loads. Google returns 404 for `gtag/js?id=G-B42BM1Q95J` (2026-09-27), so no
   GA4 data is collected until the stream is fixed — see `docs/ANALYTICS.md`.
-- **CRM component tests run.** `tests/crm/*.test.jsx` (3 files, 34 tests)
-  were never run by any script or CI job. New `pnpm test:crm-ui` runs them;
-  it joins `crm:verify`, the CI `test` job and `release-check`.
 - **Security: auth redirect allow-list.** `supabase/config.toml` drops
   `crystalwebsolution.com` and `cdsportswearusa.com`. The former now serves a
   third-party gambling-spam site from Vercel's edge, and an allow-listed host
@@ -53,7 +51,8 @@ default, and the CRM component tests now run in CI.
   not have; machine-specific links in
   `docs/plans/refactor-architecture-cleanup-1.md` are now relative.
 - **Versioning note** — gaps below this entry, recorded as for v1.43: v1.69
-  shipped as PR #243 without touching `VERSION` or `CHANGELOG.md`; v1.63
+  names three merged PRs (#243, #245, #246), none of which touched
+  `VERSION` or `CHANGELOG.md`; v1.63
   shipped as PR #239 with no entry (open PR #238 backfills it); v1.62 and
   v1.65 are held by open PR #238; v1.66 never shipped (it was the working
   title of #241's first commits, which shipped as v1.68); PR #208

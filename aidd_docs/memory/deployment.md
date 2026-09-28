@@ -2,7 +2,7 @@
 
 ## Pipeline
 
-- GitHub Actions `docker-ci.yml` runs the `test` job as the merge gate: `pnpm test`, `pnpm test:marketing`, `pnpm test:crm-ui`, `pnpm build`.
+- GitHub Actions `docker-ci.yml` runs the `test` job as the merge gate: `pnpm test`, `pnpm test:components`, `pnpm build`.
 - Vercel's Git integration deploys. Every push gets a preview behind Vercel Authentication, and a merge into `main` deploys production.
 - `seo-publish-blog.yml` publishes blog posts on its own workflow.
 
