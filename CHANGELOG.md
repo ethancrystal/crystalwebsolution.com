@@ -1,3 +1,20 @@
+## v1.71 — 2026-09-27
+
+CI and test tooling only; no application code, route or runtime change.
+
+- **CI now runs every vitest file.** The `test` job in `docker-ci.yml` ran
+  `pnpm test:marketing` (`vitest run tests/marketing`), so the three CRM
+  component tests in `tests/crm/*.test.jsx` (`admin-form-shell`,
+  `brief-wizard`, `project-thread-behaviour`) never ran in CI. A new
+  `pnpm test:components` script (`vitest run`, using the config's
+  `tests/**/*.test.jsx` include) replaces that step, so any future
+  `*.test.jsx` directory is covered too. `pnpm test:marketing` is unchanged.
+- **`brief-wizard.test.jsx` gets a 20s timeout.** Its review/submit tests
+  take 3-9s in jsdom and timed out at vitest's 5s default once they ran
+  next to the marketing suite.
+- Docs, the `release-check` skill (Claude + Cursor) and project memory now
+  name `test:components` as the component gate.
+
 ## v1.70 — 2026-09-27
 
 Fixes a live bug in the CRM notification outbox. Adds migration
