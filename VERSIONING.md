@@ -16,8 +16,11 @@ Versions look like `v1.01`, `v1.02`, `v1.03`, … `v2.01`, `v2.02`, …
   `main`). No exceptions, including docs-only or one-line changes.
 - **The major number bumps only for a full redesign or replatform**, decided
   by the owner (MJ), and resets the minor to `.01`.
-- Numbers are never skipped and never reused. Next version = the version at
-  the top of `CHANGELOG.md` + 0.01.
+- Numbers are never reused. Next version = one above the highest `vX.NN`
+  named in `origin/main`'s merge log, `VERSION`, the top of `CHANGELOG.md`, or
+  an open PR's title. A PR can deploy under a `vX.NN` title while bumping
+  neither file (v1.43 did), so the files alone can lag production.
+  `/version-bump` applies this.
 - If a major line ever reaches `.99`, the next deploy rolls to the next
   major (`v1.99` → `v2.01`). Don't go to three digits.
 
@@ -45,9 +48,10 @@ targeting `main` must contain, in the same PR:
 2. **Add the matching entry at the top of `CHANGELOG.md`** — version, today's
    date, short summary of the change.
 3. **Title the PR starting with the version**, em-dash, then the summary:
-   `v1.04 — fix contact form rate limiting`. The merge/squash commit keeps
-   that title, which is what Vercel shows in its deploy list — this is what
-   makes deploys identifiable and sortable in the Vercel dashboard.
+   `v1.04 — fix contact form rate limiting`. PRs land as merge commits: the
+   subject is `Merge pull request #N from …` and the first line of the
+   message body is the PR title, which is how a deploy traces back to its
+   version.
 4. After the merge, if you have git access, tag it:
    `git tag v1.04 <merge-sha> && git push origin v1.04`.
 
@@ -61,5 +65,5 @@ incrementing, never by keeping a duplicate number.
 | --- | --- |
 | What's in production right now? | `VERSION` on `main` |
 | What changed in it? | Top entry of `CHANGELOG.md` |
-| Which deploy broke it? | Find the version in Vercel's deploy list (commit titles start with `vX.NN`) |
-| Next version to use? | Top of `CHANGELOG.md` + 0.01 |
+| Which deploy broke it? | Match the deploy's commit to its merge on `main` (`git log --first-parent origin/main`); the merge message body starts with the `vX.NN` title |
+| Next version to use? | One above the highest `vX.NN` on `origin/main` or in an open PR title (`/version-bump`) |

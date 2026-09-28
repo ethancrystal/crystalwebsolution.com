@@ -91,12 +91,12 @@ an unneeded re-render source.
 Route files under `app/**/page.jsx` compose `components/marketing/*`
 (layout shells, `FaqSchema`/`BreadcrumbSchema` structured data, case-study
 rails, `ServiceEmblem`) rather than `components/sections/*` — the inner
-pages are static/SSR content, not scroll-beat choreography. `IdleScene.jsx`
-and `ServiceEmblem3D.jsx` are the only R3F mounted outside `Scene.jsx`,
-both via `dynamic(..., { ssr: false })` (see `components/marketing/
-SubpageExperience.jsx` and `ServiceEmblem.jsx`) — confirmed excluded from
-the CRM/shared bundle in `docs/reports/
-phase-1-dead-code-performance-audit-2026-09-01.md`.
+pages are static/SSR content, not scroll-beat choreography.
+`ServiceEmblem3D.jsx` is the only R3F component mounted outside `Scene.jsx`,
+via `dynamic(..., { ssr: false })` in `ServiceEmblem.jsx`. The inner-page
+stage backgrounds (`components/ui/*-background.jsx`, mounted by
+`HeroStage.jsx`) and `ShapeWaves` (WebGPU, `ProcessHero.jsx`) are also
+dynamic imports, but plain canvas/WebGL rather than R3F.
 
 ## CRM: two data-access shapes, by design
 
@@ -142,8 +142,8 @@ client — see `CLAUDE.md` for the full role-assignment rules and why
 
 ## Styling
 
-See `README.md`'s "Styling" section for the `app/styles/*.css` global
-split vs. the one `ImageBlock.module.css` CSS Modules exception, and
+See `README.md`'s "Styling" section for the `app/styles/*.css` global split
+and when a CSS Module is acceptable, and
 "Component directory conventions" for what belongs in `components/`,
 `components/sections/`, `components/marketing/`, `components/ui/`,
 `components/three/`, and `components/crm/`.

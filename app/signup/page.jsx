@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { signUp } from '@/app/auth/actions';
 import { SITE } from '@/lib/site';
+import { useMarketingHomeHref } from '@/lib/useMarketingHomeHref';
 import DarkPageBackground from '@/components/ui/dark-page-background';
 
 // Mirrors SIGNUP_ACCOUNT_TYPES in lib/auth/roles.mjs, which the server action
@@ -17,6 +18,7 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [accountType, setAccountType] = useState('client');
+  const homeHref = useMarketingHomeHref();
 
   async function handleSubmit(formData) {
     const password = formData.get('password');
@@ -51,7 +53,7 @@ export default function SignupPage() {
     <div className="crm-auth-container">
       <DarkPageBackground interactive="dot-field" />
       <div className="crm-auth-card">
-        <Link href="/" className="crm-auth-mark" aria-label={`${SITE.name} home`}>
+        <Link href={homeHref} className="crm-auth-mark" aria-label={`${SITE.name} home`}>
           <img className="crm-auth-logo" src={SITE.logoPath} alt={SITE.name} width={SITE.logoWidth} height={SITE.logoHeight} />
         </Link>
 

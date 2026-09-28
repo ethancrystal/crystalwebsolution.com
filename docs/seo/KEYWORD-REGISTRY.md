@@ -29,7 +29,7 @@ serves 404 (WebFetch on apex and `www`, 2026-09-10) — Operations Manual §12.
 | web design manassas va | 20 | 5 | $0.00 | — | /blog/web-design-manassas-va | **live 2026-09-06** | Monitor | **no** | 2026-09-10 |
 | web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
 | how to write a web design rfp | unavailable | unavailable | unavailable | commercial | /blog/how-to-write-a-web-design-rfp | draft 2026-09-20 | Next | no | — |
-| brand identity design | 18,100 | 55 | $7.03 | info + commercial | /services/branding | **live** — pillar, theme 3 (copy not yet aligned to term) | Now | yes | 2026-09-22 |
+| brand identity design | 18,100 | 55 | $7.03 | info + commercial | /services/branding | **live** — pillar, theme 3. Title "Brand Identity Design Services for Companies" and H1 "Brand identity design that won’t blend in" now carry the term (verified in the built HTML, 2026-09-26). GSC: discovered, not yet indexed | Now | yes | 2026-09-22 |
 | brand identity design services | 8,100 | 24 | $20.55 | transactional | /services/branding | secondary on the same pillar | Now | no | 2026-09-22 |
 | logo design | 40,500 | 75 | — | tool-heavy SERP | /services/logo-design | **live** — pillar, theme 3 (copy partially aligned) | Now | yes | 2026-09-19 |
 | logo design services | — | — | — | commercial | /services/logo-design | secondary on the same pillar | Now | yes | — |
@@ -105,6 +105,27 @@ MJ ruled the theme-3 split on 2026-09-22 (figures Ubersuggest US 2840):
 Both pillar pages currently fail to carry their head term in `seoTitle` / `h1`
 (`lib/servicePages.mjs`). Copy alignment is a separate code PR.
 
+## Live posts missing from this registry (found 2026-09-26)
+
+Ten published posts (read-only SQL on `blog_posts`, 2026-09-26) had no row
+here, so the one-keyword-one-URL guard could not see them. They are recorded
+as **unmapped**: the phrase each one targets is read from its own title/H1,
+and no volume or difficulty was pulled for any of them. Mapping one needs a
+Keywords-lane pull first. Source: docs/seo/runs/2026-09-26-full-audit.md.
+
+| URL | Published | Phrase its title/H1 targets | Links up to | Conflict |
+|---|---|---|---|---|
+| /blog/ai-automation-agency | 2026-09-21 | ai automation agency | /services/ai-automation, /services/workflow-automation | **Yes** — `ai automation agency` is mapped to /services/ai-automation above. Retitle the post to its decision-stage angle; do not map the term here |
+| /blog/custom-react-nextjs-web-development | 2026-09-21 | custom react / next.js web development | /services/web-development, /services/web-design | Partial — the title opens with the service page's own title stem |
+| /blog/ai-automation-vs-zapier-make | 2026-09-24 | ai automation vs zapier / make | /services/ai-automation, /services/workflow-automation | No |
+| /blog/brochure-website-vs-conversion-site | 2026-09-24 | brochure website vs conversion site | /services/web-design | No |
+| /blog/when-page-builders-become-a-trap | 2026-09-24 | page builders vs custom next.js | /services/web-design, /services/web-development | No |
+| /blog/how-much-does-a-small-business-website-cost | 2026-09-24 | how much does a small business website cost | /services/web-design, /services/web-development | No — distinct from redesign cost |
+| /blog/when-to-redesign-vs-refresh-website | 2026-09-25 | when to redesign a website | /services/web-design, /services/web-development | No |
+| /blog/website-redesign-services | 2026-09-25 | website redesign services | /services/web-design | **Yes** — `website redesign services` is tracked in the web design / redesign cluster, which "would plausibly map to /services/web-design" (table below). MJ to rule which URL owns it; until then the pillar does not link to this post |
+| /blog/website-redesign-cost | 2026-09-25 | website redesign cost | /services/web-design | No |
+| /blog/wix-harmony-vs-framer-ai-squarespace | 2026-09-26 | wix harmony vs framer ai vs squarespace ai | /services/web-design | No |
+
 ## Live pages with no viable target term
 
 | URL | Published | Why unmapped |
@@ -127,8 +148,10 @@ Figures in this table have not been re-validated since the dates shown.
 |---|---|---|---|---|
 | web design manassas | 20 | 13 | /manassas-va-web-design | Superseded local-first ladder (CRY-21). Its sibling term is now covered by /blog/web-design-manassas-va |
 | web design manassas va | 20 | 5 | — | **Un-parked de facto** by the 2026-09-06 post and moved to the Mapped table above. The supersession itself has *not* been reversed — pending MJ's §3 ruling |
-| hire a shopify developer | 880 | 8 | /hire/shopify-developer | **Parked 2026-09-19; route exception clarified 2026-09-26.** Demand is real (est. 880/mo, diff 8), but Shopify is not among the live `/services/*` offers. The existing route is noindex, excluded from the sitemap, and direct-response only. Reopen only if MJ confirms Shopify is a sold offer |
-| hire shopify developer | 880 | 37 | /hire/shopify-developer | Same decision as the pair's easier half. Difficulty rose 26 → 37 between 2026-09-02 and 2026-09-10; no organic or internal-link investment |
+| hire a shopify developer | 880 | 8 | /hire/shopify-developer | **Parked 2026-09-19.** Demand is real (est. 880/mo, diff 8) but Shopify is not among the eight live `/services/*` offers. A hire-landing would be a thin page for an unsold service. Reopen only if MJ confirms Shopify is a sold offer |
+| hire shopify developer | 880 | 37 | /hire/shopify-developer | Same decision as the pair's easier half. Difficulty rose 26 → 37 between 2026-09-02 and 2026-09-10 |
+
+**State conflict, 2026-09-26.** Despite the two rows above, `/hire/shopify-developer` is **live** (PR #208 merged) and listed in `/sitemap.xml`, while STRATEGY.md §2 still says Shopify is not a sold service. No page links to it (0 contextual inbound links in the built site) and GSC reports it "Discovered – currently not indexed". MJ to rule: confirm Shopify as a sold offer (move the pair to Mapped and link the page from `/services/web-development`), or retire the URL with a redirect.
 | branding agency northern virginia | 0 | 4 | — | Dropped: no demand (CRY-20) |
 
 ## Legacy — old domain, for the record only

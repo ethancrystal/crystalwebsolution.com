@@ -17,7 +17,6 @@ describe('ServiceSchema', () => {
         },
       },
       { '@type': 'Country', name: 'United States' },
-      { '@type': 'Country', name: 'United Arab Emirates' },
     ];
 
     const { container } = render(
@@ -54,7 +53,7 @@ describe('ServiceSchema', () => {
     expect(jsonLd.offers).toBeUndefined();
   });
 
-  it('defaults areaServed to the countries already declared on the Organization', () => {
+  it('defaults areaServed to the United States, matching the Organization', () => {
     const { container } = render(
       <ServiceSchema
         n="Branding"
@@ -67,9 +66,7 @@ describe('ServiceSchema', () => {
       container.querySelector('script[type="application/ld+json"]').textContent,
     );
 
-    expect(jsonLd.areaServed).toEqual([
-      { '@type': 'Country', name: 'United States' },
-      { '@type': 'Country', name: 'United Arab Emirates' },
-    ]);
+    // UAE was dropped 2026-09-26: Sharjah is not a CD Sportswear INC location.
+    expect(jsonLd.areaServed).toEqual([{ '@type': 'Country', name: 'United States' }]);
   });
 });

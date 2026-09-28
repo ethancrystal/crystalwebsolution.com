@@ -39,7 +39,6 @@ tsconfig.tsbuildinfo
 .playwright-mcp/
 .playwright-cli/
 .zcode/
-/.claude/settings.json
 /.claude/settings.local.json
 /.claude/workflows/
 
@@ -68,7 +67,6 @@ tsconfig.tsbuildinfo
 
 .copilot-tracking/
 *.docx
-.env.*
 *.env
 credentials.json
 *.pem
@@ -87,5 +85,6 @@ supabase/.temp
 .cursor/skills/**/__pycache__/
 .cursor/skills/**/*.pyc
 
-.vercel
-.env*
+# Cursor MCP config holds live API tokens (a plaintext GitHub PAT was
+# committed here once, in a local-only, never-pushed commit). Never track it.
+.cursor/mcp.json

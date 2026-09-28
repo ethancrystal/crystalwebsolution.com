@@ -224,14 +224,18 @@ Decisions worth keeping:
   `08/09` through the whole Contact section and reach `09/09` only on the
   document's final pixel. `MOTION_WINDOW.end` — where Motion's sticky pin
   releases — is the honest Contact boundary and is used instead.
-- **The readout is opt-in.** `ScrollProgress` is also mounted by
-  `SubpageExperience.jsx`, where none of the nine homepage ids resolve and
-  every breakpoint keeps its evenly-spaced default. Only `Experience.jsx`
-  passes `sections`; a subpage would otherwise render confident nonsense.
-- **`aria-hidden` is deliberate.** The count restates position that assistive
-  tech already gets from landmarks and headings, and an `aria-live` value
-  changing on every beat would announce over the content being read.
+- **Superseded in v1.60 by `components/JourneyNav.jsx`.** The aria-hidden
+  count became a labelled `<nav aria-label="Page sections">` of in-page links
+  with `aria-current="location"`, mounted only by `Experience.jsx` (on a
+  subpage none of the nine ids resolve). `ScrollProgress` keeps only the bar.
+  v1.60 also fixed two measurement bugs: breakpoints were never measured on
+  first load (Lenis's debounced limit arrived after the body observer), and
+  rect-based tops included SectionHandoff's 16px reveal offset, so a jump back
+  to About/Services/Stories named the section above. `sectionTop()` now
+  measures layout tops and SmoothScroll's jumps land on the same number.
 
-Coverage: `tests/beatProgress.test.mjs` (5 tests) pins the threshold rule, the
+Coverage: `tests/beatProgress.test.mjs` pins the threshold rule, the
 reachable last beat, overscroll/NaN clamping, monotonicity across a full
-sweep, and the homepage-only opt-in.
+sweep, transform-free layout tops, and the 2px landing slack;
+`tests/journeyNav.test.mjs` and `tests/marketing/journeyNav.test.jsx` cover
+the nav itself.

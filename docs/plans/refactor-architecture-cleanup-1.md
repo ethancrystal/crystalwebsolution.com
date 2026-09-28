@@ -256,8 +256,8 @@ robots.txt allowlist for those two paths must be preserved.
 
 ## 10. Related Specifications / Further Reading
 
-- [TRIONN-ADAPTATION.md](C:\Users\moizjmj\Crystal Web Solution\TRIONN-ADAPTATION.md) — current motion/animation architecture decisions
-- [MOTION-BUNDLE-AUDIT.md](C:\Users\moizjmj\Crystal Web Solution\MOTION-BUNDLE-AUDIT.md) — existing bundle analysis
-- [ADR-001-auth-flow.md](C:\Users\moizjmj\Crystal Web Solution\ADR-001-auth-flow.md) — auth architecture
-- [ADR-002-contact-form-rate-limiting.md](C:\Users\moizjmj\Crystal Web Solution\ADR-002-contact-form-rate-limiting.md) — contact form decisions
+- [TRIONN-ADAPTATION.md](../../TRIONN-ADAPTATION.md) — current motion/animation architecture decisions
+- [motion-bundle-audit.md](../motion-bundle-audit.md) — existing bundle analysis
+- [ADR-001-auth-flow.md](../adr/ADR-001-auth-flow.md) — auth architecture
+- [ADR-002-contact-form-rate-limiting.md](../adr/ADR-002-contact-form-rate-limiting.md) — contact form decisions
 - Next.js CSS Modules docs: https://nextjs.org/docs/app/building-your-application/styling/css-modules

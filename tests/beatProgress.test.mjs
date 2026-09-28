@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-import { BEAT_IDS, beatProgress, currentBeatIndex, measureBeats } from '../lib/beatProgress.js';
+import { BEAT_IDS, beatProgress, currentBeatIndex, measureBeats, sectionTop } from '../lib/beatProgress.js';
 import { MOTION_WINDOW } from '../lib/journey.js';
 
 // Same stub shape as sectionArchitecture's flight-window test: every beat is
@@ -20,7 +20,11 @@ function withMeasuredBeats(run) {
       if (!tops.has(id)) return null;
       return {
         offsetHeight: id === 'motion' ? 2800 : 1000,
-        getBoundingClientRect: () => ({ top: tops.get(id) }),
+        offsetTop: tops.get(id),
+        offsetParent: null,
+        // What a rect would report while SectionHandoff holds the section
+        // 16px low. measureBeats must ignore it.
+        getBoundingClientRect: () => ({ top: tops.get(id) + 16 }),
       };
     },
   };
@@ -44,6 +48,41 @@ test('currentBeatIndex maps scroll progress onto the measured beats', () => {
     assert.equal(currentBeatIndex(0.25), BEAT_IDS.indexOf('services'));
     assert.equal(currentBeatIndex(0.65), BEAT_IDS.indexOf('lab'));
   });
+});
+
+test('breakpoints are layout tops: transforms and nesting do not move them', () => {
+  withMeasuredBeats(() => {
+    // The stub's rects are 16px low; the breakpoints must not be.
+    assert.equal(beatProgress.about, 0.1);
+    assert.equal(beatProgress.services, 0.2);
+  });
+  // offsetTop is relative to the offsetParent, so nested offsets add up.
+  const parent = { offsetTop: 900, offsetParent: null };
+  assert.equal(sectionTop({ offsetTop: 100, offsetParent: parent }), 1000);
+});
+
+test('SmoothScroll jumps homepage sections to the same top the beats use', () => {
+  const source = readFileSync(new URL('../components/SmoothScroll.jsx', import.meta.url), 'utf8');
+  assert.match(source, /lenis\.scrollTo\(BEAT_IDS\.includes\(target\.id\) \? sectionTop\(target\) : target/);
+});
+
+test('a jump that lands a sub-pixel short of a section still names it', () => {
+  withMeasuredBeats(() => {
+    // 10000px page: services starts at 2000px = 0.2.
+    assert.equal(currentBeatIndex((2000 - 0.4) / 10000), BEAT_IDS.indexOf('services'));
+    assert.equal(currentBeatIndex((2000 - 1.9) / 10000), BEAT_IDS.indexOf('services'));
+    // Beyond the 2px slack it is still the section above.
+    assert.equal(currentBeatIndex((2000 - 3) / 10000), BEAT_IDS.indexOf('about'));
+  });
+});
+
+// Lenis updates its limit on its own debounced observer, after SmoothScroll's
+// body observer has already fired, so the beats must re-measure when the
+// limit itself moves or they stay at their evenly-spaced defaults.
+test('SmoothScroll re-measures the beats whenever Lenis\'s limit changes', () => {
+  const source = readFileSync(new URL('../components/SmoothScroll.jsx', import.meta.url), 'utf8');
+  assert.match(source, /if \(limit !== lastLimit\) \{\s*lastLimit = limit;\s*remeasure\(\);\s*scrollState\.progress = lenis\.progress;/);
+  assert.match(source, /new ResizeObserver\(remeasure\)/);
 });
 
 test('the last beat is reachable despite contact being pinned to 1', () => {
@@ -92,13 +131,15 @@ test('currentBeatIndex never runs backwards as the page scrolls forward', () => 
   });
 });
 
-// The readout is opt-in because beatProgress is measured from the homepage's
-// section ids. On a subpage none of them resolve, every breakpoint keeps its
-// evenly-spaced default, and the count would render confident nonsense.
-test('only the homepage opts into the section readout', () => {
+// The old aria-hidden "01/09" readout moved into JourneyNav (visual Phase 1b),
+// which only the homepage mounts: beatProgress is measured from the homepage's
+// section ids, so on a subpage every breakpoint keeps its evenly-spaced
+// default and a section readout would render confident nonsense.
+test('only the homepage mounts the section readout', () => {
   const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
-  assert.match(read('../components/Experience.jsx'), /<ScrollProgress sections \/>/);
-  assert.match(read('../components/marketing/SubpageExperience.jsx'), /<ScrollProgress \/>/);
-  assert.match(read('../components/ScrollProgress.jsx'), /sections = false/);
+  assert.match(read('../components/Experience.jsx'), /<JourneyNav \/>/);
+  assert.match(read('../components/Experience.jsx'), /<ScrollProgress \/>/);
+  assert.doesNotMatch(read('../components/marketing/SubpageExperience.jsx'), /JourneyNav/);
+  assert.doesNotMatch(read('../components/ScrollProgress.jsx'), /sections|currentBeatIndex/);
 });

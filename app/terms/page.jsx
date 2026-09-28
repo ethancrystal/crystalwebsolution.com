@@ -2,14 +2,14 @@ import Link from 'next/link';
 import MarketingShell from '../../components/marketing/MarketingShell';
 import PageHero from '../../components/marketing/PageHero';
 import ContentSection from '../../components/marketing/ContentSection';
-import { SITE } from '../../lib/site';
+import { SITE, cityStateZip } from '../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'Terms of Service';
 const DESCRIPTION =
-  'The terms that govern your use of the CD Sportswear INC website and services — accounts, project engagements, payments, IP and liability.';
-const LAST_UPDATED = 'September 11, 2026';
+  "Terms governing your use of CD Sportswear INC's website and services.";
+const LAST_UPDATED = 'September 26, 2026';
 
 export const metadata = {
   title: TITLE,
@@ -214,7 +214,8 @@ export default function TermsPage() {
           <a href={`tel:${SITE.phone.replace(/[^+\d]/g, '')}`}>{SITE.phone}</a>.
         </p>
         <p className="mkt-prose">
-          You may also write to us at: {SITE.name}, {SITE.city}, United States.
+          You may also write to us at: {SITE.name}, {SITE.mailingAddress.poBox},{' '}
+          {cityStateZip(SITE.mailingAddress)}, United States.
         </p>
       </ContentSection>
 

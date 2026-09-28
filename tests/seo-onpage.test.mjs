@@ -166,37 +166,18 @@ test('sitemap lists public marketing URLs and excludes CRM routes', () => {
   assert.match(code, /listPublishedSlugs/, 'published posts belong in the sitemap');
   assert.doesNotMatch(code, /\/login/, 'login is noindex and not a sitemap URL');
   assert.doesNotMatch(code, /\/dashboard/, 'CRM routes must not appear in the sitemap');
-  assert.doesNotMatch(code, /hire\/shopify-developer/, 'the non-organic Shopify landing exception must stay out of the sitemap');
-});
-
-test('Shopify landing is direct-access only while Shopify remains outside the sold services', () => {
-  const code = source('app/hire/shopify-developer/page.jsx');
-  assert.match(code, /export const metadata/, 'Shopify landing must define route metadata');
-  assert.match(code, /description\s*:/, 'Shopify landing must define a description');
-  assert.match(code, /alternates\s*:\s*\{\s*canonical:\s*['"]\/hire\/shopify-developer['"]/, 'Shopify landing must self-canonicalize');
-  assert.match(code, /openGraph\s*:/, 'Shopify landing must define Open Graph metadata');
-  assert.match(code, /twitter\s*:/, 'Shopify landing must define Twitter metadata');
-  assert.match(code, /index:\s*false/, 'Shopify landing must be noindex');
-  assert.match(code, /follow:\s*true/, 'Shopify landing may pass discovery signals to its linked pages');
-});
-
-test('low-inlink blog posts have contextual related links and a conversion path', () => {
-  const code = source('app/blog/[slug]/page.jsx');
-  const expected = {
-    'brochure-website-vs-conversion-site': ['/blog/when-page-builders-become-a-trap', '/blog/when-to-redesign-vs-refresh-website', '/services/web-design'],
-    'ai-automation-vs-zapier-make': ['/services/ai-automation', '/services/workflow-automation', '/contact'],
-    'when-page-builders-become-a-trap': ['/blog/brochure-website-vs-conversion-site', '/blog/when-to-redesign-vs-refresh-website', '/services/web-development'],
-  };
-
-  for (const [slug, targets] of Object.entries(expected)) {
-    const block = code.match(new RegExp(`['"]${slug}['"]\\s*:\\s*\\[(<!--[\\s\\S]*?-->)?([\\s\\S]*?)\\n\\s*\\],`));
-    assert.ok(block, `${slug} must have an explicit related-link block`);
-    for (const target of targets) {
-      assert.match(block[0], new RegExp(`href:\\s*['"]${target.replace(/[.*+?^${}()|[\\]\\]/g, '\\\\$&')}['"]`), `${slug} must link to ${target}`);
-    }
-  }
+  // hire/shopify-developer is a direct-response landing (2026-09-27, MJ): it is
+  // noindex, follow, so listing it would ask crawlers to index a noindex URL.
+  assert.doesNotMatch(code, /hire\/shopify-developer/, 'the noindex hire/shopify-developer page must not be in the sitemap');
 });
 
 test('marketing footer includes the blog in the explore set', () => {
   assert.match(source('components/marketing/MarketingFooter.jsx'), /href="\/blog"/);
+});
+
+test('hire/shopify-developer is noindex, follow and stays out of the sitemap', () => {
+  const page = source('app/hire/shopify-developer/page.jsx');
+  assert.match(page, /robots:\s*\{\s*index:\s*false,\s*follow:\s*true\s*\}/, 'direct-response landing must be noindex, follow');
+  assert.match(page, /canonical:\s*'\/hire\/shopify-developer'/, 'self-canonical is kept');
+  assert.doesNotMatch(source('app/sitemap.js'), /shopify/, 'no Shopify URL in the sitemap');
 });

@@ -1,10 +1,480 @@
+## v1.82 — 2026-09-28
+
+Dependency fix and security housekeeping from the 2026-09-28 triage.
+
+- `pnpm-workspace.yaml` pins `fast-uri` to `>=3.1.6 <4.0.0`, closing 4
+  Dependabot HIGH alerts (SSRF via malformed IPv6/repeated hostname
+  percent-decoding normalization; host confusion via percent-encoded scheme
+  and skipped IDN canonicalization on scheme-relative references).
+  `fast-uri` is a transitive dependency of `ajv` (a build-tool dependency,
+  not a direct one) — `ajv@8.20.0` declares `fast-uri: ^3.0.1`, which the
+  pin satisfies, so no consumer needs to change. Bounded to the `3.x` line
+  already in use, same as the existing `postcss`/`cookie`/`nanoid`
+  overrides — `fast-uri` has since released a `4.x` major that an unbounded
+  override would otherwise pull in untested. `pnpm-lock.yaml` updates
+  `fast-uri@3.1.5` → `3.1.8`. No application code changed.
+- `.gitignore` now excludes `.cursor/mcp.json` (holds live MCP API tokens; a
+  plaintext GitHub PAT was committed there once, in a local-only commit that
+  was never pushed — confirmed via the GitHub API returning 404 for that
+  commit SHA. Not a public leak, but this stops the class of accident from
+  recurring).
+- `docs/ANALYTICS.md`: documents the live GA4 root cause found in this
+  triage — `NEXT_PUBLIC_GA_ID` is set to `G-B42BM1Q95J`, but that ID is a
+  linked *destination* under the account's actual installable Google tag
+  (`G-YENE9MFT5K`), not an independently installable measurement ID, which
+  is why `gtag/js?id=G-B42BM1Q95J` 404s. Fix is a Vercel env var change
+  (owner-side) to `G-YENE9MFT5K` plus a redeploy; not applied here.
+
+Verification: `pnpm test` 618/618.
+
+## v1.80 — 2026-09-28
+
+Docs only: CLAUDE.md and AGENTS.md catch up with v1.60/v1.61. No runtime
+change. This PR was opened as v1.62 and renumbered as other releases merged
+first. It ships as v1.80, above v1.79 (#244, open), so v1.62 and v1.65 were
+never deployed. It also backfills the v1.63 entry (placed above v1.64 below,
+in deploy order), which the "Update branch" pitfall this PR documents
+dropped.
+
+- The beat checklist now includes the section's label in `LABELS` in
+  `lib/journeyNav.mjs`: adding or reordering a beat moves five things.
+- New rule: measure beats with `sectionTop()`, never
+  `getBoundingClientRect()`. SmoothScroll re-measures when Lenis's limit
+  changes as well as from its `<body>` ResizeObserver.
+- Component layout names `JourneyNav.jsx` (homepage section nav) and says
+  `ScrollProgress.jsx` is only the progress bar.
+- Versioning: after merging `main` into a version-bump branch, including
+  GitHub's "Update branch", check that `VERSION` and the top CHANGELOG
+  heading still name the PR's version. That merge dropped the bump for
+  v1.55, v1.57, v1.60 and v1.63.
+- Written into `main`'s condensed architecture rules (the long-form
+  explanation now lives in `aidd_docs/memory/architecture.md`).
+
+## v1.78 — 2026-09-28
+
+The client portal moves to `https://app.cdsportswearinc.com` (owner decision 2026-09-28). The marketing site stays on `www`. Numbered after v1.77 (#253, on `main`) and v1.71–v1.73, which are claimed by open PRs #244, #249 and #250. This PR was opened as v1.74, then renumbered to v1.76 after #252 merged and to v1.78 after #253 merged. v1.74 and v1.76 were never shipped.
+
+- `tests/analytics.test.mjs` now checks every `PORTAL_SEGMENTS` entry against the analytics skip list (it fell back to `/onboarding` alone until this module existed).
+- **Host split** (`lib/portalHost.mjs`, loaded by `next.config.js` `redirects()`). These are Vercel routing redirects, so they run before any page or middleware and add no function cost.
+  - On `www`, the portal paths (`/login`, `/signup`, `/forgot-password`, `/onboarding`, `/dashboard`, `/team`, `/admin`, `/auth/*`) 308 to the same path on `app`, keeping the query string. Bookmarks and emailed invite, confirm and reset links sent before the switch keep working.
+  - On `app`, `/` opens `/login`, where middleware already sends signed-in users to their own portal home. Every other non-portal page 308s to the same page on `www`.
+  - `/api/*` (the contact form, the pg_cron notification drain), `/_next`, `/_vercel` and static files work on both hosts.
+  - With `NEXT_PUBLIC_CRM_ENABLED=false`, only the app-to-`www` rule applies, so the app host cannot loop through `/login`.
+  - The rules match only the production host names, so preview deployments and localhost behave exactly as before.
+- **Supabase Auth**: `https://app.cdsportswearinc.com/**` added to `additional_redirect_urls` in `supabase/config.toml`. `www` stays listed for links sent before the switch.
+- **Owner steps**, outside the repo:
+  - Add the app host to Supabase Auth's redirect URLs and set its Site URL.
+  - Set `NEXT_PUBLIC_APP_URL=https://app.cdsportswearinc.com` in Vercel Production. It is inlined at build time, so a rebuild is needed.
+  - Portal sessions are per host, so signed-in users sign in once more on `app`.
+- **Tests**: `tests/portalHost.test.mjs` (7 tests). It checks every middleware-guarded path against `PORTAL_SEGMENTS`, the rule order, the path exclusions and the CRM-off case.
+- **Verified** on a production build with `Host` headers:
+  - `www`: `/login`, `/login/client?next=…`, `/dashboard/…`, `/admin/…` and `/auth/verify?token_hash=…` 308 to `app` with the query kept. `/` and `/about` return 200.
+  - `app`: `/` 307s to `/login`. `/login` returns 200. `/about` and `/work/…?x=1` 308 to `www`. `/api/contact`, `/robots.txt` and `/icon.png` are served.
+  - A `*.vercel.app` host is unchanged.
+- CLAUDE.md and AGENTS.md record the split.
+
+## v1.77 — 2026-09-28
+
+Google Tag Manager (`GTM-KJZPCQNM`) now loads from Google's own `<head>` snippet on every public page, instead of being injected after hydration (owner request 2026-09-28). The snippet is guarded so it keeps the two rules the old loader had: no GTM on portal pages, and no container tags before the cookie banner's answer. v1.76 is claimed by open PR #251.
+
+- `lib/analytics.mjs` `gtmHeadSnippet(id)` builds the inline script. `app/layout.jsx` renders it as the first script in `<head>`. In order, it:
+  1. stops on CRM/auth pages (`UNTRACKED_PREFIXES`);
+  2. queues the Consent Mode v2 defaults (all four signals denied, `wait_for_update: 500`) and replays a returning visitor's stored choice;
+  3. runs Google's snippet verbatim with the container ID.
+- The `ns.html` `<noscript>` iframe stays right after `<body>`, as Google specifies.
+- `/onboarding` added to `UNTRACKED_PREFIXES`. It is a portal page (`middleware.js`, `lib/pageTransition.mjs`) that was missing, so GA4 and GTM both skip it now.
+- The snippet and the module share window flags (`__cwsConsentQueued`, `__cwsGtmLoaded`), so neither the consent defaults nor `gtm.js` are ever queued twice. `loadTagManager()` in `components/Analytics.jsx` stays as a fallback for a visit that opens on a portal page and then client-navigates to a public one.
+- `tests/analytics.test.mjs` runs the real snippet in a `node:vm` sandbox. It covers:
+  - consent ordering;
+  - stored-choice replay, including blocked storage;
+  - every portal path;
+  - interplay with the module;
+  - rejection of malformed IDs.
+
+## v1.75 — 2026-09-28
+
+Google Tag Manager now loads the owner's new container **`GTM-KJZPCQNM`** instead of `GTM-5VKPC974`, which was published empty (owner request 2026-09-28). Numbered after v1.71–v1.74, which are claimed by open PRs #244, #249, #250 and #251.
+
+- `lib/analytics.mjs`: `DEFAULT_GTM_ID` is now `GTM-KJZPCQNM`. `NEXT_PUBLIC_GTM_ID` still overrides it, and `off` still disables it.
+- No change to how GTM loads. The site already emits the same `gtm.js` script and `ns.html` `<noscript>` iframe as Google's install snippet, with these differences:
+  - It loads in production builds only.
+  - It waits behind the consent banner, with Google Consent Mode defaults of "denied".
+  - It never loads on CRM or auth routes.
+  - It loads once per visit, not once per client-side navigation.
+
+  Pasting the raw snippet into `<head>` would have loaded the container before consent and on the portal.
+- `tests/analytics.test.mjs` pins the new ID.
+- **Conflicts with open PR #244 (v1.71)**, which removes the GTM default altogether. Merged after this, #244 would switch Tag Manager off again unless `NEXT_PUBLIC_GTM_ID=GTM-KJZPCQNM` is set in Vercel Production, or #244 keeps this default.
+
+## v1.70 — 2026-09-27
+
+Fixes a live bug in the CRM notification outbox. Adds migration
+`0045_fix_outbox_mark_coalesce.sql`, **checked in, not applied**: applying
+it to production is an owner action (`docs/CRM-OPERATIONS.md`
+§Migrations). Until it runs, each new notification email is claimed up to
+25 times and then stays `pending`, and failed sends are never recorded.
+v1.69 was already claimed by other open PRs, so this release takes v1.70.
+
+- **Root cause.** `0033` (live since 2026-08-17) redefined
+  `mark_notification_email_sent` and `mark_notification_email_failed` with
+  `pg_catalog.coalesce(...)`. COALESCE is SQL grammar, not a `pg_catalog`
+  function, so both RPCs raised 42883 on every call. plpgsql resolves calls
+  only when a statement runs, so CREATE accepted them. `0016` fixed the same
+  mistake once before.
+- **Effect.** The drain route sent each claimed row, could not mark it sent,
+  and reclaimed it once the lease expired. The four `lead.created` alerts
+  (2026-08-26 to 2026-09-03) used all 25 claims over 5 to 12 days and sit
+  `pending` with stale leases. Resend honours the idempotency key for 24
+  hours only, so reclaims a day or more apart could resend. All four went to
+  the admin account of the time (now a project manager), and every lead's
+  deal exists, so no lead was lost.
+- **Fix.** Both functions exactly as `0033` defines them, with bare
+  `coalesce(`: three substitutions and nothing else, so signatures,
+  security definer, search_path and grants are unchanged. A closing smoke
+  block calls both RPCs with nil ids, so the migration fails at apply time
+  if either body still cannot run.
+- **Stuck rows** are not touched by the migration. The PR proposes a guarded
+  one-off statement for owner approval that marks them terminal without
+  resetting `attempts`, which would resend month-old alerts.
+- **Tests.** `tests/crm/migration-0045-fix-outbox-mark-coalesce.test.mjs`
+  (source contract: each body equals 0033's apart from the three
+  substitutions) and `tests/crm/migration-grammar-guard.test.mjs`, which
+  replays every migration and fails if the latest definition of any function
+  schema-qualifies COALESCE, NULLIF, GREATEST or LEAST.
+  `supabase/tests/0045_fix_outbox_mark_coalesce.test.sql` adds 16 pgTAP
+  assertions. `pnpm test:db` was not run (no Docker here); the pgTAP file
+  was executed in PGlite (Postgres 17) against a replica of
+  `notifications_outbox` with `0033` and `0045` applied, passing 16/16, and
+  it fails against `0033` alone.
+- **Docs.** `docs/CRM-OPERATIONS.md` no longer says the idempotency key
+  prevents every duplicate send, and records migration state through `0045`.
+  The drain route's comments are corrected the same way (comments only).
+
+## v1.68 — 2026-09-27
+
+AI tooling and docs only; no application code, route or runtime change.
+Sets up the AIDD framework (aidd-context skills 00–09) for this repo.
+
+- **Project memory** (`aidd_docs/memory/`): 17 files covering the current
+  architecture, codebase map, auth, database, realtime, API, integrations,
+  deployment, testing, design, forms, navigation, VCS, backlog and the tool
+  ecosystem, plus a DOM → canvas scroll-pipeline diagram. They are imported
+  into `CLAUDE.md` and `AGENTS.md` through a new `## Memory Management`
+  block.
+- **`release-check` skill** (Claude + Cursor) reproduces the CI `test` job
+  locally (`pnpm test`, `test:marketing`, placeholder-env `build`), checks
+  the version bump, and restores `tsconfig.json`.
+- **`gatekeeper` agent** (Claude, Cursor, Codex) runs `release-check` and
+  returns a ready or blocked verdict without editing code.
+- **`/version-bump` command** (Claude + Cursor) picks the next unused
+  `vX.NN` from the merge log and open PRs.
+- **R3F frame-loop rule** (Claude + Cursor), scoped to `components/` and
+  `lib/`: no allocation in `useFrame`, one RAF clock, per-frame state in
+  singletons.
+- **`.claude/hooks/revert-generated-tsconfig.mjs`** restores `tsconfig.json`
+  after `next build` / `next dev` only when the diff is purely the Next.js
+  rewrite. It is wired in the gitignored `settings.local.json`, so it is
+  opt-in per checkout.
+- **Learnings** (`aidd-context:10-learn`): the next version skips numbers
+  open PRs already claim; private realtime broadcasts need private channels;
+  an ADR makes `aidd_docs/memory/` authoritative over root `MEMORY.md`. The
+  memory README list is now maintained by hand, because the AIDD
+  `SessionStart` hook wrote Windows-broken links into it.
+- **Deduplicated `CLAUDE.md` and `AGENTS.md`** against the memory bank:
+  the scroll/animation prose, test-run details, build gotchas, branch model
+  and role flow now live in `aidd_docs/memory/`, and the context files keep
+  the rules as one-liners with pointers. `CLAUDE.md` drops ~3.8 KB per
+  session. `AGENTS.md` also stops hardcoding the migration head.
+- **Token trim** (`aidd-context:12-cook` token-optimization recipe): 8
+  task-specific memory files (api, backlog, design, ecosystem, forms,
+  integration, navigation, realtime) move to `aidd_docs/memory/internal/`
+  and load on demand. That cuts the auto-loaded bank from ~24 KB to ~13 KB
+  per session. `gatekeeper` runs on `haiku`. `desktop-commander` is removed
+  from `.mcp.json`: its tool schema rode along every turn and it timed out at
+  startup.
+- **`.claude/settings.json` is now tracked** (removed from `.gitignore`) so
+  its `permissions.deny` rules are shared: reads of `.next/`, `node_modules/`,
+  `test-results/` and `.env*` stay out of agent context. Personal settings
+  still belong in the gitignored `settings.local.json`.
+
+## v1.67 — 2026-09-27
+
+SEO index fix for one page. Nothing else changes.
+
+- **`/hire/shopify-developer` is now `noindex, follow`.** The page is a
+  direct-response landing for ads, outreach and links. Shopify is not an
+  organic target in `docs/seo/STRATEGY.md`, and Search Console already lists
+  the URL as "Discovered – not indexed". `follow` keeps its links to the rest
+  of the site crawlable. It uses the same `robots` metadata pattern as
+  `/login` and `/signup`.
+- **Removed from `app/sitemap.js`**, so the sitemap no longer asks crawlers to
+  index a noindex URL.
+- **Tests:** `seo-onpage` now asserts the page is noindex, follow, stays
+  self-canonical, and is absent from the sitemap. The `llms.txt` test no longer
+  requires the page to be a sitemap route.
+
+## v1.63 — 2026-09-27
+
+*Backfilled in v1.80.* PR #239 merged at `18edbc9` through an "Update
+branch" merge that took `main`'s `VERSION` (v1.64) and `CHANGELOG.md`, so
+v1.63 deployed without this entry. It deployed after v1.64 (#240), which is
+why it sits above it. This is the entry as it stood on the shipped commit.
+
+Moiz becomes the single CRM admin (owner-approved 2026-09-27). Numbered
+after v1.62 (PR #238, docs only).
+
+- **Migration `0044_pin_admin_to_moiz.sql`**: `public.pinned_admin_email()`
+  now returns `moizj00@gmail.com`. The existing admin (Ethan,
+  `ethan@cdsportswearinc.com`) is demoted to `project_manager`, so it keeps
+  `/team` access but not `/admin` or user management. Moiz's existing
+  account is then promoted to `admin`. No accounts are merged, renamed or
+  deleted. The 0027 revoke on the helper is re-asserted.
+- Consequences, also owner-approved: new contact-form leads are recorded
+  against Moiz (0026/0029 look up the pinned admin), and
+  `project.brief_submitted` alerts (in-app and email) go to Moiz.
+- `scripts/provision-crm-test-users.mjs` provisions the admin as
+  `moizj00@gmail.com` and no longer overwrites that account's name.
+- Tests: `supabase/tests/0044_pin_admin_to_moiz.test.sql` (5 pgTAP) and
+  `tests/crm/migration-0044-pin-admin-to-moiz.test.mjs`. The 0042 pgTAP
+  test now checks only that the pin no longer names the retired domain.
+  Locally, 0044 applied to a copy staged like live (Ethan admin, Moiz
+  client) gives Ethan `project_manager` and Moiz `admin`, re-applying it
+  changes nothing, and the pin-dependent pgTAP files (0009, 0035, 0041,
+  0042, 0043, 0044) pass 92/92.
+- CLAUDE.md: 0042 is recorded as applied live (2026-09-15), and 0044 as the
+  current admin pin.
+
+## v1.64 — 2026-09-26
+
+Docs only; no application code, route or runtime change. Lands the SEO
+goal-monger records that were sitting untracked in a local checkout.
+
+- **`docs/seo/goals.md`** — the active goal MJ approved on 2026-09-26: GSC
+  average position ≤10 for `rfp web development` on
+  `/blog/web-development-rfp-guide`, 14 consecutive complete reporting days,
+  by 2027-03-31. Baseline 0 reportable impressions (position unavailable);
+  indexing milestone closed. Does not replace the qualified-inquiry goal in
+  `STRATEGY.md`.
+- **First push run note** (`runs/2026-09-26-goal-monger.md`) and the
+  continuous SEO operating plan.
+- **RFP worksheet draft** at `drafts/downloads/web-development-rfp-worksheet.md`
+  (`approved: false`). Deliberately *not* in `drafts/blog/`: the publish
+  script would have turned it into `/blog/web-development-rfp-template`, a
+  second URL for a query the registry already assigns to the RFP guide.
+- **Agent Council records** (`council/`): the original brief (byte-identical
+  to the sha256 in the recorded verdict), its revised preflight brief, the
+  verdict JSON, and the GitHub Actions weekly-council proposal (proposal
+  only — no workflow is added).
+- **Templates** (`templates/`): weekly run note, SEO PR body, scheduler
+  handoff, and the draft `get_seo_goal_snapshot` tool schema for the
+  Search Console connector repo.
+
+## v1.61 — 2026-09-27
+
+Fixes for v1.60 (visual Phase 1b) from its adversarial review. They were
+pushed to PR #236 after the commit it merged at (`28346fd`), so they ship
+here. Also backfills the v1.60 entry below.
+
+- **Fix: jumping back to About, Services or Client stories named the
+  section above.** Breakpoints were measured with `getBoundingClientRect()`,
+  which includes SectionHandoff's 16px pre-reveal transform, while a jump
+  back to an already-revealed section lands on the real top. `sectionTop()`
+  in `lib/beatProgress.js` measures layout tops (offsetTop chain), and
+  SmoothScroll jumps homepage sections to that same number. The same
+  breakpoints drive `CameraRig`.
+- **Hero "See selected work" links to `/work`** (the real projects) instead
+  of `#motion`, whose marquee is third-party showcase screenshots that must
+  never read as CD Sportswear INC client work.
+- **SmoothScroll**: the limit check reads Lenis's raw dimensions (its
+  `limit` getter allocates an object per call) and resyncs
+  `scrollState.progress` on the same frame, since Lenis emits no scroll
+  event for a resize. In-page jumps now move focus to the target section
+  (`tabindex="-1"`, no ring), so the next Tab continues from there.
+- **JourneyNav**: after the page in DOM order, so keyboard users reach the
+  hero first; the phone list closes when focus leaves it, ignores an Escape
+  another component already handled, and scrolls within the viewport on
+  landscape phones and at 200% zoom.
+- Tests: transform-free layout tops, the jump target, focus-out and Escape
+  behaviour, and the `/work` CTA. `docs/HOMEPAGE-OVERHAUL-REUSE-INVENTORY.md`
+  no longer describes the removed "01/09" readout.
+- Verified in Chromium on a production build: 18 forward, backward and
+  random nav jumps each mark the right section at 1440, 1024 and 390px;
+  Tab after a jump lands inside the target section; the open phone list
+  fits and scrolls at 844×390; the resting rail overlaps no text at 1024 or
+  1180px.
+
+## v1.60 — 2026-09-27
+
+Visual experience Phase 1b: wayfinding and first-screen clarity
+(`docs/visual/PHASE-0-REPORT.md`, `docs/visual/UI-UX-REVIEW.md`). Numbered
+after v1.59 (PR #235, the v1.55/v1.57 CHANGELOG backfill).
+
+*Backfilled in v1.61.* PR #236 merged at `28346fd`, whose "Update branch"
+merge took `main`'s `VERSION` (v1.59) and `CHANGELOG.md`, so v1.60 deployed
+without its entry. This is the entry as it stood on the shipped commit.
+
+- **Section navigation** (`components/JourneyNav.jsx`,
+  `app/styles/journey-nav.css`, `lib/journeyNav.mjs`). The homepage's
+  aria-hidden "01/09" readout becomes a real `<nav aria-label="Page
+  sections">` of in-page links, one per beat, in the existing order.
+  The current section is marked `aria-current="location"`. On desktop it is
+  the same right-edge rail, with labels shown for the current section and
+  on hover or keyboard focus. At ≤900px it is a "03/09 · Services" button
+  (44px tall, bottom-right) that opens the list; Escape, tapping outside or
+  choosing a section closes it. Links are plain `#id` anchors, so
+  SmoothScroll's existing Lenis upgrade (and native scrolling under reduced
+  motion) handles the scroll. The active beat is read from the shared
+  `gsap.ticker`, and the DOM is written only when the beat changes.
+- **Plain-language labels**: Intro, About, Services, How we work, Client
+  stories, Brand systems, Capabilities, Selected work, Contact. Lab is
+  labelled *Capabilities*, not *Experiments*, because the section shows
+  what we build for clients.
+- **Hero**: a descriptor line above the headline ("Websites · Branding ·
+  Motion · Marketing · AI automation") and a secondary "See selected work"
+  CTA beside "Start a project". The headline, proof line and the rest of
+  the hero are unchanged.
+- **Fix: section boundaries were never measured on first load.** Lenis
+  updates `lenis.limit` on its own debounced ResizeObserver, after
+  SmoothScroll's body observer has already measured against the stale
+  value. Every breakpoint stayed at its evenly-spaced default until the
+  window resized, so the old "01/09" count ran one section behind from
+  About onward (e.g. "05" on Mark). SmoothScroll now re-measures on the
+  ticker frame the limit changes. `CameraRig` reads the same breakpoints,
+  so on first load the camera now paces to the real sections — what it
+  already did after any resize. `currentBeatIndex` also allows 2px of
+  slack, so a jump that lands a sub-pixel short of a section still names
+  it. Verified in Chromium: all nine nav jumps mark the right section at
+  1440px and 390px.
+- `ScrollProgress` loses its `sections` readout (now JourneyNav's job) and
+  keeps the progress bar; the matching `.scroll-progress-count` CSS is
+  removed.
+- Tests: `tests/journeyNav.test.mjs` and `tests/marketing/journeyNav.test.jsx`
+  (the second runs in CI's `test:marketing`). `tests/beatProgress.test.mjs`
+  now checks that only the homepage mounts the readout.
+
+## v1.59 — 2026-09-27
+
+Release-record backfill only; no code or runtime change.
+
+- `CHANGELOG.md` gains the missing **v1.57** (visual Phase 0 baseline +
+  Phase 1a fixes, PR #230) and **v1.55** (client service briefs, PR #229)
+  entries. Both PRs merged on 2026-09-26 minutes after v1.56 (#231), and
+  their "Update branch" merges took `main`'s `VERSION`/`CHANGELOG.md`,
+  dropping their own entries. They are placed in merge order below v1.58.
+- `VERSION` → v1.59 (one above the highest release named on `main`).
+
+## v1.58 — 2026-09-26
+
+Full SEO audit and the fixes it justified. Evidence, sources and everything
+left for the owner: `docs/seo/runs/2026-09-26-full-audit.md`. Numbered after
+v1.57, which is named in the merge log (`3d7479a`, PR #230) but has no entry
+here.
+
+- **Business identity** (owner-confirmed 2026-09-26). "Sharjah, DXB" is not a
+  CD Sportswear INC location and is removed from the footer, homepage contact
+  block, Contact page, About copy and FAQ, OG image and Privacy page;
+  `SITE.citySecondary` / `SITE.cityCompact` are gone. `lib/site.js` gains
+  `address` (8956 Dahlgren Ridge Rd, Manassas, VA 20111) and
+  `mailingAddress` (P.O. Box #41424, Arlington, VA 22204) plus a shared
+  `cityStateZip()` formatter. Contact now lists both; Privacy and Terms use
+  the P.O. Box instead of the undeliverable "Manassas, VA, United States"
+  (their "Last updated" moves to September 26, 2026). The Privacy
+  data-transfer clause is unchanged.
+- **Organization schema** (`app/layout.jsx`): one US `PostalAddress` with
+  the street address; `areaServed` United States; no P.O. Box, hours or geo.
+  The site-wide `AggregateRating` is removed — it was on every page while the
+  reviews are only visible on `/reviews` (which keeps its per-review markup).
+  Service schema `areaServed` drops the UAE.
+- **Canonical**: the homepage canonical moves from the root layout to
+  `app/page.jsx`, so 404s (and any future route that forgets its own) no
+  longer inherit a homepage canonical. Every other canonical is unchanged
+  (before/after crawl of the built site).
+- **robots.txt**: `*` and the named crawlers (GPTBot, OAI-SearchBot,
+  ChatGPT-User, ClaudeBot, PerplexityBot, Bingbot, Applebot, Google-Extended)
+  now share one group. Each used to have its own `Allow: /` group, and under
+  RFC 9309 a crawler obeys only its most specific group, so none of them
+  inherited the CRM/API/auth disallows. The non-standard `Host:` line is
+  dropped.
+- **Sitemap**: regenerates hourly (`revalidate = 3600`) so posts that reach
+  `blog_posts` outside the admin publish action appear without a redeploy
+  (seven "redeploy to refresh sitemap" commits since 2026-09-22). `lastmod`
+  is now emitted only for posts (`updated_at`); static, service and
+  case-study URLs used to report the build time.
+- **Blog rendering** (`lib/blogMarkdown.mjs`, `PostBody.jsx`): 10 of 14 live
+  posts open with `# <title>`, which printed as a literal "# ..." paragraph
+  under the real `<h1>`; a leading heading that restates the title is now
+  dropped and any other `#` becomes `<h2>`. `![alt](src)` images (6 across 3
+  posts) rendered as "!" plus a link to the `.jpg`; they now render as lazy
+  `<img class="post-image">` with the author's alt text. Image sources are
+  limited to https and site-relative paths.
+- **Internal links**: `/services/web-design`, `/services/web-development`,
+  `/services/ai-automation` and `/services/workflow-automation` link to the
+  six published posts that already linked up to them but got nothing back;
+  the eight posts published 2026-09-24 → 26 get pillar + sibling "Next" links
+  instead of the generic fallback. `/blog/website-redesign-services` is left
+  unlinked from the pillar pending the owner's ruling on the term it targets.
+- `public/llms.txt` now covers every sitemap URL (10 posts and
+  `/hire/shopify-developer` were missing) and describes Process as the six
+  steps the page shows.
+- Docs: keyword registry (10 unregistered live posts, the Shopify page's
+  state conflict), operations manual (Search Console now readable via the
+  GSC connector; new owner items 12–15), STRATEGY §8 current state, and a
+  CLAUDE.md build gotcha — `NODE_ENV=development` in the shell reproduces the
+  `useContext` prerender failure on Linux.
+- Follow-up from the adversarial review (same release): a failed post read
+  during an hourly sitemap regeneration now throws, so Next keeps serving the
+  last good sitemap instead of caching one with no posts (`next build` still
+  degrades to the static list; `listPublishedSlugs({ throwOnError })`).
+  `safeHref`/`safeImageSrc` refuse `//host` and `/\host` paths, including
+  ones produced by rewriting an owned-host URL. Title-drop applies to the
+  first line only and on a word boundary; empty headings are skipped; closing
+  `#`s and a leading BOM are handled. `.post-image` uses `max-width`. The
+  post editor's Markdown help mentions images and the H1 rule.
+- Tests: `tests/seo-identity-and-crawl.test.mjs` (location, schema, canonical
+  ownership, robots groups, sitemap freshness, llms.txt coverage),
+  `tests/marketing/postBody.test.jsx`, new parser cases in
+  `tests/blogMarkdown.test.mjs`; `content` and `serviceSchema` tests updated.
+
 ## v1.57 — 2026-09-26
 
-SEO content and technical audit updates, plus a transitive dependency security fix.
+Merged as PR #230 right after v1.55; its "Update branch" merge dropped this
+entry. Backfilled in v1.59 so the release is recorded.
 
-- **SEO content** — Added the business-of-web-design and product-page-design drafts, keyword registry updates, and daily SEO run documentation.
-- **Technical SEO** — Applied the Latiedo audit metadata corrections, preserved the approved no-Shopify strategy, and reduced the flagged homepage client image below 200 KB.
-- **Security** — Pinned transitive `fast-uri` to patched `3.1.6`; `pnpm audit` reports no known vulnerabilities.
+Visual experience Phase 0 baseline + Phase 1a defect fixes (owner-supplied
+brief: `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`).
+
+- **Phones no longer scroll sideways.** `.motion-stream-index` (Selected work
+  list) was `width: min(100%, 34rem)` plus a 6vw side margin, so it ran
+  19–23px past the right edge at every phone width and the fixed nav's menu
+  button was clipped. Now `width: auto; max-width: 34rem` (desktop unchanged).
+- **One `<main>` landmark.** `app/layout.jsx` already owns
+  `<main id="main-content">`; the homepage and subpage shells rendered a
+  second, nested `<main>` (axe: 3 landmark violations on every page). They
+  are now `<div>`s with the same classes.
+- **Reduced-motion hydration error fixed.** `SectionSkeleton` branched its
+  markup on `useReducedMotion()` (null on the server, true on the client),
+  throwing React #418 for exactly the visitors reduced motion protects. The
+  sweep element always renders; CSS hides it under reduced motion.
+- **WebGL failure no longer throws.** `Scene` probes WebGL once
+  (`lib/webglSupport.mjs`) and skips the canvas when it is unavailable; the
+  canvas is also wrapped in `CanvasFeatureBoundary`. The CSS backdrop and every
+  DOM section keep working.
+- **Homepage scene follows its quality tier.** `Scene.jsx` hardcoded DPR 1.75,
+  900 particles and full post-processing on every device, ignoring
+  `lib/renderQuality.mjs`. DPR, particle count and idle animation now follow
+  the tier, like `IdleScene` already did. Bloom + vignette stay on every tier
+  (eco includes 4-thread laptops such as the 2019 MacBook Air; owner decision)
+  — only the high tier gets mipmap blur + depth of field.
+- **Global focus ring.** Zero-specificity `:where(...):focus-visible` safety
+  net in `primitives.css` (component styles still win); dark ring on
+  `[data-nav-tone="light"]` surfaces where cyan fails contrast.
+- **Docs.** `CLAUDE-VISUAL-EXPERIENCE-PLAN.md`, `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`
+  and `docs/visual/` (UI/UX review, accessibility audit, accessibility test plan,
+  Phase 0 current-state map and baseline); `CLAUDE.md` points to them.
+- Measured on a production build (software WebGL — relative numbers only):
+  mobile scroll 9 → 30 fps, desktop scroll 4 → 8 fps, axe violations 3 → 0,
+  page errors in reduced-motion and no-WebGL modes → 0.
+- Tests: `tests/visualPhase1a.test.mjs` (7).
 
 ## v1.56 — 2026-09-26
 
@@ -38,6 +508,32 @@ motion system — transitions only; none of its WebGL, media or copy).
   Everything resolves instantly under `prefers-reduced-motion`.
 - Tests: `tests/pageTransition.test.mjs` (route rules, exclusions, scramble
   frames).
+
+## v1.55 — 2026-09-26
+
+Merged as PR #229 *after* v1.56 (#231), so production shipped v1.56 first and
+`VERSION` read v1.56 when this landed; the PR's merge conflict was resolved
+without this entry. Backfilled in v1.59 so the release is recorded.
+
+Full client area: guided, service-specific briefs that start projects.
+
+- **Briefs by service.** New `/dashboard` with service cards for **Logo design, Website, SEO and PPC ads**, plus "Something else" (the existing free-text form). Each opens a step-by-step questionnaire (`lib/crm/brief-templates.mjs`) written for the designer, developer or marketer who picks it up. Examples: brand personality sliders, logo usage and file formats; pages, features, content readiness and reference sites; target locations, priority services, keywords, Search Console/GA4 status; platforms, ad spend, conversion goal, tracking and landing pages.
+- **Autosave and pre-fill.** Answers save about a second after the client stops typing, with a visible "Saved" status. The client can leave and resume from "Briefs in progress". Company name, website and industry are pre-filled from onboarding.
+- **Many briefs per project.** Submit either starts a new project (name and target date suggested from the answers) or adds the brief to an existing project. Project pages for client, team and admin gain a **Briefs** panel with the full answers laid out by section. Clients can add another brief from there.
+- **Studio alerts.** Submitting notifies the admin and any assigned staff in-app and by email (`project.brief_submitted`). The email links straight to the staff view of the project.
+- **Database (`0043_project_briefs.sql`).** New `project_briefs` table with forced RLS: drafts are author-only, submitted briefs are visible to project participants, and only drafts are writable. `submit_project_brief()` RPC is idempotent via `create_project()`'s key. Adds `project.brief_submitted` to the audit event list. **Applied to the live database on 2026-09-26**, before this merge.
+- **Fixes.** The free-text brief form's success handler received `{ projectId }` but navigated to `/dashboard/projects/[object Object]`. The brief wizard's step list no longer widens the page on phones.
+- **Hardening from review.**
+  - The dashboard loads projects independently of briefs, so a missing `0043` never blanks the project list.
+  - Pending edits save when the client leaves the wizard.
+  - Non-retryable save errors stop retrying, and other failures back off exponentially.
+  - Submit waits for, and requires, a successful save of the exact answers.
+  - A draft whose project was cancelled can be re-pointed.
+  - Specific submit error messages.
+  - Emoji-safe length caps.
+  - Brief ids are immutable, and an id colliding with an existing project key is refused.
+  - The answer size check leaves headroom under the database limit.
+- Tests: questionnaire data and validation, migration contract, server-action guards, email template (Node); wizard autosave/submit behaviour (vitest); 22 pgTAP assertions for RLS, submit, idempotency, id immutability and notifications, all run against a local Postgres 16 with every migration `0001`–`0043` applied.
 
 ## v1.54 — 2026-09-25
 
@@ -1190,17 +1686,6 @@ No look, feel, or functional changes beyond the above; `pnpm build` clean,
 `pnpm test` 449/449, `pnpm test:marketing` 22/22 (includes 2 new assertions
 for the SVG reduced-motion fix), `tsc --noEmit` clean.
 
-## v1.10 — 2026-08-29
-
-- Fix two stale/miscalibrated claims in `CLAUDE.md` surfaced by an
-  evidence-calibration review: the "CRM is launched" line now says when it
-  was last directly HTTP-verified and prompts a re-check rather than
-  reading as a permanently-settled fact, since several merges to `main`
-  have deployed since that check ran. The migration-count line ("0001
-  through 0035 as of 2026-08-20") was stale (real head is now `0038`) and
-  is replaced with guidance to always check the directory instead of
-  citing a number that goes stale within days during active periods.
-
 ## v1.11 — 2026-08-29
 
 - Fix `updateProjectTask`'s revalidation bug: it passed the RPC-returned task
@@ -1218,6 +1703,17 @@ for the SVG reduced-motion fix), `tsc --noEmit` clean.
   this PR would have added and documented the existing `test:marketing`
   command in `AGENTS.md`/`CLAUDE.md` instead, rather than ship two
   differently-named commands that do the same thing.
+
+## v1.10 — 2026-08-29
+
+- Fix two stale/miscalibrated claims in `CLAUDE.md` surfaced by an
+  evidence-calibration review: the "CRM is launched" line now says when it
+  was last directly HTTP-verified and prompts a re-check rather than
+  reading as a permanently-settled fact, since several merges to `main`
+  have deployed since that check ran. The migration-count line ("0001
+  through 0035 as of 2026-08-20") was stale (real head is now `0038`) and
+  is replaced with guidance to always check the directory instead of
+  citing a number that goes stale within days during active periods.
 
 ## v1.09 — 2026-08-29
 

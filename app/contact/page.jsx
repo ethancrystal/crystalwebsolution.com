@@ -21,7 +21,7 @@ const CONTACT_FAQ = [
   },
   {
     q: 'Do you work with clients outside the United States?',
-    a: 'Yes. We work with clients across the United States and the United Arab Emirates, and remotely everywhere in between.',
+    a: 'Yes. The studio is based in Manassas, Virginia and works remotely by default, so where you are doesn’t change how a project runs.',
   },
   {
     q: 'How quickly will you respond?',
@@ -93,8 +93,8 @@ export default function ContactPage() {
       </ContentSection>
       <ContentSection eyebrow="Direct" title="Prefer email or a call?" tone="alt">
         <p className="mkt-prose">
-          Reach us directly and we’ll route your note to the right person. We work across the United
-          States and the United Arab Emirates — remote is the default here, not an exception. Not ready
+          Reach us directly and we’ll route your note to the right person. We’re based in Manassas,
+          Virginia and work with clients across the United States — remote is the default here, not an exception. Not ready
           to write a brief yet? Read {REVIEW_STATS.total} <Link href="/reviews">client reviews</Link>, published
           in full, or look through recent <Link href="/work">work</Link> first.
         </p>

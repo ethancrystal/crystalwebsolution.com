@@ -175,15 +175,13 @@ additional_redirect_urls = [
   "http://127.0.0.1:3000/**",
   "https://cdsportswearinc.com/**",
   "https://www.cdsportswearinc.com/**",
-  # Retired domains, kept harmless in the allow-list rather than pruned:
-  # crystalwebsolution.com is dark by design (see CLAUDE.md), and
-  # cdsportswearusa.com is detached from Vercel (DEPLOYMENT_NOT_FOUND) as of
-  # 2026-09-10 — neither can serve a redirect target today, but nothing here
-  # depends on removing them.
-  "https://crystalwebsolution.com/**",
-  "https://www.crystalwebsolution.com/**",
-  "https://cdsportswearusa.com/**",
-  "https://www.cdsportswearusa.com/**",
+  # The client portal's own host (lib/portalHost.mjs). www stays listed: auth
+  # links sent before NEXT_PUBLIC_APP_URL moved still point there and are
+  # redirected to this host with their query string intact.
+  "https://app.cdsportswearinc.com/**",
+  # Retired domains (crystalwebsolution.com, cdsportswearusa.com) are
+  # deliberately absent: a host we no longer control must never be a valid
+  # auth redirect target, or it can receive sign-in tokens.
 ]
 
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).

@@ -16,18 +16,47 @@ GA4 measurement for crystalwebsolution.com, plus Search Console verification.
 
 ## Setup
 
-Two environment variables, both set in Vercel -> Project Settings ->
+Environment variables, all set in Vercel -> Project Settings ->
 Environment Variables:
 
-- `NEXT_PUBLIC_GA_ID` — the GA4 measurement ID, `G-XXXXXXXXXX`. Anything that
-  doesn't match `/^G-[A-Z0-9]{4,}$/i` is ignored and the tag never renders.
+- `NEXT_PUBLIC_GA_ID` — the GA4 measurement ID. Anything that doesn't match
+  `/^G-[A-Z0-9]{4,}$/i` is ignored and the tag never renders.
+
+  **Known bug, confirmed 2026-09-28, not yet fixed:** Production has been set
+  to `G-B42BM1Q95J` (the `cdsportswearinc` stream's own measurement ID) since
+  before 2026-09-27, and `gtag/js?id=G-B42BM1Q95J` 404s — confirmed against a
+  control fetch of a fake ID, which returns 200, so the 404 is specific to
+  this ID, not a general endpoint issue. Root cause, found in GA4 Admin →
+  Admin → Data Streams → `cdsportswearinc` → Google tag → Installation
+  instructions: this account's GA4 property and Google Ads/other products
+  share one linked "Google tag" resource, named `crystalwebsolution`
+  (`G-YENE9MFT5K`, alias `GT-WP5SS9NQ`), which fans out to every linked
+  destination — `G-B42BM1Q95J` is a **destination under that tag**, not an
+  independently installable measurement ID, so Google's servers don't serve a
+  loader script for it directly. Google's own installation snippet for this
+  property uses `gtag('config', 'G-YENE9MFT5K')`; installing that ID measures
+  the `cdsportswearinc` destination (and any other destination linked to the
+  same Google tag) correctly. The account's change history shows the linked
+  tag was deleted and its destinations reassigned on 2026-09-25, which lines
+  up with the 404 first appearing 2026-09-27.
+
+  **Fix:** in Vercel → Project Settings → Environment Variables (Production),
+  change `NEXT_PUBLIC_GA_ID` from `G-B42BM1Q95J` to `G-YENE9MFT5K`, then
+  redeploy `main` (inlined at build time, so the variable alone does nothing
+  — see below). This is a dashboard change outside the repo; nothing in this
+  codebase hardcodes the ID.
+- `NEXT_PUBLIC_GTM_ID` — optional override of the default Google Tag Manager
+  container, `GTM-KJZPCQNM` (v1.75, replacing the empty `GTM-5VKPC974`). Any
+  value that isn't a container ID (e.g. `off`) switches GTM off. The
+  container is for non-GA4 tags only: it must never hold a GA4 tag for the
+  same property, or every pageview counts twice.
 - `NEXT_PUBLIC_GSC_VERIFICATION` — the token from Search Console's *HTML tag*
   verification method (the `content` value only, not the whole `<meta>`).
   Optional; when unset no verification tag is emitted, which is what you want
   on preview deploys so they don't claim the property.
 
-Both are `NEXT_PUBLIC_*`, so **they are inlined at build time**. Setting or
-changing either one in Vercel does nothing until `main` is redeployed. Editing
+All are `NEXT_PUBLIC_*`, so **they are inlined at build time**. Setting or
+changing any of them in Vercel does nothing until `main` is redeployed. Editing
 the variable alone changes nothing — same trap as `NEXT_PUBLIC_CRM_ENABLED`
 (see `CLAUDE.md`).
 

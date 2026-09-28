@@ -5,6 +5,7 @@ import SmoothScroll from './SmoothScroll';
 import Loader from './Loader';
 import Nav from './Nav';
 import ScrollProgress from './ScrollProgress';
+import JourneyNav from './JourneyNav';
 import FocusVeil from './FocusVeil';
 import Hero from './sections/Hero';
 import Services from './sections/Services';
@@ -27,7 +28,7 @@ export default function Experience() {
       <Scene />
       <FocusVeil />
       <Nav />
-      <ScrollProgress sections />
+      <ScrollProgress />
       {/* A div, not <main>: app/layout.jsx already wraps every route in the
           single <main id="main-content"> landmark. */}
       <div className="page">
@@ -41,6 +42,9 @@ export default function Experience() {
         <Motion />
         <Contact />
       </div>
+      {/* After the page in DOM order (it is fixed, so it looks the same):
+          keyboard users reach the hero before nine section links. */}
+      <JourneyNav />
     </SmoothScroll>
   );
 }
