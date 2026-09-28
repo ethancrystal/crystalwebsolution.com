@@ -1,3 +1,25 @@
+## v1.73 — 2026-09-27
+
+Changelog backfill only; no code change. Records what PR #246 shipped,
+because it merged without a version of its own. Its "Update branch" merge
+(`91a569f`) took `main`'s side of the `VERSION`/`CHANGELOG.md` conflict, so
+`VERSION` stayed at v1.70 (already #247's) and its entry was dropped. It
+deployed as "v1.69", the name #243 and #245 also carry (merge `bd1bd06`).
+v1.71 and v1.72 are claimed by open PRs #244 and #249.
+
+- **CI now runs every vitest file** (from #246). The `test` job in
+  `docker-ci.yml` ran `pnpm test:marketing` (`vitest run tests/marketing`),
+  so the three CRM component tests in `tests/crm/*.test.jsx`
+  (`admin-form-shell`, `brief-wizard`, `project-thread-behaviour`) never ran
+  in CI. A new `pnpm test:components` script (`vitest run`, using the
+  config's `tests/**/*.test.jsx` include) replaces that step, so any future
+  `*.test.jsx` directory is covered too. `pnpm test:marketing` is unchanged.
+- **`brief-wizard.test.jsx` gets a 20s timeout** (from #246). Its
+  review/submit tests take 3-9s in jsdom and timed out at vitest's 5s
+  default once they ran next to the marketing suite.
+- Docs, the `release-check` skill (Claude + Cursor) and project memory name
+  `test:components` as the component gate (from #246).
+
 ## v1.70 — 2026-09-27
 
 Fixes a live bug in the CRM notification outbox. Adds migration
