@@ -70,9 +70,16 @@ animation code. Rules:
   Don't turn it back on.
 - **Camera segments use measured DOM breakpoints** (`lib/beatProgress.js`),
   not a uniform `index / (STOPS.length - 1)` split. Adding or reordering a
-  beat moves four things together: `STOPS`/`CLUSTERS` in `lib/journey.js`,
-  `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`, and its actor
+  beat moves five things together: `STOPS`/`CLUSTERS` in `lib/journey.js`,
+  `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`, its label in
+  `LABELS` in `lib/journeyNav.mjs` (the homepage section nav), and its actor
   in `Scene.jsx`.
+- **Measure beats with `sectionTop()`, never `getBoundingClientRect()`.**
+  Rects include `SectionHandoff`'s 16px pre-reveal transform, so rect-based
+  breakpoints disagree with where an anchor jump lands (v1.60/v1.61).
+  SmoothScroll re-measures on the ticker frame Lenis's limit changes as well as
+  from its `<body>` `ResizeObserver`: Lenis updates the limit on its own
+  debounced observer, after ours has fired.
 
 ### Component layout
 
@@ -80,7 +87,8 @@ animation code. Rules:
   (assembles the whole page and dynamic-imports `Scene` with `ssr: false`
   since it touches `window`/WebGL), `SmoothScroll.jsx`, `Scene.jsx`,
   `Loader.jsx`, `Nav.jsx`, `Menu.jsx`, `FocusVeil.jsx`,
-  `ScrollProgress.jsx`, and small reusable primitives (`Magnetic.jsx`,
+  `ScrollProgress.jsx` (progress bar only), `JourneyNav.jsx` (homepage section
+  nav), and small reusable primitives (`Magnetic.jsx`,
   `Reveal.jsx`/`SectionReveal.jsx`, `DecodeText.jsx`, `Marquee.jsx`).
 - `components/sections/*.jsx` — one file per scroll beat's DOM content
   (Hero, About, Services, Approach, Stories, Mark, Lab, Motion, Contact),
@@ -173,11 +181,11 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
 2. Title the PR `vX.NN — <summary>`. PRs land as merge commits whose message
    body starts with that title, which is how a deploy traces back to it.
 3. `package.json`'s `version` field is NOT part of this scheme — leave it.
-4. Never reuse a number. Next = one above the highest `vX.NN` named in
-   `git log --oneline -15 origin/main` (fetch first), `VERSION`, the top of
-   `CHANGELOG.md`, or an open PR's title (`gh pr list --base main`). A PR can
-   deploy under a `vX.NN` title while bumping neither file, so the files alone
-   can lag production.
+4. Never skip or reuse numbers; next = top of `CHANGELOG.md` + 0.01.
+5. After merging `main` into a version-bump branch (including GitHub's
+   "Update branch"), check that `VERSION` and the top `CHANGELOG.md` heading
+   still name this PR's version. That merge dropped the bump for v1.55, v1.57,
+   v1.60 and v1.63.
 
 ## Memory Management
 
