@@ -6,6 +6,14 @@ Docs only, no runtime change. Backfills two releases that deployed without a `CH
 - **CLAUDE.md and AGENTS.md versioning rules:** the next number is one above the highest `vX.NN` named in `git log origin/main` (fetch first), `VERSION`, the top of `CHANGELOG.md`, or an open PR's title. The "Update branch" rule's list of incidents now includes v1.79 and v1.81.
 - `VERSION` is v1.84.
 
+## v1.83 — 2026-09-28
+
+Dependabot minor and patch updates now wait for release metadata and CI before auto-merge is enabled.
+
+- Add a release-policy check that requires the next `VERSION`, a matching top `CHANGELOG.md` entry, and a versioned PR title.
+- Enable native auto-merge for Dependabot minor/patch PRs only when the release metadata is valid; GitHub still waits for the required `test` and `build` checks.
+- Protect `main` with pull-request-only merge commits and required `test`/`build` status checks.
+
 ## v1.81 — 2026-09-28
 
 *Backfilled in v1.84.* PR #254 merged at `5caf5ab` through GitHub's "Update branch" merge (`dff2015`), which kept `main`'s `VERSION` (v1.82) and `CHANGELOG.md`, so this release deployed under its merge title, v1.81, without an entry. It deployed after v1.82 (#255), which is why it sits above it. This is the entry as it stood on the PR's own commit (`498f460`).
