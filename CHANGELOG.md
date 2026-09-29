@@ -1,3 +1,27 @@
+## v1.92 — 2026-09-29
+
+Docs only: the design spec for the CRM engagement engine. No runtime change.
+
+- `docs/superpowers/specs/2026-09-29-crm-engagement-engine-design.md` sets
+  out how the portal brings clients back without anyone on the team having to
+  chase them. It records the owner decisions from the 2026-09-29 brainstorm:
+  - rules and schedules only, no AI;
+  - a weekly digest plus instant emails when the client is needed;
+  - a noise budget of 1 automated email a day and 3 a week;
+  - client threads written by the client and the lead project manager, with
+    the admin reading only;
+  - Trustpilot and Google review asks after delivery;
+  - a referral that earns a talking-logo animation, one per client company.
+- The engine design uses database rules with a unique send ledger, feeding
+  the existing notification outbox. It ships switched off, with a dry run.
+- The spec also records the first decision on contextual offers: a
+  live-search domain offer with the second year free, which the team
+  registers. That design is still in progress.
+- Implementation follows as separate versioned PRs after the owner reviews
+  the spec.
+
+Verification: `pnpm test`.
+
 ## v1.82 — 2026-09-28
 
 Dependency fix and security housekeeping from the 2026-09-28 triage.
