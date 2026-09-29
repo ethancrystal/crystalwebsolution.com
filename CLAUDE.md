@@ -283,7 +283,9 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
 4. Never reuse a number. Next = one above the highest `vX.NN` named in
    `git log --oneline -15 origin/main`, `VERSION`, the top of `CHANGELOG.md`,
    or an open PR's title (`gh pr list --base main`). `/version-bump` applies
-   this.
+   this, and the `release-policy` check (`scripts/release-policy.mjs`) fails
+   any PR into main whose number is not above main or is held by another
+   open PR. If a higher number merges first, renumber before merging.
 5. **Check the merge log and open PRs, not just the files.** A PR can be
    *titled* `vX.NN` and deploy under that name while bumping neither file, so
    `VERSION` can lag what production is actually called. That happened with

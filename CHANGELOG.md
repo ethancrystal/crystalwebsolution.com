@@ -1,4 +1,6 @@
-## v1.91 — 2026-09-29
+## v1.95 — 2026-09-29
+
+Opened as v1.91; renumbered to v1.95 after v1.94 (#269) merged first.
 
 Lead project manager assignment, and the emails around it. No database
 change: everything goes through the existing RPCs (`assign_project_user`,
@@ -56,6 +58,33 @@ manager `phase1-pm-test@…` still appears in the picker until removed.
 Verification: `pnpm test` 638/638, `pnpm test:components` 93/93 (new:
 `lead-manager-action`, `lead-manager-card`, `middleware-login-next`), and the
 production build with the CI placeholders (60/60 pages).
+
+## v1.94 — 2026-09-29
+
+CI only, no runtime change. The `release-policy` check (added in v1.83)
+required every PR into main to be numbered exactly main + 0.01, which
+contradicts the numbering rule v1.84 restored in CLAUDE.md: take one above
+main *and every open PR*, never reuse a number. With eight PRs queued, it
+failed all but one (#266 and #268 were told to become v1.85, #259's number).
+
+- The rules move to `scripts/release-policy.mjs`, a pure function with unit
+  tests (`tests/release-policy.test.mjs`); the workflow now only gathers the
+  inputs (checkout without credentials, read-only token) and reports.
+- A PR passes when its title and `VERSION` name the same release, that
+  release is above everything already on main (`VERSION`, `CHANGELOG.md`
+  headings, and PR titles in main's merge commits, since a PR can deploy
+  under its title without bumping the files), no other open PR holds it,
+  and `CHANGELOG.md` starts with a dated, non-empty entry for it. Gaps are
+  allowed. If a higher number merges first, the lower PR renumbers.
+- Unchanged: the title format, the `VERSION`/`CHANGELOG.md` requirement, the
+  pause at .99 and major-version changes needing the owner, and the
+  Dependabot auto-merge job still needs this check to pass.
+- CLAUDE.md and AGENTS.md rule 4 note that the check enforces it.
+
+Verification: `pnpm test` (new: `release-policy`, 10 cases, including
+today's queue); the workflow's script compiled and run against a fake
+GitHub client (valid number accepted, number held by another open PR
+refused); the workflow YAML parses.
 
 ## v1.84 — 2026-09-28
 
