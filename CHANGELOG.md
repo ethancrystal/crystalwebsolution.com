@@ -16,6 +16,14 @@ Every transactional email gets a clean, professional dark layout that matches th
 - **Sign-up confirmation wording** now says what happens next: the client portal, starting a project, sharing a brief and files.
 - **Verified:** `pnpm test`, including `tests/email.test.mjs`. The confirmation and message emails were rendered in Chromium at 390px and 700px.
 
+## v1.83 — 2026-09-28
+
+Dependabot minor and patch updates now wait for release metadata and CI before auto-merge is enabled.
+
+- Add a release-policy check that requires the next `VERSION`, a matching top `CHANGELOG.md` entry, and a versioned PR title.
+- Enable native auto-merge for Dependabot minor/patch PRs only when the release metadata is valid; GitHub still waits for the required `test` and `build` checks.
+- Protect `main` with pull-request-only merge commits and required `test`/`build` status checks.
+
 ## v1.82 — 2026-09-28
 
 Dependency fix and security housekeeping from the 2026-09-28 triage.
