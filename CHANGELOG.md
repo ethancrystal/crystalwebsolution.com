@@ -1,3 +1,59 @@
+## v1.91 — 2026-09-29
+
+Lead project manager assignment, and the emails around it. No database
+change: everything goes through the existing RPCs (`assign_project_user`,
+`remove_project_assignment`, `transition_project_status`).
+
+- **Admin project page:** a new card at the top (`components/crm/LeadManagerCard.jsx`)
+  shows the project's lead project manager, or, when nobody leads it, the
+  project managers to pick from, with how many open projects each has.
+  Managers are shown by name only, never by email address. One click assigns
+  a lead (`app/actions/assignment-actions.js`, admin-only): the chosen
+  manager goes on first, everyone else comes off, and a project still at
+  `brief_submitted` moves to `planned` with a shared status note naming the
+  manager. `assign_project_user` is skipped only for the current lead, so a
+  manager promoted from "also assigned" is still emailed. A failed move to
+  Planned after a successful assignment is reported as a warning. The admin
+  page can now also move a project from `brief_submitted` to `planned` by hand.
+- **Admin brief email:** for a new project nobody leads, the admin email now
+  reads "Assign a project manager: new Website project from <client>",
+  names the client (name, email, company, account date, first project or
+  not) and links to the admin project page. The client details are looked up
+  when the email is sent, and go to staff only.
+- **Client "project is planned" email:** when a new project moves to
+  Planned, the client's status email introduces their project manager by
+  name, with a light, playful line (the same line appears in the shared
+  status note). Copy lives in `lib/crm/notification-copy.mjs`.
+- **Project manager email:** "You're the project manager for <project>",
+  with the client's name, email and company.
+- **Links:** every project email now links to the recipient's own
+  workspace. Staff emails used to point at `/dashboard/...`, which bounced
+  project managers to `/team` without the project.
+- **Stale assignments:** a project manager only gets email about projects
+  they are still assigned to. Rows queued before a manager was replaced are
+  closed as `missing_recipient` instead of sent. The check fails open.
+- **Login:** a signed-out visitor to a portal page (for example from an
+  email link) is sent to that portal's login with `?next=`, and lands on the
+  page after signing in (`middleware.js`).
+- **Admin home and list:** an "Open projects" card with "N need a project
+  manager", a Projects header link, and a "Needs a project manager" filter
+  on `/admin/projects` (`?pm=none`). The admin header now wraps on phones
+  instead of pushing Sign Out off-screen.
+- **In-app notifications:** the client's notification list shows a sentence
+  per event ("Your project is planned…", "AJ sent a new message.") instead
+  of the raw event code, and a "New" badge instead of a meaningless
+  "pending" label.
+- **Dates:** email timestamps are dated in studio (Eastern) time; date-only
+  values never shift.
+
+Owner follow-ups (not in this PR): Alex and AJ have no accounts yet (invite
+them from Manage Users); Ethan's display name is "Ethan Crystal"; the test
+manager `phase1-pm-test@…` still appears in the picker until removed.
+
+Verification: `pnpm test` 638/638, `pnpm test:components` 93/93 (new:
+`lead-manager-action`, `lead-manager-card`, `middleware-login-next`), and the
+production build with the CI placeholders (60/60 pages).
+
 ## v1.82 — 2026-09-28
 
 Dependency fix and security housekeeping from the 2026-09-28 triage.

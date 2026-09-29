@@ -1,15 +1,7 @@
 'use client';
 
 import { markNotificationsRead } from '@/app/actions/project-actions';
-
-function humanizeEventType(eventType) {
-  if (!eventType) return 'Notification';
-  return eventType
-    .split(/[._]/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { notificationText } from '@/lib/crm/notification-copy.mjs';
 
 function formatWhen(value) {
   if (!value) return '';
@@ -42,10 +34,10 @@ export default function NotificationsPanel({ notifications = [] }) {
             return (
               <li key={notification.id} className={`crm-notification-item ${unread ? 'unread' : ''}`}>
                 <div className="crm-notification-main">
-                  <span className="crm-notification-title">{humanizeEventType(notification.event_type)}</span>
-                  <span className={`crm-notification-status ${notification.sent_at ? 'sent' : 'pending'}`}>
-                    {notification.sent_at ? 'sent' : 'pending'}
+                  <span className="crm-notification-title">
+                    {notificationText(notification.event_type, notification.payload)}
                   </span>
+                  {unread && <span className="crm-notification-new">New</span>}
                 </div>
                 <div className="crm-notification-meta">
                   <span>{formatWhen(notification.created_at)}</span>
@@ -114,26 +106,14 @@ export default function NotificationsPanel({ notifications = [] }) {
           color: #e0e0e0;
         }
 
-        .crm-notification-status {
+        .crm-notification-new {
           display: inline-block;
-          padding: 0.2rem 0.65rem;
+          padding: 0.15rem 0.6rem;
           border-radius: 999px;
-          font-size: 0.8rem;
-          border: 1px solid rgba(100, 200, 255, 0.25);
-          background: rgba(100, 200, 255, 0.1);
-          color: #64c8ff;
-        }
-
-        .crm-notification-status.sent {
-          background: rgba(100, 255, 150, 0.1);
-          border-color: rgba(100, 255, 150, 0.35);
-          color: #86ffb2;
-        }
-
-        .crm-notification-status.pending {
-          background: rgba(255, 200, 100, 0.1);
-          border-color: rgba(255, 200, 100, 0.35);
-          color: #ffd08a;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #0a0e27;
+          background: #64c8ff;
         }
 
         .crm-notification-meta {
@@ -141,7 +121,6 @@ export default function NotificationsPanel({ notifications = [] }) {
           gap: 1rem;
           color: #999;
           font-size: 0.85rem;
-          text-transform: capitalize;
         }
 
         .crm-notification-read {
