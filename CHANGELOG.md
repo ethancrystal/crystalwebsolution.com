@@ -1,3 +1,29 @@
+## v1.90 — 2026-09-29
+
+Cluster integrity is now a build gate, and one piece of registry drift is
+corrected.
+
+- `tests/seo-cluster-integrity.test.mjs` (new, 7 assertions) enforces the
+  pillar + cluster rule in `docs/seo/STRATEGY.md` §3 across the three sources
+  that have to agree: `KEYWORD-REGISTRY.md`, `docs/seo/drafts/blog/*.md`, and
+  `GUIDE_LINKS` in `lib/servicePages.mjs`. It checks one keyword → one URL,
+  that a row claiming a draft has that file on disk, that every draft is
+  mapped, that `target_url` matches the filename, that every draft links up to
+  a real pillar with anchor text of 10+ characters, that an **approved** post
+  linking up to a pillar is linked back from it, and that every `guideLinks`
+  href is well formed. Each assertion was mutation-tested to confirm it fires.
+- `docs/seo/KEYWORD-REGISTRY.md`: `/blog/branding-vs-brand-identity` and
+  `/blog/logo-redesign-vs-refresh` were recorded as `draft 2026-09-22` but have
+  never existed as files in any branch (`git log --all --diff-filter=A`
+  returns nothing). Their page state now reads **not drafted**. Keywords,
+  target URLs and every other column are unchanged, so both mappings still
+  reserve their URLs.
+- `docs/seo/CLUSTER-INTEGRITY.md` (new) documents the seven invariants, what to
+  do when each fails, and what the test deliberately cannot see — live post
+  bodies live in Supabase, not the repo.
+
+No production code changed. `pnpm test` passes 625/625.
+
 ## v1.82 — 2026-09-28
 
 Dependency fix and security housekeeping from the 2026-09-28 triage.
