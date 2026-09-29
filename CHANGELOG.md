@@ -112,6 +112,14 @@ Verification: `pnpm test` 638/638, `pnpm test:components` 93/93 (new:
 `lead-manager-action`, `lead-manager-card`, `middleware-login-next`), and the
 production build with the CI placeholders (60/60 pages).
 
+## v1.84 — 2026-09-28
+
+Docs only, no runtime change. Backfills two releases that deployed without a `CHANGELOG.md` entry, and restores the versioning-rule text that the first of them dropped. Both went through GitHub's "Update branch" merge, which resolved `VERSION` and `CHANGELOG.md` to `main`'s side. Numbered after v1.83, which is claimed by open PR #256. This PR was opened as v1.81.
+
+- **v1.79 (#244)** and **v1.81 (#254)**: entries restored below in deploy order. #244 deployed after v1.80, and #254 deployed after v1.82.
+- **CLAUDE.md and AGENTS.md versioning rules:** the next number is one above the highest `vX.NN` named in `git log origin/main` (fetch first), `VERSION`, the top of `CHANGELOG.md`, or an open PR's title. The "Update branch" rule's list of incidents now includes v1.79 and v1.81.
+- `VERSION` is v1.84.
+
 ## v1.83 — 2026-09-28
 
 Dependabot minor and patch updates now wait for release metadata and CI before auto-merge is enabled.
@@ -119,6 +127,27 @@ Dependabot minor and patch updates now wait for release metadata and CI before a
 - Add a release-policy check that requires the next `VERSION`, a matching top `CHANGELOG.md` entry, and a versioned PR title.
 - Enable native auto-merge for Dependabot minor/patch PRs only when the release metadata is valid; GitHub still waits for the required `test` and `build` checks.
 - Protect `main` with pull-request-only merge commits and required `test`/`build` status checks.
+
+## v1.81 — 2026-09-28
+
+*Backfilled in v1.84.* PR #254 merged at `5caf5ab` through GitHub's "Update branch" merge (`dff2015`), which kept `main`'s `VERSION` (v1.82) and `CHANGELOG.md`, so this release deployed under its merge title, v1.81, without an entry. It deployed after v1.82 (#255), which is why it sits above it. This is the entry as it stood on the PR's own commit (`498f460`).
+
+Fix: the brand-logo link on every portal auth surface (`/login`, `/signup`,
+`PortalLoginForm`, `WorkspaceShell`) pointed at `href="/"`. On
+`app.cdsportswearinc.com` a relative `"/"` hits the app-host->`/login`
+redirect in `portalHostRedirects()` (`lib/portalHost.mjs`) and bounces
+straight back to the page the visitor is already on — a visible loop for a
+signed-out visitor clicking the logo.
+
+- New `lib/useMarketingHomeHref.js` hook: starts at `"/"` (matches SSR, no
+  hydration mismatch), then swaps to `SITE_ORIGIN` after mount only when
+  `window.location.hostname === APP_HOST`. Preview deployments and localhost
+  never match `APP_HOST`, so they keep using `"/"` as before.
+- Wired into `app/login/page.jsx`, `app/signup/page.jsx`,
+  `components/auth/PortalLoginForm.jsx`, and `components/crm/WorkspaceShell.jsx`.
+- `tests/marketingHomeHref.test.mjs`: asserts the hook's default/swap
+  behavior and that every listed surface uses it instead of a hardcoded
+  `href="/"`.
 
 ## v1.82 — 2026-09-28
 
@@ -148,6 +177,30 @@ Dependency fix and security housekeeping from the 2026-09-28 triage.
   (owner-side) to `G-YENE9MFT5K` plus a redeploy; not applied here.
 
 Verification: `pnpm test` 618/618.
+
+## v1.79 — 2026-09-28
+
+*Backfilled in v1.84.* PR #244 merged at `45dbc77` through GitHub's "Update branch" merge (`f749634`), which kept `main`'s `VERSION` (v1.80) and `CHANGELOG.md`, so this release deployed under its merge title, v1.79, without an entry. It deployed after v1.80 (#238), which is why it sits above it.
+
+Staleness sweep: removes dead code, stale files and outdated instructions, and closes a sign-in hole left by the retired domains. The site's look and behaviour are unchanged.
+
+- **Security — auth redirect allow-list** (`supabase/config.toml`). Removed `crystalwebsolution.com`, `cdsportswearusa.com` and their `www` hosts. `crystalwebsolution.com` was reported on 2026-09-27 to be serving a third-party spam site from another Vercel account, and an allow-listed host someone else controls can receive sign-in tokens.
+  - **Owner step:** remove the same entries from the live list in the Supabase dashboard (Authentication → URL Configuration → Redirect URLs). This file only configures the local stack.
+- **Deleted unused modules:** `lib/proceduralArt.js`, `components/three/FlyingCarousel.jsx`, `components/marketing/IdleScene.jsx`, `components/GlyphMask.jsx` and `components/BorderGlow.jsx`. The Lab section keeps using `lib/flyingCarouselLayout.mjs`.
+- **Deleted test-only modules**, with their tests and the CSS only they used: `ImageBlock.jsx` and its `.module.css`, `marketing/Layout.jsx`, `MarketingHeader.jsx` and `lib/motionStudies.mjs`.
+- **Deleted stale files:**
+  - `GEMINI.md`, a drifted third copy of the agent instructions;
+  - `docs/PLUGINS-AND-SKILLS.md`, which described integrations that never existed;
+  - `GOAL_CHECKPOINT.md`, `_gsc-crawled-urls-temp.txt`, `test_service_pages.sh`, a stray `.gitconfig` and an unreferenced `.docx`.
+- **Instructions and docs corrected:**
+  - the retired-domain status in `CLAUDE.md`, `lib/seo.mjs` and the SEO operations manual;
+  - the GA4 ID (`G-B42BM1Q95J`) and the GTM container (`GTM-KJZPCQNM`) in `docs/ANALYTICS.md`;
+  - the migration ledger in `docs/CRM-OPERATIONS.md`;
+  - a single version-numbering rule across `CLAUDE.md`, `AGENTS.md`, `VERSIONING.md` and `vcs.md`;
+  - the Windows build note, and the README and architecture drift;
+  - the Codex and Cursor agent definitions.
+- **CHANGELOG:** two misplaced entries (v1.55 and v1.10) are moved into newest-first order.
+- GTM, analytics and the `app` portal redirects are untouched: this release keeps `main`'s v1.75–v1.78 behaviour.
 
 ## v1.80 — 2026-09-28
 
