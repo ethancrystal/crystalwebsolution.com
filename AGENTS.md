@@ -181,11 +181,15 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
 2. Title the PR `vX.NN — <summary>`. PRs land as merge commits whose message
    body starts with that title, which is how a deploy traces back to it.
 3. `package.json`'s `version` field is NOT part of this scheme — leave it.
-4. Never skip or reuse numbers; next = top of `CHANGELOG.md` + 0.01.
+4. Never reuse a number. Next = one above the highest `vX.NN` named in
+   `git log --oneline -15 origin/main` (fetch first), `VERSION`, the top of
+   `CHANGELOG.md`, or an open PR's title (`gh pr list --base main`). A PR can
+   deploy under a `vX.NN` title while bumping neither file, so the files alone
+   can lag production.
 5. After merging `main` into a version-bump branch (including GitHub's
    "Update branch"), check that `VERSION` and the top `CHANGELOG.md` heading
    still name this PR's version. That merge dropped the bump for v1.55, v1.57,
-   v1.60 and v1.63.
+   v1.60, v1.63, v1.79 and v1.81.
 
 ## Memory Management
 
