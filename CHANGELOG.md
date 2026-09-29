@@ -21,6 +21,14 @@ Docs only, no runtime change. Adds `docs/plans/2026-09-28-portal-workings.md`: h
 - **Visual direction:** dark, flat and quiet. The shared frame comes first, then client, employee and admin pages.
 - `docs/plans/README.md` lists the plan as Planned.
 
+## v1.83 — 2026-09-28
+
+Dependabot minor and patch updates now wait for release metadata and CI before auto-merge is enabled.
+
+- Add a release-policy check that requires the next `VERSION`, a matching top `CHANGELOG.md` entry, and a versioned PR title.
+- Enable native auto-merge for Dependabot minor/patch PRs only when the release metadata is valid; GitHub still waits for the required `test` and `build` checks.
+- Protect `main` with pull-request-only merge commits and required `test`/`build` status checks.
+
 ## v1.82 — 2026-09-28
 
 Dependency fix and security housekeeping from the 2026-09-28 triage.
