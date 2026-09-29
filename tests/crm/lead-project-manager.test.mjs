@@ -87,6 +87,19 @@ test('the admin project page leads with the lead-manager card and can move a new
   assert.match(page, /brief_submitted: \['planned'\]/);
   assert.doesNotMatch(page, /assignProject\(/);
   assert.doesNotMatch(page, /'cancelled'\]/);
+});
+
+test('every admin status button is a move the contract allows', async () => {
+  const { canTransition } = await import('../../lib/crm/project-contract.mjs');
+  const page = await readFile('app/admin/projects/[id]/page.jsx', 'utf8');
+  const block = page.slice(page.indexOf('const NEXT_OPTIONS = {'), page.indexOf('}[project.status]'));
+  const entries = [...block.matchAll(/(\w+): \[([^\]]*)\]/g)];
+  assert.ok(entries.length >= 5, 'NEXT_OPTIONS parsed');
+  for (const [, from, list] of entries) {
+    for (const to of list.split(',').map((value) => value.trim().replace(/'/g, '')).filter(Boolean)) {
+      assert.ok(canTransition(from, to), `${from} -> ${to} is offered but ALLOWED_TRANSITIONS rejects it`);
+    }
+  }
 
   const card = await readFile('components/crm/LeadManagerCard.jsx', 'utf8');
   assert.match(card, /setLeadProjectManager\(formData\)/);

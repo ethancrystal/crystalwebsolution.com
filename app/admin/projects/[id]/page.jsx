@@ -119,7 +119,7 @@ export default function AdminProjectPage() {
     planned: ['in_progress'],
     in_progress: ['client_review', 'on_hold'],
     client_review: ['approved', 'changes_requested'],
-    changes_requested: ['in_progress', 'client_review'],
+    changes_requested: ['in_progress'],
     approved: ['delivered'],
   }[project.status] || [];
 

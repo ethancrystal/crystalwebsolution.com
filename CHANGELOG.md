@@ -14,7 +14,10 @@ change: everything goes through the existing RPCs (`assign_project_user`,
   manager. `assign_project_user` is skipped only for the current lead, so a
   manager promoted from "also assigned" is still emailed. A failed move to
   Planned after a successful assignment is reported as a warning. The admin
-  page can now also move a project from `brief_submitted` to `planned` by hand.
+  page can now also move a project from `brief_submitted` to `planned` by hand,
+  and no longer offers `changes_requested` → `client_review`, a move the
+  database always rejected (a test now checks every button against
+  `ALLOWED_TRANSITIONS`).
 - **Admin brief email:** for a new project nobody leads, the admin email now
   reads "Assign a project manager: new Website project from <client>",
   names the client (name, email, company, account date, first project or
