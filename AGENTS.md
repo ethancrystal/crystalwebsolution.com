@@ -185,7 +185,8 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
    `git log --oneline -15 origin/main` (fetch first), `VERSION`, the top of
    `CHANGELOG.md`, or an open PR's title (`gh pr list --base main`). A PR can
    deploy under a `vX.NN` title while bumping neither file, so the files alone
-   can lag production.
+   can lag production. The `release-policy` check (`scripts/release-policy.mjs`)
+   enforces this on every PR into main.
 5. After merging `main` into a version-bump branch (including GitHub's
    "Update branch"), check that `VERSION` and the top `CHANGELOG.md` heading
    still name this PR's version. That merge dropped the bump for v1.55, v1.57,
