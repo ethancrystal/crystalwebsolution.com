@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { markNotificationsRead } from '@/app/actions/project-actions';
 import { notificationText } from '@/lib/crm/notification-copy.mjs';
 
@@ -17,10 +18,39 @@ function formatWhen(value) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+// Read state is kept locally as well as on the server, so a marked item
+// updates at once even though this page loads its data only on mount.
 export default function NotificationsPanel({ notifications = [] }) {
+  const [readLocally, setReadLocally] = useState(() => new Set());
+  const [busy, setBusy] = useState(false);
+  const isUnread = (notification) => !notification.read_at && !readLocally.has(notification.id);
+  const unreadIds = notifications.filter(isUnread).map((notification) => notification.id);
+
+  async function markRead(ids) {
+    if (ids.length === 0 || busy) return;
+    setBusy(true);
+    try {
+      const formData = new FormData();
+      for (const id of ids) formData.append('notificationId', id);
+      const result = await markNotificationsRead(formData);
+      if (result?.ok) {
+        setReadLocally((previous) => new Set([...previous, ...ids]));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="crm-notifications">
-      <h2>Notifications</h2>
+      <div className="crm-notifications-head">
+        <h2>Notifications</h2>
+        {unreadIds.length > 1 && (
+          <button type="button" className="crm-notification-read" onClick={() => markRead(unreadIds)} disabled={busy}>
+            Mark all as read
+          </button>
+        )}
+      </div>
       {notifications.length === 0 ? (
         <p className="crm-empty-state">No notifications yet.</p>
       ) : (
@@ -30,7 +60,7 @@ export default function NotificationsPanel({ notifications = [] }) {
             // migration 0041; email/realtime rows are queue state the worker
             // owns and are no longer visible here (they used to render as a
             // second, un-dismissable copy of each event).
-            const unread = !notification.read_at;
+            const unread = isUnread(notification);
             return (
               <li key={notification.id} className={`crm-notification-item ${unread ? 'unread' : ''}`}>
                 <div className="crm-notification-main">
@@ -42,10 +72,14 @@ export default function NotificationsPanel({ notifications = [] }) {
                 <div className="crm-notification-meta">
                   <span>{formatWhen(notification.created_at)}</span>
                   {unread ? (
-                    <form action={markNotificationsRead}>
-                      <input type="hidden" name="notificationId" value={notification.id} />
-                      <button type="submit" className="crm-notification-read">Mark read</button>
-                    </form>
+                    <button
+                      type="button"
+                      className="crm-notification-read"
+                      onClick={() => markRead([notification.id])}
+                      disabled={busy}
+                    >
+                      Mark read
+                    </button>
                   ) : (
                     <span>read</span>
                   )}
@@ -61,6 +95,14 @@ export default function NotificationsPanel({ notifications = [] }) {
           display: flex;
           flex-direction: column;
           gap: 1rem;
+        }
+
+        .crm-notifications-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          gap: 1rem;
+          flex-wrap: wrap;
         }
 
         .crm-notifications h2 {

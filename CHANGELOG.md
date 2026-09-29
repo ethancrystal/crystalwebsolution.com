@@ -1,3 +1,58 @@
+## v1.93 — 2026-09-29
+
+Client notifications you can rely on. Stacked on v1.91 (#266); v1.92 is
+#267 (docs only). Code ships on merge; migration `0046` is checked in and
+applied separately by the owner. Without it the app behaves as in v1.91.
+
+With `0046_client_notifications_and_hardening.sql` applied:
+
+- **A client's message always reaches someone.** When no project manager is
+  assigned yet, the admin now receives the client's messages, files and
+  status events (`private.project_notification_recipients`). Before, nobody
+  on the studio side was told. Once a manager is assigned the admin drops
+  off again, as before.
+- **"We have your brief."** A client who submits a brief gets an email and an
+  in-app note (`project.brief_received`) explaining what happens next. Only
+  on the first submission; a retry does not send it twice.
+- **"New client: … from …"** The admin gets an email when a client finishes
+  onboarding (`client.onboarded`), with contact, company, sign-in email and
+  phone, linking to the client's company page.
+- **Security:** a signed-in user can no longer set their own
+  `requested_staff_access` (which put them in the admin's pending staff
+  requests) or backdate `created_at`; and `enqueue_project_notification` is
+  now staff-only and can only notify people on the project. Before, any
+  client could queue an email with their own text to any user of the portal.
+
+In the app (no SQL needed):
+
+- **Friendlier client emails:** status emails to clients carry the same
+  light line as the in-app notification ("Sleeves: rolled up.", "Approved!
+  High fives all round."). Bad news stays plain. Copy lives in
+  `lib/crm/notification-copy.mjs`.
+- **Notifications panel:** "Mark all as read", and marking read now updates
+  at once (it used to need a reload).
+- **Watchdog:** each drain run reports `stuckPending`, `oldestStuckMinutes`
+  and `exhausted` in its JSON (stored by pg_cron in `net._http_response`),
+  and logs plus sends a Sentry warning when email is stuck for more than 30
+  minutes or a send fails for good. Counts only, no recipients or payloads.
+
+Verification: `pnpm test` 651/651, `pnpm test:components` 96/96 (new:
+`notifications-panel`), the production build with the CI placeholders
+(60/60 pages). SQL: `migration-0046-*` checks mechanically that
+`submit_project_brief` and the recipients function are 0043 and 0023 plus
+exactly the new blocks; `supabase/tests/0046_*.test.sql` (pgTAP, 21 checks).
+Run for real on PGlite (Postgres 17.5), replaying 0001–0046 with Supabase
+platform stubs copied from the live catalogs, as a stand-in for `pnpm
+test:db` (no Docker here): 0046 passes 21/21; the existing 0043, 0044, 0045
+and 0041 tests still pass at head 0046; with 0046 left out, the new test
+fails exactly the 12 checks that depend on it. The five functions 0046
+replaces matched live byte for byte (bodies, security, search path, grants)
+before the run.
+
+Migration numbering: this takes `0046`. The portal plan in #259 (docs only)
+reserved 0046/0047 for its C2/C3 phases; those move to 0047/0048. The
+engagement-engine spec in #267 picks its numbers at build time, after these.
+
 ## v1.91 — 2026-09-29
 
 Lead project manager assignment, and the emails around it. No database

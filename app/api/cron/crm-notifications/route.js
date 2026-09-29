@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/nextjs';
+
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendTemplate, EmailError, isEmailConfigured } from '@/lib/email/resend';
 import { renderNotificationEmail } from '@/lib/email/templates';
@@ -59,6 +61,13 @@ function staffProjectUrlFor(projectId, role) {
 
 // lead.created rows (create_lead_from_contact, migration 0026) have no
 // project_id -- they link to the admin deals view instead.
+// client.onboarded rows (onboard_client_company, migration 0046) have no
+// project either: they link to the admin page for the new client's company.
+function companyUrlFor(companyId) {
+  if (!companyId) return undefined;
+  return APP_URL ? `${APP_URL}/admin/companies/${companyId}` : undefined;
+}
+
 function dealUrlFor(dealId) {
   if (!dealId) return undefined;
   return APP_URL ? `${APP_URL}/admin/deals/${dealId}` : undefined;
@@ -83,7 +92,11 @@ function templateContextFor(row, { recipient, project, client, leadManager }) {
     staffProjectUrl: staffProjectUrlFor(row.project_id, recipient.role),
     targetDate: project?.target_date,
     clientName: clientContext?.fullName,
-    clientEmail: clientContext?.email,
+    clientEmail: clientContext?.email ?? (staffRecipient ? payload.client_email : undefined),
+    contactName: staffRecipient ? payload.contact_name : undefined,
+    companyName: staffRecipient ? payload.company_name : undefined,
+    phone: staffRecipient ? payload.phone : undefined,
+    companyUrl: recipient.role === 'admin' ? companyUrlFor(payload.company_id) : undefined,
     clientCompany: clientContext?.companyName,
     clientSince: clientContext?.createdAt,
     clientProjectCount: clientContext?.projectCount,
@@ -200,6 +213,7 @@ async function drain(request) {
       retrying: 0,
       leaseConflicts: 0,
       cleanedAttachments,
+      ...(await watchOutbox(supabase, { failed: 0 })),
     });
   }
 
@@ -329,7 +343,74 @@ async function drain(request) {
     retrying,
     leaseConflicts,
     cleanedAttachments,
+    ...(await watchOutbox(supabase, { failed })),
   });
+}
+
+// Watchdog. An email row that has been due for more than STUCK_MINUTES and
+// is still pending means delivery is not keeping up (Resend down, a bad key,
+// the pg_cron secret out of step with Vercel, a broken completion RPC as in
+// 0033). Counts go into this route's JSON, which pg_cron stores in
+// net._http_response and `pnpm livecheck` can read, and any stuck row or
+// terminal failure is also logged and reported to Sentry as a warning, so it
+// does not depend on email to report on email. Rows that used all their
+// claims (attempts = 25) can never send again; they are counted as
+// `exhausted` but do not alert on every run. Counts only: no recipients or
+// payloads leave this function.
+const STUCK_MINUTES = 30;
+const MAX_CLAIMS = 25;
+
+async function watchOutbox(supabase, { failed }) {
+  const health = { stuckPending: null, oldestStuckMinutes: null, exhausted: null };
+
+  try {
+    const dueBefore = new Date(Date.now() - STUCK_MINUTES * 60_000).toISOString();
+    const [stuck, oldest, exhausted] = await Promise.all([
+      supabase
+        .from('notifications_outbox')
+        .select('id', { count: 'exact', head: true })
+        .eq('channel', 'email')
+        .eq('status', 'pending')
+        .lt('attempts', MAX_CLAIMS)
+        .lt('available_at', dueBefore),
+      supabase
+        .from('notifications_outbox')
+        .select('available_at')
+        .eq('channel', 'email')
+        .eq('status', 'pending')
+        .lt('attempts', MAX_CLAIMS)
+        .lt('available_at', dueBefore)
+        .order('available_at', { ascending: true })
+        .limit(1),
+      supabase
+        .from('notifications_outbox')
+        .select('id', { count: 'exact', head: true })
+        .eq('channel', 'email')
+        .eq('status', 'pending')
+        .gte('attempts', MAX_CLAIMS),
+    ]);
+
+    if (!stuck.error) health.stuckPending = stuck.count ?? 0;
+    if (!exhausted.error) health.exhausted = exhausted.count ?? 0;
+    const oldestAt = oldest.error ? null : oldest.data?.[0]?.available_at;
+    if (oldestAt) {
+      health.oldestStuckMinutes = Math.round((Date.now() - new Date(oldestAt).getTime()) / 60_000);
+    }
+  } catch (error) {
+    console.error('Outbox watchdog query failed:', error?.message ?? 'unknown error');
+  }
+
+  if ((health.stuckPending ?? 0) > 0 || failed > 0) {
+    const counts = { ...health, failedThisRun: failed };
+    console.error('CRM notification emails need attention:', JSON.stringify(counts));
+    try {
+      Sentry.captureMessage('CRM notification emails need attention', { level: 'warning', extra: counts });
+    } catch {
+      // Reporting must never break the drain.
+    }
+  }
+
+  return health;
 }
 
 async function cleanupStaleAttachments(supabase) {
