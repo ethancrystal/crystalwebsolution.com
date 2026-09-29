@@ -23,6 +23,14 @@ Trustpilot TrustBox in both site footers (owner-supplied widget code).
   `tests/trustpilot-widget.test.mjs` checks the ids, the theme, both footers
   and the CSP scope.
 
+## v1.83 — 2026-09-28
+
+Dependabot minor and patch updates now wait for release metadata and CI before auto-merge is enabled.
+
+- Add a release-policy check that requires the next `VERSION`, a matching top `CHANGELOG.md` entry, and a versioned PR title.
+- Enable native auto-merge for Dependabot minor/patch PRs only when the release metadata is valid; GitHub still waits for the required `test` and `build` checks.
+- Protect `main` with pull-request-only merge commits and required `test`/`build` status checks.
+
 ## v1.82 — 2026-09-28
 
 Dependency fix and security housekeeping from the 2026-09-28 triage.
