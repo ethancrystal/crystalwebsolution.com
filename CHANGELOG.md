@@ -53,6 +53,88 @@ replaying 0001-0048): 0047 12/12 (negative control without it fails 7),
 selection checked in a real browser at desktop and 375 px with requests
 slowed by 4 s.
 
+## v1.102 — 2026-09-30
+
+Renumbered from v1.89: main reached v1.97 first (numbers now continue past .99, owner decision 2026-09-29).
+
+Trustpilot TrustBox in both site footers (owner-supplied widget code).
+
+- `components/marketing/TrustpilotWidget.jsx` (new) renders Trustpilot's
+  "Micro Review Count" TrustBox with the owner's business-unit and template
+  ids, now kept in `SITE.trustpilot` (`lib/site.js`). The bootstrap script
+  loads through `next/script` with `lazyOnload` rather than a raw `<head>`
+  tag: the footer is never above the fold, so first paint doesn't wait on a
+  third-party script. On client-side navigation it calls
+  `Trustpilot.loadFromElement`, because the bootstrap scans the page only
+  once.
+- Two deliberate changes from the embed snippet: `data-theme="dark"` (the
+  light theme renders dark text on the dark footer) and left alignment, to
+  match the footer columns.
+- Both footers (`MarketingFooter` on inner pages, the homepage `Contact`
+  beat) gain a "Reviews" column with the TrustBox and a "Review us on
+  Trustpilot" link to the owner's short link (`https://trstp.lt/_Kyci6Z0BC`).
+- CSP: `https://widget.trustpilot.com` is added to `script-src` and
+  `frame-src` only. It is one exact host, not `*.trustpilot.com`, because the
+  bootstrap and the widget iframe both come from it and everything else runs
+  inside that iframe. `tests/csp-policy.test.mjs` pins the new token, and
+  `tests/trustpilot-widget.test.mjs` checks the ids, the theme, both footers
+  and the CSP scope.
+
+## v1.99 — 2026-09-30
+
+Renumbered from v1.86: main reached v1.97 first (numbers now continue past .99, owner decision 2026-09-29).
+
+Every transactional email gets a clean, professional dark layout that matches the portal (owner request 2026-09-28). The sign-up confirmation email's button was invisible on phones. No behaviour change: same emails, same links, same senders. Numbered after v1.83 (#256), v1.84 (#257) and v1.85 (#259), which are all open.
+
+- **Root cause of the invisible button:** it was painted with a CSS `linear-gradient`. Outlook mobile and several other clients strip gradients, which left dark text on a dark card.
+  - Every background is now a solid colour, set both as a `bgcolor` attribute and as inline CSS, so a client that drops one still renders the other.
+- **Layout** (`lib/email/templates.js` `emailLayout`): flat dark design with no gradients, glass or glows.
+  - a near-black navy page and a slightly lighter card with a thin border;
+  - the logo at the top of the card above a divider;
+  - light 16px body text;
+  - one solid blue button;
+  - the raw link below a divider, under "If the button doesn't work…";
+  - the footer email address is now a mail link.
+  - `color-scheme: dark` is declared.
+- **Contrast** (WCAG AA): body text 11.4:1, muted 6.3:1, links 8.0:1, button text 5.4:1; the button stands out from the card at 3.4:1.
+- **Sign-up confirmation wording** now says what happens next: the client portal, starting a project, sharing a brief and files.
+- **Verified:** `pnpm test`, including `tests/email.test.mjs`. The confirmation and message emails were rendered in Chromium at 390px and 700px.
+
+## v1.98 — 2026-09-28
+
+*Opened as v1.85; renumbered to v1.98 after v1.97 lifted the `.99` pause.*
+
+Docs only, no runtime change. Adds `docs/plans/2026-09-28-portal-workings.md`: how the client, employee and admin portals should work inside, what exists today (from a code read at v1.82), and a phased plan with the client portal first. Numbered after v1.83 (#256) and v1.84 (#257), both open.
+
+- **Client journey (owner, 2026-09-28):** salesperson sends the link → sign up → verify email → dashboard → first-run tutorial (create a project, fill the brief, message the team, upload images) → pick a service type (Website, Logo, Branding, Marketing, Automation) → that service's brief.
+- **Gaps found:**
+  - there is no tutorial;
+  - the briefs cover only logo, website, SEO and PPC, and the database constraint allows only those four;
+  - clients can't approve or request changes;
+  - there is no cross-project notifications inbox;
+  - `/team` is a flat list, without an internal/shared toggle, task editing or approval requests;
+  - the admin home doesn't link to projects, briefs or the pipeline;
+  - admin status transitions disagree with `ALLOWED_TRANSITIONS`.
+- **Phases:** C1 arrival + tutorial, C2 service types + briefs (migration `0046`), C3 client actions + approvals (`0047`), C4 notifications, E1 employee queue, A1 admin control room.
+- **Owner decisions:** D1–D5 cover the service list, how the tutorial remembers it was seen, salesperson attribution, client approvals, and admin-created projects. Recorded on 2026-09-28:
+  - Logo and Branding are one service.
+  - The tutorial shows once per browser.
+  - No salesperson auto-assignment.
+  - Admin can start projects.
+  - Still open: Marketing sub-choices, what Automation covers, and client approvals (D4).
+- **Visual direction:** dark, flat and quiet. The shared frame comes first, then client, employee and admin pages.
+- `docs/plans/README.md` lists the plan as Planned.
+
+## v1.97 — 2026-09-29
+
+CI and docs only, no runtime change. Release numbers continue past `.99` as three-digit minors (owner decision 2026-09-29).
+
+- **Why:** after v1.94 (#269) merged, `release-policy` accepted only v1.95–v1.99: it paused at `.99` and refused a major change. Nine PRs were queued (#259 #260 #261 #262 #263 #265 #266 #267 #268), and the owner chose to keep counting rather than move to v2.
+- **`scripts/release-policy.mjs`:** minors are two digits, or three or more with no leading zero (`v1.99` → `v1.100`). The `.99` pause is removed. A major change still fails and needs the owner. Versions compare as numbers, so v1.100 is above v1.99.
+- **Tests:** `tests/release-policy.test.mjs` adds the three-digit case (v1.100 and v1.101 pass; v1.99 is refused once main is v1.100, including when v1.100 is named only in a merge title; a held v1.100 is refused), and v2.00 still needs the owner.
+- **Docs:** `VERSIONING.md` drops "don't go to three digits"; CLAUDE.md, AGENTS.md and both `/version-bump` copies say `v1.99` → `v1.100`.
+- `VERSION` is v1.97, above v1.95 (#266) and v1.96 (#268).
+
 ## v1.96 — 2026-09-29
 
 Opened as v1.93; renumbered to v1.96 after v1.94 (#269) merged first and #266 became v1.95.

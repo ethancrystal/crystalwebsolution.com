@@ -272,8 +272,8 @@ features they describe, not as already-built.
 ## Release versioning (mandatory)
 
 Every merge into `main` is a production deploy and must carry a version name
-in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
-`VERSIONING.md`. Non-negotiable for every PR targeting `main`:
+in the form `v1.01`, `v1.02`, … `v1.99`, `v1.100` (two-digit minimum,
+compared as numbers). Full rules in `VERSIONING.md`. Non-negotiable for every PR targeting `main`:
 
 1. Bump the `VERSION` file and add the matching entry at the top of
    `CHANGELOG.md` in the same PR.
