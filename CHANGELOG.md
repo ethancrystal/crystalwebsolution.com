@@ -1,4 +1,4 @@
-## v1.106 — 2026-09-30
+## v1.109 — 2026-09-30
 
 Client portal, phase 1. The first of three portal improvements (then the
 admin and team dashboards, then settings and the customer profile). One
@@ -38,6 +38,60 @@ tasks and approvals. The timeline shows "CD Sportswear team" instead of
 Tests: pgTAP `0049_project_manager_names.test.sql` (11 checks, PGlite:
 passes with 0049, fails without it; 0041/0046/0047/0048 still pass), labels,
 Tabs, the manager card, the client project page and 0049 contracts.
+
+## v1.108 — 2026-09-29
+
+*Opened as v1.92; renumbered to v1.108; v1.106 and v1.109–v1.111 are held by #273 and its stack.*
+
+Docs only: the design spec for the CRM engagement engine. No runtime change.
+
+- `docs/superpowers/specs/2026-09-29-crm-engagement-engine-design.md` sets
+  out how the portal brings clients back without anyone on the team having to
+  chase them. It records the owner decisions from the 2026-09-29 brainstorm:
+  - rules and schedules only, no AI;
+  - a weekly digest plus instant emails when the client is needed;
+  - a noise budget of 1 automated email a day and 3 a week;
+  - client threads written by the client and the lead project manager, with
+    the admin reading only;
+  - Trustpilot and Google review asks after delivery;
+  - a referral that earns a talking-logo animation, one per client company.
+- The engine design uses database rules with a unique send ledger, feeding
+  the existing notification outbox. It ships switched off, with a dry run.
+- The spec also records the first decision on contextual offers: a
+  live-search domain offer with the second year free, which the team
+  registers. That design is still in progress.
+- Implementation follows as separate versioned PRs after the owner reviews
+  the spec.
+
+Verification: `pnpm test`.
+
+## v1.107 — 2026-09-30
+
+*Opened as v1.90. A later "Update branch" merge (`f553456`) replaced this entry and `VERSION` with main's; restored here and renumbered to v1.107, since v1.106 is held by #273.*
+
+Cluster integrity is now a build gate, and one piece of registry drift is
+corrected.
+
+- `tests/seo-cluster-integrity.test.mjs` (new, 7 assertions) enforces the
+  pillar + cluster rule in `docs/seo/STRATEGY.md` §3 across the three sources
+  that have to agree: `KEYWORD-REGISTRY.md`, `docs/seo/drafts/blog/*.md`, and
+  `GUIDE_LINKS` in `lib/servicePages.mjs`. It checks one keyword → one URL,
+  that a row claiming a draft has that file on disk, that every draft is
+  mapped, that `target_url` matches the filename, that every draft links up to
+  a real pillar with anchor text of 10+ characters, that an **approved** post
+  linking up to a pillar is linked back from it, and that every `guideLinks`
+  href is well formed. Each assertion was mutation-tested to confirm it fires.
+- `docs/seo/KEYWORD-REGISTRY.md`: `/blog/branding-vs-brand-identity` and
+  `/blog/logo-redesign-vs-refresh` were recorded as `draft 2026-09-22` but have
+  never existed as files in any branch (`git log --all --diff-filter=A`
+  returns nothing). Their page state now reads **not drafted**. Keywords,
+  target URLs and every other column are unchanged, so both mappings still
+  reserve their URLs.
+- `docs/seo/CLUSTER-INTEGRITY.md` (new) documents the seven invariants, what to
+  do when each fails, and what the test deliberately cannot see — live post
+  bodies live in Supabase, not the repo.
+
+No production code changed. `pnpm test` passes 625/625.
 
 ## v1.105 — 2026-09-30
 
