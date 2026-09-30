@@ -107,6 +107,8 @@ function templateContextFor(row, { recipient, project, client, leadManager }) {
     status: payload.status,
     note: payload.note,
     deliverableName: payload.deliverable_name,
+    proposalTitle: payload.proposal_title,
+    projectCategory: payload.project_category,
     version: payload.version,
     taskTitle: payload.task_title ?? payload.title,
     dueDate: payload.due_date,

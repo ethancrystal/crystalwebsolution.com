@@ -8,11 +8,14 @@ import {
   MESSAGE_VISIBILITIES,
   PROJECT_STATUSES,
   TASK_PRIORITIES,
+  PROPOSAL_MAX_BYTES,
   TASK_STATUSES,
   canPostVisibility,
   canTransition,
   isProjectCategory,
+  isProposalFileType,
   normalizeProjectTitle,
+  normalizeProposalTitle,
 } from '@/lib/crm/project-contract.mjs';
 import { createClient } from '@/lib/supabase/server';
 
@@ -497,7 +500,7 @@ export async function createAttachmentDownloadUrl(formData) {
   if (!isCanonicalUuid(projectId) || !isCanonicalUuid(assetId)) {
     return invalid(requestId, 'Choose a valid project file.');
   }
-  if (!['attachment', 'deliverable'].includes(kind)) {
+  if (!['attachment', 'deliverable', 'proposal'].includes(kind)) {
     return invalid(requestId, 'Choose a valid project file.');
   }
 
@@ -508,6 +511,15 @@ export async function createAttachmentDownloadUrl(formData) {
   if (kind === 'attachment') {
     query = client.supabase
       .from('project_attachments')
+      .select('id, storage_path')
+      .eq('id', assetId)
+      .eq('project_id', projectId)
+      .eq('status', 'ready');
+  } else if (kind === 'proposal') {
+    // RLS (0051) hands a client only the current document of a posted
+    // proposal; staff can open any finished revision.
+    query = client.supabase
+      .from('project_proposal_documents')
       .select('id, storage_path')
       .eq('id', assetId)
       .eq('project_id', projectId)
@@ -846,6 +858,210 @@ export async function createProjectDeliverable(formData) {
 
   revalidateAllProjectPaths(projectId);
   return success(requestId, deliverable);
+}
+
+function proposalDocumentData(row) {
+  const document = Array.isArray(row) ? row[0] : row;
+  if (!document || !isCanonicalUuid(document.id) || !isCanonicalUuid(document.proposal_id)) {
+    return null;
+  }
+
+  return {
+    documentId: document.id,
+    proposalId: document.proposal_id,
+    projectId: document.project_id,
+    revision: document.revision,
+    fileName: document.file_name,
+    storagePath: document.storage_path,
+    mimeType: document.mime_type,
+    sizeBytes: document.size_bytes,
+    status: document.status,
+  };
+}
+
+// Shared by create and replace: the file facts the browser is about to upload.
+function proposalFileFields(formData) {
+  const fileName = formString(formData, 'fileName').trim();
+  const mimeType = formString(formData, 'mimeType').trim().toLowerCase();
+  const sizeText = formString(formData, 'sizeBytes');
+  const sizeBytes = /^\d+$/.test(sizeText) ? Number(sizeText) : Number.NaN;
+
+  if (!validBoundedText(fileName, 1, MAX_FILE_NAME_LENGTH)) {
+    return { error: 'File name must be 1 to 255 characters.' };
+  }
+  if (!isProposalFileType(mimeType)) {
+    return { error: 'A proposal document must be a PDF or a Word (.docx) file.' };
+  }
+  if (!Number.isSafeInteger(sizeBytes) || sizeBytes < 1 || sizeBytes > PROPOSAL_MAX_BYTES) {
+    return { error: 'File must be no larger than 10 MiB.' };
+  }
+  return { fileName, mimeType, sizeBytes };
+}
+
+export async function createProjectProposal(formData) {
+  const requestId = randomUUID();
+  // Staff only; the RPC also requires the admin or the assigned project
+  // manager (migration 0051).
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to create proposals.');
+
+  const projectId = formString(formData, 'projectId');
+  if (!isCanonicalUuid(projectId)) {
+    return invalid(requestId, 'Choose a valid project.');
+  }
+
+  let title;
+  try {
+    title = normalizeProposalTitle(formString(formData, 'title'));
+  } catch {
+    return invalid(requestId, 'Proposal title must be 3 to 120 characters.');
+  }
+
+  const file = proposalFileFields(formData);
+  if (file.error) return invalid(requestId, file.error);
+
+  const client = await actionClient(requestId, 'Unable to create this proposal.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('create_project_proposal', {
+      p_project_id: projectId,
+      p_title: title,
+      p_file_name: file.fileName,
+      p_mime_type: file.mimeType,
+      p_size_bytes: file.sizeBytes,
+    }),
+  );
+
+  const document = proposalDocumentData(data);
+  if (error || !document) {
+    return databaseFailure(error, requestId, 'Unable to create this proposal.');
+  }
+
+  revalidateAllProjectPaths(projectId);
+  return success(requestId, document);
+}
+
+export async function replaceProposalDocument(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to change proposals.');
+
+  const projectId = formString(formData, 'projectId');
+  const proposalId = formString(formData, 'proposalId');
+  if (!isCanonicalUuid(projectId) || !isCanonicalUuid(proposalId)) {
+    return invalid(requestId, 'Choose a valid proposal.');
+  }
+
+  const file = proposalFileFields(formData);
+  if (file.error) return invalid(requestId, file.error);
+
+  const client = await actionClient(requestId, 'Unable to replace this document.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('reserve_proposal_document', {
+      p_proposal_id: proposalId,
+      p_file_name: file.fileName,
+      p_mime_type: file.mimeType,
+      p_size_bytes: file.sizeBytes,
+    }),
+  );
+
+  const document = proposalDocumentData(data);
+  if (error || !document) {
+    return databaseFailure(error, requestId, 'Unable to replace this document.');
+  }
+
+  revalidateAllProjectPaths(projectId);
+  return success(requestId, document);
+}
+
+export async function finalizeProposalDocument(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to change proposals.');
+
+  const projectId = formString(formData, 'projectId');
+  const documentId = formString(formData, 'documentId');
+  if (!isCanonicalUuid(projectId) || !isCanonicalUuid(documentId)) {
+    return invalid(requestId, 'Choose a valid proposal document.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to post this proposal.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('finalize_proposal_document', {
+      p_document_id: documentId,
+    }),
+  );
+
+  if (error || data !== documentId) {
+    return databaseFailure(error, requestId, 'Unable to post this proposal.');
+  }
+
+  revalidateAllProjectPaths(projectId);
+  return success(requestId, { documentId: data });
+}
+
+export async function renameProjectProposal(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to change proposals.');
+
+  const projectId = formString(formData, 'projectId');
+  const proposalId = formString(formData, 'proposalId');
+  if (!isCanonicalUuid(projectId) || !isCanonicalUuid(proposalId)) {
+    return invalid(requestId, 'Choose a valid proposal.');
+  }
+
+  let title;
+  try {
+    title = normalizeProposalTitle(formString(formData, 'title'));
+  } catch {
+    return invalid(requestId, 'Proposal title must be 3 to 120 characters.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to rename this proposal.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('rename_project_proposal', {
+      p_proposal_id: proposalId,
+      p_title: title,
+    }),
+  );
+
+  if (error || data !== proposalId) {
+    return databaseFailure(error, requestId, 'Unable to rename this proposal.');
+  }
+
+  revalidateAllProjectPaths(projectId);
+  return success(requestId, { proposalId: data });
+}
+
+export async function withdrawProjectProposal(formData) {
+  const requestId = randomUUID();
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
+  if (!profile) return invalid(requestId, 'You are not authorized to change proposals.');
+
+  const projectId = formString(formData, 'projectId');
+  const proposalId = formString(formData, 'proposalId');
+  if (!isCanonicalUuid(projectId) || !isCanonicalUuid(proposalId)) {
+    return invalid(requestId, 'Choose a valid proposal.');
+  }
+
+  const client = await actionClient(requestId, 'Unable to withdraw this proposal.');
+  if (client.failure) return client.failure;
+  const { data, error } = await runRpc(() =>
+    client.supabase.rpc('withdraw_project_proposal', {
+      p_proposal_id: proposalId,
+    }),
+  );
+
+  if (error || data !== proposalId) {
+    return databaseFailure(error, requestId, 'Unable to withdraw this proposal.');
+  }
+
+  revalidateAllProjectPaths(projectId);
+  return success(requestId, { proposalId: data });
 }
 
 export async function postProjectNote(formData) {

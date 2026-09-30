@@ -21,6 +21,7 @@ flowchart LR
   projects --> project_tasks
   projects --> project_approvals
   projects --> project_deliverables
+  projects --> project_proposals --> project_proposal_documents
   companies --> project_briefs
   projects --> notifications_outbox
 ```
@@ -31,6 +32,7 @@ flowchart LR
 - Companies, contacts, deals, tasks and users are queried directly from client components with the browser client, and RLS scopes them.
 - RLS helpers live in the `private` schema with a pinned `search_path`. Execute is revoked from `public`/`anon` and granted to `authenticated`.
 - Files live in the private `project-files` bucket, using reserve-then-finalize uploads.
+- Proposals (0051) write only through RPCs that require `private.can_view_internal` (admin or the assigned project manager); a client reads only a posted proposal's current document.
 - Never schema-qualify `coalesce` or `nullif`.
 - A migration that adds an audit event type widens `audit_events_event_type_check` in the same file.
 - Sender names showing "Unknown" point at `profiles` RLS: check `private.shares_project_with()`.

@@ -1,3 +1,36 @@
+## v1.114 — 2026-09-30
+
+Proposals area in the project workspace. The assigned project manager (or
+the admin) posts a proposal on a project: a title and one document (PDF or
+Word, up to 10 MB). Each entry shows the title, the project's type tag (Web
+Design, Logo Creation, ...), who posted it and the date created. The client
+sees it on a new **Proposals** tab and can download it; staff see it on the
+team and admin project pages.
+
+- **Who can do what.** Only the admin or a project manager assigned to that
+  project can post, replace the document, rename or withdraw a proposal
+  (`0051`: all writes go through RPCs that check this, and the tables take no
+  direct writes from the browser). A client sees a proposal only while it is
+  posted, and only its current document; drafts and withdrawn proposals are
+  hidden from them, and so are other companies' proposals.
+- **Notifications.** Posting a proposal emails the client and adds an in-app
+  alert with a badge on the Proposals tab; replacing the document sends
+  "Proposal updated" the same way. Withdrawing sends nothing. The email opens
+  the Proposals tab (`?tab=proposals`).
+- **Withdraw** hides a proposal from the client but keeps the record and the
+  files; staff still see it marked "Withdrawn".
+- **Replacing** keeps earlier revisions in Storage for staff; the client can
+  only read the current one.
+- The page refreshes live (`project_proposal_changed`, identifiers only).
+- Server actions: `createProjectProposal`, `replaceProposalDocument`,
+  `finalizeProposalDocument`, `renameProjectProposal`, `withdrawProjectProposal`;
+  `createAttachmentDownloadUrl` gains `kind: 'proposal'`.
+
+**Owner action:** apply migration `0051_project_proposals.sql` to the live
+database after `0046`-`0050` (merging deploys the app but runs no SQL). Until
+it is applied the Proposals area says "not available yet" and nothing else
+changes. Stacked on the client portal (#273) and live project pages (#274).
+
 ## v1.110 — 2026-09-30
 
 Live project pages. Changes on a project now show up on every open project

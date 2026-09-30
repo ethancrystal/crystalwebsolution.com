@@ -14,6 +14,7 @@ import ProjectManagerCard from '@/components/crm/ProjectManagerCard';
 import ProjectTimeline from '@/components/crm/ProjectTimeline';
 import ProjectTasks from '@/components/crm/ProjectTasks';
 import ProjectFiles from '@/components/crm/ProjectFiles';
+import ProjectProposals from '@/components/crm/ProjectProposals';
 import ProjectApprovals from '@/components/crm/ProjectApprovals';
 import ProjectThread from '@/components/crm/ProjectThread';
 import NotificationsPanel from '@/components/crm/NotificationsPanel';
@@ -23,7 +24,7 @@ import { touchesWorkspace, useProjectLive } from '@/components/crm/useProjectLiv
 import ProjectBriefs from '@/components/crm/ProjectBriefs';
 import { SkeletonDetail } from '@/components/crm/Skeleton';
 
-// The client's project, in five tabs: Overview, Messages, Files,
+// The client's project, in six tabs: Overview, Messages, Files, Proposals,
 // Tasks & approvals, Brief. The brief is shown once (its own tab; the Overview
 // no longer repeats it as plain text), and the project manager appears by
 // name only. Project Updates (NotesPanel) stays on Overview: clients post
@@ -34,6 +35,7 @@ import { SkeletonDetail } from '@/components/crm/Skeleton';
 const TAB_EVENTS = {
   messages: ['project.message_posted', 'project.message_edited'],
   files: ['project.deliverable_published'],
+  proposals: ['project.proposal_posted', 'project.proposal_updated'],
 };
 
 function tabForEvent(eventType) {
@@ -122,7 +124,7 @@ export default function ClientProjectPage() {
   }, [loadWorkspace]);
 
   const unreadByTab = useMemo(() => {
-    const counts = { overview: 0, messages: 0, files: 0 };
+    const counts = { overview: 0, messages: 0, files: 0, proposals: 0 };
     for (const notification of notifications) {
       if (!notification.read_at) counts[tabForEvent(notification.event_type)] += 1;
     }
@@ -133,11 +135,11 @@ export default function ClientProjectPage() {
     setTab(nextTab);
   }
 
-  // Whatever lands on the open Messages or Files tab is read: on opening it,
+  // Whatever lands on the open Messages, Files or Proposals tab is read: on opening it,
   // on a ?tab= deep link, and when a live update brings in something new
   // while the client is already looking at it.
   useEffect(() => {
-    if (tab !== 'messages' && tab !== 'files') return;
+    if (tab !== 'messages' && tab !== 'files' && tab !== 'proposals') return;
     const ids = notifications
       .filter((notification) => !notification.read_at && tabForEvent(notification.event_type) === tab)
       .map((notification) => notification.id);
@@ -214,6 +216,11 @@ export default function ClientProjectPage() {
       tab: 'messages',
     },
     unreadByTab.files > 0 && { key: 'files', text: 'New file ready for you', tab: 'files' },
+    unreadByTab.proposals > 0 && {
+      key: 'proposals',
+      text: unreadByTab.proposals === 1 ? 'A proposal is ready for you' : `${unreadByTab.proposals} proposal updates for you`,
+      tab: 'proposals',
+    },
   ].filter(Boolean);
   const activity = (workspace.statusHistory ?? []).slice(-5).reverse();
 
@@ -268,6 +275,22 @@ export default function ClientProjectPage() {
           deliverables={workspace.deliverables ?? []}
           canUpload={false}
           projectId={projectId}
+          onChanged={loadWorkspace}
+        />
+      ),
+    },
+    {
+      id: 'proposals',
+      label: 'Proposals',
+      badge: unreadByTab.proposals,
+      content: (
+        <ProjectProposals
+          projectId={projectId}
+          proposals={workspace.proposals ?? []}
+          category={project.category}
+          available={workspace.proposalsAvailable !== false}
+          failed={Boolean(workspace.proposalsFailed)}
+          canManage={false}
           onChanged={loadWorkspace}
         />
       ),

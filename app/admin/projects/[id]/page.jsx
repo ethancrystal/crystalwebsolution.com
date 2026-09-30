@@ -14,6 +14,7 @@ import ProjectBriefs from '@/components/crm/ProjectBriefs';
 import ProjectTimeline from '@/components/crm/ProjectTimeline';
 import ProjectTasks from '@/components/crm/ProjectTasks';
 import ProjectFiles from '@/components/crm/ProjectFiles';
+import ProjectProposals from '@/components/crm/ProjectProposals';
 import ProjectApprovals from '@/components/crm/ProjectApprovals';
 import ProjectThread from '@/components/crm/ProjectThread';
 import ProjectPresence from '@/components/crm/ProjectPresence';
@@ -174,6 +175,15 @@ export default function AdminProjectPage() {
         deliverables={workspace.deliverables ?? []}
         canUpload
         projectId={projectId}
+        onChanged={loadWorkspace}
+      />
+      <ProjectProposals
+        projectId={projectId}
+        proposals={workspace.proposals ?? []}
+        category={project.category}
+        available={workspace.proposalsAvailable !== false}
+        failed={Boolean(workspace.proposalsFailed)}
+        canManage
         onChanged={loadWorkspace}
       />
       <ProjectApprovals

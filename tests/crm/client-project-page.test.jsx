@@ -49,6 +49,11 @@ vi.mock('@/app/actions/brief-actions', () => ({ startBrief: vi.fn() }));
 vi.mock('@/app/auth/actions', () => ({ signOut: vi.fn() }));
 vi.mock('@/components/crm/ProjectThread', () => ({ default: () => <p>Thread stub</p> }));
 vi.mock('@/components/crm/NotesPanel', () => ({ default: () => <p>Project updates stub</p> }));
+vi.mock('@/components/crm/ProjectProposals', () => ({
+  default: ({ proposals, category, canManage, available }) => (
+    <p>Proposals stub ({proposals.length}, {category}, manage={String(canManage)}, available={String(available)})</p>
+  ),
+}));
 vi.mock('@/components/crm/ProjectFiles', () => ({
   default: ({ deliverables }) => <p>Files stub ({deliverables.length} deliverables)</p>,
 }));
@@ -158,11 +163,11 @@ describe('client project page, live', { timeout: 30000 }, () => {
 });
 
 describe('client project page', { timeout: 30000 }, () => {
-  it('renders five tabs from a single workspace load', async () => {
+  it('renders six tabs from a single workspace load', async () => {
     render(<ClientProjectPage />);
     const tablist = await screen.findByRole('tablist', { name: 'Project sections' });
     const names = within(tablist).getAllByRole('tab').map((tab) => tab.textContent.replace(/\d+\s*new$/, '').trim());
-    expect(names).toEqual(['Overview', 'Messages', 'Files', 'Tasks & approvals', 'Brief']);
+    expect(names).toEqual(['Overview', 'Messages', 'Files', 'Proposals', 'Tasks & approvals', 'Brief']);
     expect(getProjectWorkspace).toHaveBeenCalledTimes(1);
     expect(getProjectManagerNames).toHaveBeenCalledWith(expect.anything(), [PROJECT_ID]);
   });
@@ -189,6 +194,38 @@ describe('client project page', { timeout: 30000 }, () => {
     expect(markNotificationsRead.mock.calls[0][0].getAll('notificationId')).toEqual([MESSAGE_NOTE.id]);
     expect(screen.getByRole('tab', { name: 'Messages' }).getAttribute('aria-selected')).toBe('true');
     expect(new URLSearchParams(window.location.search).get('tab')).toBe('messages');
+  });
+
+  it('a posted proposal badges the Proposals tab, is flagged, and opening it marks it read', async () => {
+    const PROPOSAL_NOTE = {
+      id: '66666666-6666-4666-8666-666666666666',
+      project_id: PROJECT_ID,
+      event_type: 'project.proposal_posted',
+      payload: { proposal_title: 'Website proposal' },
+      read_at: null,
+      created_at: '2026-09-30T10:00:00Z',
+    };
+    listNotifications.mockResolvedValue([PROPOSAL_NOTE]);
+    getProjectWorkspace.mockResolvedValue({
+      ...workspace({ status: 'in_progress', category: 'logo_creation' }),
+      proposals: [{ id: 'pr1' }],
+      proposalsAvailable: true,
+    });
+    render(<ClientProjectPage />);
+    expect(await screen.findByRole('button', { name: 'A proposal is ready for you' })).toBeTruthy();
+    fireEvent.click(await screen.findByRole('tab', { name: 'Proposals 1 new' }));
+    await waitFor(() => expect(markNotificationsRead).toHaveBeenCalledTimes(1));
+    expect(markNotificationsRead.mock.calls[0][0].getAll('notificationId')).toEqual([PROPOSAL_NOTE.id]);
+    expect(new URLSearchParams(window.location.search).get('tab')).toBe('proposals');
+    // The client gets the read-only view, with the project's own type tag.
+    expect(screen.getByText('Proposals stub (1, logo_creation, manage=false, available=true)')).toBeTruthy();
+  });
+
+  it('opens straight onto Proposals from the email link (?tab=proposals)', async () => {
+    window.history.replaceState(null, '', `/dashboard/projects/${PROJECT_ID}?tab=proposals`);
+    render(<ClientProjectPage />);
+    await screen.findByRole('tablist');
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'Proposals' }).getAttribute('aria-selected')).toBe('true'));
   });
 
   it('"Message Ethan" opens the Messages tab', async () => {
