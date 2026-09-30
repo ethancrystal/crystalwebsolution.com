@@ -3,8 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { listProjectsForViewer } from '@/lib/crm/projects';
 import { signOut } from '@/app/auth/actions';
 import { LoadingState } from '@/components/crm/Spinner';
+
+const CLOSED_PROJECT_STATUSES = new Set(['delivered', 'cancelled']);
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
@@ -15,6 +18,8 @@ export default function AdminDashboard() {
     deals: 0,
     tasks: 0,
   });
+  // null until loaded, so a failed read shows a dash rather than a false 0.
+  const [projectStats, setProjectStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -34,11 +39,24 @@ export default function AdminDashboard() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('id, role, company_id')
         .eq('id', user.id)
         .single();
 
       setRole(profile?.role ?? null);
+
+      if (profile?.role === 'admin') {
+        try {
+          const projects = await listProjectsForViewer(supabase, { profile });
+          const open = (projects ?? []).filter((project) => !CLOSED_PROJECT_STATUSES.has(project.status));
+          setProjectStats({
+            open: open.length,
+            needsManager: open.filter((project) => !project.assignee).length,
+          });
+        } catch (error) {
+          console.error('Failed to load projects:', error);
+        }
+      }
 
       try {
         const [companiesRes, contactsRes, dealsRes, tasksRes] = await Promise.all([
@@ -84,6 +102,11 @@ export default function AdminDashboard() {
         </div>
         <div className="crm-header-actions">
           {isAdmin && (
+            <Link href="/admin/projects" className="crm-link">
+              Projects
+            </Link>
+          )}
+          {isAdmin && (
             <Link href="/admin/users" className="crm-link">
               Manage Users
             </Link>
@@ -96,6 +119,22 @@ export default function AdminDashboard() {
 
       <div className="crm-admin-content">
         <div className="crm-stats-grid">
+          {isAdmin && (
+            <div className={`crm-stat-card${projectStats?.needsManager ? ' crm-stat-card-alert' : ''}`}>
+              <h3>Open Projects</h3>
+              <div className="crm-stat-number">{projectStats ? projectStats.open : '—'}</div>
+              {projectStats?.needsManager ? (
+                <Link href="/admin/projects?pm=none">
+                  {projectStats.needsManager === 1
+                    ? '1 needs a project manager'
+                    : `${projectStats.needsManager} need a project manager`}
+                </Link>
+              ) : (
+                <Link href="/admin/projects">Manage</Link>
+              )}
+            </div>
+          )}
+
           <div className="crm-stat-card">
             <h3>Companies</h3>
             <div className="crm-stat-number">{stats.companies}</div>
@@ -160,6 +199,8 @@ export default function AdminDashboard() {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          flex-wrap: wrap;
+          gap: 1rem;
           backdrop-filter: blur(10px);
         }
 
@@ -177,6 +218,7 @@ export default function AdminDashboard() {
         .crm-header-actions {
           display: flex;
           align-items: center;
+          flex-wrap: wrap;
           gap: 1.25rem;
         }
 
@@ -244,6 +286,11 @@ export default function AdminDashboard() {
           letter-spacing: 1px;
         }
 
+        .crm-stat-card-alert {
+          border-color: rgba(100, 200, 255, 0.55);
+          box-shadow: 0 0 0 1px rgba(100, 200, 255, 0.15);
+        }
+
         .crm-stat-number {
           font-size: 3rem;
           color: #64c8ff;
@@ -299,6 +346,16 @@ export default function AdminDashboard() {
           background: linear-gradient(135deg, rgba(100, 200, 255, 0.2) 0%, rgba(100, 200, 255, 0.1) 100%);
           border-color: rgba(100, 200, 255, 0.4);
           transform: translateY(-2px);
+        }
+
+        @media (max-width: 640px) {
+          .crm-admin-header {
+            padding: 1.25rem 1rem;
+          }
+
+          .crm-admin-content {
+            padding: 1.25rem 1rem;
+          }
         }
 
       `}</style>

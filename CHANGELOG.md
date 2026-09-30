@@ -6,7 +6,124 @@ CI and docs only, no runtime change. Release numbers continue past `.99` as thre
 - **`scripts/release-policy.mjs`:** minors are two digits, or three or more with no leading zero (`v1.99` → `v1.100`). The `.99` pause is removed. A major change still fails and needs the owner. Versions compare as numbers, so v1.100 is above v1.99.
 - **Tests:** `tests/release-policy.test.mjs` adds the three-digit case (v1.100 and v1.101 pass; v1.99 is refused once main is v1.100, including when v1.100 is named only in a merge title; a held v1.100 is refused), and v2.00 still needs the owner.
 - **Docs:** `VERSIONING.md` drops "don't go to three digits"; CLAUDE.md, AGENTS.md and both `/version-bump` copies say `v1.99` → `v1.100`.
-- `VERSION` is v1.97. v1.95 and v1.96 are held by #266 and #268.
+- `VERSION` is v1.97, above v1.95 (#266) and v1.96 (#268).
+
+## v1.96 — 2026-09-29
+
+Opened as v1.93; renumbered to v1.96 after v1.94 (#269) merged first and #266 became v1.95.
+
+Client notifications you can rely on. Stacked on v1.95 (#266). Code ships on merge; migration `0046` is checked in and
+applied separately by the owner. Without it the app behaves as in v1.95.
+
+With `0046_client_notifications_and_hardening.sql` applied:
+
+- **A client's message always reaches someone.** When no project manager is
+  assigned yet, the admin now receives the client's messages, files and
+  status events (`private.project_notification_recipients`). Before, nobody
+  on the studio side was told. Once a manager is assigned the admin drops
+  off again, as before.
+- **"We have your brief."** A client who submits a brief gets an email and an
+  in-app note (`project.brief_received`) explaining what happens next. Only
+  on the first submission; a retry does not send it twice.
+- **"New client: … from …"** The admin gets an email when a client finishes
+  onboarding (`client.onboarded`), with contact, company, sign-in email and
+  phone, linking to the client's company page.
+- **Security:** a signed-in user can no longer set their own
+  `requested_staff_access` (which put them in the admin's pending staff
+  requests) or backdate `created_at`; and `enqueue_project_notification` is
+  now staff-only and can only notify people on the project. Before, any
+  client could queue an email with their own text to any user of the portal.
+
+In the app (no SQL needed):
+
+- **Friendlier client emails:** status emails to clients carry the same
+  light line as the in-app notification ("Sleeves: rolled up.", "Approved!
+  High fives all round."). Bad news stays plain. Copy lives in
+  `lib/crm/notification-copy.mjs`.
+- **Notifications panel:** "Mark all as read", and marking read now updates
+  at once (it used to need a reload).
+- **Watchdog:** each drain run reports `stuckPending`, `oldestStuckMinutes`
+  and `exhausted` in its JSON (stored by pg_cron in `net._http_response`),
+  and logs plus sends a Sentry warning when email is stuck for more than 30
+  minutes or a send fails for good. Counts only, no recipients or payloads.
+
+Verification: `pnpm test` 651/651, `pnpm test:components` 96/96 (new:
+`notifications-panel`), the production build with the CI placeholders
+(60/60 pages). SQL: `migration-0046-*` checks mechanically that
+`submit_project_brief` and the recipients function are 0043 and 0023 plus
+exactly the new blocks; `supabase/tests/0046_*.test.sql` (pgTAP, 21 checks).
+Run for real on PGlite (Postgres 17.5), replaying 0001–0046 with Supabase
+platform stubs copied from the live catalogs, as a stand-in for `pnpm
+test:db` (no Docker here): 0046 passes 21/21; the existing 0043, 0044, 0045
+and 0041 tests still pass at head 0046; with 0046 left out, the new test
+fails exactly the 12 checks that depend on it. The five functions 0046
+replaces matched live byte for byte (bodies, security, search path, grants)
+before the run.
+
+Migration numbering: this takes `0046`. The portal plan in #259 (docs only)
+reserved 0046/0047 for its C2/C3 phases; those move to 0047/0048. The
+engagement-engine spec in #267 picks its numbers at build time, after these.
+
+## v1.95 — 2026-09-29
+
+Opened as v1.91; renumbered to v1.95 after v1.94 (#269) merged first.
+
+Lead project manager assignment, and the emails around it. No database
+change: everything goes through the existing RPCs (`assign_project_user`,
+`remove_project_assignment`, `transition_project_status`).
+
+- **Admin project page:** a new card at the top (`components/crm/LeadManagerCard.jsx`)
+  shows the project's lead project manager, or, when nobody leads it, the
+  project managers to pick from, with how many open projects each has.
+  Managers are shown by name only, never by email address. One click assigns
+  a lead (`app/actions/assignment-actions.js`, admin-only): the chosen
+  manager goes on first, everyone else comes off, and a project still at
+  `brief_submitted` moves to `planned` with a shared status note naming the
+  manager. `assign_project_user` is skipped only for the current lead, so a
+  manager promoted from "also assigned" is still emailed. A failed move to
+  Planned after a successful assignment is reported as a warning. The admin
+  page can now also move a project from `brief_submitted` to `planned` by hand,
+  and no longer offers `changes_requested` → `client_review`, a move the
+  database always rejected (a test now checks every button against
+  `ALLOWED_TRANSITIONS`).
+- **Admin brief email:** for a new project nobody leads, the admin email now
+  reads "Assign a project manager: new Website project from <client>",
+  names the client (name, email, company, account date, first project or
+  not) and links to the admin project page. The client details are looked up
+  when the email is sent, and go to staff only.
+- **Client "project is planned" email:** when a new project moves to
+  Planned, the client's status email introduces their project manager by
+  name, with a light, playful line (the same line appears in the shared
+  status note). Copy lives in `lib/crm/notification-copy.mjs`.
+- **Project manager email:** "You're the project manager for <project>",
+  with the client's name, email and company.
+- **Links:** every project email now links to the recipient's own
+  workspace. Staff emails used to point at `/dashboard/...`, which bounced
+  project managers to `/team` without the project.
+- **Stale assignments:** a project manager only gets email about projects
+  they are still assigned to. Rows queued before a manager was replaced are
+  closed as `missing_recipient` instead of sent. The check fails open.
+- **Login:** a signed-out visitor to a portal page (for example from an
+  email link) is sent to that portal's login with `?next=`, and lands on the
+  page after signing in (`middleware.js`).
+- **Admin home and list:** an "Open projects" card with "N need a project
+  manager", a Projects header link, and a "Needs a project manager" filter
+  on `/admin/projects` (`?pm=none`). The admin header now wraps on phones
+  instead of pushing Sign Out off-screen.
+- **In-app notifications:** the client's notification list shows a sentence
+  per event ("Your project is planned…", "AJ sent a new message.") instead
+  of the raw event code, and a "New" badge instead of a meaningless
+  "pending" label.
+- **Dates:** email timestamps are dated in studio (Eastern) time; date-only
+  values never shift.
+
+Owner follow-ups (not in this PR): Alex and AJ have no accounts yet (invite
+them from Manage Users); Ethan's display name is "Ethan Crystal"; the test
+manager `phase1-pm-test@…` still appears in the picker until removed.
+
+Verification: `pnpm test` 638/638, `pnpm test:components` 93/93 (new:
+`lead-manager-action`, `lead-manager-card`, `middleware-login-next`), and the
+production build with the CI placeholders (60/60 pages).
 
 ## v1.94 — 2026-09-29
 
