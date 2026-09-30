@@ -1,3 +1,15 @@
+## v1.113 — 2026-09-30
+
+Docs only: scheduled SEO ledger re-check. No runtime change.
+
+- `docs/seo/goals.md`: re-confirmed rung 1 (first reportable Search Console
+  impression for the RFP guide) on final data extended through 2026-09-28.
+  2026-09-27 (4 impressions) and 2026-09-28 (2 impressions) are both now
+  final; rung 1 was already marked Done by the prior scheduled check
+  (2026-09-29), and this run adds the extra day of final data plus a fresh
+  milestone-2 (exact query `rfp web development` + page) snapshot, still not
+  met. No site or content change.
+
 ## v1.108 — 2026-09-29
 
 *Opened as v1.92; renumbered to v1.108; v1.106 and v1.109–v1.111 are held by #273 and its stack.*
