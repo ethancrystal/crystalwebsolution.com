@@ -12,9 +12,25 @@ import { BRIEF_TEMPLATES, BRIEF_TYPES, briefTypeLabel, stepProgress } from '@/li
 import { deleteBriefDraft, startBrief } from '@/app/actions/brief-actions';
 import BriefSubmissionForm from '@/components/crm/BriefSubmissionForm';
 import { BRIEF_ICONS } from '@/components/crm/briefIcons';
+import PortalTour from '@/components/crm/PortalTour';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
 import { SkeletonTable } from '@/components/crm/Skeleton';
 import { LoadingState } from '@/components/crm/Spinner';
+
+// Portal plan phase C1: the home page leads with what the client owes a
+// decision on — projects waiting on their review, plus draft briefs they can
+// resume — then the rest of their projects, then the start-a-brief entry.
+function ProjectCard({ project, briefTypes }) {
+  return (
+    <a href={`/dashboard/projects/${project.id}`} className="crm-company-card crm-project-card">
+      <h3>{project.title}</h3>
+      <span className="crm-project-status">{PROJECT_STATUS_LABELS[project.status] || project.status}</span>
+      {briefTypes?.length > 0 && (
+        <span className="crm-project-briefs">{[...new Set(briefTypes)].map(briefTypeLabel).join(' · ')}</span>
+      )}
+    </a>
+  );
+}
 
 const PROJECT_STATUS_LABELS = {
   brief_submitted: 'Brief Submitted',
@@ -39,6 +55,7 @@ export default function DashboardPage() {
   const [startingType, setStartingType] = useState(null);
   const [showFreeform, setShowFreeform] = useState(false);
   const [error, setError] = useState(null);
+  const [tourReplayToken, setTourReplayToken] = useState(0);
 
   const loadClientProjects = useCallback(async (userId, companyId) => {
     if (!companyId) {
@@ -181,11 +198,23 @@ export default function DashboardPage() {
     );
   }
 
+  const needsActionProjects = myProjects.filter((project) => project.status === 'client_review');
+  const otherProjects = myProjects.filter((project) => project.status !== 'client_review');
+
   return (
     <WorkspaceShell
       role="client"
       title="Projects"
       subtitle={`Welcome, ${profile?.full_name || user?.email || ''}`}
+      actions={
+        <button
+          type="button"
+          className="crm-button crm-button-ghost crm-button-small"
+          onClick={() => setTourReplayToken((token) => token + 1)}
+        >
+          Replay tour
+        </button>
+      }
     >
 
       {error && (
@@ -195,6 +224,86 @@ export default function DashboardPage() {
             Dismiss
           </button>
         </div>
+      )}
+
+      <section className="crm-dashboard-section" aria-labelledby="needs-action-heading">
+        <h2 id="needs-action-heading">Needs your action</h2>
+        {needsActionProjects.length > 0 || drafts.length > 0 ? (
+          <>
+            {needsActionProjects.length > 0 && (
+              <div className="crm-companies-grid">
+                {needsActionProjects.map((project) => (
+                  <ProjectCard key={project.id} project={project} briefTypes={briefTypesByProject[project.id]} />
+                ))}
+              </div>
+            )}
+            {needsActionProjects.length > 0 && drafts.length > 0 && <p className="crm-action-divider">Also waiting on you:</p>}
+            {drafts.length > 0 && (
+              <ul className="crm-draft-list">
+                {drafts.map((draft) => {
+                  const { answered, total } = stepProgress(draft.brief_type, draft.answers);
+                  const percent = total ? Math.round((answered / total) * 100) : 0;
+                  return (
+                    <li key={draft.id} className="crm-draft">
+                      <span className="crm-service-icon" aria-hidden="true">
+                        <HugeiconsIcon icon={BRIEF_ICONS[draft.brief_type] ?? BRIEF_ICONS.other} size={18} />
+                      </span>
+                      <div className="crm-draft-main">
+                        <a href={`/dashboard/briefs/${draft.id}`} className="crm-draft-title">
+                          {draft.title || `${briefTypeLabel(draft.brief_type)} brief`}
+                        </a>
+                        <div className="crm-draft-meta">
+                          <span>{briefTypeLabel(draft.brief_type)}</span>
+                          <span>·</span>
+                          <span>Last saved {new Date(draft.updated_at).toLocaleDateString()}</span>
+                        </div>
+                        <div
+                          className="crm-draft-progress"
+                          role="progressbar"
+                          aria-label={`${answered} of ${total} questions answered`}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={percent}
+                        >
+                          <span style={{ width: `${percent}%` }} />
+                        </div>
+                      </div>
+                      <a href={`/dashboard/briefs/${draft.id}`} className="crm-draft-continue">Continue</a>
+                      <button
+                        type="button"
+                        className="crm-draft-delete"
+                        onClick={() => handleDeleteDraft(draft)}
+                        aria-label={`Delete draft ${draft.title || briefTypeLabel(draft.brief_type)}`}
+                      >
+                        <HugeiconsIcon icon={Delete02Icon} size={16} />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </>
+        ) : (
+          <p className="crm-empty-state">
+            Nothing needs your action right now. Briefs you start but haven&apos;t finished appear here so you can
+            pick them back up.
+          </p>
+        )}
+      </section>
+
+      {(otherProjects.length > 0 || myProjects.length === 0) && (
+        <section className="crm-dashboard-section" aria-labelledby="projects-heading">
+          <h2 id="projects-heading">Your projects</h2>
+          {otherProjects.length > 0 ? (
+            <div className="crm-companies-grid">
+              {otherProjects.map((project) => (
+                <ProjectCard key={project.id} project={project} briefTypes={briefTypesByProject[project.id]} />
+              ))}
+            </div>
+          ) : (
+            <p className="crm-empty-state">No projects yet. Start a brief below and your first project appears here.</p>
+          )}
+        </section>
       )}
 
       <section className="crm-dashboard-section" aria-labelledby="start-brief-heading">
@@ -247,80 +356,7 @@ export default function DashboardPage() {
         )}
       </section>
 
-      {drafts.length > 0 && (
-        <section className="crm-dashboard-section" aria-labelledby="drafts-heading">
-          <h2 id="drafts-heading">Briefs in progress</h2>
-          <ul className="crm-draft-list">
-            {drafts.map((draft) => {
-              const { answered, total } = stepProgress(draft.brief_type, draft.answers);
-              const percent = total ? Math.round((answered / total) * 100) : 0;
-              return (
-                <li key={draft.id} className="crm-draft">
-                  <span className="crm-service-icon" aria-hidden="true">
-                    <HugeiconsIcon icon={BRIEF_ICONS[draft.brief_type] ?? BRIEF_ICONS.other} size={18} />
-                  </span>
-                  <div className="crm-draft-main">
-                    <a href={`/dashboard/briefs/${draft.id}`} className="crm-draft-title">
-                      {draft.title || `${briefTypeLabel(draft.brief_type)} brief`}
-                    </a>
-                    <div className="crm-draft-meta">
-                      <span>{briefTypeLabel(draft.brief_type)}</span>
-                      <span>·</span>
-                      <span>Last saved {new Date(draft.updated_at).toLocaleDateString()}</span>
-                    </div>
-                    <div
-                      className="crm-draft-progress"
-                      role="progressbar"
-                      aria-label={`${answered} of ${total} questions answered`}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={percent}
-                    >
-                      <span style={{ width: `${percent}%` }} />
-                    </div>
-                  </div>
-                  <a href={`/dashboard/briefs/${draft.id}`} className="crm-draft-continue">Continue</a>
-                  <button
-                    type="button"
-                    className="crm-draft-delete"
-                    onClick={() => handleDeleteDraft(draft)}
-                    aria-label={`Delete draft ${draft.title || briefTypeLabel(draft.brief_type)}`}
-                  >
-                    <HugeiconsIcon icon={Delete02Icon} size={16} />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )}
-
-      <section className="crm-dashboard-section" aria-labelledby="projects-heading">
-        <h2 id="projects-heading">Your projects</h2>
-        {myProjects.length > 0 ? (
-          <div className="crm-companies-grid">
-            {myProjects.map((project) => (
-              <a
-                key={project.id}
-                href={`/dashboard/projects/${project.id}`}
-                className="crm-company-card crm-project-card"
-              >
-                <h3>{project.title}</h3>
-                <span className="crm-project-status">
-                  {PROJECT_STATUS_LABELS[project.status] || project.status}
-                </span>
-                {briefTypesByProject[project.id]?.length > 0 && (
-                  <span className="crm-project-briefs">
-                    {[...new Set(briefTypesByProject[project.id])].map(briefTypeLabel).join(' · ')}
-                  </span>
-                )}
-              </a>
-            ))}
-          </div>
-        ) : (
-          <p className="crm-empty-state">No projects yet. Start a brief above and your first project appears here.</p>
-        )}
-      </section>
+      <PortalTour replayToken={tourReplayToken} />
 
       <style jsx>{`
         .crm-dashboard {
@@ -402,6 +438,12 @@ export default function DashboardPage() {
 
         .crm-empty-state {
           color: #999;
+        }
+
+        .crm-action-divider {
+          color: #999;
+          font-size: 0.85rem;
+          margin: 1.25rem 0 0.75rem;
         }
 
         .crm-section-sub {
