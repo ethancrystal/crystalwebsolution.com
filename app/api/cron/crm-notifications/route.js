@@ -413,8 +413,68 @@ async function watchOutbox(supabase, { failed }) {
   return health;
 }
 
+// Stale uploads (reserved, never attached to a message, older than 24 h) are
+// cleaned up through a durable queue (migration 0048):
+//   claim_attachment_cleanup    queues them, drops their attachment rows and
+//                               leases the entries that are due;
+//   storage remove()            deletes the objects (already-gone keys are
+//                               fine, so a retry is harmless);
+//   complete_attachment_cleanup forgets the entries, only after success;
+//   fail_attachment_cleanup     keeps them with attempts/error/backoff for a
+//                               later run. Nothing is lost when storage fails.
+// Until 0048 is applied the claim RPC does not exist and this falls back to
+// the old one-shot cleanup_stale_project_attachments (0038).
+const CLEANUP_BATCH = 50;
+const CLEANUP_LEASE_SECONDS = 600;
+
+function isMissingFunction(error) {
+  return error?.code === 'PGRST202' || error?.code === '42883';
+}
+
 async function cleanupStaleAttachments(supabase) {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase.rpc('claim_attachment_cleanup', {
+    p_before: cutoff,
+    p_limit: CLEANUP_BATCH,
+    p_lease_seconds: CLEANUP_LEASE_SECONDS,
+  });
+
+  if (error) {
+    if (isMissingFunction(error)) return legacyCleanupStaleAttachments(supabase, cutoff);
+    console.error('Stale attachment cleanup claim failed:', error.message);
+    return 0;
+  }
+
+  const paths = Array.isArray(data) ? data.map((row) => row.storage_path).filter(Boolean) : [];
+  if (paths.length === 0) return 0;
+
+  const { error: storageError } = await supabase.storage.from('project-files').remove(paths);
+  if (storageError) {
+    console.error('Stale attachment storage removal failed; will retry:', storageError.message);
+    const { error: failError } = await supabase.rpc('fail_attachment_cleanup', {
+      p_storage_paths: paths,
+      p_error: String(storageError.message ?? 'Storage removal failed.').slice(0, 500),
+    });
+    // Even if this bookkeeping fails, the entries stay queued: their lease
+    // simply expires and the next run claims them again.
+    if (failError) console.error('Recording the cleanup failure failed:', failError.message);
+    return 0;
+  }
+
+  const { error: completeError } = await supabase.rpc('complete_attachment_cleanup', {
+    p_storage_paths: paths,
+  });
+  if (completeError) {
+    // The objects are gone; the entries will be claimed again after the
+    // lease and removed again, which storage treats as a no-op.
+    console.error('Completing the attachment cleanup failed:', completeError.message);
+  }
+  return paths.length;
+}
+
+// Pre-0048 behaviour: the RPC deletes the rows and returns their paths, and a
+// failed object removal leaves an orphaned file.
+async function legacyCleanupStaleAttachments(supabase, cutoff) {
   const { data, error } = await supabase.rpc('cleanup_stale_project_attachments', {
     p_before: cutoff,
   });
@@ -424,10 +484,6 @@ async function cleanupStaleAttachments(supabase) {
     return 0;
   }
 
-  // The RPC only claims and deletes the metadata rows (it cannot delete
-  // storage.objects directly -- Supabase requires the Storage API for that).
-  // It returns each removed row's storage_path so we can remove the actual
-  // object here.
   const paths = Array.isArray(data)
     ? data.map((row) => row.storage_path).filter(Boolean)
     : [];
@@ -435,8 +491,6 @@ async function cleanupStaleAttachments(supabase) {
   if (paths.length > 0) {
     const { error: storageError } = await supabase.storage.from('project-files').remove(paths);
     if (storageError) {
-      // The metadata rows are already gone; a failed object removal just
-      // leaves an orphaned file in storage, not a dangling reference.
       console.error('Stale attachment storage removal failed:', storageError.message);
     }
   }

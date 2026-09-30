@@ -1,3 +1,60 @@
+## v1.105 — 2026-09-30
+
+Security and robustness hardening. Two migrations (`0047`, `0048`) are
+checked in and applied separately by the owner; the app works before and
+after they are applied.
+
+**Contact form fails closed in production** (`VERCEL_ENV=production`):
+- Missing `HCAPTCHA_SECRET` or Upstash Redis configuration, hCaptcha
+  unreachable or non-2xx, hCaptcha rejecting our secret, a rate-limit backend
+  error, or no trusted client IP all return **503 with `Retry-After: 120`**
+  and "temporarily unavailable". Nothing is forwarded, stored or emailed. A
+  rejected captcha token is still a 400 field error. Outside production a
+  missing configuration still lets submissions through.
+- `getClientIp()` trusts only the platform: on Vercel `x-real-ip`, then
+  `x-vercel-forwarded-for`; elsewhere `x-forwarded-for` only under a declared
+  `TRUSTED_PROXY_HOPS` (1-5). A client-sent `x-forwarded-for` is ignored.
+- The webhook is aborted after 5 s (`CONTACT_WEBHOOK_TIMEOUT_MS`, 500-10000)
+  and counted as not delivered; the CRM write and emails go ahead.
+
+**Staff-only tasks and deliverables** (`0047`): `create_project_task`,
+`create_project_deliverable` and `publish_project_deliverable` require
+`private.can_view_internal` before any write (they accepted any project
+participant, clients included). The matching Server Actions
+(`createProjectTask`, `createProjectDeliverable`, `publishDeliverable`,
+`enqueueNotification`) are limited to project managers and admins.
+`enqueue_project_notification` was hardened in `0046`.
+
+**Durable stale-upload cleanup** (`0048`): stale uploads move into a
+service-role-only queue first; the queue entry is removed only after the
+storage delete succeeds, and a failure keeps it with attempts, error and a
+backoff (capped at 24 h). Already-deleted objects count as removed. Before
+`0048` is applied the cron falls back to the old cleanup.
+
+**Brief drafts**: `deleteBriefDraft` checks that a row was actually deleted:
+"already submitted" (a conflict, and the dashboard drops the draft) or
+"Brief not found" instead of a false success.
+
+**Sign-in and portal pending state**: a shared indicator
+(`components/auth/AuthPending.jsx`, built on the CRM spinner) with a visible
+spinner, a polite live status, `aria-busy`, and disabled controls with
+inert secondary links. On the portal chooser, the first click marks the
+chosen card and announces it; further clicks are ignored until navigation
+completes (15 s safety release). Found and fixed on the way: under React 19
+the old "Signing in..." state never showed (state set inside a form action
+waits for the action), a failed sign-in wiped the typed email, and a
+configuration failure showed the raw word "configuration". Both the chooser
+and the sign-in form release their pending state when the Back button
+restores them from the bfcache, so they never stay locked.
+
+Verification: `pnpm test` 677/677, `pnpm test:components` 134/134 (new:
+`contact-route-fail-closed`, `staff-only-actions`, `delete-brief-draft`,
+`attachment-cleanup-drain`, `auth-pending`); pgTAP on PGlite (Postgres 17,
+replaying 0001-0048): 0047 12/12 (negative control without it fails 7),
+0048 16/16, with 0046, 0043, 0041 and 0009 still passing. Sign-in and portal
+selection checked in a real browser at desktop and 375 px with requests
+slowed by 4 s.
+
 ## v1.104 — 2026-09-30
 
 Renumbered from v1.101 (opened as v1.88): v1.102 (#263) merged first.

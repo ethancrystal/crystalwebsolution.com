@@ -1,18 +1,61 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { PendingAnnouncer, PendingLabel } from '../../components/auth/AuthPending';
 import { SITE } from '../../lib/site';
 import { useMarketingHomeHref } from '../../lib/useMarketingHomeHref';
 import DarkPageBackground from '../../components/ui/dark-page-background';
 
+const PORTALS = [
+  { key: 'client', href: '/login/client', name: 'Client Portal' },
+  { key: 'employee', href: '/login/employee', name: 'Employee Portal' },
+  { key: 'admin', href: '/login/admin', name: 'Admin Portal' },
+];
+
+// If a navigation never lands (network drop, blocked request) the choice is
+// released so the visitor can try again.
+const NAVIGATION_TIMEOUT_MS = 15000;
+
+function isPlainLeftClick(event) {
+  return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+}
+
 export default function LoginPage() {
   const homeHref = useMarketingHomeHref();
+  // The portal being opened. Set on the first click; every other click is
+  // ignored until the next page replaces this one, or the timeout above.
+  const [opening, setOpening] = useState(null);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    // Coming back with the Back button can restore this page from the
+    // bfcache with the pending state still set; release it.
+    const release = (event) => { if (event.persisted) setOpening(null); };
+    window.addEventListener('pageshow', release);
+    return () => {
+      window.removeEventListener('pageshow', release);
+      clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  function choose(event, portal) {
+    if (opening) {
+      event.preventDefault();
+      return;
+    }
+    // Opening in a new tab or window is not a navigation of this page.
+    if (!isPlainLeftClick(event)) return;
+    setOpening(portal);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setOpening(null), NAVIGATION_TIMEOUT_MS);
+  }
 
   return (
     <div className="crm-auth-container">
       <DarkPageBackground interactive="faulty-terminal" />
-      <div className="crm-auth-card">
-        <Link href={homeHref} className="crm-auth-mark" aria-label={`${SITE.name} home`}>
+      <div className="crm-auth-card" aria-busy={Boolean(opening)}>
+        <Link href={homeHref} className="crm-auth-mark" aria-label={`${SITE.name} home`} inert={Boolean(opening)}>
           <img className="crm-auth-logo" src={SITE.logoPath} alt={SITE.name} width={SITE.logoWidth} height={SITE.logoHeight} />
         </Link>
 
@@ -20,17 +63,34 @@ export default function LoginPage() {
         <p>Sign in through the portal assigned to your account.</p>
 
         <nav className="crm-portal-list" aria-label="Login portals">
-          <Link href="/login/client" className="crm-portal-link">Client Portal</Link>
-          <Link href="/login/employee" className="crm-portal-link">Employee Portal</Link>
-          <Link href="/login/admin" className="crm-portal-link">Admin Portal</Link>
+          {PORTALS.map((portal) => {
+            const isOpening = opening?.key === portal.key;
+            const isLocked = Boolean(opening) && !isOpening;
+            return (
+              <Link
+                key={portal.key}
+                href={portal.href}
+                className={`crm-portal-link${isOpening ? ' is-opening' : ''}${isLocked ? ' is-locked' : ''}`}
+                onClick={(event) => choose(event, portal)}
+                aria-current={isOpening ? 'true' : undefined}
+                aria-disabled={opening ? 'true' : undefined}
+                tabIndex={isLocked ? -1 : undefined}
+              >
+                <PendingLabel pending={isOpening} label={`Opening ${portal.name}…`}>{portal.name}</PendingLabel>
+              </Link>
+            );
+          })}
         </nav>
+        <PendingAnnouncer pending={Boolean(opening)} message={opening ? `Opening ${opening.name}. Please wait.` : ''} />
 
-        <p className="crm-auth-footer"><Link href="/forgot-password" className="link-underline">Forgot password?</Link></p>
+        <div inert={Boolean(opening)}>
+          <p className="crm-auth-footer"><Link href="/forgot-password" className="link-underline">Forgot password?</Link></p>
 
-        <p className="crm-auth-footer">
-          Don't have an account?{' '}
-          <Link href="/signup" className="link-underline">Create one</Link>
-        </p>
+          <p className="crm-auth-footer">
+            Don't have an account?{' '}
+            <Link href="/signup" className="link-underline">Create one</Link>
+          </p>
+        </div>
       </div>
 
       <style jsx>{`
@@ -110,6 +170,17 @@ export default function LoginPage() {
           background: rgba(89, 243, 255, 0.08);
           border-color: var(--cyan);
           color: var(--cyan);
+        }
+
+        :global(.crm-portal-link.is-opening) {
+          background: rgba(89, 243, 255, 0.12);
+          border-color: var(--cyan);
+          color: var(--cyan);
+          cursor: progress;
+        }
+        :global(.crm-portal-link.is-locked) {
+          opacity: 0.45;
+          pointer-events: none;
         }
 
         :global(.crm-auth-mark:focus-visible),
