@@ -156,6 +156,9 @@
 .footer-col:not(:first-child) { padding-left: 2rem; border-left: 1px solid var(--line); }
 .footer-col a, .footer-col p { display: block; color: var(--muted); font-size: 0.9rem; line-height: 1.9; }
 .footer-col a:hover { color: var(--cyan); }
+/* Trustpilot TrustBox (components/marketing/TrustpilotWidget.jsx); reserves
+   the widget's 24px height so the column doesn't jump when it loads. */
+.footer-trustbox { min-height: 24px; width: 100%; margin: 0.2rem 0 0.35rem; }
 .footer-email {
   font-family: var(--font-display);
   font-size: 1.15rem;

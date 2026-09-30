@@ -32,7 +32,9 @@ const EXPECTED_CSP = {
   // serves both gtag.js (GA4) and gtm.js (Tag Manager) — see analytics.test.mjs.
   // hCaptcha (v1.30, contact form): loader script, challenge iframe, its
   // stylesheet and its XHR all come from *.hcaptcha.com -- see lib/hcaptcha.mjs.
-  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'blob:', 'https://www.googletagmanager.com', 'https://hcaptcha.com', 'https://*.hcaptcha.com'],
+  // widget.trustpilot.com (v1.89): the TrustBox bootstrap script in both site
+  // footers — one exact host, not *.trustpilot.com.
+  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'blob:', 'https://www.googletagmanager.com', 'https://hcaptcha.com', 'https://*.hcaptcha.com', 'https://widget.trustpilot.com'],
   'worker-src': ["'self'", 'blob:'],
   'style-src': ["'self'", "'unsafe-inline'", 'https://hcaptcha.com', 'https://*.hcaptcha.com'],
   // Deliberately wide: img-src permits any https host. Images cannot execute,
@@ -59,7 +61,9 @@ const EXPECTED_CSP = {
   'media-src': ["'self'", 'data:', 'blob:'],
   // www.googletagmanager.com: GTM's <noscript> ns.html fallback iframe in
   // app/layout.jsx. Only rendered for visitors with JavaScript off.
-  'frame-src': ["'self'", 'https://td.doubleclick.net', 'https://www.googletagmanager.com', 'https://hcaptcha.com', 'https://*.hcaptcha.com'],
+  // widget.trustpilot.com (v1.89): the TrustBox renders as an iframe from the
+  // same host as its bootstrap script.
+  'frame-src': ["'self'", 'https://td.doubleclick.net', 'https://www.googletagmanager.com', 'https://hcaptcha.com', 'https://*.hcaptcha.com', 'https://widget.trustpilot.com'],
   'frame-ancestors': ["'self'"],
   'base-uri': ["'self'"],
   'form-action': ["'self'"],
