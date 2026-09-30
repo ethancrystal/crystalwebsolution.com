@@ -1,221 +1,114 @@
 'use client';
 
 import { useState } from 'react';
-import { homeForRole } from '@/lib/auth/roles.mjs';
+import { usePathname } from 'next/navigation';
+import { signOut } from '@/app/auth/actions';
 import { SITE } from '@/lib/site';
 import { useMarketingHomeHref } from '@/lib/useMarketingHomeHref';
 
-const SECTION_CLASSES = 'crm-workspace-section';
+// One frame for all three portals (styles: app/styles/crm.css). Flat top
+// bar with the logo, the role's navigation, and sign out; the page title sits
+// in the content column so it reads as part of the page, not the chrome.
 
-export default function WorkspaceShell({ role = 'client', title, children }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const projectsHref = homeForRole(role) ?? '/dashboard';
+const NAV_BY_ROLE = {
+  client: [{ href: '/dashboard', label: 'Projects' }],
+  project_manager: [{ href: '/team', label: 'My projects' }],
+  admin: [
+    { href: '/admin', label: 'Overview' },
+    { href: '/admin/projects', label: 'Projects' },
+    { href: '/admin/deals/pipeline', label: 'Pipeline' },
+    { href: '/admin/deals', label: 'Deals' },
+    { href: '/admin/companies', label: 'Companies' },
+    { href: '/admin/contacts', label: 'Contacts' },
+    { href: '/admin/tasks', label: 'Tasks' },
+    { href: '/admin/users', label: 'Users' },
+    { href: '/admin/blog', label: 'Blog' },
+  ],
+};
+
+const ROLE_LABELS = {
+  client: 'Client portal',
+  project_manager: 'Employee portal',
+  admin: 'Admin',
+};
+
+// The most specific nav item containing the current path is the active one,
+// so /admin/deals/pipeline marks Pipeline rather than Deals, and /admin/x
+// never marks Overview.
+function activeHref(items, pathname) {
+  let best = null;
+  for (const { href } of items) {
+    const matches = pathname === href || (href !== '/admin' && pathname.startsWith(`${href}/`));
+    if (matches && (!best || href.length > best.length)) best = href;
+  }
+  return best;
+}
+
+export default function WorkspaceShell({ role = 'client', title, subtitle, actions, children }) {
+  const [isMenuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname() ?? '';
   const homeHref = useMarketingHomeHref();
+  const items = NAV_BY_ROLE[role] ?? NAV_BY_ROLE.client;
+  const current = activeHref(items, pathname);
 
   return (
-    <div className="crm-workspace">
-      <header className="crm-workspace-header">
-        <div className="crm-workspace-header-main">
-          <a className="crm-workspace-brand" href={homeHref} aria-label={`${SITE.name} home`}>
+    <div className="crm-shell">
+      <header className="crm-topbar">
+        <div className="crm-topbar-inner">
+          <a className="crm-brand" href={homeHref} aria-label={`${SITE.name} home`}>
             <img src={SITE.logoPath} alt={SITE.name} width={SITE.logoWidth} height={SITE.logoHeight} />
           </a>
-          <div>
-            <h1>{title}</h1>
-            <span className="crm-workspace-role">{role}</span>
+
+          <button
+            type="button"
+            className="crm-button crm-button-ghost crm-button-small crm-menu-toggle"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-expanded={isMenuOpen}
+            aria-controls="crm-primary-nav"
+          >
+            {isMenuOpen ? 'Close' : 'Menu'}
+          </button>
+
+          <nav
+            id="crm-primary-nav"
+            className={`crm-nav${isMenuOpen ? ' is-open' : ''}`}
+            aria-label="Portal"
+          >
+            {items.map((item) => (
+              <a
+                key={item.href}
+                className="crm-nav-link"
+                href={item.href}
+                aria-current={item.href === current ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="crm-topbar-end">
+            <span className="crm-role-label">{ROLE_LABELS[role] ?? ''}</span>
+            <form action={signOut}>
+              <button type="submit" className="crm-button crm-button-ghost crm-button-small">
+                Sign out
+              </button>
+            </form>
           </div>
         </div>
-        <button
-          type="button"
-          className="crm-workspace-sidebar-toggle"
-          onClick={() => setSidebarOpen((prev) => !prev)}
-          aria-expanded={isSidebarOpen}
-        >
-          {isSidebarOpen ? 'Close' : 'Menu'}
-        </button>
       </header>
 
-      <div className="crm-workspace-body">
-        <aside className={`crm-workspace-sidebar ${isSidebarOpen ? 'is-open' : ''}`}>
-          <nav className="crm-workspace-nav">
-            <a className="crm-workspace-nav-link" href={projectsHref}>
-              Projects
-            </a>
-          </nav>
-        </aside>
-
-        <div className="crm-workspace-main">
-          <div className={SECTION_CLASSES}>{children}</div>
-        </div>
+      <div className="crm-main">
+        {title ? (
+          <div className="crm-page-header">
+            <div>
+              <h1>{title}</h1>
+              {subtitle ? <p className="crm-page-subtitle">{subtitle}</p> : null}
+            </div>
+            {actions ? <div className="crm-page-actions">{actions}</div> : null}
+          </div>
+        ) : null}
+        <div className="crm-workspace-section">{children}</div>
       </div>
-
-      <style jsx>{`
-        .crm-workspace {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          color: #e0e0e0;
-          font-family: inherit;
-        }
-
-        .crm-workspace-header {
-          position: sticky;
-          top: 0;
-          z-index: 10;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 1rem;
-          padding: 1.25rem 1.5rem;
-          background: rgba(30, 35, 60, 0.8);
-          border-bottom: 1px solid rgba(100, 200, 255, 0.15);
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-workspace-header-main {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          min-width: 0;
-        }
-
-        .crm-workspace-brand {
-          display: inline-flex;
-          width: 4.5rem;
-          height: 4.5rem;
-          flex: 0 0 auto;
-          align-items: center;
-          justify-content: center;
-          border-radius: 0.75rem;
-          overflow: hidden;
-        }
-
-        .crm-workspace-brand img {
-          display: block;
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-        }
-
-        .crm-workspace-header h1 {
-          font-size: 1.6rem;
-          color: #64c8ff;
-        }
-
-        .crm-workspace-role {
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          font-size: 0.75rem;
-          color: #99a;
-          border: 1px solid rgba(100, 200, 255, 0.25);
-          padding: 0.2rem 0.6rem;
-          border-radius: 999px;
-        }
-
-        .crm-workspace-sidebar-toggle {
-          display: none;
-          border: 1px solid rgba(100, 200, 255, 0.35);
-          background: rgba(100, 200, 255, 0.08);
-          color: #64c8ff;
-          padding: 0.45rem 0.9rem;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 600;
-        }
-
-        .crm-workspace-sidebar-toggle:hover,
-        .crm-workspace-sidebar-toggle:focus-visible {
-          background: rgba(100, 200, 255, 0.14);
-          border-color: rgba(100, 200, 255, 0.55);
-        }
-
-        .crm-workspace-body {
-          display: grid;
-          grid-template-columns: 240px 1fr;
-          gap: 1.5rem;
-          padding: 1.5rem;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .crm-workspace-sidebar {
-          position: sticky;
-          top: 5rem;
-          align-self: start;
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.12);
-          border-radius: 12px;
-          padding: 1rem;
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-workspace-nav {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .crm-workspace-nav-link {
-          color: #64c8ff;
-          text-decoration: none;
-          padding: 0.55rem 0.75rem;
-          border-radius: 8px;
-          border: 1px solid rgba(100, 200, 255, 0.15);
-          background: rgba(100, 200, 255, 0.05);
-          font-weight: 500;
-        }
-
-        .crm-workspace-nav-link:hover {
-          background: rgba(100, 200, 255, 0.14);
-          border-color: rgba(100, 200, 255, 0.35);
-        }
-
-        .crm-workspace-main {
-          min-width: 0;
-        }
-
-        .crm-workspace-section {
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.12);
-          border-radius: 12px;
-          padding: 1.5rem;
-          margin-bottom: 1.5rem;
-          backdrop-filter: blur(10px);
-        }
-
-        @media (max-width: 768px) {
-          .crm-workspace-sidebar-toggle {
-            display: inline-flex;
-          }
-
-          .crm-workspace-body {
-            grid-template-columns: 1fr;
-            padding: 1rem;
-          }
-
-          .crm-workspace-sidebar {
-            display: none;
-            position: fixed;
-            inset: auto 0 0 0;
-            top: auto;
-            border-radius: 12px 12px 0 0;
-            z-index: 20;
-          }
-
-          .crm-workspace-sidebar.is-open {
-            display: flex;
-          }
-
-          .crm-workspace-header {
-            padding: 1rem;
-          }
-
-          .crm-workspace-header h1 {
-            font-size: 1.25rem;
-          }
-        }
-      `}</style>
     </div>
   );
 }

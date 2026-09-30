@@ -53,6 +53,62 @@ replaying 0001-0048): 0047 12/12 (negative control without it fails 7),
 selection checked in a real browser at desktop and 375 px with requests
 slowed by 4 s.
 
+## v1.104 — 2026-09-30
+
+Renumbered from v1.101 (opened as v1.88): v1.102 (#263) merged first.
+
+The shared frame for all three portals: step 1 of the portal redesign (owner direction 2026-09-28: "neat and clean, deliberate, not shiny"; dark, flat and quiet; shared frame first). Numbered after v1.83–v1.87 (#256, #257, #259, #260, #261), which are all open; this PR was opened as v1.87 alongside #261 and renumbered.
+
+- **`app/styles/crm.css`** (new, imported last in `app/globals.css`): one token set and one set of primitives for the CRM.
+  - Tokens: solid dark surfaces, 1px borders, one blue accent, status colour pairs.
+  - Primitives: page header, card, button (primary, ghost, danger, small), badge, table, list, form field, fieldset, empty state, form messages.
+  - No gradients, glows, glass blur or hover lifts.
+  - Contrast (measured, WCAG AA): text 15.2:1, muted 8.0:1, subtle 5.1:1, button text 5.4:1, every status pair ≥ 8:1.
+  - One visible 2px focus ring for every interactive element in the portal.
+  - The admin blog pages (and `/team`) already used these class names, which were defined nowhere, so they now render styled instead of as plain HTML.
+- **`WorkspaceShell`**: rebuilt as a flat top bar.
+  - It shows the logo, role-based navigation with the current page marked, the portal name and **Sign out**; the shell had no sign-out before.
+  - Navigation by role:
+    - Admin: Overview, Projects, Pipeline, Deals, Companies, Contacts, Tasks, Users, Blog.
+    - Client: Projects.
+    - Employee: My projects.
+  - The page title and optional subtitle and actions sit in the content column.
+  - On phones the navigation collapses behind a Menu button.
+  - The glass header, gradient background, cyan title and one-link sidebar are gone.
+- **Client dashboard:** the duplicate header (a second title and a second Sign Out) is removed. The shell shows "Projects" and "Welcome, …".
+- **Employee home (`/team`):** now inside the shell, as a clean list of assigned projects with status badges.
+- **Pages not changed in this step:** most admin pages and several project panels still carry their own older scoped styles. They move onto these primitives in the next steps (client pages, then employee, then admin; `docs/plans/2026-09-28-portal-workings.md` §3a).
+- **Tests:** `tests/crm/auth-portals.test.mjs` now checks that the employee home renders the shell and that the shell provides sign-out, instead of looking for `signOut` in the page file.
+- **Verified:**
+  - `pnpm test` and `pnpm test:components`;
+  - the placeholder-env production build;
+  - Chromium screenshots of the frame at 1280px and 390px, for the client and admin roles;
+  - the mobile menu opening and closing, with its `aria-expanded` state and keyboard focus ring.
+
+## v1.103 — 2026-09-30
+
+Renumbered from v1.100 (opened as v1.87): v1.102 (#263) merged first.
+
+Weekly SEO goal-monger run (docs only, no site or code change).
+
+- `docs/seo/runs/2026-09-28-goal-monger.md`: this week's measurement of the
+  `rfp web development` ranking goal. The exact query + page pair still has
+  0 reportable impressions and no position (Search Console, 2026-08-29 →
+  2026-09-25, final data). The guide has had no impression for any query
+  since at least 2026-07-01, and URL Inspection shows Google hasn't seen any
+  of the three internal links to it yet.
+- `docs/seo/goals.md`: status set to Behind, an Open fronts table added, and
+  this week's move recorded. Every front is gated on MJ.
+- `docs/seo/backlinks/outreach-drafts/2026-09-28-rfp-guide.md`: send-ready
+  drafts for the four Tier-1 RFP-guide backlink prospects. **Not sent**; each
+  needs MJ's yes. `docs/seo/backlinks/prospects.md` records the 2026-09-28
+  re-check (all four pages still 200, slots unchanged).
+- `.claude/goal-monger/seo.md`: the project's goal-monger SEO profile. It was
+  committed to PR #240's branch (`686815b`) after that PR merged, so it never
+  reached `main`. It lands here unchanged.
+
+Verification: docs-only, so no tests or build were run.
+
 ## v1.102 — 2026-09-30
 
 Renumbered from v1.89: main reached v1.97 first (numbers now continue past .99, owner decision 2026-09-29).
