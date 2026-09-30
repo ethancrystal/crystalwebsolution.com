@@ -118,6 +118,26 @@ describe('PortalLoginForm pending state', () => {
     expect(screen.queryByRole('alert')).toBeNull();
     window.removeEventListener('error', onError);
   });
+
+  it('is usable again when Back restores it from the bfcache after sign-in', async () => {
+    const redirect = Object.assign(new Error('NEXT_REDIRECT'), { digest: 'NEXT_REDIRECT;replace;/dashboard;307;' });
+    signIn.mockRejectedValue(redirect);
+    render(<PortalLoginForm portal={PORTAL} />);
+    fillAndSubmit();
+    await waitFor(() => expect(signIn).toHaveBeenCalled());
+    await act(async () => { await Promise.resolve(); });
+    expect(screen.getByRole('button', { name: /Signing in…/ }).disabled).toBe(true);
+
+    // A normal load (not from the bfcache) leaves it alone.
+    act(() => { window.dispatchEvent(Object.assign(new Event('pageshow'), { persisted: false })); });
+    expect(screen.getByRole('button', { name: /Signing in…/ }).disabled).toBe(true);
+
+    act(() => { window.dispatchEvent(Object.assign(new Event('pageshow'), { persisted: true })); });
+    expect(screen.getByRole('button', { name: 'Sign In' }).disabled).toBe(false);
+    expect(screen.getByLabelText('Email').disabled).toBe(false);
+    expect(screen.getByLabelText('Email').value).toBe('jane@example.test');
+    expect(screen.queryByRole('status')?.textContent ?? '').toBe('');
+  });
 });
 
 describe('LoginPage portal selection', () => {

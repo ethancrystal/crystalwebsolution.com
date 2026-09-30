@@ -34,6 +34,15 @@ export default function PortalLoginForm({ portal }) {
     setError(errorCode === 'configuration' ? CONFIGURATION_ERROR : errorCode ? PORTAL_ERROR : null);
   }, [portal]);
 
+  // Coming back with the Back button after a successful sign-in can restore
+  // this page from the bfcache with the pending state still set, and the
+  // route stays reachable while signed in. Release it so the form is usable.
+  useEffect(() => {
+    const release = (event) => { if (event.persisted) setIsPending(false); };
+    window.addEventListener('pageshow', release);
+    return () => window.removeEventListener('pageshow', release);
+  }, []);
+
   // Recovery: after a failed sign-in, focus the error so it is read out; the
   // typed email stays in place and the form is usable again.
   useEffect(() => {

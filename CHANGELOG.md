@@ -84,7 +84,9 @@ chosen card and announces it; further clicks are ignored until navigation
 completes (15 s safety release). Found and fixed on the way: under React 19
 the old "Signing in..." state never showed (state set inside a form action
 waits for the action), a failed sign-in wiped the typed email, and a
-configuration failure showed the raw word "configuration".
+configuration failure showed the raw word "configuration". Both the chooser
+and the sign-in form release their pending state when the Back button
+restores them from the bfcache, so they never stay locked.
 
 Verification: `pnpm test` 677/677, `pnpm test:components` 134/134 (new:
 `contact-route-fail-closed`, `staff-only-actions`, `delete-brief-draft`,
