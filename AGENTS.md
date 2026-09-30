@@ -173,8 +173,8 @@ implementing the features they describe, not as already-built.
 ## Release versioning (mandatory)
 
 Every merge into `main` is a production deploy and must carry a version name
-in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
-`VERSIONING.md`. Non-negotiable for every PR targeting `main`:
+in the form `v1.01`, `v1.02`, … `v1.99`, `v1.100` (two-digit minimum,
+compared as numbers). Full rules in `VERSIONING.md`. Non-negotiable for every PR targeting `main`:
 
 1. Bump the `VERSION` file and add the matching entry at the top of
    `CHANGELOG.md` in the same PR.
@@ -185,7 +185,8 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
    `git log --oneline -15 origin/main` (fetch first), `VERSION`, the top of
    `CHANGELOG.md`, or an open PR's title (`gh pr list --base main`). A PR can
    deploy under a `vX.NN` title while bumping neither file, so the files alone
-   can lag production.
+   can lag production. The `release-policy` check (`scripts/release-policy.mjs`)
+   enforces this on every PR into main.
 5. After merging `main` into a version-bump branch (including GitHub's
    "Update branch"), check that `VERSION` and the top `CHANGELOG.md` heading
    still name this PR's version. That merge dropped the bump for v1.55, v1.57,
