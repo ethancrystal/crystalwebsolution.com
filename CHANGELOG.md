@@ -8,10 +8,11 @@ C1: client arrival tour, needs-action ordering, verify continue.
   `cws.portal.tour.seen.v1` localStorage key (decision D2) — never re-opens
   automatically; if storage is unavailable (private mode) the tour simply
   shows every visit.
-- Dashboard home now leads with what the client owes a decision on: a
-  "Needs your action" section first (projects in `client_review`, then
-  resumable draft briefs), followed by the client's other projects, with an
-  explicit empty state when a client has no drafts yet.
+- Dashboard home: the v1.109 "Needs your attention" strip already leads the
+  page and the section order runs projects → drafts → start for returning
+  clients; this PR carries the tour mount and "Replay tour" header action on
+  top of that reworked home (the earlier C1 section reorder was superseded by
+  v1.109's richer attention strip during the v1.111/v1.112 integration).
 - The verify-email confirmation page (`app/auth/confirm/page.jsx`) now
   offers a "continue to dashboard" primary action alongside Back to Login,
   so a client who has just verified isn't dumped back at the login form.
@@ -20,6 +21,90 @@ C1: client arrival tour, needs-action ordering, verify continue.
   that call `requireRole` (reads cookies) while Supabase env vars are
   placeholders in CI. No SQL, no new dependencies, no new notification
   events.
+## v1.110 — 2026-09-30
+
+Live project pages. Changes on a project now show up on every open project
+page without a refresh, and each page shows who else is looking at it.
+
+**Production drift recorded** (`0050`): the Realtime SQL behind this was run
+directly on the live database through the Supabase dashboard's SQL runner and
+never went through a migration, so the migration chain no longer reproduced
+production. `0050_realtime_project_updates_and_presence.sql` records it
+verbatim (a replay through `0050` matches every live Realtime function,
+trigger and policy hash), idempotent, plus the usual revoke on the three
+trigger functions. It adds `project_status_changed`, `project_task_changed`
+and `project_approval_changed` broadcasts on the existing private project
+topics, and presence on them. Client-facing (`shared`) sends are filtered: an
+internal task, or an approval on an internal deliverable, never reaches the
+client's topic. Payloads are identifiers only; pages re-read through the
+RLS-protected read model. The owner applies `0050` so `schema_migrations`
+matches; applying it changes no live behaviour.
+
+**One channel per project topic** (`lib/crm/projectRealtime.js`): supabase-js
+hands back the same channel for a topic it already has, so two components
+opening their own would collide. A ref-counted registry opens each private
+channel once, authorizes the socket before any join, tells listeners to
+re-read after a reconnect (events sent while offline are lost), and carries
+presence on the shared topic. The message thread moved onto it unchanged.
+
+**Pages**: the client, team and admin project pages re-read the workspace on
+status, task and approval changes (`components/crm/useProjectLive.js`,
+debounced), and show "Also here now: …" with names only
+(`ProjectPresence`). On the client page a new message refreshes only the tab
+badges, and anything arriving on the open Messages or Files tab is marked
+read at once.
+
+Owner: in the Supabase dashboard, Realtime settings, turn off "Allow public
+access" so project channels require authorization.
+
+Not yet broadcast: deliverable publishing (the Files badge updates on the next
+load, not live).
+
+Tests: pgTAP `0050_realtime_project_updates_and_presence.test.sql` (16 checks,
+PGlite: passes with 0050, the 10 positive checks fail without it;
+0009/0041/0046/0047/0048 still pass), the registry and live hook
+(`project-realtime`), the client page's live behaviour, 0050 contracts.
+
+## v1.109 — 2026-09-30
+
+Client portal, phase 1. The first of three portal improvements (then the
+admin and team dashboards, then settings and the customer profile). One
+migration (`0049`) is checked in and applied separately by the owner; until
+it is, the portal simply shows no manager name.
+
+**Client project page in tabs**: Overview, Messages, Files, Tasks &
+approvals, Brief (`components/crm/Tabs.jsx`, WAI-ARIA tabs with arrow/Home/End
+keys). The open tab is kept in `?tab=`, so it survives a reload and can be
+linked to; panels stay mounted, so a half-written message or staged upload
+survives a tab switch. Overview leads with "Needs your attention" (a project
+waiting on the client, new messages, new files), the project manager card,
+the project details and recent activity. Messages and Files show unread
+counts, and opening them marks those notifications read. The brief appears
+once, in its own tab, with the original request shown when there is no
+structured brief. Project Updates stays on Overview, where clients can still
+post an update.
+
+**Project manager by name only** (`0049`): `public.project_manager_names`
+returns the lead project manager's display name for the projects the caller
+can access, and nothing else: no email, no ids. `getProjectManagerNames()`
+reads it and reports "unavailable" when the function is not there yet, so
+the page never guesses.
+
+**Client dashboard**: returning clients see their projects first, new
+clients the service picker first. A "Needs your attention" strip lists
+projects in review and unread updates. Project cards show a status badge,
+what the status means, the project manager's name, the last update and an
+unread count.
+
+**Plain-language labels** (`lib/crm/labels.mjs`): project, task and approval
+statuses and project categories render as words ("Ready for your review")
+instead of raw values (`client_review`) on the client pages, the timeline,
+tasks and approvals. The timeline shows "CD Sportswear team" instead of
+"Unknown" for a staff change the client cannot see the author of.
+
+Tests: pgTAP `0049_project_manager_names.test.sql` (11 checks, PGlite:
+passes with 0049, fails without it; 0041/0046/0047/0048 still pass), labels,
+Tabs, the manager card, the client project page and 0049 contracts.
 
 ## v1.108 — 2026-09-29
 
