@@ -1,8 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { projectCategoryLabel, projectStatusBadgeClass, projectStatusLabel } from '@/lib/crm/labels.mjs';
 
-export default function ProjectOverview({ project }) {
+// showBrief / showBackLink default to the staff pages' behaviour. The client
+// page turns both off: the brief has its own tab (structured, not this
+// plain-text copy) and the portal frame already links back.
+export default function ProjectOverview({ project, showBrief = true, showBackLink = true }) {
   if (!project) {
     return (
       <div className="crm-project-overview">
@@ -16,25 +20,31 @@ export default function ProjectOverview({ project }) {
       <div className="crm-overview-header">
         <div>
           <h2>{project.title}</h2>
-          <span className="crm-project-status">{project.status}</span>
+          <span className={projectStatusBadgeClass(project.status)}>{projectStatusLabel(project.status)}</span>
         </div>
-        <Link href="/dashboard" className="crm-link-secondary">
-          Back to Dashboard
-        </Link>
+        {showBackLink && (
+          <Link href="/dashboard" className="crm-link-secondary">
+            Back to Dashboard
+          </Link>
+        )}
       </div>
 
       <div className="crm-overview-grid">
         <div className="crm-overview-item">
           <span className="crm-overview-label">Category</span>
-          <span className="crm-overview-value">{project.category || '-'}</span>
+          <span className="crm-overview-value">{projectCategoryLabel(project.category) || '-'}</span>
         </div>
         <div className="crm-overview-item">
           <span className="crm-overview-label">Status</span>
-          <span className="crm-overview-value">{project.status || '-'}</span>
+          <span className="crm-overview-value">{projectStatusLabel(project.status) || '-'}</span>
         </div>
         <div className="crm-overview-item">
           <span className="crm-overview-label">Target Date</span>
-          <span className="crm-overview-value">{project.target_date || '-'}</span>
+          <span className="crm-overview-value">
+            {project.target_date
+              ? new Date(`${project.target_date}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+              : '-'}
+          </span>
         </div>
         {project.budget_amount != null && (
           <div className="crm-overview-item">
@@ -50,7 +60,7 @@ export default function ProjectOverview({ project }) {
         </div>
       </div>
 
-      {project.brief && (
+      {showBrief && project.brief && (
         <div className="crm-overview-brief">
           <h3>Brief</h3>
           <p>{project.brief}</p>
