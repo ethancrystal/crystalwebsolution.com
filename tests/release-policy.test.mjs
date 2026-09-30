@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { compareVersions, parseVersion, validateRelease } from '../scripts/release-policy.mjs';
+import { APPROVED_MAJORS, compareVersions, parseVersion, validateRelease } from '../scripts/release-policy.mjs';
 
 const MAIN_CHANGELOG = `## v1.84 — 2026-09-28
 
@@ -115,11 +115,29 @@ test('title, files and CHANGELOG shape are still enforced', () => {
 });
 
 test('major-version changes still need the owner', () => {
-  assert.match(validateRelease(input(270, 'v2.01')).message, /major-version transition requires owner direction/);
+  assert.match(validateRelease(input(270, 'v3.01')).message, /major-version transition requires owner direction/);
+  assert.match(
+    validateRelease(input(270, 'v3.01', { baseVersion: 'v2.40', mainChangelog: '', mainCommitMessages: [] })).message,
+    /major-version transition requires owner direction/,
+  );
   assert.match(
     validateRelease(input(270, 'v1.99', { baseVersion: 'v1.99', otherOpenPulls: [] })).message,
     /paused at \.99/,
   );
+});
+
+test('the owner-approved v2 series is accepted above a v1 main, including past .99', () => {
+  assert.deepEqual([...APPROVED_MAJORS], [2]);
+  const queue = [{ number: 259, title: 'v2.01 — plan: client, employee and admin portal workings' }];
+  const first = validateRelease(input(259, 'v2.01', { title: queue[0].title, otherOpenPulls: [] }));
+  assert.equal(first.ok, true, first.message);
+  assert.equal(validateRelease(input(260, 'v2.02', { otherOpenPulls: queue })).ok, true);
+  assert.match(validateRelease(input(260, 'v2.01', { otherOpenPulls: queue })).message, /v2\.01 is already claimed by open PR #259/);
+  assert.equal(validateRelease(input(270, 'v2.01', { baseVersion: 'v1.99', otherOpenPulls: [] })).ok, true);
+  // Once main is on v2, v1 numbers are below it and fail as any stale number does.
+  const onV2 = { baseVersion: 'v2.01', mainChangelog: '## v2.01 — 2026-09-30\n\nx\n', mainCommitMessages: [], otherOpenPulls: [] };
+  assert.match(validateRelease(input(270, 'v1.98', onV2)).message, /major-version transition requires owner direction|must be above v2\.01/);
+  assert.equal(validateRelease(input(270, 'v2.02', onV2)).ok, true);
 });
 
 test('version helpers order releases numerically', () => {

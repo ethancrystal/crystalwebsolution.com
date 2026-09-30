@@ -1,3 +1,20 @@
+## v1.97 — 2026-09-30
+
+CI only, no runtime change. The owner approved moving to the v2 series
+(2026-09-30). With main at v1.96, seven queued PRs needed numbers and only
+v1.97–v1.99 were left in v1.
+
+- `scripts/release-policy.mjs` gains `APPROVED_MAJORS` (currently `2`). A
+  PR may name the next major while main is still on the previous one, and
+  past a `.99` main, only if that major is listed. Any other change of major
+  still fails with "requires owner direction", so v3 needs a new approval.
+- `tests/release-policy.test.mjs` covers the approved v2 series (above a v1
+  main, past `.99`, a v2 number claimed by another PR) and v3 still being
+  refused.
+- `VERSIONING.md` records the approval. Queued PRs take `v2.01`, `v2.02`, …
+  in merge order (the minor starts at `.01`), and any later PR takes the next
+  free v2 number.
+
 ## v1.96 — 2026-09-29
 
 Opened as v1.93; renumbered to v1.96 after v1.94 (#269) merged first and #266 became v1.95.

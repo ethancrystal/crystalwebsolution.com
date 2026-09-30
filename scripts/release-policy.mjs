@@ -24,6 +24,14 @@ const RELEASE_LINE = /^v(\d+)\.(\d{2}) — /gmu;
 const CHANGELOG_HEADING = /^## (v\d+\.\d{2}) — (\d{4}-\d{2}-\d{2})$/u;
 const ANY_CHANGELOG_HEADING = /^## (v\d+)\.(\d{2}) — /gmu;
 
+// Major versions the owner has approved moving to. A PR may name the next
+// major while main is still on the previous one (and past a .99 main) only
+// if that major is listed here; any other change of major still fails. v2
+// approved by the owner on 2026-09-30, when main was at v1.96 and seven
+// queued PRs needed numbers with only v1.97-v1.99 left. The minor
+// starts at .01 (VERSIONING.md).
+export const APPROVED_MAJORS = new Set([2]);
+
 export function parseVersion(text) {
   const match = VERSION.exec(String(text ?? '').trim());
   return match ? { major: Number(match[1]), minor: Number(match[2]) } : null;
@@ -85,10 +93,11 @@ export function validateRelease(input) {
     return fail(`The PR title names ${titleName} but VERSION says ${headName}; they must match.`);
   }
 
-  if (base.minor >= 99) {
+  const approvedTransition = head.major === base.major + 1 && APPROVED_MAJORS.has(head.major);
+  if (base.minor >= 99 && !approvedTransition) {
     return fail('Automatic release numbering is paused at .99; a major-version transition requires owner direction.');
   }
-  if (head.major !== base.major) {
+  if (head.major !== base.major && !approvedTransition) {
     return fail('A major-version transition requires owner direction.');
   }
 

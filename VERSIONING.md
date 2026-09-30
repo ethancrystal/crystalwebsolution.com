@@ -23,6 +23,12 @@ Versions look like `v1.01`, `v1.02`, `v1.03`, … `v2.01`, `v2.02`, …
   `/version-bump` applies this.
 - If a major line ever reaches `.99`, the next deploy rolls to the next
   major (`v1.99` → `v2.01`). Don't go to three digits.
+- **v2 approved (owner, 2026-09-30).** The v1 line ran out: with main at
+  v1.96, seven queued PRs needed numbers and only v1.97–v1.99 were left.
+  Queued PRs take `v2.01`, `v2.02`, … in merge order, and any later PR
+  takes the next free v2 number. The `release-policy` check allows only the
+  majors listed in `APPROVED_MAJORS` (`scripts/release-policy.mjs`); a move
+  to v3 still needs the owner.
 
 ## Source of truth
 
