@@ -547,7 +547,8 @@ export async function createAttachmentDownloadUrl(formData) {
 
 export async function createProjectTask(formData) {
   const requestId = randomUUID();
-  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  // Staff only; the RPC enforces the same (migrations 0046/0047).
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to create tasks.');
 
   const projectId = formString(formData, 'projectId');
@@ -728,7 +729,8 @@ export async function updateProjectApproval(formData) {
 
 export async function publishDeliverable(formData) {
   const requestId = randomUUID();
-  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  // Staff only; the RPC enforces the same (migrations 0046/0047).
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to publish deliverables.');
 
   const projectId = formString(formData, 'projectId');
@@ -780,7 +782,8 @@ function deliverableData(row) {
 
 export async function createProjectDeliverable(formData) {
   const requestId = randomUUID();
-  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  // Staff only; the RPC enforces the same (migrations 0046/0047).
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to create deliverables.');
 
   const projectId = formString(formData, 'projectId');
@@ -887,7 +890,8 @@ export async function postProjectNote(formData) {
 
 export async function enqueueNotification(formData) {
   const requestId = randomUUID();
-  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  // Staff only; the RPC enforces the same (migrations 0046/0047).
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to send notifications.');
 
   const projectId = formString(formData, 'projectId');

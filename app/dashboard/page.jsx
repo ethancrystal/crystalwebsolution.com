@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/browser';
-import { signOut } from '@/app/auth/actions';
 import { homeForRole } from '@/lib/auth/roles.mjs';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Delete02Icon } from '@hugeicons/core-free-icons';
-import { listProjectsForViewer } from '@/lib/crm/projects';
+import { getProjectManagerNames, listNotifications, listProjectsForViewer } from '@/lib/crm/projects';
+import { CLIENT_ACTION_STATUSES, projectStatusBadgeClass, projectStatusLabel, projectStatusMeaning } from '@/lib/crm/labels.mjs';
 import { listDraftBriefs, submittedBriefTypesByProject } from '@/lib/crm/briefs';
 import { BRIEF_TEMPLATES, BRIEF_TYPES, briefTypeLabel, stepProgress } from '@/lib/crm/brief-templates.mjs';
 import { deleteBriefDraft, startBrief } from '@/app/actions/brief-actions';
@@ -17,17 +17,10 @@ import WorkspaceShell from '@/components/crm/WorkspaceShell';
 import { SkeletonTable } from '@/components/crm/Skeleton';
 import { LoadingState } from '@/components/crm/Spinner';
 
-const PROJECT_STATUS_LABELS = {
-  brief_submitted: 'Brief Submitted',
-  planned: 'Planned',
-  in_progress: 'In Progress',
-  client_review: 'Client Review',
-  changes_requested: 'Changes Requested',
-  approved: 'Approved',
-  delivered: 'Delivered',
-  on_hold: 'On Hold',
-  cancelled: 'Cancelled',
-};
+function formatShortDate(value) {
+  if (!value) return '';
+  return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -37,6 +30,8 @@ export default function DashboardPage() {
   const [myProjects, setMyProjects] = useState([]);
   const [drafts, setDrafts] = useState([]);
   const [briefTypesByProject, setBriefTypesByProject] = useState({});
+  const [unreadByProject, setUnreadByProject] = useState({});
+  const [managers, setManagers] = useState({ available: false, names: new Map() });
   const [startingType, setStartingType] = useState(null);
   const [showFreeform, setShowFreeform] = useState(false);
   const [error, setError] = useState(null);
@@ -59,14 +54,28 @@ export default function DashboardPage() {
       return;
     }
 
-    // Brief data is secondary: a failure here (e.g. before migration 0043 is
-    // applied) hides drafts and badges but never the project list.
-    const [draftResult, typesResult] = await Promise.allSettled([
+    // Brief data, unread counts and manager names are secondary: a failure
+    // here (e.g. before migration 0043 or 0049 is applied) hides drafts,
+    // badges or names but never the project list.
+    const projectIds = projects.map((project) => project.id);
+    const [draftResult, typesResult, notificationResult, managerResult] = await Promise.allSettled([
       listDraftBriefs(supabase),
-      submittedBriefTypesByProject(supabase, projects.map((project) => project.id)),
+      submittedBriefTypesByProject(supabase, projectIds),
+      listNotifications(supabase, viewerProfile),
+      getProjectManagerNames(supabase, projectIds),
     ]);
     if (draftResult.status === 'fulfilled') setDrafts(draftResult.value);
     if (typesResult.status === 'fulfilled') setBriefTypesByProject(typesResult.value);
+    if (notificationResult.status === 'fulfilled') {
+      const counts = {};
+      for (const notification of notificationResult.value) {
+        if (notification.project_id && !notification.read_at) {
+          counts[notification.project_id] = (counts[notification.project_id] ?? 0) + 1;
+        }
+      }
+      setUnreadByProject(counts);
+    }
+    if (managerResult.status === 'fulfilled') setManagers(managerResult.value);
   }, []);
 
   useEffect(() => {
@@ -156,6 +165,8 @@ export default function DashboardPage() {
       const result = await deleteBriefDraft(formData);
       if (!result.ok) {
         setError(result.error || 'Unable to delete the draft.');
+        // Submitted meanwhile (another tab): it is no longer a draft.
+        if (result.conflict) setDrafts((prev) => prev.filter((item) => item.id !== draft.id));
         return;
       }
       setDrafts((prev) => prev.filter((item) => item.id !== draft.id));
@@ -180,17 +191,33 @@ export default function DashboardPage() {
     );
   }
 
+  // Returning clients see their projects first; a new client sees the
+  // service picker first.
+  const sectionOrder = myProjects.length > 0 ? ['projects', 'drafts', 'start'] : ['start', 'drafts', 'projects'];
+  const attentionItems = myProjects.flatMap((project) => {
+    const unread = unreadByProject[project.id] ?? 0;
+    const href = `/dashboard/projects/${project.id}`;
+    const items = [];
+    if (CLIENT_ACTION_STATUSES.includes(project.status)) {
+      items.push({ key: `${project.id}-review`, title: project.title, text: projectStatusMeaning(project.status), href });
+    }
+    if (unread > 0) {
+      items.push({
+        key: `${project.id}-unread`,
+        title: project.title,
+        text: unread === 1 ? '1 new update' : `${unread} new updates`,
+        href,
+      });
+    }
+    return items;
+  });
+
   return (
-    <WorkspaceShell role="client" title="Client Dashboard">
-      <header className="crm-dashboard-header">
-        <div className="crm-header-content">
-          <h1>Projects</h1>
-          <p>Welcome, {profile?.full_name || user?.email}</p>
-        </div>
-        <form action={signOut}>
-          <button type="submit" className="crm-logout-btn">Sign Out</button>
-        </form>
-      </header>
+    <WorkspaceShell
+      role="client"
+      title="Projects"
+      subtitle={`Welcome, ${profile?.full_name || user?.email || ''}`}
+    >
 
       {error && (
         <div className="crm-dashboard-error">
@@ -201,163 +228,179 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <section className="crm-dashboard-section" aria-labelledby="start-brief-heading">
-        <h2 id="start-brief-heading">Start a new brief</h2>
-        <p className="crm-section-sub">
-          Pick a service and answer a few guided questions. Your answers save as you go, so you can stop and come back
-          any time.
-        </p>
-        <div className="crm-service-grid">
-          {BRIEF_TYPES.map((type) => {
-            const template = BRIEF_TEMPLATES[type];
-            return (
-              <button
-                key={type}
-                type="button"
-                className="crm-service-card"
-                onClick={() => handleStartBrief(type)}
-                disabled={startingType !== null}
-              >
-                <span className="crm-service-icon" aria-hidden="true">
-                  <HugeiconsIcon icon={BRIEF_ICONS[type]} size={22} />
-                </span>
-                <span className="crm-service-name">{template.label}</span>
-                <span className="crm-service-blurb">{template.blurb}</span>
-                <span className="crm-service-time">
-                  {startingType === type ? 'Opening…' : `About ${template.minutes} min`}
-                </span>
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            className="crm-service-card crm-service-card-other"
-            onClick={() => setShowFreeform((prev) => !prev)}
-            aria-expanded={showFreeform}
-            aria-controls="freeform-brief"
-          >
-            <span className="crm-service-icon" aria-hidden="true">
-              <HugeiconsIcon icon={BRIEF_ICONS.other} size={22} />
-            </span>
-            <span className="crm-service-name">Something else</span>
-            <span className="crm-service-blurb">Branding, AI automation or anything not listed. Describe it in your own words.</span>
-            <span className="crm-service-time">{showFreeform ? 'Hide form' : 'Free-form brief'}</span>
-          </button>
-        </div>
-        {showFreeform && (
-          <div id="freeform-brief" className="crm-freeform">
-            <BriefSubmissionForm hasCompany={!!profile?.company_id} onCreated={handleProjectCreated} />
-          </div>
-        )}
-      </section>
-
-      {drafts.length > 0 && (
-        <section className="crm-dashboard-section" aria-labelledby="drafts-heading">
-          <h2 id="drafts-heading">Briefs in progress</h2>
-          <ul className="crm-draft-list">
-            {drafts.map((draft) => {
-              const { answered, total } = stepProgress(draft.brief_type, draft.answers);
-              const percent = total ? Math.round((answered / total) * 100) : 0;
-              return (
-                <li key={draft.id} className="crm-draft">
-                  <span className="crm-service-icon" aria-hidden="true">
-                    <HugeiconsIcon icon={BRIEF_ICONS[draft.brief_type] ?? BRIEF_ICONS.other} size={18} />
-                  </span>
-                  <div className="crm-draft-main">
-                    <a href={`/dashboard/briefs/${draft.id}`} className="crm-draft-title">
-                      {draft.title || `${briefTypeLabel(draft.brief_type)} brief`}
-                    </a>
-                    <div className="crm-draft-meta">
-                      <span>{briefTypeLabel(draft.brief_type)}</span>
-                      <span>·</span>
-                      <span>Last saved {new Date(draft.updated_at).toLocaleDateString()}</span>
-                    </div>
-                    <div
-                      className="crm-draft-progress"
-                      role="progressbar"
-                      aria-label={`${answered} of ${total} questions answered`}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={percent}
-                    >
-                      <span style={{ width: `${percent}%` }} />
-                    </div>
-                  </div>
-                  <a href={`/dashboard/briefs/${draft.id}`} className="crm-draft-continue">Continue</a>
-                  <button
-                    type="button"
-                    className="crm-draft-delete"
-                    onClick={() => handleDeleteDraft(draft)}
-                    aria-label={`Delete draft ${draft.title || briefTypeLabel(draft.brief_type)}`}
-                  >
-                    <HugeiconsIcon icon={Delete02Icon} size={16} />
-                  </button>
-                </li>
-              );
-            })}
+      {attentionItems.length > 0 && (
+        <section className="crm-attention" aria-labelledby="attention-heading">
+          <h2 id="attention-heading">Needs your attention</h2>
+          <ul>
+            {attentionItems.map((item) => (
+              <li key={item.key}>
+                <a href={item.href}>
+                  <strong>{item.title}</strong>
+                  <span>{item.text}</span>
+                </a>
+              </li>
+            ))}
           </ul>
         </section>
       )}
 
-      <section className="crm-dashboard-section" aria-labelledby="projects-heading">
-        <h2 id="projects-heading">Your projects</h2>
-        {myProjects.length > 0 ? (
-          <div className="crm-companies-grid">
-            {myProjects.map((project) => (
-              <a
-                key={project.id}
-                href={`/dashboard/projects/${project.id}`}
-                className="crm-company-card crm-project-card"
-              >
-                <h3>{project.title}</h3>
-                <span className="crm-project-status">
-                  {PROJECT_STATUS_LABELS[project.status] || project.status}
-                </span>
-                {briefTypesByProject[project.id]?.length > 0 && (
-                  <span className="crm-project-briefs">
-                    {[...new Set(briefTypesByProject[project.id])].map(briefTypeLabel).join(' · ')}
+      {sectionOrder.map((section) => (
+        <Fragment key={section}>
+          {section === 'projects' && (
+            <section className="crm-dashboard-section" aria-labelledby="projects-heading">
+              <h2 id="projects-heading">Your projects</h2>
+              {myProjects.length > 0 ? (
+                <div className="crm-companies-grid">
+                  {myProjects.map((project) => {
+                    const unread = unreadByProject[project.id] ?? 0;
+                    const managerName = managers.names.get(project.id);
+                    return (
+                      <a
+                        key={project.id}
+                        href={`/dashboard/projects/${project.id}`}
+                        className="crm-company-card crm-project-card"
+                      >
+                        <span className="crm-project-card-head">
+                          <h3>{project.title}</h3>
+                          {unread > 0 && (
+                            <span className="crm-project-unread">
+                              {unread}
+                              {' '}
+                              <span className="crm-visually-hidden">new {unread === 1 ? 'update' : 'updates'}</span>
+                            </span>
+                          )}
+                        </span>
+                        <span className={projectStatusBadgeClass(project.status)}>{projectStatusLabel(project.status)}</span>
+                        <span className="crm-project-meaning">{projectStatusMeaning(project.status)}</span>
+                        {managers.available && (
+                          <span className="crm-project-meta">
+                            {managerName ? `Project manager: ${managerName}` : 'Project manager: being assigned'}
+                          </span>
+                        )}
+                        {project.updated_at && (
+                          <span className="crm-project-meta">Updated {formatShortDate(project.updated_at)}</span>
+                        )}
+                        {briefTypesByProject[project.id]?.length > 0 && (
+                          <span className="crm-project-briefs">
+                            {[...new Set(briefTypesByProject[project.id])].map(briefTypeLabel).join(' · ')}
+                          </span>
+                        )}
+                      </a>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="crm-empty-state">No projects yet. Start a brief above and your first project appears here.</p>
+              )}
+            </section>
+          )}
+          {section === 'drafts' && drafts.length > 0 && (
+          <section className="crm-dashboard-section" aria-labelledby="drafts-heading">
+            <h2 id="drafts-heading">Briefs in progress</h2>
+            <ul className="crm-draft-list">
+              {drafts.map((draft) => {
+                const { answered, total } = stepProgress(draft.brief_type, draft.answers);
+                const percent = total ? Math.round((answered / total) * 100) : 0;
+                return (
+                  <li key={draft.id} className="crm-draft">
+                    <span className="crm-service-icon" aria-hidden="true">
+                      <HugeiconsIcon icon={BRIEF_ICONS[draft.brief_type] ?? BRIEF_ICONS.other} size={18} />
+                    </span>
+                    <div className="crm-draft-main">
+                      <a href={`/dashboard/briefs/${draft.id}`} className="crm-draft-title">
+                        {draft.title || `${briefTypeLabel(draft.brief_type)} brief`}
+                      </a>
+                      <div className="crm-draft-meta">
+                        <span>{briefTypeLabel(draft.brief_type)}</span>
+                        <span>·</span>
+                        <span>Last saved {new Date(draft.updated_at).toLocaleDateString()}</span>
+                      </div>
+                      <div
+                        className="crm-draft-progress"
+                        role="progressbar"
+                        aria-label={`${answered} of ${total} questions answered`}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={percent}
+                      >
+                        <span style={{ width: `${percent}%` }} />
+                      </div>
+                    </div>
+                    <a href={`/dashboard/briefs/${draft.id}`} className="crm-draft-continue">Continue</a>
+                    <button
+                      type="button"
+                      className="crm-draft-delete"
+                      onClick={() => handleDeleteDraft(draft)}
+                      aria-label={`Delete draft ${draft.title || briefTypeLabel(draft.brief_type)}`}
+                    >
+                      <HugeiconsIcon icon={Delete02Icon} size={16} />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+          )}
+          {section === 'start' && (
+            <section className="crm-dashboard-section" aria-labelledby="start-brief-heading">
+              <h2 id="start-brief-heading">Start a new brief</h2>
+              <p className="crm-section-sub">
+                Pick a service and answer a few guided questions. Your answers save as you go, so you can stop and come back
+                any time.
+              </p>
+              <div className="crm-service-grid">
+                {BRIEF_TYPES.map((type) => {
+                  const template = BRIEF_TEMPLATES[type];
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      className="crm-service-card"
+                      onClick={() => handleStartBrief(type)}
+                      disabled={startingType !== null}
+                    >
+                      <span className="crm-service-icon" aria-hidden="true">
+                        <HugeiconsIcon icon={BRIEF_ICONS[type]} size={22} />
+                      </span>
+                      <span className="crm-service-name">{template.label}</span>
+                      <span className="crm-service-blurb">{template.blurb}</span>
+                      <span className="crm-service-time">
+                        {startingType === type ? 'Opening…' : `About ${template.minutes} min`}
+                      </span>
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  className="crm-service-card crm-service-card-other"
+                  onClick={() => setShowFreeform((prev) => !prev)}
+                  aria-expanded={showFreeform}
+                  aria-controls="freeform-brief"
+                >
+                  <span className="crm-service-icon" aria-hidden="true">
+                    <HugeiconsIcon icon={BRIEF_ICONS.other} size={22} />
                   </span>
-                )}
-              </a>
-            ))}
-          </div>
-        ) : (
-          <p className="crm-empty-state">No projects yet. Start a brief above and your first project appears here.</p>
-        )}
-      </section>
+                  <span className="crm-service-name">Something else</span>
+                  <span className="crm-service-blurb">Branding, AI automation or anything not listed. Describe it in your own words.</span>
+                  <span className="crm-service-time">{showFreeform ? 'Hide form' : 'Free-form brief'}</span>
+                </button>
+              </div>
+              {showFreeform && (
+                <div id="freeform-brief" className="crm-freeform">
+                  <BriefSubmissionForm hasCompany={!!profile?.company_id} onCreated={handleProjectCreated} />
+                </div>
+              )}
+            </section>
+          )}
+        </Fragment>
+      ))}
 
       <style jsx>{`
         .crm-dashboard {
           min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          color: #e0e0e0;
+          background: var(--crm-bg);
+          color: var(--crm-text);
           font-family: inherit;
-        }
-
-        .crm-dashboard-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 1rem;
-          margin-bottom: 1.5rem;
-        }
-
-        .crm-header-content h1 {
-          font-size: 1.6rem;
-          color: #64c8ff;
-        }
-
-        .crm-header-content p {
-          color: #999;
-        }
-
-        .crm-logout-btn {
-          background: rgba(255, 100, 100, 0.1);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff9999;
-          padding: 0.5rem 1rem;
-          border-radius: 6px;
-          cursor: pointer;
         }
 
         .crm-dashboard-error {
@@ -417,17 +460,6 @@ export default function DashboardPage() {
 
         .crm-project-card {
           display: block;
-        }
-
-        .crm-project-status {
-          display: inline-block;
-          background: rgba(100, 200, 255, 0.1);
-          border: 1px solid rgba(100, 200, 255, 0.3);
-          color: #64c8ff;
-          padding: 0.25rem 0.75rem;
-          border-radius: 999px;
-          font-size: 0.8rem;
-          margin-top: 0.5rem;
         }
 
         .crm-empty-state {
@@ -593,6 +625,84 @@ export default function DashboardPage() {
           padding: 0.4rem;
           cursor: pointer;
           flex-shrink: 0;
+        }
+
+        .crm-attention {
+          border: 1px solid var(--crm-status-warning-fg);
+          background: var(--crm-status-warning-bg);
+          border-radius: 12px;
+          padding: 1rem 1.25rem;
+        }
+
+        .crm-attention h2 {
+          font-size: 1rem;
+          color: var(--crm-status-warning-fg);
+          margin: 0 0 0.6rem;
+        }
+
+        .crm-attention ul {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: grid;
+          gap: 0.4rem;
+        }
+
+        .crm-attention a {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.25rem 0.6rem;
+          color: var(--crm-text);
+          text-decoration: none;
+          padding: 0.35rem 0;
+        }
+
+        .crm-attention a:hover strong,
+        .crm-attention a:focus-visible strong {
+          text-decoration: underline;
+        }
+
+        .crm-attention a span {
+          color: var(--crm-muted);
+        }
+
+        .crm-project-card-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 0.75rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .crm-project-card-head h3 {
+          margin: 0;
+          overflow-wrap: anywhere;
+        }
+
+        .crm-project-unread {
+          flex: 0 0 auto;
+          min-width: 1.5rem;
+          padding: 0.1rem 0.45rem;
+          border-radius: 999px;
+          background: var(--crm-accent);
+          color: #fff;
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-align: center;
+        }
+
+        .crm-project-meaning {
+          display: block;
+          color: var(--crm-muted);
+          font-size: 0.88rem;
+          margin-top: 0.6rem;
+        }
+
+        .crm-project-meta {
+          display: block;
+          color: var(--crm-subtle);
+          font-size: 0.8rem;
+          margin-top: 0.35rem;
         }
 
         .crm-project-briefs {

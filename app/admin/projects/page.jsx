@@ -19,12 +19,29 @@ const STATUS_FILTERS = [
   { value: 'cancelled', label: 'Cancelled' },
 ];
 
+// A live project with no project manager yet. The admin home links here with
+// ?pm=none, and the "assign a project manager" email lands on one of these.
+const CLOSED_STATUSES = new Set(['delivered', 'cancelled']);
+
+function needsManager(project) {
+  return !project.assignee && !CLOSED_STATUSES.has(project.status);
+}
+
 export default function AdminProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [managerFilter, setManagerFilter] = useState('');
+
+  useEffect(() => {
+    // Read once on mount rather than with useSearchParams, which would need a
+    // Suspense boundary for this client page.
+    if (new URLSearchParams(window.location.search).get('pm') === 'none') {
+      setManagerFilter('none');
+    }
+  }, []);
 
   const load = useCallback(async () => {
     const supabase = createClient();
@@ -58,6 +75,7 @@ export default function AdminProjectsPage() {
 
   const filtered = projects.filter((project) => {
     if (statusFilter && project.status !== statusFilter) return false;
+    if (managerFilter === 'none' && !needsManager(project)) return false;
     if (search) {
       const term = search.toLowerCase();
       const matchesTitle = (project.title || '').toLowerCase().includes(term);
@@ -92,6 +110,14 @@ export default function AdminProjectsPage() {
             </option>
           ))}
         </select>
+        <select
+          value={managerFilter}
+          onChange={(e) => setManagerFilter(e.target.value)}
+          aria-label="Filter by project manager"
+        >
+          <option value="">All projects</option>
+          <option value="none">Needs a project manager</option>
+        </select>
       </div>
 
       {isLoading ? (
@@ -122,7 +148,12 @@ export default function AdminProjectsPage() {
                   </td>
                   <td>{project.company?.name || '—'}</td>
                   <td>{STATUS_FILTERS.find((s) => s.value === project.status)?.label || project.status}</td>
-                  <td>{project.assignee?.full_name || '—'}</td>
+                  <td>
+                    {project.assignee?.full_name
+                      || (needsManager(project)
+                        ? <span className="crm-needs-pm">Needs a manager</span>
+                        : '—')}
+                  </td>
                   <td>{project.target_date || '—'}</td>
                 </tr>
               ))}
@@ -203,6 +234,17 @@ export default function AdminProjectsPage() {
         .crm-empty {
           color: #999;
           padding: 1rem 0;
+        }
+
+        .crm-needs-pm {
+          display: inline-block;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #0a0e27;
+          background: #64c8ff;
+          border-radius: 999px;
+          padding: 0.15rem 0.6rem;
+          white-space: nowrap;
         }
 
         .crm-admin-table-wrap {
