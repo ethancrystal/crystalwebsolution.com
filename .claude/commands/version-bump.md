@@ -18,7 +18,7 @@ Give this branch the next unused `vX.NN` and record it.
 
 1. Take the highest `vX.NN` named in the merge log, `VERSION`, or the top `CHANGELOG.md` heading.
 2. Skip a higher number an open PR from another branch already claims. Ignore stale PRs below it.
-3. The next version is that number plus `0.01`, zero-padded.
+3. The next version bumps the minor by one, zero-padded to two digits: `v1.09` → `v1.10`, and `v1.99` → `v1.100` (not `v2.00`). Compare versions as numbers.
 4. Write it to `VERSION` with a trailing newline.
 5. Add `## vX.NN — <today YYYY-MM-DD>` at the top of `CHANGELOG.md`, summarising `$ARGUMENTS` in the existing entry style.
 6. Leave `package.json` untouched.
