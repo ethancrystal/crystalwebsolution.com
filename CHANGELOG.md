@@ -1,3 +1,30 @@
+## v1.102 — 2026-09-30
+
+Renumbered from v1.89: main reached v1.97 first (numbers now continue past .99, owner decision 2026-09-29).
+
+Trustpilot TrustBox in both site footers (owner-supplied widget code).
+
+- `components/marketing/TrustpilotWidget.jsx` (new) renders Trustpilot's
+  "Micro Review Count" TrustBox with the owner's business-unit and template
+  ids, now kept in `SITE.trustpilot` (`lib/site.js`). The bootstrap script
+  loads through `next/script` with `lazyOnload` rather than a raw `<head>`
+  tag: the footer is never above the fold, so first paint doesn't wait on a
+  third-party script. On client-side navigation it calls
+  `Trustpilot.loadFromElement`, because the bootstrap scans the page only
+  once.
+- Two deliberate changes from the embed snippet: `data-theme="dark"` (the
+  light theme renders dark text on the dark footer) and left alignment, to
+  match the footer columns.
+- Both footers (`MarketingFooter` on inner pages, the homepage `Contact`
+  beat) gain a "Reviews" column with the TrustBox and a "Review us on
+  Trustpilot" link to the owner's short link (`https://trstp.lt/_Kyci6Z0BC`).
+- CSP: `https://widget.trustpilot.com` is added to `script-src` and
+  `frame-src` only. It is one exact host, not `*.trustpilot.com`, because the
+  bootstrap and the widget iframe both come from it and everything else runs
+  inside that iframe. `tests/csp-policy.test.mjs` pins the new token, and
+  `tests/trustpilot-widget.test.mjs` checks the ids, the theme, both footers
+  and the CSP scope.
+
 ## v1.99 — 2026-09-30
 
 Renumbered from v1.86: main reached v1.97 first (numbers now continue past .99, owner decision 2026-09-29).
