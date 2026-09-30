@@ -280,18 +280,23 @@ in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
 2. Title the PR `vX.NN — <summary>`. PRs land as merge commits whose message
    body starts with that title, which is how a deploy traces back to it.
 3. `package.json`'s `version` field is NOT part of this scheme — leave it.
-4. Never skip or reuse numbers; next = top of `CHANGELOG.md` + 0.01.
-5. **Check the merge log, not just the files.** A PR can be *titled* `vX.NN`
-   and deploy under that name while bumping neither file, so `VERSION` can lag
-   what production is actually called. That happened with v1.43 (`f0290ae`),
-   which is why v1.43 has no `CHANGELOG.md` entry and v1.44 follows v1.42.
-   Before picking a number, run `git log --oneline -5 main` and take one above
-   the highest version *named there*, not just the highest in the file.
+4. Never reuse a number. Next = one above the highest `vX.NN` named in
+   `git log --oneline -15 origin/main`, `VERSION`, the top of `CHANGELOG.md`,
+   or an open PR's title (`gh pr list --base main`). `/version-bump` applies
+   this, and the `release-policy` check (`scripts/release-policy.mjs`) fails
+   any PR into main whose number is not above main or is held by another
+   open PR. If a higher number merges first, renumber before merging.
+5. **Check the merge log and open PRs, not just the files.** A PR can be
+   *titled* `vX.NN` and deploy under that name while bumping neither file, so
+   `VERSION` can lag what production is actually called. That happened with
+   v1.43 (`f0290ae`), which is why v1.43 has no `CHANGELOG.md` entry and v1.44
+   follows v1.42. `git fetch` first: a local `main` can be many merges behind
+   `origin/main`.
 6. **GitHub's "Update branch" can silently drop the bump.** When `main` has
    moved its own `VERSION`/`CHANGELOG.md`, that merge can resolve both to
    `main`'s side, and the PR then deploys under its title with no entry.
-   It happened to v1.55, v1.57, v1.60 and v1.63 (backfilled in v1.59, v1.61
-   and v1.80).
+   It happened to v1.55, v1.57, v1.60, v1.63, v1.79 and v1.81 (backfilled in
+   v1.59, v1.61, v1.80 and v1.84).
    After any merge of `main` into a version-bump branch, check that `VERSION`
    and the top `CHANGELOG.md` heading still name this PR's version before it
    merges.

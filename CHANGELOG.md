@@ -1,28 +1,183 @@
-## v1.90 — 2026-09-29
+## v1.96 — 2026-09-29
 
-Cluster integrity is now a build gate, and one piece of registry drift is
-corrected.
+Opened as v1.93; renumbered to v1.96 after v1.94 (#269) merged first and #266 became v1.95.
 
-- `tests/seo-cluster-integrity.test.mjs` (new, 7 assertions) enforces the
-  pillar + cluster rule in `docs/seo/STRATEGY.md` §3 across the three sources
-  that have to agree: `KEYWORD-REGISTRY.md`, `docs/seo/drafts/blog/*.md`, and
-  `GUIDE_LINKS` in `lib/servicePages.mjs`. It checks one keyword → one URL,
-  that a row claiming a draft has that file on disk, that every draft is
-  mapped, that `target_url` matches the filename, that every draft links up to
-  a real pillar with anchor text of 10+ characters, that an **approved** post
-  linking up to a pillar is linked back from it, and that every `guideLinks`
-  href is well formed. Each assertion was mutation-tested to confirm it fires.
-- `docs/seo/KEYWORD-REGISTRY.md`: `/blog/branding-vs-brand-identity` and
-  `/blog/logo-redesign-vs-refresh` were recorded as `draft 2026-09-22` but have
-  never existed as files in any branch (`git log --all --diff-filter=A`
-  returns nothing). Their page state now reads **not drafted**. Keywords,
-  target URLs and every other column are unchanged, so both mappings still
-  reserve their URLs.
-- `docs/seo/CLUSTER-INTEGRITY.md` (new) documents the seven invariants, what to
-  do when each fails, and what the test deliberately cannot see — live post
-  bodies live in Supabase, not the repo.
+Client notifications you can rely on. Stacked on v1.95 (#266). Code ships on merge; migration `0046` is checked in and
+applied separately by the owner. Without it the app behaves as in v1.95.
 
-No production code changed. `pnpm test` passes 625/625.
+With `0046_client_notifications_and_hardening.sql` applied:
+
+- **A client's message always reaches someone.** When no project manager is
+  assigned yet, the admin now receives the client's messages, files and
+  status events (`private.project_notification_recipients`). Before, nobody
+  on the studio side was told. Once a manager is assigned the admin drops
+  off again, as before.
+- **"We have your brief."** A client who submits a brief gets an email and an
+  in-app note (`project.brief_received`) explaining what happens next. Only
+  on the first submission; a retry does not send it twice.
+- **"New client: … from …"** The admin gets an email when a client finishes
+  onboarding (`client.onboarded`), with contact, company, sign-in email and
+  phone, linking to the client's company page.
+- **Security:** a signed-in user can no longer set their own
+  `requested_staff_access` (which put them in the admin's pending staff
+  requests) or backdate `created_at`; and `enqueue_project_notification` is
+  now staff-only and can only notify people on the project. Before, any
+  client could queue an email with their own text to any user of the portal.
+
+In the app (no SQL needed):
+
+- **Friendlier client emails:** status emails to clients carry the same
+  light line as the in-app notification ("Sleeves: rolled up.", "Approved!
+  High fives all round."). Bad news stays plain. Copy lives in
+  `lib/crm/notification-copy.mjs`.
+- **Notifications panel:** "Mark all as read", and marking read now updates
+  at once (it used to need a reload).
+- **Watchdog:** each drain run reports `stuckPending`, `oldestStuckMinutes`
+  and `exhausted` in its JSON (stored by pg_cron in `net._http_response`),
+  and logs plus sends a Sentry warning when email is stuck for more than 30
+  minutes or a send fails for good. Counts only, no recipients or payloads.
+
+Verification: `pnpm test` 651/651, `pnpm test:components` 96/96 (new:
+`notifications-panel`), the production build with the CI placeholders
+(60/60 pages). SQL: `migration-0046-*` checks mechanically that
+`submit_project_brief` and the recipients function are 0043 and 0023 plus
+exactly the new blocks; `supabase/tests/0046_*.test.sql` (pgTAP, 21 checks).
+Run for real on PGlite (Postgres 17.5), replaying 0001–0046 with Supabase
+platform stubs copied from the live catalogs, as a stand-in for `pnpm
+test:db` (no Docker here): 0046 passes 21/21; the existing 0043, 0044, 0045
+and 0041 tests still pass at head 0046; with 0046 left out, the new test
+fails exactly the 12 checks that depend on it. The five functions 0046
+replaces matched live byte for byte (bodies, security, search path, grants)
+before the run.
+
+Migration numbering: this takes `0046`. The portal plan in #259 (docs only)
+reserved 0046/0047 for its C2/C3 phases; those move to 0047/0048. The
+engagement-engine spec in #267 picks its numbers at build time, after these.
+
+## v1.95 — 2026-09-29
+
+Opened as v1.91; renumbered to v1.95 after v1.94 (#269) merged first.
+
+Lead project manager assignment, and the emails around it. No database
+change: everything goes through the existing RPCs (`assign_project_user`,
+`remove_project_assignment`, `transition_project_status`).
+
+- **Admin project page:** a new card at the top (`components/crm/LeadManagerCard.jsx`)
+  shows the project's lead project manager, or, when nobody leads it, the
+  project managers to pick from, with how many open projects each has.
+  Managers are shown by name only, never by email address. One click assigns
+  a lead (`app/actions/assignment-actions.js`, admin-only): the chosen
+  manager goes on first, everyone else comes off, and a project still at
+  `brief_submitted` moves to `planned` with a shared status note naming the
+  manager. `assign_project_user` is skipped only for the current lead, so a
+  manager promoted from "also assigned" is still emailed. A failed move to
+  Planned after a successful assignment is reported as a warning. The admin
+  page can now also move a project from `brief_submitted` to `planned` by hand,
+  and no longer offers `changes_requested` → `client_review`, a move the
+  database always rejected (a test now checks every button against
+  `ALLOWED_TRANSITIONS`).
+- **Admin brief email:** for a new project nobody leads, the admin email now
+  reads "Assign a project manager: new Website project from <client>",
+  names the client (name, email, company, account date, first project or
+  not) and links to the admin project page. The client details are looked up
+  when the email is sent, and go to staff only.
+- **Client "project is planned" email:** when a new project moves to
+  Planned, the client's status email introduces their project manager by
+  name, with a light, playful line (the same line appears in the shared
+  status note). Copy lives in `lib/crm/notification-copy.mjs`.
+- **Project manager email:** "You're the project manager for <project>",
+  with the client's name, email and company.
+- **Links:** every project email now links to the recipient's own
+  workspace. Staff emails used to point at `/dashboard/...`, which bounced
+  project managers to `/team` without the project.
+- **Stale assignments:** a project manager only gets email about projects
+  they are still assigned to. Rows queued before a manager was replaced are
+  closed as `missing_recipient` instead of sent. The check fails open.
+- **Login:** a signed-out visitor to a portal page (for example from an
+  email link) is sent to that portal's login with `?next=`, and lands on the
+  page after signing in (`middleware.js`).
+- **Admin home and list:** an "Open projects" card with "N need a project
+  manager", a Projects header link, and a "Needs a project manager" filter
+  on `/admin/projects` (`?pm=none`). The admin header now wraps on phones
+  instead of pushing Sign Out off-screen.
+- **In-app notifications:** the client's notification list shows a sentence
+  per event ("Your project is planned…", "AJ sent a new message.") instead
+  of the raw event code, and a "New" badge instead of a meaningless
+  "pending" label.
+- **Dates:** email timestamps are dated in studio (Eastern) time; date-only
+  values never shift.
+
+Owner follow-ups (not in this PR): Alex and AJ have no accounts yet (invite
+them from Manage Users); Ethan's display name is "Ethan Crystal"; the test
+manager `phase1-pm-test@…` still appears in the picker until removed.
+
+Verification: `pnpm test` 638/638, `pnpm test:components` 93/93 (new:
+`lead-manager-action`, `lead-manager-card`, `middleware-login-next`), and the
+production build with the CI placeholders (60/60 pages).
+
+## v1.94 — 2026-09-29
+
+CI only, no runtime change. The `release-policy` check (added in v1.83)
+required every PR into main to be numbered exactly main + 0.01, which
+contradicts the numbering rule v1.84 restored in CLAUDE.md: take one above
+main *and every open PR*, never reuse a number. With eight PRs queued, it
+failed all but one (#266 and #268 were told to become v1.85, #259's number).
+
+- The rules move to `scripts/release-policy.mjs`, a pure function with unit
+  tests (`tests/release-policy.test.mjs`); the workflow now only gathers the
+  inputs (checkout without credentials, read-only token) and reports.
+- A PR passes when its title and `VERSION` name the same release, that
+  release is above everything already on main (`VERSION`, `CHANGELOG.md`
+  headings, and PR titles in main's merge commits, since a PR can deploy
+  under its title without bumping the files), no other open PR holds it,
+  and `CHANGELOG.md` starts with a dated, non-empty entry for it. Gaps are
+  allowed. If a higher number merges first, the lower PR renumbers.
+- Unchanged: the title format, the `VERSION`/`CHANGELOG.md` requirement, the
+  pause at .99 and major-version changes needing the owner, and the
+  Dependabot auto-merge job still needs this check to pass.
+- CLAUDE.md and AGENTS.md rule 4 note that the check enforces it.
+
+Verification: `pnpm test` (new: `release-policy`, 10 cases, including
+today's queue); the workflow's script compiled and run against a fake
+GitHub client (valid number accepted, number held by another open PR
+refused); the workflow YAML parses.
+
+## v1.84 — 2026-09-28
+
+Docs only, no runtime change. Backfills two releases that deployed without a `CHANGELOG.md` entry, and restores the versioning-rule text that the first of them dropped. Both went through GitHub's "Update branch" merge, which resolved `VERSION` and `CHANGELOG.md` to `main`'s side. Numbered after v1.83, which is claimed by open PR #256. This PR was opened as v1.81.
+
+- **v1.79 (#244)** and **v1.81 (#254)**: entries restored below in deploy order. #244 deployed after v1.80, and #254 deployed after v1.82.
+- **CLAUDE.md and AGENTS.md versioning rules:** the next number is one above the highest `vX.NN` named in `git log origin/main` (fetch first), `VERSION`, the top of `CHANGELOG.md`, or an open PR's title. The "Update branch" rule's list of incidents now includes v1.79 and v1.81.
+- `VERSION` is v1.84.
+
+## v1.83 — 2026-09-28
+
+Dependabot minor and patch updates now wait for release metadata and CI before auto-merge is enabled.
+
+- Add a release-policy check that requires the next `VERSION`, a matching top `CHANGELOG.md` entry, and a versioned PR title.
+- Enable native auto-merge for Dependabot minor/patch PRs only when the release metadata is valid; GitHub still waits for the required `test` and `build` checks.
+- Protect `main` with pull-request-only merge commits and required `test`/`build` status checks.
+
+## v1.81 — 2026-09-28
+
+*Backfilled in v1.84.* PR #254 merged at `5caf5ab` through GitHub's "Update branch" merge (`dff2015`), which kept `main`'s `VERSION` (v1.82) and `CHANGELOG.md`, so this release deployed under its merge title, v1.81, without an entry. It deployed after v1.82 (#255), which is why it sits above it. This is the entry as it stood on the PR's own commit (`498f460`).
+
+Fix: the brand-logo link on every portal auth surface (`/login`, `/signup`,
+`PortalLoginForm`, `WorkspaceShell`) pointed at `href="/"`. On
+`app.cdsportswearinc.com` a relative `"/"` hits the app-host->`/login`
+redirect in `portalHostRedirects()` (`lib/portalHost.mjs`) and bounces
+straight back to the page the visitor is already on — a visible loop for a
+signed-out visitor clicking the logo.
+
+- New `lib/useMarketingHomeHref.js` hook: starts at `"/"` (matches SSR, no
+  hydration mismatch), then swaps to `SITE_ORIGIN` after mount only when
+  `window.location.hostname === APP_HOST`. Preview deployments and localhost
+  never match `APP_HOST`, so they keep using `"/"` as before.
+- Wired into `app/login/page.jsx`, `app/signup/page.jsx`,
+  `components/auth/PortalLoginForm.jsx`, and `components/crm/WorkspaceShell.jsx`.
+- `tests/marketingHomeHref.test.mjs`: asserts the hook's default/swap
+  behavior and that every listed surface uses it instead of a hardcoded
+  `href="/"`.
 
 ## v1.82 — 2026-09-28
 
@@ -52,6 +207,30 @@ Dependency fix and security housekeeping from the 2026-09-28 triage.
   (owner-side) to `G-YENE9MFT5K` plus a redeploy; not applied here.
 
 Verification: `pnpm test` 618/618.
+
+## v1.79 — 2026-09-28
+
+*Backfilled in v1.84.* PR #244 merged at `45dbc77` through GitHub's "Update branch" merge (`f749634`), which kept `main`'s `VERSION` (v1.80) and `CHANGELOG.md`, so this release deployed under its merge title, v1.79, without an entry. It deployed after v1.80 (#238), which is why it sits above it.
+
+Staleness sweep: removes dead code, stale files and outdated instructions, and closes a sign-in hole left by the retired domains. The site's look and behaviour are unchanged.
+
+- **Security — auth redirect allow-list** (`supabase/config.toml`). Removed `crystalwebsolution.com`, `cdsportswearusa.com` and their `www` hosts. `crystalwebsolution.com` was reported on 2026-09-27 to be serving a third-party spam site from another Vercel account, and an allow-listed host someone else controls can receive sign-in tokens.
+  - **Owner step:** remove the same entries from the live list in the Supabase dashboard (Authentication → URL Configuration → Redirect URLs). This file only configures the local stack.
+- **Deleted unused modules:** `lib/proceduralArt.js`, `components/three/FlyingCarousel.jsx`, `components/marketing/IdleScene.jsx`, `components/GlyphMask.jsx` and `components/BorderGlow.jsx`. The Lab section keeps using `lib/flyingCarouselLayout.mjs`.
+- **Deleted test-only modules**, with their tests and the CSS only they used: `ImageBlock.jsx` and its `.module.css`, `marketing/Layout.jsx`, `MarketingHeader.jsx` and `lib/motionStudies.mjs`.
+- **Deleted stale files:**
+  - `GEMINI.md`, a drifted third copy of the agent instructions;
+  - `docs/PLUGINS-AND-SKILLS.md`, which described integrations that never existed;
+  - `GOAL_CHECKPOINT.md`, `_gsc-crawled-urls-temp.txt`, `test_service_pages.sh`, a stray `.gitconfig` and an unreferenced `.docx`.
+- **Instructions and docs corrected:**
+  - the retired-domain status in `CLAUDE.md`, `lib/seo.mjs` and the SEO operations manual;
+  - the GA4 ID (`G-B42BM1Q95J`) and the GTM container (`GTM-KJZPCQNM`) in `docs/ANALYTICS.md`;
+  - the migration ledger in `docs/CRM-OPERATIONS.md`;
+  - a single version-numbering rule across `CLAUDE.md`, `AGENTS.md`, `VERSIONING.md` and `vcs.md`;
+  - the Windows build note, and the README and architecture drift;
+  - the Codex and Cursor agent definitions.
+- **CHANGELOG:** two misplaced entries (v1.55 and v1.10) are moved into newest-first order.
+- GTM, analytics and the `app` portal redirects are untouched: this release keeps `main`'s v1.75–v1.78 behaviour.
 
 ## v1.80 — 2026-09-28
 
