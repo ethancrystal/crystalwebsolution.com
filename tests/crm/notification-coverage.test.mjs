@@ -9,6 +9,8 @@ const PRODUCER_MIGRATIONS = [
   'supabase/migrations/0023_visibility_aware_notification_recipients.sql',
   'supabase/migrations/0026_create_lead_from_contact.sql',
   'supabase/migrations/0032_project_asset_lifecycle_hardening.sql',
+  'supabase/migrations/0043_project_briefs.sql',
+  'supabase/migrations/0046_client_notifications_and_hardening.sql',
 ];
 
 const EMAIL_EVENTS = [
@@ -23,6 +25,9 @@ const EMAIL_EVENTS = [
   'project.user_assigned',
   'project.delivered',
   'lead.created',
+  'project.brief_submitted',
+  'project.brief_received',
+  'client.onboarded',
 ];
 
 const IN_APP_ONLY_EVENTS = ['project.note_posted', 'project.deliverable_created'];
@@ -48,6 +53,14 @@ const CONTEXT = {
   leadCompany: 'Analytical Engines',
   leadEmail: 'ada@example.test',
   dealUrl: 'https://www.crystalwebsolution.com/admin/deals/00000000-0000-0000-0000-000000000002',
+  staffProjectUrl: 'https://www.crystalwebsolution.com/admin/projects/00000000-0000-0000-0000-000000000001',
+  companyUrl: 'https://www.crystalwebsolution.com/admin/companies/00000000-0000-0000-0000-000000000003',
+  briefType: 'website',
+  briefTitle: 'Website brief',
+  createdProject: true,
+  contactName: 'Ada Lovelace',
+  companyName: 'Analytical Engines',
+  clientEmail: 'ada@example.test',
 };
 
 test('every email-capable producer event has a renderable notification template', async () => {
@@ -58,7 +71,7 @@ test('every email-capable producer event has a renderable notification template'
     const rendered = renderNotificationEmail(eventType, CONTEXT);
     assert.ok(rendered, `${eventType} did not render`);
     assert.ok(rendered.subject.length > 0, `${eventType} has no subject`);
-    assert.match(rendered.html, /CWS Preview Project|New lead/);
+    assert.match(rendered.html, /CWS Preview Project|New lead|A new client just joined/);
     assert.doesNotMatch(rendered.html, /undefined|null/);
   }
 });

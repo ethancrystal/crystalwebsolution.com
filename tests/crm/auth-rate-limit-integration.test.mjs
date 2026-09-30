@@ -13,12 +13,15 @@ test('normalizes auth rate-limit email identifiers without changing submitted va
 });
 
 test('builds independent IP and normalized-email buckets for each auth action', () => {
+  // On Vercel the IP comes from the platform's x-real-ip; a client-sent
+  // x-forwarded-for is ignored (lib/rateLimit.mjs getClientIp).
   const headers = new Headers({
-    'x-forwarded-for': '203.0.113.10, 198.51.100.4',
+    'x-real-ip': '203.0.113.10',
+    'x-forwarded-for': '198.51.100.99, 203.0.113.10',
   });
 
   assert.deepEqual(
-    buildAuthRateLimitKeys('auth:signup', ' Client@Example.COM ', headers),
+    buildAuthRateLimitKeys('auth:signup', ' Client@Example.COM ', headers, { VERCEL: '1' }),
     {
       ip: { name: 'auth:signup:ip', identifier: '203.0.113.10' },
       email: { name: 'auth:signup:email', identifier: 'client@example.com' },

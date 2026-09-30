@@ -33,8 +33,8 @@ serves 404 (WebFetch on apex and `www`, 2026-09-10) — Operations Manual §12.
 | brand identity design services | 8,100 | 24 | $20.55 | transactional | /services/branding | secondary on the same pillar | Now | no | 2026-09-22 |
 | logo design | 40,500 | 75 | — | tool-heavy SERP | /services/logo-design | **live** — pillar, theme 3 (copy partially aligned) | Now | yes | 2026-09-19 |
 | logo design services | — | — | — | commercial | /services/logo-design | secondary on the same pillar | Now | yes | — |
-| branding and brand identity | 301,000 | 39 | $5.97 | informational | /blog/branding-vs-brand-identity | draft 2026-09-22 (needs internal links) | Now | yes | 2026-09-22 |
-| logo redesign | 1,000 | 44 | $10.93 | commercial + info | /blog/logo-redesign-vs-refresh | draft 2026-09-22 | Now | no | 2026-09-22 |
+| branding and brand identity | 301,000 | 39 | $5.97 | informational | /blog/branding-vs-brand-identity | **not drafted** — URL reserved, no file in `docs/seo/drafts/blog/` (corrected 2026-09-29) | Now | yes | 2026-09-22 |
+| logo redesign | 1,000 | 44 | $10.93 | commercial + info | /blog/logo-redesign-vs-refresh | **not drafted** — URL reserved, no file in `docs/seo/drafts/blog/` (corrected 2026-09-29) | Now | no | 2026-09-22 |
 | logo and branding | 14,800 | 44 | $5.78 | mixed | /blog/branding-and-web-design-studio | secondary on the live post (H1 already "Logo vs Full Build") | Monitor | yes | 2026-09-22 |
 | business of web design | 2,400 | 7 | $22.63 | informational | /blog/business-of-web-design | draft 2026-09-22 | Next | no | 2026-09-22 |
 | product page design | 260 | 39 | $5.11 | informational | /blog/product-page-design | draft 2026-09-23 | Next | no | 2026-09-23 |
@@ -47,6 +47,22 @@ then a post shipped against it on 2026-09-06. It is recorded here as mapped
 because the page exists, not because the strategy changed — Operations Manual
 §3 flags the contradiction for MJ. If MJ wants it tracked, adding it to the
 project needs MJ's explicit yes (§4).
+
+## Page-state correction — 2026-09-29
+
+Two rows recorded `draft 2026-09-22` for posts that have **never existed as
+files in this repository**: `/blog/branding-vs-brand-identity` and
+`/blog/logo-redesign-vs-refresh`. Checked with
+`git log --all --diff-filter=A -- docs/seo/drafts/blog/<slug>.md`, which
+returns nothing on any branch. Their page state now reads **not drafted**;
+the keyword, the target URL and every other column are unchanged, so the
+mapping still reserves those URLs and no other page may take those terms.
+Writing either post is unstarted work, not a lost file.
+
+`tests/seo-cluster-integrity.test.mjs` now fails the build if a row claims a
+draft that is not on disk, so this class of drift cannot return silently.
+What else that test enforces, and what to do when it fails:
+`docs/seo/CLUSTER-INTEGRITY.md`.
 
 ## Drift since 2026-09-02 (all re-pulled 2026-09-10, US 2840)
 

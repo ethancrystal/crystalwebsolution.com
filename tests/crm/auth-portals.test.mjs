@@ -26,7 +26,10 @@ test('middleware and pages do not use app_metadata as role authority', async () 
 test('the employee home is guarded and does not expose unscoped project data', async () => {
   const teamPage = await import('node:fs/promises').then((fs) => fs.readFile('app/team/page.jsx', 'utf8'));
   assert.match(teamPage, /requireRole\(\['project_manager'\], '\/login\/employee'\)/);
-  assert.match(teamPage, /signOut/);
+  // Sign-out lives in the shared portal frame the page renders.
+  assert.match(teamPage, /<WorkspaceShell role="project_manager"/);
+  const shell = await import('node:fs/promises').then((fs) => fs.readFile('components/crm/WorkspaceShell.jsx', 'utf8'));
+  assert.match(shell, /action=\{signOut\}/);
   assert.doesNotMatch(teamPage, /from\(['"]/);
 });
 
