@@ -100,7 +100,7 @@ export default function NotesPanel({ projectId }) {
           {notes.map((note) => (
             <li key={note.id} className="notes-item">
               <div className="notes-item-meta">
-                <strong>{note.profiles?.full_name || 'Unknown'}</strong>
+                <strong>{note.profiles?.full_name || 'CD Sportswear team'}</strong>
                 <span>{formatWhen(note.created_at)}</span>
               </div>
               <p className="notes-item-content">{note.note}</p>

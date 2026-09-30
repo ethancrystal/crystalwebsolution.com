@@ -1,5 +1,7 @@
 'use client';
 
+import { projectStatusLabel } from '@/lib/crm/labels.mjs';
+
 function formatWhen(value) {
   if (!value) return '';
   const date = new Date(value);
@@ -14,12 +16,15 @@ function formatWhen(value) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function ProjectTimeline({ history }) {
+// `title` lets the client page call it "Activity". A change made by someone
+// the viewer cannot see (the admin, for a client) reads as the studio, not
+// "Unknown".
+export default function ProjectTimeline({ history, title = 'Status History' }) {
   const items = Array.isArray(history) ? history : [];
 
   return (
     <div className="crm-project-timeline">
-      <h2>Status History</h2>
+      <h2>{title}</h2>
       {items.length === 0 ? (
         <p className="crm-empty-state">No status updates yet.</p>
       ) : (
@@ -29,14 +34,14 @@ export default function ProjectTimeline({ history }) {
               <div className="crm-timeline-marker" />
               <div className="crm-timeline-content">
                 <div className="crm-timeline-title">
-                  <span className="crm-timeline-badge">{event.to_status}</span>
+                  <span className="crm-timeline-badge">{projectStatusLabel(event.to_status)}</span>
                   {event.from_status && (
-                    <span className="crm-timeline-from">from {event.from_status}</span>
+                    <span className="crm-timeline-from">from {projectStatusLabel(event.from_status)}</span>
                   )}
                 </div>
                 {event.note && <p className="crm-timeline-note">{event.note}</p>}
                 <div className="crm-timeline-meta">
-                  <span>{event.changedBy?.full_name || 'Unknown'}</span>
+                  <span>{event.changedBy?.full_name || 'CD Sportswear team'}</span>
                   <span>{formatWhen(event.created_at)}</span>
                 </div>
               </div>
