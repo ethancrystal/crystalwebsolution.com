@@ -5,6 +5,12 @@ fetched each page that day and reported the evidence below; the run has not
 re-fetched them itself. **Research only — nothing has been sent.** Outreach is
 sent by MJ, or with MJ's explicit yes for each message (Operations Manual §4).
 
+**Re-checked 2026-09-28** (goal-monger weekly run, curl): prospects 1, 2, 4
+and 5 all return HTTP 200 and their link slots or terms are unchanged. Gated
+send-ready drafts for those four are in
+`docs/seo/backlinks/outreach-drafts/2026-09-28-rfp-guide.md`. Still nothing
+sent.
+
 **The baseline.** `cdsportswearinc.com`: DA 1, 0 backlinks, 0 referring domains
 (Ubersuggest `backlinks_overview`, 2026-09-10). There is nothing to trade on,
 so every prospect here is earned by contribution, membership or a genuinely
@@ -39,6 +45,7 @@ not Google metrics. Where a figure could not be sourced it says so.
   The page ranks for RFP queries, so the link would carry referral traffic.
 - **Asset / route:** the template and scorecard, suggested by email to the
   maintainer via `/about/contact/`. One-person editorially curated site.
+- **Contact route (verified 2026-09-28, curl):** `/about/contact/` returns 200 and offers a **Gravity Forms contact form only** — no email address on that page or on `/about/`. No `mailto:` anywhere. A form submission undercuts this draft, which is written as a personal note to a named maintainer (Mark Root-Wiley). Find a direct address for him, or accept the form.
 - **Evidence:** fetched 2026-09-10 — two outbound links, one to NoRFPs.org, one
   to Constructive.co introduced as contrary advice. Footer credits Mark
   Root-Wiley of MRW Web Design.
@@ -57,6 +64,7 @@ not Google metrics. Where a figure could not be sourced it says so.
 - **Asset / route:** the RFP template as a free no-signup resource for Manassas
   businesses; resource-page suggestion to the Department of Economic
   Development via `/contact-us/`.
+- **Contact route (verified 2026-09-28, curl):** `/contact-us/` returns 200 with a **Gravity Forms contact form**. Any email addresses on the site sit behind **Cloudflare email protection** (`data-cfemail`), an anti-harvesting wrapper — not collected here on purpose. They render normally in a browser if MJ wants to copy one.
 - **Evidence:** fetched 2026-09-10 — a "A Strong Foundation for Startups"
   section linking out to masonsbdc.org, peopleinc.net, score.org/washingtondc,
   centerfuse.work (a private company), gemsofprincewilliam.com and
@@ -95,6 +103,7 @@ not Google metrics. Where a figure could not be sourced it says so.
   practical counterpoint — "if you must run one, here is how" — is a real
   contribution to a debate their readers are already in.
 - **Asset / route:** guest contribution, 500–750 words, emailed submission only.
+- **Contact route (verified 2026-09-28, curl):** `/blog/write-for-us` returns 200; the submission address is behind **Cloudflare email protection** (`data-cfemail`), which confirms the draft's note that it is obfuscated. Not decoded here on purpose — MJ copies it from the page in a browser.
 - **Evidence:** `/blog/write-for-us` fetched 2026-09-10 — 500–750 words, over
   1000 not considered, byline with name/organisation/title and a 2–3 sentence
   bio, email submission mandatory; page references 2025–2026 events. The 2014
@@ -116,6 +125,8 @@ not Google metrics. Where a figure could not be sourced it says so.
   counsellors field constantly.
 - **Asset / route:** the template and scorecard under their "Other Resources"
   heading; strongest after presenting at one of their workshops.
+- **Contact route (verified 2026-09-28, curl):** `/contact/` returns 200 and publishes **`help@masonsbdc.org`** as a plain `mailto:`, alongside a Fusion contact form. This is the only Tier-1/2 RFP-guide prospect with a directly usable address.
+- **SENT 2026-09-28.** Channel: email, by hand by MJ from the `sales@cdsportswearinc.com` mailbox (not Resend — its AUP forbids cold outreach and that account carries the CRM's transactional mail). To `help@masonsbdc.org`, subject "A resource on hiring a website developer, for your Business Resources page", signed Ethan Ray / Founder; workshop offer removed. The message as sent is in `outreach-drafts/2026-09-28-rfp-guide.md` §3. **Reply: none yet.** Check for a reply ~2026-10-08. No follow-up without a fresh yes from MJ. If a link goes live, expect it in GSC Links roughly 2–4 weeks later; a referring domain is a leading indicator, not progress on the ranking finish line.
 - **Evidence:** fetched 2026-09-10 — seven categories including "Other
   Resources", outbound links to bos.sbsd.virginia.gov, certify.sba.gov, sba.gov,
   uspto.gov, grants.gov, mec-fairfax.org, virginiasbdc.org. Lists Prince William

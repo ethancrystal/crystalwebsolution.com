@@ -58,7 +58,15 @@ code change to announce it. **Known related gaps — last confirmed 2026-09-11, 
 - Migration `0042` (`0042_repoint_cron_and_pinned_admin.sql`) was applied to the live database on 2026-09-15 (verified via Supabase MCP `list_migrations` on 2026-09-27). Migration `0044` (v1.63) then moved the single admin pin from `ethan@cdsportswearinc.com` to `moizj00@gmail.com`, demoting Ethan's account to `project_manager` (owner-approved 2026-09-27). Re-check live state with `select public.pinned_admin_email()` rather than trusting this line.
 - Mailbox and Resend domain verification for `cdsportswearinc.com`:
   `SITE.email` and the Resend sender in `lib/email/resend.js` already
-  moved in v1.35; DNS/mailbox/Resend verification is still owner-side.
+  moved in v1.35. **Both now verified (checked 2026-09-28):** Resend lists
+  the domain `verified`, sending enabled, since 2026-09-15; the domain has
+  MX records on `secureserver.net` (GoDaddy), so `sales@` receives mail.
+  **Do not send cold outreach through this Resend account.** Its AUP
+  (`https://resend.com/legal/acceptable-use`) prohibits "unsolicited
+  messages of any kind, including cold outreach", and an account over the
+  complaint/bounce thresholds "may be shut down without warning" — which
+  would take out CRM auth links, invites and password resets. Marketing and
+  outreach go from the real mailbox by hand.
 
 Work on a feature branch and land it in `main` via a reviewed PR — merging
 a PR into `main` IS deploying to production. Every push gets a Vercel
@@ -272,8 +280,8 @@ features they describe, not as already-built.
 ## Release versioning (mandatory)
 
 Every merge into `main` is a production deploy and must carry a version name
-in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
-`VERSIONING.md`. Non-negotiable for every PR targeting `main`:
+in the form `v1.01`, `v1.02`, … `v1.99`, `v1.100` (two-digit minimum,
+compared as numbers). Full rules in `VERSIONING.md`. Non-negotiable for every PR targeting `main`:
 
 1. Bump the `VERSION` file and add the matching entry at the top of
    `CHANGELOG.md` in the same PR.
