@@ -156,6 +156,8 @@ export default function DashboardPage() {
       const result = await deleteBriefDraft(formData);
       if (!result.ok) {
         setError(result.error || 'Unable to delete the draft.');
+        // Submitted meanwhile (another tab): it is no longer a draft.
+        if (result.conflict) setDrafts((prev) => prev.filter((item) => item.id !== draft.id));
         return;
       }
       setDrafts((prev) => prev.filter((item) => item.id !== draft.id));
