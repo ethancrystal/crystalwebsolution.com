@@ -1,3 +1,44 @@
+## v1.106 — 2026-09-30
+
+Client portal, phase 1. The first of three portal improvements (then the
+admin and team dashboards, then settings and the customer profile). One
+migration (`0049`) is checked in and applied separately by the owner; until
+it is, the portal simply shows no manager name.
+
+**Client project page in tabs**: Overview, Messages, Files, Tasks &
+approvals, Brief (`components/crm/Tabs.jsx`, WAI-ARIA tabs with arrow/Home/End
+keys). The open tab is kept in `?tab=`, so it survives a reload and can be
+linked to; panels stay mounted, so a half-written message or staged upload
+survives a tab switch. Overview leads with "Needs your attention" (a project
+waiting on the client, new messages, new files), the project manager card,
+the project details and recent activity. Messages and Files show unread
+counts, and opening them marks those notifications read. The brief appears
+once, in its own tab, with the original request shown when there is no
+structured brief. Project Updates stays on Overview, where clients can still
+post an update.
+
+**Project manager by name only** (`0049`): `public.project_manager_names`
+returns the lead project manager's display name for the projects the caller
+can access, and nothing else: no email, no ids. `getProjectManagerNames()`
+reads it and reports "unavailable" when the function is not there yet, so
+the page never guesses.
+
+**Client dashboard**: returning clients see their projects first, new
+clients the service picker first. A "Needs your attention" strip lists
+projects in review and unread updates. Project cards show a status badge,
+what the status means, the project manager's name, the last update and an
+unread count.
+
+**Plain-language labels** (`lib/crm/labels.mjs`): project, task and approval
+statuses and project categories render as words ("Ready for your review")
+instead of raw values (`client_review`) on the client pages, the timeline,
+tasks and approvals. The timeline shows "CD Sportswear team" instead of
+"Unknown" for a staff change the client cannot see the author of.
+
+Tests: pgTAP `0049_project_manager_names.test.sql` (11 checks, PGlite:
+passes with 0049, fails without it; 0041/0046/0047/0048 still pass), labels,
+Tabs, the manager card, the client project page and 0049 contracts.
+
 ## v1.105 — 2026-09-30
 
 Security and robustness hardening. Two migrations (`0047`, `0048`) are
