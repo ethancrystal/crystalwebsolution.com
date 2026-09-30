@@ -3,7 +3,7 @@
 // shown by name, "needs your attention" routes to the right tab, and opening
 // Messages marks its notifications read and clears the badge.
 
-import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const PROJECT_ID = '33333333-3333-4333-8333-333333333333';
@@ -48,6 +48,20 @@ vi.mock('@/components/crm/NotesPanel', () => ({ default: () => <p>Project update
 vi.mock('@/components/crm/ProjectFiles', () => ({
   default: ({ deliverables }) => <p>Files stub ({deliverables.length} deliverables)</p>,
 }));
+// The live hook is replaced by a handle the tests drive: `live.fire(events)`
+// plays a burst of project events into the page, `live.viewers` sets presence.
+const live = { onChange: null, viewers: [], args: null };
+vi.mock('@/components/crm/useProjectLive', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useProjectLive: (args) => {
+      live.onChange = args.onChange;
+      live.args = args;
+      return { viewers: live.viewers };
+    },
+  };
+});
 
 import ClientProjectPage from '@/app/dashboard/projects/[id]/page';
 
@@ -90,6 +104,53 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  live.onChange = null;
+  live.viewers = [];
+  live.args = null;
+});
+
+describe('client project page, live', () => {
+  it('subscribes as the signed-in client for this project', async () => {
+    render(<ClientProjectPage />);
+    await screen.findByRole('tablist');
+    expect(live.args.projectId).toBe(PROJECT_ID);
+    expect(live.args.profile).toMatchObject({ id: USER_ID, role: 'client' });
+  });
+
+  it('a new message refreshes only the notifications behind the badges', async () => {
+    render(<ClientProjectPage />);
+    await screen.findByRole('tablist');
+    const second = { ...MESSAGE_NOTE, id: '55555555-5555-4555-8555-555555555555' };
+    listNotifications.mockResolvedValue([second, MESSAGE_NOTE]);
+    await act(async () => { await live.onChange(new Set(['project_message_created'])); });
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'Messages 2 new' })).toBeTruthy());
+    expect(getProjectWorkspace).toHaveBeenCalledTimes(1);
+  });
+
+  it('a status or task change re-reads the workspace', async () => {
+    render(<ClientProjectPage />);
+    await screen.findByRole('tablist');
+    getProjectWorkspace.mockResolvedValue(workspace({ status: 'approved' }));
+    await act(async () => { await live.onChange(new Set(['project_status_changed', 'project_task_changed'])); });
+    await waitFor(() => expect(getProjectWorkspace).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText('Approved. Final delivery is next.')).toBeTruthy();
+  });
+
+  it('a message arriving while Messages is open is marked read at once', async () => {
+    listNotifications.mockResolvedValue([]);
+    render(<ClientProjectPage />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Messages' }));
+    listNotifications.mockResolvedValue([MESSAGE_NOTE]);
+    await act(async () => { await live.onChange(new Set(['project_message_created'])); });
+    await waitFor(() => expect(markNotificationsRead).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole('tab', { name: 'Messages' })).toBeTruthy();
+  });
+
+  it('shows who else is here, by name', async () => {
+    live.viewers = [{ userId: 'u2', name: 'Ethan Ray' }];
+    render(<ClientProjectPage />);
+    expect(await screen.findByText(/Also here now: Ethan Ray/)).toBeTruthy();
+  });
 });
 
 describe('client project page', () => {

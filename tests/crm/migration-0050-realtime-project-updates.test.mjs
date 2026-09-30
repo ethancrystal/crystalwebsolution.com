@@ -47,8 +47,8 @@ test('payloads carry identifiers only', async () => {
   }
 });
 
-test('staff project pages re-read on project changes and show who is here', async () => {
-  for (const page of ['app/team/projects/[id]/page.jsx', 'app/admin/projects/[id]/page.jsx']) {
+test('every project page re-reads on project changes and shows who is here', async () => {
+  for (const page of ['app/team/projects/[id]/page.jsx', 'app/admin/projects/[id]/page.jsx', 'app/dashboard/projects/[id]/page.jsx']) {
     const source = await readFile(page, 'utf8');
     assert.match(source, /useProjectLive\(\{\s*projectId,\s*profile,/, page);
     assert.match(source, /if \(touchesWorkspace\(events\)\) loadWorkspace\(\);/, page);
