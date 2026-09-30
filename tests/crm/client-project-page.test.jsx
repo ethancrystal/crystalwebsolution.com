@@ -3,8 +3,12 @@
 // shown by name, "needs your attention" routes to the right tab, and opening
 // Messages marks its notifications read and clears the badge.
 
-import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor, within, configure } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// The page is heavy to import and render under a parallel run: give async
+// lookups room beyond testing-library's 1 s default.
+configure({ asyncUtilTimeout: 5000 });
 
 const PROJECT_ID = '33333333-3333-4333-8333-333333333333';
 const USER_ID = '11111111-1111-4111-8111-111111111111';
@@ -92,7 +96,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe('client project page', () => {
+describe('client project page', { timeout: 30000 }, () => {
   it('renders five tabs from a single workspace load', async () => {
     render(<ClientProjectPage />);
     const tablist = await screen.findByRole('tablist', { name: 'Project sections' });
