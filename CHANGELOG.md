@@ -1,3 +1,13 @@
+## v1.97 — 2026-09-29
+
+CI and docs only, no runtime change. Release numbers continue past `.99` as three-digit minors (owner decision 2026-09-29).
+
+- **Why:** after v1.94 (#269) merged, `release-policy` accepted only v1.95–v1.99: it paused at `.99` and refused a major change. Nine PRs were queued (#259 #260 #261 #262 #263 #265 #266 #267 #268), and the owner chose to keep counting rather than move to v2.
+- **`scripts/release-policy.mjs`:** minors are two digits, or three or more with no leading zero (`v1.99` → `v1.100`). The `.99` pause is removed. A major change still fails and needs the owner. Versions compare as numbers, so v1.100 is above v1.99.
+- **Tests:** `tests/release-policy.test.mjs` adds the three-digit case (v1.100 and v1.101 pass; v1.99 is refused once main is v1.100, including when v1.100 is named only in a merge title; a held v1.100 is refused), and v2.00 still needs the owner.
+- **Docs:** `VERSIONING.md` drops "don't go to three digits"; CLAUDE.md, AGENTS.md and both `/version-bump` copies say `v1.99` → `v1.100`.
+- `VERSION` is v1.97. v1.95 and v1.96 are held by #266 and #268.
+
 ## v1.94 — 2026-09-29
 
 CI only, no runtime change. The `release-policy` check (added in v1.83)
