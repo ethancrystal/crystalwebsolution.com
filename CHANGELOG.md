@@ -1,3 +1,47 @@
+## v1.110 — 2026-09-30
+
+Live project pages. Changes on a project now show up on every open project
+page without a refresh, and each page shows who else is looking at it.
+
+**Production drift recorded** (`0050`): the Realtime SQL behind this was run
+directly on the live database through the Supabase dashboard's SQL runner and
+never went through a migration, so the migration chain no longer reproduced
+production. `0050_realtime_project_updates_and_presence.sql` records it
+verbatim (a replay through `0050` matches every live Realtime function,
+trigger and policy hash), idempotent, plus the usual revoke on the three
+trigger functions. It adds `project_status_changed`, `project_task_changed`
+and `project_approval_changed` broadcasts on the existing private project
+topics, and presence on them. Client-facing (`shared`) sends are filtered: an
+internal task, or an approval on an internal deliverable, never reaches the
+client's topic. Payloads are identifiers only; pages re-read through the
+RLS-protected read model. The owner applies `0050` so `schema_migrations`
+matches; applying it changes no live behaviour.
+
+**One channel per project topic** (`lib/crm/projectRealtime.js`): supabase-js
+hands back the same channel for a topic it already has, so two components
+opening their own would collide. A ref-counted registry opens each private
+channel once, authorizes the socket before any join, tells listeners to
+re-read after a reconnect (events sent while offline are lost), and carries
+presence on the shared topic. The message thread moved onto it unchanged.
+
+**Pages**: the client, team and admin project pages re-read the workspace on
+status, task and approval changes (`components/crm/useProjectLive.js`,
+debounced), and show "Also here now: …" with names only
+(`ProjectPresence`). On the client page a new message refreshes only the tab
+badges, and anything arriving on the open Messages or Files tab is marked
+read at once.
+
+Owner: in the Supabase dashboard, Realtime settings, turn off "Allow public
+access" so project channels require authorization.
+
+Not yet broadcast: deliverable publishing (the Files badge updates on the next
+load, not live).
+
+Tests: pgTAP `0050_realtime_project_updates_and_presence.test.sql` (16 checks,
+PGlite: passes with 0050, the 10 positive checks fail without it;
+0009/0041/0046/0047/0048 still pass), the registry and live hook
+(`project-realtime`), the client page's live behaviour, 0050 contracts.
+
 ## v1.109 — 2026-09-30
 
 Client portal, phase 1. The first of three portal improvements (then the
