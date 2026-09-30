@@ -117,14 +117,40 @@ test('title, files and CHANGELOG shape are still enforced', () => {
 test('major-version changes still need the owner', () => {
   assert.match(validateRelease(input(270, 'v2.01')).message, /major-version transition requires owner direction/);
   assert.match(
-    validateRelease(input(270, 'v1.99', { baseVersion: 'v1.99', otherOpenPulls: [] })).message,
-    /paused at \.99/,
+    validateRelease(input(270, 'v2.00', { baseVersion: 'v1.99', otherOpenPulls: [] })).message,
+    /major-version transition requires owner direction/,
+  );
+});
+
+test('numbering continues past .99 into three-digit minors (owner decision 2026-09-29)', () => {
+  const past99 = (version, baseVersion, extra = {}) => validateRelease(input(270, version, {
+    baseVersion,
+    mainChangelog: `## ${baseVersion} — 2026-09-29\n\nx\n\n${MAIN_CHANGELOG}`,
+    otherOpenPulls: [],
+    ...extra,
+  }));
+  assert.equal(past99('v1.100', 'v1.99').ok, true);
+  assert.equal(past99('v1.101', 'v1.100').ok, true);
+  // v1.100 sorts above v1.99 as a number, not as a string.
+  assert.match(past99('v1.99', 'v1.100').message, /must be above v1\.100/);
+  assert.match(
+    past99('v1.100', 'v1.99', {
+      mainCommitMessages: ['Merge pull request #280 from x/y\n\nv1.100 — already out', ...MAIN_COMMITS],
+    }).message,
+    /must be above v1\.100/,
+  );
+  assert.match(
+    past99('v1.100', 'v1.99', { otherOpenPulls: [{ number: 281, title: 'v1.100 — taken' }] }).message,
+    /already claimed by open PR #281/,
   );
 });
 
 test('version helpers order releases numerically', () => {
   assert.deepEqual(parseVersion(' v1.09\n'), { major: 1, minor: 9 });
   assert.equal(parseVersion('v1.9'), null);
+  assert.deepEqual(parseVersion('v1.100'), { major: 1, minor: 100 });
+  assert.equal(parseVersion('v1.010'), null);
+  assert.ok(compareVersions(parseVersion('v1.100'), parseVersion('v1.99')) > 0);
   assert.ok(compareVersions(parseVersion('v1.10'), parseVersion('v1.09')) > 0);
   assert.ok(compareVersions(parseVersion('v2.00'), parseVersion('v1.99')) > 0);
 });

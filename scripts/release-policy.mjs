@@ -11,18 +11,21 @@
 //     a title without bumping the files);
 //   - not be claimed by another open PR;
 //   - head CHANGELOG.md with a dated, non-empty entry.
+// Minors are two digits, then three with no leading zero: v1.09, v1.99,
+// v1.100 (owner decision 2026-09-29, when nine queued PRs met the old .99
+// pause). Compare them as numbers, never as strings.
 // Gaps are allowed: several PRs queue at once, and each takes the next free
 // number when it is opened. If a higher version merges first, the lower one
 // is renumbered before it merges.
 
-const VERSION = /^v(\d+)\.(\d{2})$/;
-const TITLE = /^v(\d+)\.(\d{2}) — .+$/u;
+const VERSION = /^v(\d+)\.(\d{2}|[1-9]\d{2,})$/;
+const TITLE = /^v(\d+)\.(\d{2}|[1-9]\d{2,}) — .+$/u;
 // A release name at the start of a line followed by " — ": the PR-title
 // convention, and the first line of every merge commit's body. Mentions in
 // prose ("renumber to v1.84") are deliberately not counted.
-const RELEASE_LINE = /^v(\d+)\.(\d{2}) — /gmu;
-const CHANGELOG_HEADING = /^## (v\d+\.\d{2}) — (\d{4}-\d{2}-\d{2})$/u;
-const ANY_CHANGELOG_HEADING = /^## (v\d+)\.(\d{2}) — /gmu;
+const RELEASE_LINE = /^v(\d+)\.(\d{2}|[1-9]\d{2,}) — /gmu;
+const CHANGELOG_HEADING = /^## (v\d+\.(?:\d{2}|[1-9]\d{2,})) — (\d{4}-\d{2}-\d{2})$/u;
+const ANY_CHANGELOG_HEADING = /^## (v\d+)\.(\d{2}|[1-9]\d{2,}) — /gmu;
 
 export function parseVersion(text) {
   const match = VERSION.exec(String(text ?? '').trim());
@@ -85,9 +88,6 @@ export function validateRelease(input) {
     return fail(`The PR title names ${titleName} but VERSION says ${headName}; they must match.`);
   }
 
-  if (base.minor >= 99) {
-    return fail('Automatic release numbering is paused at .99; a major-version transition requires owner direction.');
-  }
   if (head.major !== base.major) {
     return fail('A major-version transition requires owner direction.');
   }

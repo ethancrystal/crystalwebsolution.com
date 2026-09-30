@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/nextjs';
+
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendTemplate, EmailError, isEmailConfigured } from '@/lib/email/resend';
 import { renderNotificationEmail } from '@/lib/email/templates';
@@ -37,9 +39,19 @@ function projectUrlFor(projectId) {
   return APP_URL ? `${APP_URL}/dashboard/projects/${projectId}` : undefined;
 }
 
-// Staff alerts (project.brief_submitted) link to the recipient's own
-// workspace: /dashboard redirects staff to their home, dropping the project.
+// Every project email links to the recipient's own workspace: /dashboard
+// redirects staff to their home, dropping the project. Clients (and any
+// recipient whose role is unknown) fall through to the /dashboard link.
 const STAFF_PROJECT_BASE = { admin: '/admin/projects', project_manager: '/team/projects' };
+
+// Staff emails that name the client behind the project. Resolving the client
+// costs an auth admin lookup per project, so only these events pay for it.
+const CLIENT_CONTEXT_EVENTS = new Set(['project.brief_submitted', 'project.user_assigned']);
+
+// Emails that name the project's lead project manager (name only, never
+// their email address): the admin's brief alert, and status updates, so the
+// client's "now Planned" email says who is leading their project.
+const LEAD_MANAGER_EVENTS = new Set(['project.brief_submitted', 'project.status_transitioned']);
 
 function staffProjectUrlFor(projectId, role) {
   const base = STAFF_PROJECT_BASE[role];
@@ -49,6 +61,13 @@ function staffProjectUrlFor(projectId, role) {
 
 // lead.created rows (create_lead_from_contact, migration 0026) have no
 // project_id -- they link to the admin deals view instead.
+// client.onboarded rows (onboard_client_company, migration 0046) have no
+// project either: they link to the admin page for the new client's company.
+function companyUrlFor(companyId) {
+  if (!companyId) return undefined;
+  return APP_URL ? `${APP_URL}/admin/companies/${companyId}` : undefined;
+}
+
 function dealUrlFor(dealId) {
   if (!dealId) return undefined;
   return APP_URL ? `${APP_URL}/admin/deals/${dealId}` : undefined;
@@ -58,14 +77,30 @@ function dealUrlFor(dealId) {
 // its keys are snake_case: from_status, to_status, approval_id, deliverable_id.
 // The templates take camelCase props, so map explicitly rather than spreading
 // the raw payload - a silent mismatch renders blank values into a live email.
-function templateContextFor(row, { recipient, project }) {
+function templateContextFor(row, { recipient, project, client, leadManager }) {
   const payload = row.payload ?? {};
+  const staffRecipient = Boolean(STAFF_PROJECT_BASE[recipient.role]);
+  // Client details only ever go to staff.
+  const clientContext = staffRecipient ? client : null;
 
   return {
     fullName: recipient.fullName,
+    recipientRole: recipient.role,
+    projectId: row.project_id,
     projectName: project?.title ?? payload.project_name,
-    projectUrl: projectUrlFor(row.project_id),
+    projectUrl: staffProjectUrlFor(row.project_id, recipient.role),
     staffProjectUrl: staffProjectUrlFor(row.project_id, recipient.role),
+    targetDate: project?.target_date,
+    clientName: clientContext?.fullName,
+    clientEmail: clientContext?.email ?? (staffRecipient ? payload.client_email : undefined),
+    contactName: staffRecipient ? payload.contact_name : undefined,
+    companyName: staffRecipient ? payload.company_name : undefined,
+    phone: staffRecipient ? payload.phone : undefined,
+    companyUrl: recipient.role === 'admin' ? companyUrlFor(payload.company_id) : undefined,
+    clientCompany: clientContext?.companyName,
+    clientSince: clientContext?.createdAt,
+    clientProjectCount: clientContext?.projectCount,
+    leadManagerName: leadManager?.fullName ?? undefined,
     reviewsUrl: APP_URL ? `${APP_URL}/reviews` : undefined,
     fromStatus: payload.from_status,
     toStatus: payload.to_status,
@@ -178,11 +213,15 @@ async function drain(request) {
       retrying: 0,
       leaseConflicts: 0,
       cleanedAttachments,
+      ...(await watchOutbox(supabase, { failed: 0 })),
     });
   }
 
   const recipients = await resolveRecipients(supabase, rows);
   const projects = await resolveProjects(supabase, rows);
+  const clients = await resolveProjectClients(supabase, rows, projects);
+  const leadManagers = await resolveLeadManagers(supabase, rows);
+  const liveAssignments = await resolveLiveAssignments(supabase, rows, recipients);
 
   let sent = 0;
   let failed = 0;
@@ -206,9 +245,34 @@ async function drain(request) {
       continue;
     }
 
+    // A project manager only hears about projects they are still on. Rows are
+    // queued when something happens and drained up to 5 minutes later; a
+    // manager replaced in between must not get the email (it can carry the
+    // client's details, and its link would say "Project not found").
+    if (
+      recipient.role === 'project_manager' &&
+      row.project_id &&
+      liveAssignments.checked &&
+      !liveAssignments.pairs.has(`${row.project_id}:${row.user_id}`)
+    ) {
+      const outcome = await markLeaseFailed(supabase, row, {
+        retryable: false,
+        failureCode: 'missing_recipient',
+        message: 'Recipient is no longer assigned to this project.',
+      });
+      if (outcome.conflict) leaseConflicts += 1;
+      else skipped += 1;
+      continue;
+    }
+
     const template = renderNotificationEmail(
       row.event_type,
-      templateContextFor(row, { recipient, project }),
+      templateContextFor(row, {
+        recipient,
+        project,
+        client: CLIENT_CONTEXT_EVENTS.has(row.event_type) ? clients.get(row.project_id) : null,
+        leadManager: LEAD_MANAGER_EVENTS.has(row.event_type) ? leadManagers.get(row.project_id) : null,
+      }),
     );
 
     if (!template) {
@@ -279,7 +343,74 @@ async function drain(request) {
     retrying,
     leaseConflicts,
     cleanedAttachments,
+    ...(await watchOutbox(supabase, { failed })),
   });
+}
+
+// Watchdog. An email row that has been due for more than STUCK_MINUTES and
+// is still pending means delivery is not keeping up (Resend down, a bad key,
+// the pg_cron secret out of step with Vercel, a broken completion RPC as in
+// 0033). Counts go into this route's JSON, which pg_cron stores in
+// net._http_response and `pnpm livecheck` can read, and any stuck row or
+// terminal failure is also logged and reported to Sentry as a warning, so it
+// does not depend on email to report on email. Rows that used all their
+// claims (attempts = 25) can never send again; they are counted as
+// `exhausted` but do not alert on every run. Counts only: no recipients or
+// payloads leave this function.
+const STUCK_MINUTES = 30;
+const MAX_CLAIMS = 25;
+
+async function watchOutbox(supabase, { failed }) {
+  const health = { stuckPending: null, oldestStuckMinutes: null, exhausted: null };
+
+  try {
+    const dueBefore = new Date(Date.now() - STUCK_MINUTES * 60_000).toISOString();
+    const [stuck, oldest, exhausted] = await Promise.all([
+      supabase
+        .from('notifications_outbox')
+        .select('id', { count: 'exact', head: true })
+        .eq('channel', 'email')
+        .eq('status', 'pending')
+        .lt('attempts', MAX_CLAIMS)
+        .lt('available_at', dueBefore),
+      supabase
+        .from('notifications_outbox')
+        .select('available_at')
+        .eq('channel', 'email')
+        .eq('status', 'pending')
+        .lt('attempts', MAX_CLAIMS)
+        .lt('available_at', dueBefore)
+        .order('available_at', { ascending: true })
+        .limit(1),
+      supabase
+        .from('notifications_outbox')
+        .select('id', { count: 'exact', head: true })
+        .eq('channel', 'email')
+        .eq('status', 'pending')
+        .gte('attempts', MAX_CLAIMS),
+    ]);
+
+    if (!stuck.error) health.stuckPending = stuck.count ?? 0;
+    if (!exhausted.error) health.exhausted = exhausted.count ?? 0;
+    const oldestAt = oldest.error ? null : oldest.data?.[0]?.available_at;
+    if (oldestAt) {
+      health.oldestStuckMinutes = Math.round((Date.now() - new Date(oldestAt).getTime()) / 60_000);
+    }
+  } catch (error) {
+    console.error('Outbox watchdog query failed:', error?.message ?? 'unknown error');
+  }
+
+  if ((health.stuckPending ?? 0) > 0 || failed > 0) {
+    const counts = { ...health, failedThisRun: failed };
+    console.error('CRM notification emails need attention:', JSON.stringify(counts));
+    try {
+      Sentry.captureMessage('CRM notification emails need attention', { level: 'warning', extra: counts });
+    } catch {
+      // Reporting must never break the drain.
+    }
+  }
+
+  return health;
 }
 
 async function cleanupStaleAttachments(supabase) {
@@ -383,11 +514,159 @@ async function resolveProjects(supabase, rows) {
   const map = new Map();
   if (ids.length === 0) return map;
 
-  const { data } = await supabase.from('projects').select('id, title').in('id', ids);
+  const { data } = await supabase
+    .from('projects')
+    .select('id, title, company_id, created_by, target_date')
+    .in('id', ids);
   for (const project of data ?? []) {
     map.set(project.id, project);
   }
   return map;
+}
+
+// The client behind each project, for staff emails that name them: who
+// created the project (profile name plus auth email and account creation
+// date), their company, and how many projects that company has. Best effort:
+// any failure leaves the email to send without these rows.
+async function resolveProjectClients(supabase, rows, projects) {
+  const map = new Map();
+
+  try {
+    const targets = [...new Set(
+      rows
+        .filter((row) => CLIENT_CONTEXT_EVENTS.has(row.event_type))
+        .map((row) => row.project_id)
+        .filter(Boolean),
+    )]
+      .map((id) => projects.get(id))
+      .filter((project) => project?.created_by);
+    if (targets.length === 0) return map;
+
+    const creatorIds = [...new Set(targets.map((project) => project.created_by))];
+    const companyIds = [...new Set(targets.map((project) => project.company_id).filter(Boolean))];
+
+    const [creatorsResult, companiesResult, companyProjectsResult, accounts] = await Promise.all([
+      supabase.from('profiles').select('id, full_name').in('id', creatorIds),
+      companyIds.length
+        ? supabase.from('companies').select('id, name').in('id', companyIds)
+        : { data: [] },
+      companyIds.length
+        ? supabase.from('projects').select('id, company_id').in('company_id', companyIds)
+        : { data: [] },
+      Promise.all(
+        creatorIds.map(async (id) => {
+          try {
+            const { data, error } = await supabase.auth.admin.getUserById(id);
+            if (error || !data?.user) return [id, null];
+            return [id, { email: data.user.email ?? null, createdAt: data.user.created_at ?? null }];
+          } catch {
+            return [id, null];
+          }
+        }),
+      ),
+    ]);
+
+    const names = new Map((creatorsResult?.data ?? []).map((profile) => [profile.id, profile.full_name]));
+    const companyNames = new Map((companiesResult?.data ?? []).map((company) => [company.id, company.name]));
+    const accountById = new Map(accounts);
+    const projectCounts = new Map();
+    for (const project of companyProjectsResult?.data ?? []) {
+      projectCounts.set(project.company_id, (projectCounts.get(project.company_id) ?? 0) + 1);
+    }
+
+    for (const project of targets) {
+      const account = accountById.get(project.created_by);
+      map.set(project.id, {
+        fullName: names.get(project.created_by) ?? null,
+        email: account?.email ?? null,
+        createdAt: account?.createdAt ?? null,
+        companyName: companyNames.get(project.company_id) ?? null,
+        projectCount: projectCounts.get(project.company_id) ?? null,
+      });
+    }
+  } catch (error) {
+    console.error('Outbox client context lookup failed:', error?.message ?? 'unknown error');
+  }
+
+  return map;
+}
+
+// The lead project manager (earliest assignment) of each project with a brief
+// alert or status update: the admin email says whether someone is already
+// leading it, and the client's status email names them.
+async function resolveLeadManagers(supabase, rows) {
+  const map = new Map();
+
+  try {
+    const ids = [...new Set(
+      rows
+        .filter((row) => LEAD_MANAGER_EVENTS.has(row.event_type))
+        .map((row) => row.project_id)
+        .filter(Boolean),
+    )];
+    if (ids.length === 0) return map;
+
+    const { data: assignments, error } = await supabase
+      .from('project_assignments')
+      .select('project_id, user_id, created_at')
+      .in('project_id', ids)
+      .order('created_at', { ascending: true });
+    if (error) return map;
+
+    const leadByProject = new Map();
+    for (const assignment of assignments ?? []) {
+      if (!leadByProject.has(assignment.project_id)) {
+        leadByProject.set(assignment.project_id, assignment.user_id);
+      }
+    }
+    if (leadByProject.size === 0) return map;
+
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', [...new Set(leadByProject.values())]);
+    const names = new Map((profiles ?? []).map((profile) => [profile.id, profile.full_name]));
+
+    for (const [projectId, userId] of leadByProject) {
+      map.set(projectId, { fullName: names.get(userId) ?? null });
+    }
+  } catch (error) {
+    console.error('Outbox lead manager lookup failed:', error?.message ?? 'unknown error');
+  }
+
+  return map;
+}
+
+// Which (project, project manager) pairs in this batch are still assigned.
+// Fails open (checked: false) so a lookup error never blocks delivery; the
+// row then sends exactly as it did before this check existed.
+async function resolveLiveAssignments(supabase, rows, recipients) {
+  const pairs = new Set();
+
+  try {
+    const managerRows = rows.filter(
+      (row) => row.project_id && recipients.get(row.user_id)?.role === 'project_manager',
+    );
+    if (managerRows.length === 0) return { checked: true, pairs };
+
+    const { data, error } = await supabase
+      .from('project_assignments')
+      .select('project_id, user_id')
+      .in('project_id', [...new Set(managerRows.map((row) => row.project_id))])
+      .in('user_id', [...new Set(managerRows.map((row) => row.user_id))]);
+    if (error) {
+      console.error('Outbox assignment check failed:', error.message);
+      return { checked: false, pairs };
+    }
+
+    for (const assignment of data ?? []) {
+      pairs.add(`${assignment.project_id}:${assignment.user_id}`);
+    }
+    return { checked: true, pairs };
+  } catch (error) {
+    console.error('Outbox assignment check failed:', error?.message ?? 'unknown error');
+    return { checked: false, pairs };
+  }
 }
 
 // Counts only - never echo recipients, payloads, or the cron secret.
