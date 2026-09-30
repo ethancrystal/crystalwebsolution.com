@@ -18,6 +18,31 @@ Every transactional email gets a clean, professional dark layout that matches th
 - **Sign-up confirmation wording** now says what happens next: the client portal, starting a project, sharing a brief and files.
 - **Verified:** `pnpm test`, including `tests/email.test.mjs`. The confirmation and message emails were rendered in Chromium at 390px and 700px.
 
+## v1.98 — 2026-09-28
+
+*Opened as v1.85; renumbered to v1.98 after v1.97 lifted the `.99` pause.*
+
+Docs only, no runtime change. Adds `docs/plans/2026-09-28-portal-workings.md`: how the client, employee and admin portals should work inside, what exists today (from a code read at v1.82), and a phased plan with the client portal first. Numbered after v1.83 (#256) and v1.84 (#257), both open.
+
+- **Client journey (owner, 2026-09-28):** salesperson sends the link → sign up → verify email → dashboard → first-run tutorial (create a project, fill the brief, message the team, upload images) → pick a service type (Website, Logo, Branding, Marketing, Automation) → that service's brief.
+- **Gaps found:**
+  - there is no tutorial;
+  - the briefs cover only logo, website, SEO and PPC, and the database constraint allows only those four;
+  - clients can't approve or request changes;
+  - there is no cross-project notifications inbox;
+  - `/team` is a flat list, without an internal/shared toggle, task editing or approval requests;
+  - the admin home doesn't link to projects, briefs or the pipeline;
+  - admin status transitions disagree with `ALLOWED_TRANSITIONS`.
+- **Phases:** C1 arrival + tutorial, C2 service types + briefs (migration `0046`), C3 client actions + approvals (`0047`), C4 notifications, E1 employee queue, A1 admin control room.
+- **Owner decisions:** D1–D5 cover the service list, how the tutorial remembers it was seen, salesperson attribution, client approvals, and admin-created projects. Recorded on 2026-09-28:
+  - Logo and Branding are one service.
+  - The tutorial shows once per browser.
+  - No salesperson auto-assignment.
+  - Admin can start projects.
+  - Still open: Marketing sub-choices, what Automation covers, and client approvals (D4).
+- **Visual direction:** dark, flat and quiet. The shared frame comes first, then client, employee and admin pages.
+- `docs/plans/README.md` lists the plan as Planned.
+
 ## v1.97 — 2026-09-29
 
 CI and docs only, no runtime change. Release numbers continue past `.99` as three-digit minors (owner decision 2026-09-29).
