@@ -61,6 +61,20 @@ test('publishing revalidates the post, the listing and the sitemap together', ()
   assert.match(revalidate, /revalidatePath\(`\/blog\/\$\{slug\}`\)/, 'the post itself');
 });
 
+test('creating a post leaves the new-post form for its edit page, so a second submit cannot duplicate it', () => {
+  const create = ACTIONS.split('export async function createPostAction(')[1].split(
+    '\nexport async function',
+  )[0];
+
+  assert.match(create, /redirect\(`\/admin\/blog\/\$\{data\.id\}`\)/);
+  assert.ok(!/return success\(/.test(create), 'a created post must not return to the same form');
+  // redirect() throws NEXT_REDIRECT by design; nothing may catch around it.
+  assert.ok(
+    create.indexOf('redirect(`') > create.lastIndexOf('} catch ('),
+    'redirect() must not sit inside a try/catch',
+  );
+});
+
 test('renaming a slug revalidates the old URL too', () => {
   const update = ACTIONS.split('export async function updatePostAction(')[1];
   assert.match(

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import { useUserRole } from '@/lib/useUserRole';
+import { ROLE_LOAD_ERROR, useUserRole } from '@/lib/useUserRole';
 import AdminFormShell from '@/components/crm/AdminFormShell';
 
 const INITIAL_FORM = {
@@ -18,7 +18,7 @@ const INITIAL_FORM = {
 
 export default function NewCompanyPage() {
   const router = useRouter();
-  const { isAdmin, isLoading: isRoleLoading } = useUserRole();
+  const { isAdmin, isLoading: isRoleLoading, error: roleError } = useUserRole();
   const [form, setForm] = useState(INITIAL_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -26,10 +26,11 @@ export default function NewCompanyPage() {
   useEffect(() => {
     // Company creation is admin-only (0006_admin_only_company_contact_creation.sql)
     // - a PM landing here would just hit an RLS rejection on submit.
-    if (!isRoleLoading && !isAdmin) {
+    // A failed role read is not "not an admin": don't redirect on it.
+    if (!isRoleLoading && !roleError && !isAdmin) {
       router.replace('/admin/companies');
     }
-  }, [isRoleLoading, isAdmin, router]);
+  }, [isRoleLoading, roleError, isAdmin, router]);
 
   function handleChange(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -75,7 +76,8 @@ export default function NewCompanyPage() {
       backHref="/admin/companies"
       backLabel="Back to Companies"
       error={error}
-      loading={isRoleLoading || !isAdmin}
+      loading={isRoleLoading || (!isAdmin && !roleError)}
+      fatalError={roleError ? ROLE_LOAD_ERROR : null}
       skeletonFields={6}
     >
       <form onSubmit={handleSubmit}>

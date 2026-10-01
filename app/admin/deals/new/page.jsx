@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import { useUserRole } from '@/lib/useUserRole';
+import { ROLE_LOAD_ERROR, useUserRole } from '@/lib/useUserRole';
 import { PROJECT_TYPE_OPTIONS } from '@/lib/projectTypes';
 import AdminFormShell from '@/components/crm/AdminFormShell';
 
@@ -31,7 +31,7 @@ const INITIAL_FORM = {
 
 export default function NewDealPage() {
   const router = useRouter();
-  const { isAdmin, isLoading: isRoleLoading } = useUserRole();
+  const { isAdmin, isLoading: isRoleLoading, error: roleError } = useUserRole();
   const [form, setForm] = useState(INITIAL_FORM);
   const [companies, setCompanies] = useState([]);
   const [contacts, setContacts] = useState([]);
@@ -64,10 +64,11 @@ export default function NewDealPage() {
     // Deal creation is admin-only (0005_pm_scoping_and_project_type.sql -
     // "Admin can create deals") - a PM landing here would just hit an RLS
     // rejection on submit, so redirect before they fill out the form.
-    if (!isRoleLoading && !isAdmin) {
+    // A failed role read is not "not an admin": don't redirect on it.
+    if (!isRoleLoading && !roleError && !isAdmin) {
       router.replace('/admin/deals');
     }
-  }, [isRoleLoading, isAdmin, router]);
+  }, [isRoleLoading, roleError, isAdmin, router]);
 
   useEffect(() => {
     async function loadContacts() {
@@ -146,7 +147,8 @@ export default function NewDealPage() {
       backHref="/admin/deals"
       backLabel="Back to Deals"
       error={error}
-      loading={isLoading || isRoleLoading || !isAdmin}
+      loading={isLoading || isRoleLoading || (!isAdmin && !roleError)}
+      fatalError={roleError ? ROLE_LOAD_ERROR : null}
       skeletonFields={9}
     >
       <form onSubmit={handleSubmit}>

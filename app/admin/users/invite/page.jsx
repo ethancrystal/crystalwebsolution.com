@@ -3,22 +3,23 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useUserRole } from '@/lib/useUserRole';
+import { ROLE_LOAD_ERROR, useUserRole } from '@/lib/useUserRole';
 import { inviteUser } from '../actions';
 import { LoadingState } from '@/components/crm/Spinner';
 
 export default function InviteUserPage() {
   const router = useRouter();
-  const { isAdmin, isLoading: isRoleLoading } = useUserRole();
+  const { isAdmin, isLoading: isRoleLoading, error: roleError } = useUserRole();
   const [form, setForm] = useState({ email: '', fullName: '', role: 'project_manager' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!isRoleLoading && !isAdmin) {
+    // A failed role read is not "not an admin": don't redirect on it.
+    if (!isRoleLoading && !roleError && !isAdmin) {
       router.replace('/admin');
     }
-  }, [isRoleLoading, isAdmin, router]);
+  }, [isRoleLoading, roleError, isAdmin, router]);
 
   function handleChange(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -48,6 +49,14 @@ export default function InviteUserPage() {
       setError(err.message);
       setIsSubmitting(false);
     }
+  }
+
+  if (roleError) {
+    return (
+      <div className="crm-admin-page">
+        <p className="crm-form-error" role="alert">{ROLE_LOAD_ERROR}</p>
+      </div>
+    );
   }
 
   if (isRoleLoading || !isAdmin) {

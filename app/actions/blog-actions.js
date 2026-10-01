@@ -2,6 +2,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 import { getAuthenticatedProfile } from '@/lib/auth/require-role';
 import { ROLES } from '@/lib/auth/roles.mjs';
@@ -129,7 +130,12 @@ export async function createPostAction(formData) {
   }
 
   revalidatePostPaths(data.slug);
-  return success(requestId, { id: data.id, slug: data.slug });
+
+  // Leave the "new post" form for the post's own edit page. Staying on it
+  // meant a second submit inserted the same post again (a duplicate or a slug
+  // conflict); on the edit page the same form updates this row instead.
+  // redirect() throws by design, so nothing may catch around it.
+  redirect(`/admin/blog/${data.id}`);
 }
 
 export async function updatePostAction(formData) {

@@ -25,7 +25,13 @@ export default function TeamProjectPage() {
   const projectId = params?.id;
   const [profile, setProfile] = useState(null);
   const [workspace, setWorkspace] = useState(null);
+  // `error` is a failed load and replaces the page; `actionError` is a failed
+  // action (status change, new task) and shows beside the controls so the
+  // workspace stays on screen.
   const [error, setError] = useState(null);
+  const [actionError, setActionError] = useState(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isAddingTask, setIsAddingTask] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadWorkspace = useCallback(async () => {
@@ -61,6 +67,7 @@ export default function TeamProjectPage() {
 
       const data = await getProjectWorkspace(supabase, viewerProfile, projectId);
       setWorkspace(data);
+      setError(null);
     } catch (err) {
       setError(err.message || 'Unable to load this project.');
     } finally {
@@ -83,33 +90,45 @@ export default function TeamProjectPage() {
   });
 
   async function handleTransition(nextStatus) {
-    if (!workspace?.project || !profile) return;
+    if (!workspace?.project || !profile || isTransitioning) return;
     if (!canTransition(workspace.project.status, nextStatus)) {
-      setError(`Cannot move from ${workspace.project.status} to ${nextStatus}.`);
+      setActionError(`Cannot move from ${workspace.project.status} to ${nextStatus}.`);
+      return;
+    }
+    // Cancelled is terminal (no transition leaves it), so ask before moving there.
+    if (
+      nextStatus === 'cancelled' &&
+      !window.confirm('Cancel this project? Cancelled is final: the project cannot be moved to another status afterwards.')
+    ) {
       return;
     }
 
-    setError(null);
+    setActionError(null);
+    setIsTransitioning(true);
+    try {
+      const formData = new FormData();
+      formData.set('projectId', workspace.project.id);
+      formData.set('fromStatus', workspace.project.status);
+      formData.set('toStatus', nextStatus);
+      formData.set('note', `Status moved to ${nextStatus}.`);
 
-    const formData = new FormData();
-    formData.set('projectId', workspace.project.id);
-    formData.set('fromStatus', workspace.project.status);
-    formData.set('toStatus', nextStatus);
-    formData.set('note', `Status moved to ${nextStatus}.`);
+      const result = await transitionProject(formData);
+      if (!result.ok) {
+        setActionError(result.error || 'Unable to update status.');
+        return;
+      }
 
-    const result = await transitionProject(formData);
-
-    if (!result.ok) {
-      setError(result.error || 'Unable to update status.');
-      return;
+      await loadWorkspace();
+    } catch (err) {
+      setActionError(err?.message || 'Unable to update status.');
+    } finally {
+      setIsTransitioning(false);
     }
-
-    await loadWorkspace();
   }
 
   async function handleAddTask(e) {
     e.preventDefault();
-    if (!workspace?.project || !profile) return;
+    if (!workspace?.project || !profile || isAddingTask) return;
 
     const form = e.target;
     const title = form.taskTitle?.value?.trim();
@@ -119,24 +138,29 @@ export default function TeamProjectPage() {
 
     if (!title) return;
 
-    setError(null);
+    setActionError(null);
+    setIsAddingTask(true);
+    try {
+      const formData = new FormData();
+      formData.set('projectId', workspace.project.id);
+      formData.set('title', title);
+      if (due) formData.set('dueDate', due);
+      formData.set('priority', priority);
+      formData.set('clientVisible', clientVisible ? 'true' : 'false');
 
-    const formData = new FormData();
-    formData.set('projectId', workspace.project.id);
-    formData.set('title', title);
-    if (due) formData.set('dueDate', due);
-    formData.set('priority', priority);
-    formData.set('clientVisible', clientVisible ? 'true' : 'false');
+      const result = await createProjectTask(formData);
+      if (!result.ok) {
+        setActionError(result.error || 'Unable to create the task.');
+        return;
+      }
 
-    const result = await createProjectTask(formData);
-
-    if (!result.ok) {
-      setError(result.error || 'Unable to create the task.');
-      return;
+      form.reset();
+      await loadWorkspace();
+    } catch (err) {
+      setActionError(err?.message || 'Unable to create the task.');
+    } finally {
+      setIsAddingTask(false);
     }
-
-    form.reset();
-    await loadWorkspace();
   }
 
   if (isLoading) {
@@ -162,13 +186,18 @@ export default function TeamProjectPage() {
   return (
     <WorkspaceShell role="project_manager" title={project.title}>
       <ProjectPresence viewers={viewers} />
-      <ProjectOverview project={project} />
+      <ProjectOverview project={project} role="project_manager" />
       <ProjectBriefs projectId={projectId} />
       <ProjectTimeline history={workspace.statusHistory} />
       <ProjectTasks tasks={workspace.tasks ?? []} />
 
       <section className="crm-ops-section">
         <h2>Operations</h2>
+        {actionError && (
+          <p className="crm-form-error crm-ops-error" role="alert">
+            {actionError}
+          </p>
+        )}
         <form onSubmit={handleAddTask} className="crm-ops-form">
           <div className="crm-ops-row">
             <input name="taskTitle" placeholder="New task title" required />
@@ -182,7 +211,9 @@ export default function TeamProjectPage() {
               <input name="taskClientVisible" type="checkbox" />
               Visible to client
             </label>
-            <button type="submit" className="crm-ops-button">Add Task</button>
+            <button type="submit" className="crm-ops-button" disabled={isAddingTask}>
+              Add Task
+            </button>
           </div>
         </form>
 
@@ -194,6 +225,7 @@ export default function TeamProjectPage() {
                 type="button"
                 className="crm-ops-button"
                 onClick={() => handleTransition(status)}
+                disabled={isTransitioning}
               >
                 Move to {status.replaceAll('_', ' ')}
               </button>
@@ -325,6 +357,10 @@ export default function TeamProjectPage() {
         .crm-ops-empty {
           color: #999;
           font-size: 0.9rem;
+        }
+
+        .crm-ops-error {
+          margin-bottom: 1rem;
         }
 
         .crm-ops-checkbox {

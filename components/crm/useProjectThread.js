@@ -10,6 +10,12 @@ import {
   finalizeAttachment,
 } from '@/app/actions/project-actions';
 
+// The reason to show beside a staged file that failed to upload or finalize:
+// the server action's own message, or the storage error's, when it has one.
+function uploadFailureReason(err, fallback) {
+  return typeof err?.message === 'string' && err.message.trim() ? err.message : fallback;
+}
+
 // Data half of the project Conversation panel: every piece of state, the
 // read-model load, the Realtime subscription, and the mutation handlers.
 // components/crm/ProjectThread.jsx is the presentation half and renders
@@ -45,6 +51,14 @@ export function useProjectThread({ projectId, profile }) {
   const messageAttemptIdRef = useRef(null);
   const projectGenerationRef = useRef(0);
   const activeProjectRef = useRef(projectId);
+
+  // Send waits on every staged file: one still uploading is not attachable
+  // yet, and one that failed would be silently left behind.
+  const sendBlockedReason = stagedAttachments.some((attachment) => attachment.status === 'failed')
+    ? 'Retry or remove the file that failed to upload before sending.'
+    : stagedAttachments.some((attachment) => attachment.status !== 'ready')
+      ? 'Wait for the file upload to finish before sending.'
+      : null;
 
   const load = useCallback(async () => {
     if (!projectId || activeProjectRef.current !== projectId) return;
@@ -187,7 +201,11 @@ export function useProjectThread({ projectId, profile }) {
     const generation = projectGenerationRef.current;
     if (activeProjectRef.current !== projectId) return;
     const trimmed = body.trim();
-    if (!trimmed || stagedAttachments.some((attachment) => attachment.status !== 'ready')) return;
+    if (!trimmed) return;
+    if (sendBlockedReason) {
+      setError(sendBlockedReason);
+      return;
+    }
 
     if (!messageAttemptIdRef.current) {
       messageAttemptIdRef.current = globalThis.crypto.randomUUID();
@@ -206,14 +224,21 @@ export function useProjectThread({ projectId, profile }) {
         .forEach((attachment) => formData.append('attachmentIds', attachment.attachmentId));
 
       const result = await postProjectMessage(formData);
-      if (!result.ok) throw new Error(result.error || 'Unable to send this message.');
       if (activeProjectRef.current !== projectId || generation !== projectGenerationRef.current) return;
+      if (!result.ok) {
+        // The action's own message says what to fix (e.g. "Message must be
+        // 1 to 10000 characters."), so show it rather than a generic one.
+        setError(`${result.error || 'Unable to send this message.'} Your draft is preserved for retry.`);
+        return;
+      }
 
       setBody('');
       setStagedAttachments([]);
       messageAttemptIdRef.current = null;
       await load();
     } catch {
+      // The action threw (network or server failure), so there is no message
+      // from it to show.
       if (activeProjectRef.current === projectId && generation === projectGenerationRef.current) {
         setError('Unable to send this message. Your draft is preserved for retry.');
       }
@@ -282,18 +307,22 @@ export function useProjectThread({ projectId, profile }) {
             : attachment,
         ),
       );
-    } catch {
+    } catch (err) {
       if (!isCurrentProject()) return;
+      const reason = uploadFailureReason(err, 'Unable to upload this file.');
       if (reservedAttachment?.attachmentId) {
+        // The reason sits beside the staged file, which can be retried or removed.
         setStagedAttachments((current) =>
           current.map((attachment) =>
             attachment.attachmentId === reservedAttachment.attachmentId
-              ? { ...attachment, status: 'failed' }
+              ? { ...attachment, status: 'failed', error: reason }
               : attachment,
           ),
         );
+      } else {
+        // Nothing was reserved, so there is no staged file to hang it on.
+        setError(reason);
       }
-      setError('Unable to upload this file. The staged file can be retried.');
     } finally {
       if (isCurrentProject()) {
         setIsUploading(false);
@@ -313,7 +342,7 @@ export function useProjectThread({ projectId, profile }) {
     setError(null);
     setStagedAttachments((current) =>
       current.map((item) =>
-        item.attachmentId === attachment.attachmentId ? { ...item, status: 'pending' } : item,
+        item.attachmentId === attachment.attachmentId ? { ...item, status: 'pending', error: null } : item,
       ),
     );
 
@@ -340,17 +369,31 @@ export function useProjectThread({ projectId, profile }) {
             : item,
         ),
       );
-    } catch {
+    } catch (err) {
       if (!isCurrentProject()) return;
+      const reason = uploadFailureReason(err, 'Unable to retry this file upload.');
       setStagedAttachments((current) =>
         current.map((item) =>
-          item.attachmentId === attachment.attachmentId ? { ...item, status: 'failed' } : item,
+          item.attachmentId === attachment.attachmentId
+            ? { ...item, status: 'failed', error: reason }
+            : item,
         ),
       );
-      setError('Unable to retry this file upload.');
     } finally {
       if (isCurrentProject()) setIsUploading(false);
     }
+  }
+
+  // Drop a staged file whose upload failed. It was never finalized, so its
+  // reservation is still 'pending' and the attachment cleanup job reclaims it.
+  // (A finalized file is already part of the project's files; removing it
+  // from the staging list would not delete it, so it is not offered.)
+  function removeStagedAttachment(attachment) {
+    if (!attachment || attachment.status !== 'failed') return;
+    setStagedAttachments((current) =>
+      current.filter((item) => item.attachmentId !== attachment.attachmentId),
+    );
+    setError(null);
   }
 
   async function loadOlderMessages() {
@@ -419,6 +462,7 @@ export function useProjectThread({ projectId, profile }) {
     isSending,
     isUploading,
     stagedAttachments,
+    sendBlockedReason,
     nextCursor,
     isLoadingOlder,
     editingId,
@@ -433,6 +477,7 @@ export function useProjectThread({ projectId, profile }) {
     handleSend,
     handleFileChange,
     retryStagedAttachment,
+    removeStagedAttachment,
     loadOlderMessages,
     handleDownload,
   };

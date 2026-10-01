@@ -9,6 +9,7 @@ import NotesPanel from '@/components/crm/NotesPanel';
 import { useUserRole } from '@/lib/useUserRole';
 import { projectTypeLabel } from '@/lib/projectTypes';
 import { SkeletonDetail } from '@/components/crm/Skeleton';
+import { formatDateOnly } from '@/components/crm/taskUtils.mjs';
 
 const STAGE_LABELS = {
   prospecting: 'Prospecting',
@@ -37,8 +38,8 @@ function formatCurrency(value) {
 }
 
 function formatDate(value) {
-  if (!value) return '-';
-  return new Date(value).toLocaleDateString('en-US', {
+  // expected_close_date is a plain DATE column; format it without a timezone shift.
+  return formatDateOnly(value, 'en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -59,6 +60,9 @@ export default function DealDetailPage() {
   const [deal, setDeal] = useState(null);
   const [ownerName, setOwnerName] = useState(null);
   const [linkedProjectId, setLinkedProjectId] = useState(null);
+  // The signed-in admin's profile: ProjectThread authorises and subscribes
+  // as this viewer, so it cannot render without one.
+  const [viewerProfile, setViewerProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -95,6 +99,18 @@ export default function DealDetailPage() {
           .eq('source_deal_id', id)
           .maybeSingle();
         setLinkedProjectId(linkedProject?.id || null);
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          const { data: viewer } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          setViewerProfile(viewer || null);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -282,7 +298,13 @@ export default function DealDetailPage() {
           </div>
 
           <div className="crm-thread-wrap">
-            <ProjectThread projectId={linkedProjectId} role="admin" />
+            {viewerProfile ? (
+              <ProjectThread projectId={linkedProjectId} profile={viewerProfile} />
+            ) : (
+              <div className="crm-no-project">
+                <p>Unable to load your profile, so the conversation can&apos;t open. Reload to try again.</p>
+              </div>
+            )}
           </div>
         </>
       ) : (

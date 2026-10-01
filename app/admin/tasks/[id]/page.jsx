@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { SkeletonDetail } from '@/components/crm/Skeleton';
+import { isTaskOverdue } from '@/components/crm/taskUtils.mjs';
 
 function formatDate(value) {
   if (!value) return '-';
@@ -17,13 +18,6 @@ function formatDueDate(value) {
   // browser reinterpret it in local time and shift it by a day.
   const [year, month, day] = value.split('-');
   return `${month}/${day}/${year}`;
-}
-
-function isOverdue(task) {
-  if (!task || !task.due_date || task.status === 'completed') return false;
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  return task.due_date < today;
 }
 
 export default function TaskDetailPage() {
@@ -143,7 +137,7 @@ export default function TaskDetailPage() {
     );
   }
 
-  const overdue = isOverdue(task);
+  const overdue = isTaskOverdue(task);
 
   return (
     <div className="crm-admin-page">

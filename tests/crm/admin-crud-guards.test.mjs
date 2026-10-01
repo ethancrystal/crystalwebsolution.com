@@ -35,9 +35,20 @@ for (const entity of ENTITIES) {
 
   test(`admin ${entity} new page gates rendering on the admin role`, async () => {
     const source = await readFile(`app/admin/${entity}/new/page.jsx`, 'utf8');
-    assert.match(source, /import \{ useUserRole \} from '@\/lib\/useUserRole'/);
-    assert.match(source, /const \{ isAdmin, isLoading: isRoleLoading \} = useUserRole\(\)/);
+    assert.match(source, /import \{ ROLE_LOAD_ERROR, useUserRole \} from '@\/lib\/useUserRole'/);
+    assert.match(
+      source,
+      /const \{ isAdmin, isLoading: isRoleLoading, error: roleError \} = useUserRole\(\)/,
+    );
     assert.match(source, new RegExp(String.raw`router\.replace\('/admin/${entity}'\)`));
-    assert.match(source, /loading=\{[^}]*isRoleLoading \|\| !isAdmin\}/, `${entity} new must hold the skeleton until the role resolves`);
+    assert.match(source, /loading=\{[^}]*isRoleLoading \|\| \(!isAdmin && !roleError\)\}/, `${entity} new must hold the skeleton until the role resolves`);
+  });
+
+  // F6: a failed role read is not "not an admin". Redirecting on it bounced
+  // a real admin off the page on any transient profiles read error.
+  test(`admin ${entity} new page does not redirect on a failed role read`, async () => {
+    const source = await readFile(`app/admin/${entity}/new/page.jsx`, 'utf8');
+    assert.match(source, /if \(!isRoleLoading && !roleError && !isAdmin\) \{/);
+    assert.match(source, /fatalError=\{roleError \? ROLE_LOAD_ERROR : null\}/);
   });
 }

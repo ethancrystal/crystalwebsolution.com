@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { onboardClientCompany } from '@/app/actions/onboarding-actions';
+import { SITE } from '@/lib/site';
 
 const WORKSPACE_FEATURES = [
   {
@@ -10,7 +11,7 @@ const WORKSPACE_FEATURES = [
   },
   {
     title: 'Messages',
-    description: 'Keep conversations with the Crystal Web Solution team in one place.',
+    description: `Keep conversations with the ${SITE.name} team in one place.`,
   },
   {
     title: 'Files & Deliverables',

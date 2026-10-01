@@ -26,7 +26,12 @@ export default function AdminProjectPage() {
   const projectId = params?.id;
   const [profile, setProfile] = useState(null);
   const [workspace, setWorkspace] = useState(null);
+  // `error` is a failed load and replaces the page; `actionError` is a failed
+  // action (status change, new task) and shows beside the controls so the
+  // workspace stays on screen.
   const [error, setError] = useState(null);
+  const [actionError, setActionError] = useState(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadWorkspace = useCallback(async () => {
@@ -61,6 +66,7 @@ export default function AdminProjectPage() {
 
       const data = await getProjectWorkspace(supabase, { profile: profileData }, projectId);
       setWorkspace(data);
+      setError(null);
     } catch (err) {
       setError(err.message || 'Unable to load this project.');
     } finally {
@@ -83,27 +89,41 @@ export default function AdminProjectPage() {
   });
 
   async function handleTransition(nextStatus) {
-    if (!workspace?.project || !profile) return;
+    if (!workspace?.project || !profile || isTransitioning) return;
     if (!canTransition(workspace.project.status, nextStatus)) {
-      setError(`Cannot move from ${workspace.project.status} to ${nextStatus}.`);
+      setActionError(`Cannot move from ${workspace.project.status} to ${nextStatus}.`);
+      return;
+    }
+    // Cancelled is terminal (no transition leaves it), so ask before moving there.
+    if (
+      nextStatus === 'cancelled' &&
+      !window.confirm('Cancel this project? Cancelled is final: the project cannot be moved to another status afterwards.')
+    ) {
       return;
     }
 
-    setError(null);
-    const formData = new FormData();
-    formData.set('projectId', workspace.project.id);
-    formData.set('fromStatus', workspace.project.status);
-    formData.set('toStatus', nextStatus);
-    formData.set('visibility', 'shared');
-    formData.set('note', `Status moved to ${nextStatus} by admin.`);
+    setActionError(null);
+    setIsTransitioning(true);
+    try {
+      const formData = new FormData();
+      formData.set('projectId', workspace.project.id);
+      formData.set('fromStatus', workspace.project.status);
+      formData.set('toStatus', nextStatus);
+      formData.set('visibility', 'shared');
+      formData.set('note', `Status moved to ${nextStatus} by admin.`);
 
-    const result = await transitionProject(formData);
-    if (!result.ok) {
-      setError(result.error || 'Unable to update status.');
-      return;
+      const result = await transitionProject(formData);
+      if (!result.ok) {
+        setActionError(result.error || 'Unable to update status.');
+        return;
+      }
+
+      await loadWorkspace();
+    } catch (err) {
+      setActionError(err?.message || 'Unable to update status.');
+    } finally {
+      setIsTransitioning(false);
     }
-
-    await loadWorkspace();
   }
 
   if (isLoading) {
@@ -135,13 +155,18 @@ export default function AdminProjectPage() {
         assignments={workspace.assignments ?? []}
         onChanged={loadWorkspace}
       />
-      <ProjectOverview project={project} />
+      <ProjectOverview project={project} role="admin" />
       <ProjectBriefs projectId={projectId} />
       <ProjectTimeline history={workspace.statusHistory} />
       <ProjectTasks tasks={workspace.tasks ?? []} />
 
       <section className="crm-ops-section">
         <h2>Admin Operations</h2>
+        {actionError && (
+          <p className="crm-form-error crm-ops-error" role="alert">
+            {actionError}
+          </p>
+        )}
         <div className="crm-ops-row">
           {NEXT_OPTIONS.length > 0 ? (
             NEXT_OPTIONS.map((status) => (
@@ -150,6 +175,7 @@ export default function AdminProjectPage() {
                 type="button"
                 className="crm-ops-button"
                 onClick={() => handleTransition(status)}
+                disabled={isTransitioning}
               >
                 Move to {status.replaceAll('_', ' ')}
               </button>
@@ -256,6 +282,10 @@ export default function AdminProjectPage() {
         .crm-ops-empty {
           color: #999;
           font-size: 0.9rem;
+        }
+
+        .crm-ops-error {
+          margin-bottom: 1rem;
         }
       `}</style>
     </WorkspaceShell>

@@ -358,7 +358,7 @@ describe('ProjectThread inline edit', () => {
 describe('ProjectThread send idempotency', () => {
   it('a failed post preserves the draft and retries with the same clientGeneratedId; success clears both', async () => {
     postProjectMessage
-      .mockResolvedValueOnce({ ok: false, error: 'boom' })
+      .mockResolvedValueOnce({ ok: false, error: 'Unable to post this message.' })
       .mockResolvedValueOnce({ ok: true, data: { messageId: 'm9' } })
       .mockResolvedValueOnce({ ok: true, data: { messageId: 'm10' } });
 
@@ -369,7 +369,8 @@ describe('ProjectThread send idempotency', () => {
     fireEvent.change(composer, { target: { value: 'hello there' } });
     fireEvent.click(screen.getByRole('button', { name: 'Send' }));
 
-    await screen.findByText('Unable to send this message. Your draft is preserved for retry.');
+    // The action's own message is shown (F5); the draft note follows it.
+    await screen.findByText('Unable to post this message. Your draft is preserved for retry.');
     expect(composer).toHaveValue('hello there');
     const firstAttempt = formDataToObject(postProjectMessage.mock.calls[0][0]);
     expect(firstAttempt.projectId).toBe('p1');
