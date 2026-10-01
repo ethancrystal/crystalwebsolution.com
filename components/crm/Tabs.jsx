@@ -15,7 +15,8 @@ import { useEffect, useId, useRef, useState } from 'react';
 //   thread keeps its draft, staged uploads and live subscription when the
 //   visitor switches tabs.
 // - Arrow keys, Home and End move between tabs (roving tabindex).
-// - `badge` (a number) shows an unread count; 0 hides it.
+// - `badge` (a number) shows a count; 0 hides it. Screen readers hear it as
+//   "<n> new" unless `badgeLabel` says otherwise (e.g. "to do").
 // - Pass `value` to control the selected tab from the page (for example a
 //   "Message your project manager" button that opens Messages); onChange
 //   still reports every change, including the one read from the URL.
@@ -101,7 +102,7 @@ export default function Tabs({ label, tabs, onChange, value, param = 'tab' }) {
                 <span className="crm-tab-badge">
                   {tab.badge}
                   {' '}
-                  <span className="crm-visually-hidden">new</span>
+                  <span className="crm-visually-hidden">{tab.badgeLabel ?? 'new'}</span>
                 </span>
               )}
             </button>

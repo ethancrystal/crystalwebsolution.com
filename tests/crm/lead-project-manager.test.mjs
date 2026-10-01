@@ -115,9 +115,10 @@ test('admin home and project list surface projects that need a manager', async (
   const home = await readFile('app/admin/page.jsx', 'utf8');
   assert.match(home, /href="\/admin\/projects\?pm=none"/);
   assert.match(home, /listProjectsForViewer/);
-  // The header wraps instead of pushing Sign Out off a phone screen.
-  assert.match(home, /\.crm-admin-header \{[^}]*flex-wrap: wrap;/);
-  assert.match(home, /\.crm-header-actions \{[^}]*flex-wrap: wrap;/);
+  // The overview renders inside the shared portal frame, whose top bar
+  // carries navigation and Sign Out (no page-level header of its own).
+  assert.match(home, /<WorkspaceShell[\s\S]*?role="admin"/);
+  assert.doesNotMatch(home, /crm-admin-header/);
 
   const list = await readFile('app/admin/projects/page.jsx', 'utf8');
   assert.match(list, /get\('pm'\) === 'none'/);

@@ -1,79 +1,76 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import { listProjectsForViewer } from '@/lib/crm/projects';
-import { signOut } from '@/app/auth/actions';
+import { listNotifications, listProjectsForViewer } from '@/lib/crm/projects';
+import { PROJECT_STATUSES } from '@/lib/crm/project-contract.mjs';
+import { projectStatusBadgeClass, projectStatusLabel } from '@/lib/crm/labels.mjs';
+import { countByStatus, isOpenProject, sortProjectsForList, unreadByProject, workQueue } from '@/lib/crm/work-queue.mjs';
+import WorkspaceShell from '@/components/crm/WorkspaceShell';
+import Tabs from '@/components/crm/Tabs';
+import StaffProjectList from '@/components/crm/StaffProjectList';
 import { LoadingState } from '@/components/crm/Spinner';
 
-const CLOSED_PROJECT_STATUSES = new Set(['delivered', 'cancelled']);
+// The admin's home, in three tabs:
+//   Needs action  projects without a project manager, unread updates,
+//                 projects gone quiet, and pending staff requests
+//   Projects      how many projects sit in each status, and the latest ones
+//   CRM           companies, contacts, deals, tasks, and quick actions
+// app/admin/layout.jsx already requires the admin role.
+
+const hrefFor = (project) => `/admin/projects/${project.id}`;
+const RECENT_LIMIT = 8;
 
 export default function AdminDashboard() {
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null);
-  const [stats, setStats] = useState({
-    companies: 0,
-    contacts: 0,
-    deals: 0,
-    tasks: 0,
-  });
+  const [profile, setProfile] = useState(null);
+  const [stats, setStats] = useState(null);
   // null until loaded, so a failed read shows a dash rather than a false 0.
-  const [projectStats, setProjectStats] = useState(null);
+  const [projects, setProjects] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [staffRequests, setStaffRequests] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       const supabase = createClient();
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      setUser(user);
-
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, role, company_id')
-        .eq('id', user.id)
-        .single();
-
-      setRole(profile?.role ?? null);
-
-      if (profile?.role === 'admin') {
-        try {
-          const projects = await listProjectsForViewer(supabase, { profile });
-          const open = (projects ?? []).filter((project) => !CLOSED_PROJECT_STATUSES.has(project.status));
-          setProjectStats({
-            open: open.length,
-            needsManager: open.filter((project) => !project.assignee).length,
-          });
-        } catch (error) {
-          console.error('Failed to load projects:', error);
-        }
-      }
-
       try {
-        const [companiesRes, contactsRes, dealsRes, tasksRes] = await Promise.all([
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id, role, company_id, full_name')
+          .eq('id', user.id)
+          .single();
+        setProfile(profileData ?? null);
+        if (!profileData) return;
+
+        // Each read is independent: one failing blanks its own numbers only.
+        const [projectResult, notificationResult, requestResult, ...countResults] = await Promise.allSettled([
+          listProjectsForViewer(supabase, { profile: profileData }),
+          listNotifications(supabase, { profile: profileData }),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('requested_staff_access', true),
           supabase.from('companies').select('id', { count: 'exact', head: true }),
           supabase.from('contacts').select('id', { count: 'exact', head: true }),
           supabase.from('deals').select('id', { count: 'exact', head: true }),
           supabase.from('tasks').select('id', { count: 'exact', head: true }),
         ]);
 
-        setStats({
-          companies: companiesRes.count || 0,
-          contacts: contactsRes.count || 0,
-          deals: dealsRes.count || 0,
-          tasks: tasksRes.count || 0,
-        });
+        if (projectResult.status === 'fulfilled') setProjects(projectResult.value ?? []);
+        else console.error('Failed to load projects:', projectResult.reason);
+        if (notificationResult.status === 'fulfilled') setNotifications(notificationResult.value ?? []);
+        if (requestResult.status === 'fulfilled') setStaffRequests(requestResult.value.count ?? 0);
+
+        const [companies, contacts, deals, tasks] = countResults.map((result) => (
+          result.status === 'fulfilled' && !result.value.error ? result.value.count ?? 0 : null
+        ));
+        setStats({ companies, contacts, deals, tasks });
       } catch (error) {
-        console.error('Failed to load stats:', error);
+        console.error('Failed to load the overview:', error);
       } finally {
         setIsLoading(false);
       }
@@ -82,283 +79,143 @@ export default function AdminDashboard() {
     loadData();
   }, []);
 
-  const isAdmin = role === 'admin';
-  const isPm = role === 'project_manager';
+  const unread = useMemo(() => unreadByProject(notifications), [notifications]);
+  const queue = useMemo(() => workQueue(projects ?? [], { role: 'admin', unreadByProject: unread }), [projects, unread]);
+  const open = (projects ?? []).filter(isOpenProject);
+  const needsManager = open.filter((project) => !project.assignee).length;
+  const byStatus = useMemo(() => countByStatus(projects ?? []), [projects]);
+  const recent = useMemo(() => sortProjectsForList(projects ?? []).slice(0, RECENT_LIMIT), [projects]);
 
   if (isLoading) {
     return (
-      <div className="crm-admin-dashboard">
+      <WorkspaceShell role="admin" title="Overview">
         <LoadingState label="Loading..." />
-      </div>
+      </WorkspaceShell>
     );
   }
 
-  return (
-    <div className="crm-admin-dashboard">
-      <header className="crm-admin-header">
-        <div>
-          <h1>{isPm ? 'My Dashboard' : 'Admin Dashboard'}</h1>
-          <p>Welcome back, {user?.email}</p>
-        </div>
-        <div className="crm-header-actions">
-          {isAdmin && (
-            <Link href="/admin/projects" className="crm-link">
-              Projects
+  const count = (value) => (value === null || value === undefined ? '—' : value);
+
+  const needsAction = (
+    <>
+      {staffRequests > 0 && (
+        <section className="crm-card" aria-labelledby="staff-requests-heading">
+          <h2 id="staff-requests-heading" className="crm-section-title">Staff requests</h2>
+          <p>
+            <Link href="/admin/users">
+              {staffRequests === 1 ? '1 person is waiting for staff access' : `${staffRequests} people are waiting for staff access`}
             </Link>
-          )}
-          {isAdmin && (
-            <Link href="/admin/users" className="crm-link">
-              Manage Users
+          </p>
+        </section>
+      )}
+      {needsManager > 0 && (
+        <p>
+          <Link href="/admin/projects?pm=none">
+            {needsManager === 1 ? '1 project needs a project manager' : `${needsManager} projects need a project manager`}
+          </Link>
+        </p>
+      )}
+      {projects === null ? (
+        <p className="crm-form-error" role="alert">Projects could not be loaded. Refresh to try again.</p>
+      ) : (
+        <StaffProjectList
+          items={queue}
+          hrefFor={hrefFor}
+          showManager
+          unreadByProject={unread}
+          emptyText="Nothing needs you right now."
+        />
+      )}
+    </>
+  );
+
+  const projectsTab = (
+    <>
+      <div className="crm-stat-grid">
+        <div className={`crm-stat${needsManager ? ' crm-stat-alert' : ''}`}>
+          <p className="crm-stat-label">Open projects</p>
+          <p className="crm-stat-value">{projects ? open.length : '—'}</p>
+          {needsManager ? (
+            <Link href="/admin/projects?pm=none">
+              {needsManager === 1 ? '1 needs a project manager' : `${needsManager} need a project manager`}
             </Link>
+          ) : (
+            <Link href="/admin/projects">Manage</Link>
           )}
-          <form action={signOut}>
-            <button type="submit" className="crm-logout-btn">Sign Out</button>
-          </form>
         </div>
-      </header>
-
-      <div className="crm-admin-content">
-        <div className="crm-stats-grid">
-          {isAdmin && (
-            <div className={`crm-stat-card${projectStats?.needsManager ? ' crm-stat-card-alert' : ''}`}>
-              <h3>Open Projects</h3>
-              <div className="crm-stat-number">{projectStats ? projectStats.open : '—'}</div>
-              {projectStats?.needsManager ? (
-                <Link href="/admin/projects?pm=none">
-                  {projectStats.needsManager === 1
-                    ? '1 needs a project manager'
-                    : `${projectStats.needsManager} need a project manager`}
-                </Link>
-              ) : (
-                <Link href="/admin/projects">Manage</Link>
-              )}
-            </div>
-          )}
-
-          <div className="crm-stat-card">
-            <h3>Companies</h3>
-            <div className="crm-stat-number">{stats.companies}</div>
-            <Link href="/admin/companies">Manage</Link>
-          </div>
-
-          <div className="crm-stat-card">
-            <h3>Contacts</h3>
-            <div className="crm-stat-number">{stats.contacts}</div>
-            <Link href="/admin/contacts">Manage</Link>
-          </div>
-
-          <div className="crm-stat-card">
-            <h3>{isPm ? 'My Assigned Projects' : 'Deals'}</h3>
-            <div className="crm-stat-number">{stats.deals}</div>
-            <Link href="/admin/deals">Manage</Link>
-          </div>
-
-          <div className="crm-stat-card">
-            <h3>{isPm ? 'My Tasks' : 'Tasks'}</h3>
-            <div className="crm-stat-number">{stats.tasks}</div>
-            <Link href="/admin/tasks">Manage</Link>
-          </div>
-        </div>
-
-        {isAdmin && (
-          <section className="crm-quick-actions">
-            <h2>Quick Actions</h2>
-            <div className="crm-action-buttons">
-              <Link href="/admin/companies/new" className="crm-action-btn">
-                + New Company
-              </Link>
-              <Link href="/admin/contacts/new" className="crm-action-btn">
-                + New Contact
-              </Link>
-              <Link href="/admin/deals/new" className="crm-action-btn">
-                + New Deal
-              </Link>
-              <Link href="/admin/tasks/new" className="crm-action-btn">
-                + New Task
-              </Link>
-              <Link href="/admin/users/invite" className="crm-action-btn">
-                + New User
-              </Link>
-            </div>
-          </section>
-        )}
       </div>
+      {byStatus.size > 0 && (
+        <section aria-labelledby="by-status-heading">
+          <h2 id="by-status-heading" className="crm-section-title">By status</h2>
+          <ul className="crm-status-summary">
+            {PROJECT_STATUSES.filter((status) => byStatus.has(status)).map((status) => (
+              <li key={status}>
+                <Link href={`/admin/projects?status=${status}`} className="crm-status-chip">
+                  <span className={projectStatusBadgeClass(status)}>{projectStatusLabel(status)}</span>
+                  {byStatus.get(status)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <section aria-labelledby="recent-heading">
+        <h2 id="recent-heading" className="crm-section-title">Latest activity</h2>
+        <StaffProjectList
+          items={recent.map((project) => ({ project }))}
+          hrefFor={hrefFor}
+          showManager
+          unreadByProject={unread}
+          emptyText="No projects yet."
+        />
+        <p><Link href="/admin/projects">All projects</Link></p>
+      </section>
+    </>
+  );
 
-      <style jsx>{`
-        .crm-admin-dashboard {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-          color: #e0e0e0;
-          font-family: inherit;
-        }
+  const crmTab = (
+    <>
+      <div className="crm-stat-grid">
+        {[
+          { label: 'Companies', value: stats?.companies, href: '/admin/companies' },
+          { label: 'Contacts', value: stats?.contacts, href: '/admin/contacts' },
+          { label: 'Deals', value: stats?.deals, href: '/admin/deals' },
+          { label: 'Tasks', value: stats?.tasks, href: '/admin/tasks' },
+        ].map((stat) => (
+          <div key={stat.label} className="crm-stat">
+            <p className="crm-stat-label">{stat.label}</p>
+            <p className="crm-stat-value">{count(stat.value)}</p>
+            <Link href={stat.href}>Manage</Link>
+          </div>
+        ))}
+      </div>
+      <section className="crm-card" aria-labelledby="quick-actions-heading">
+        <h2 id="quick-actions-heading" className="crm-section-title">Quick actions</h2>
+        <div className="crm-quick-links">
+          <Link href="/admin/companies/new" className="crm-button crm-button-ghost">+ New company</Link>
+          <Link href="/admin/contacts/new" className="crm-button crm-button-ghost">+ New contact</Link>
+          <Link href="/admin/deals/new" className="crm-button crm-button-ghost">+ New deal</Link>
+          <Link href="/admin/tasks/new" className="crm-button crm-button-ghost">+ New task</Link>
+          <Link href="/admin/users/invite" className="crm-button crm-button-ghost">+ New user</Link>
+        </div>
+      </section>
+    </>
+  );
 
-        .crm-admin-header {
-          background: rgba(30, 35, 60, 0.8);
-          border-bottom: 1px solid rgba(100, 200, 255, 0.2);
-          padding: 2rem;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 1rem;
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-admin-header h1 {
-          font-size: 2rem;
-          color: #64c8ff;
-          margin-bottom: 0.5rem;
-        }
-
-        .crm-admin-header p {
-          color: #999;
-          font-size: 0.9rem;
-        }
-
-        .crm-header-actions {
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 1.25rem;
-        }
-
-        .crm-link {
-          color: #64c8ff;
-          text-decoration: none;
-          font-size: 0.9rem;
-          transition: color 0.2s ease;
-        }
-
-        .crm-link:hover {
-          color: #5bb8ff;
-          text-decoration: underline;
-        }
-
-        .crm-logout-btn {
-          background: rgba(255, 100, 100, 0.1);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          color: #ff9999;
-          padding: 0.5rem 1rem;
-          border-radius: 6px;
-          transition: all 0.2s ease;
-          cursor: pointer;
-        }
-
-        .crm-logout-btn:hover {
-          background: rgba(255, 100, 100, 0.2);
-        }
-
-        .crm-admin-content {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 2rem;
-          display: grid;
-          gap: 2rem;
-        }
-
-        .crm-stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-          gap: 1.5rem;
-        }
-
-        .crm-stat-card {
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          border-radius: 12px;
-          padding: 2rem;
-          text-align: center;
-          backdrop-filter: blur(10px);
-          transition: all 0.2s ease;
-        }
-
-        .crm-stat-card:hover {
-          border-color: rgba(100, 200, 255, 0.4);
-          transform: translateY(-4px);
-          box-shadow: 0 8px 24px rgba(100, 200, 255, 0.1);
-        }
-
-        .crm-stat-card h3 {
-          color: #999;
-          font-size: 0.9rem;
-          margin-bottom: 1rem;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-        }
-
-        .crm-stat-card-alert {
-          border-color: rgba(100, 200, 255, 0.55);
-          box-shadow: 0 0 0 1px rgba(100, 200, 255, 0.15);
-        }
-
-        .crm-stat-number {
-          font-size: 3rem;
-          color: #64c8ff;
-          font-weight: 700;
-          margin-bottom: 1rem;
-        }
-
-        .crm-stat-card a {
-          color: #64c8ff;
-          text-decoration: none;
-          font-size: 0.9rem;
-          transition: color 0.2s ease;
-        }
-
-        .crm-stat-card a:hover {
-          color: #5bb8ff;
-          text-decoration: underline;
-        }
-
-        .crm-quick-actions {
-          background: rgba(30, 35, 60, 0.8);
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          border-radius: 12px;
-          padding: 2rem;
-          backdrop-filter: blur(10px);
-        }
-
-        .crm-quick-actions h2 {
-          color: #64c8ff;
-          font-size: 1.5rem;
-          margin-bottom: 1.5rem;
-        }
-
-        .crm-action-buttons {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-          gap: 1rem;
-        }
-
-        .crm-action-btn {
-          background: linear-gradient(135deg, rgba(100, 200, 255, 0.1) 0%, rgba(100, 200, 255, 0.05) 100%);
-          border: 1px solid rgba(100, 200, 255, 0.2);
-          color: #64c8ff;
-          padding: 1rem;
-          border-radius: 8px;
-          text-decoration: none;
-          text-align: center;
-          font-weight: 600;
-          transition: all 0.2s ease;
-        }
-
-        .crm-action-btn:hover {
-          background: linear-gradient(135deg, rgba(100, 200, 255, 0.2) 0%, rgba(100, 200, 255, 0.1) 100%);
-          border-color: rgba(100, 200, 255, 0.4);
-          transform: translateY(-2px);
-        }
-
-        @media (max-width: 640px) {
-          .crm-admin-header {
-            padding: 1.25rem 1rem;
-          }
-
-          .crm-admin-content {
-            padding: 1.25rem 1rem;
-          }
-        }
-
-      `}</style>
-    </div>
+  return (
+    <WorkspaceShell
+      role="admin"
+      title="Overview"
+      subtitle={`Welcome back, ${profile?.full_name || 'admin'}`}
+    >
+      <Tabs
+        label="Overview sections"
+        tabs={[
+          { id: 'needs-action', label: 'Needs action', badge: queue.length + (staffRequests > 0 ? 1 : 0), badgeLabel: 'to do', content: needsAction },
+          { id: 'projects', label: 'Projects', content: projectsTab },
+          { id: 'crm', label: 'CRM', content: crmTab },
+        ]}
+      />
+    </WorkspaceShell>
   );
 }

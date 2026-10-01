@@ -390,6 +390,168 @@
   display: none;
 }
 
+/* ---------- staff dashboards (StaffProjectList, admin overview, /team) ---------- */
+
+.crm-staff-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+}
+
+.crm-staff-item {
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  padding: 1rem 1.15rem;
+  min-width: 0;
+}
+
+.crm-staff-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.crm-staff-title {
+  color: var(--crm-text);
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.crm-staff-title:hover {
+  color: var(--crm-link);
+  text-decoration: underline;
+}
+
+.crm-staff-meta,
+.crm-staff-updated {
+  margin: 0;
+  color: var(--crm-subtle);
+  font-size: 0.82rem;
+}
+
+.crm-staff-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--crm-muted);
+  font-size: 0.88rem;
+}
+
+.crm-count-badge {
+  flex: 0 0 auto;
+  min-width: 1.5rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--crm-accent);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.crm-reasons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.crm-reason {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--crm-status-neutral-fg);
+  background: var(--crm-status-neutral-bg);
+}
+
+.crm-reason-no_manager { color: var(--crm-status-warning-fg); background: var(--crm-status-warning-bg); }
+.crm-reason-unread,
+.crm-reason-your_move { color: var(--crm-status-info-fg); background: var(--crm-status-info-bg); }
+
+.crm-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 1rem;
+}
+
+.crm-stat {
+  display: grid;
+  gap: 0.35rem;
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  padding: 1rem 1.15rem;
+}
+
+.crm-stat-alert {
+  border-color: var(--crm-status-warning-fg);
+}
+
+.crm-stat-label {
+  margin: 0;
+  color: var(--crm-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.crm-stat-value {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--crm-text);
+  line-height: 1.1;
+}
+
+.crm-stat a,
+.crm-status-chip {
+  color: var(--crm-link);
+  font-size: 0.88rem;
+}
+
+.crm-status-summary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.crm-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  padding: 0.3rem 0.4rem 0.3rem 0.3rem;
+  border: 1px solid var(--crm-border);
+  border-radius: 999px;
+  background: var(--crm-surface);
+}
+
+.crm-status-chip:hover {
+  border-color: var(--crm-border-strong);
+}
+
+.crm-quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
 /* ---------- tables and lists ---------- */
 
 .crm-table {

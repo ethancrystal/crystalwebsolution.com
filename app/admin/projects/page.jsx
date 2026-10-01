@@ -38,8 +38,14 @@ export default function AdminProjectsPage() {
   useEffect(() => {
     // Read once on mount rather than with useSearchParams, which would need a
     // Suspense boundary for this client page.
-    if (new URLSearchParams(window.location.search).get('pm') === 'none') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('pm') === 'none') {
       setManagerFilter('none');
+    }
+    // The overview's status chips link here with ?status=<status>.
+    const status = params.get('status');
+    if (status && STATUS_FILTERS.some((filter) => filter.value === status)) {
+      setStatusFilter(status);
     }
   }, []);
 
