@@ -22,7 +22,7 @@ test('admin invite link sends the invitee to the set-password page', async () =>
 
   assert.match(actions, /const INVITE_NEXT = ['"]\/auth\/reset-password(\?[^'"]*)?['"]/);
   assert.match(inviteUser, /buildVerifyUrl\(\{[^}]*next:\s*INVITE_NEXT/);
-  assert.match(inviteUser, /redirectTo:\s*`\$\{APP_URL\}\/auth\/callback\?next=\$\{encodeURIComponent\(INVITE_NEXT\)\}`/);
+  assert.match(inviteUser, /redirectTo:\s*`\$\{appUrl\}\/auth\/callback\?next=\$\{encodeURIComponent\(INVITE_NEXT\)\}`/);
   assert.doesNotMatch(inviteUser, /next:\s*['"]\/admin['"]/);
   assert.doesNotMatch(inviteUser, /callback\?next=\/admin/);
 });

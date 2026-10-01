@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/nextjs';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendTemplate, EmailError, isEmailConfigured } from '@/lib/email/resend';
 import { renderNotificationEmail } from '@/lib/email/templates';
+import { getAppUrl } from '@/lib/appUrl.mjs';
 
 export const runtime = 'nodejs';
 // Never cached: this endpoint mutates the outbox on every invocation.
@@ -32,11 +33,12 @@ function backoffFor(attempts) {
   return BACKOFF_MINUTES[Math.min(Math.max(attempts - 1, 0), BACKOFF_MINUTES.length - 1)];
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
-
-function projectUrlFor(projectId) {
-  if (!projectId) return APP_URL ? `${APP_URL}/dashboard` : undefined;
-  return APP_URL ? `${APP_URL}/dashboard/projects/${projectId}` : undefined;
+// Every link below is built from `appUrl`, resolved once per run by getAppUrl()
+// (lib/appUrl.mjs) before any row is claimed. It throws rather than return an
+// unset or retired host, so no email can carry a link to the wrong place and a
+// bad configuration is reported without touching the outbox.
+function projectUrlFor(appUrl, projectId) {
+  return projectId ? `${appUrl}/dashboard/projects/${projectId}` : `${appUrl}/dashboard`;
 }
 
 // Every project email links to the recipient's own workspace: /dashboard
@@ -53,31 +55,31 @@ const CLIENT_CONTEXT_EVENTS = new Set(['project.brief_submitted', 'project.user_
 // client's "now Planned" email says who is leading their project.
 const LEAD_MANAGER_EVENTS = new Set(['project.brief_submitted', 'project.status_transitioned']);
 
-function staffProjectUrlFor(projectId, role) {
+function staffProjectUrlFor(appUrl, projectId, role) {
   const base = STAFF_PROJECT_BASE[role];
-  if (!base || !projectId || !APP_URL) return projectUrlFor(projectId);
-  return `${APP_URL}${base}/${projectId}`;
+  if (!base || !projectId) return projectUrlFor(appUrl, projectId);
+  return `${appUrl}${base}/${projectId}`;
 }
 
 // lead.created rows (create_lead_from_contact, migration 0026) have no
 // project_id -- they link to the admin deals view instead.
 // client.onboarded rows (onboard_client_company, migration 0046) have no
 // project either: they link to the admin page for the new client's company.
-function companyUrlFor(companyId) {
+function companyUrlFor(appUrl, companyId) {
   if (!companyId) return undefined;
-  return APP_URL ? `${APP_URL}/admin/companies/${companyId}` : undefined;
+  return `${appUrl}/admin/companies/${companyId}`;
 }
 
-function dealUrlFor(dealId) {
+function dealUrlFor(appUrl, dealId) {
   if (!dealId) return undefined;
-  return APP_URL ? `${APP_URL}/admin/deals/${dealId}` : undefined;
+  return `${appUrl}/admin/deals/${dealId}`;
 }
 
 // notifications_outbox.payload is built by Postgres (jsonb_build_object), so
 // its keys are snake_case: from_status, to_status, approval_id, deliverable_id.
 // The templates take camelCase props, so map explicitly rather than spreading
 // the raw payload - a silent mismatch renders blank values into a live email.
-function templateContextFor(row, { recipient, project, client, leadManager }) {
+function templateContextFor(row, { recipient, project, client, leadManager, appUrl }) {
   const payload = row.payload ?? {};
   const staffRecipient = Boolean(STAFF_PROJECT_BASE[recipient.role]);
   // Client details only ever go to staff.
@@ -88,20 +90,20 @@ function templateContextFor(row, { recipient, project, client, leadManager }) {
     recipientRole: recipient.role,
     projectId: row.project_id,
     projectName: project?.title ?? payload.project_name,
-    projectUrl: staffProjectUrlFor(row.project_id, recipient.role),
-    staffProjectUrl: staffProjectUrlFor(row.project_id, recipient.role),
+    projectUrl: staffProjectUrlFor(appUrl, row.project_id, recipient.role),
+    staffProjectUrl: staffProjectUrlFor(appUrl, row.project_id, recipient.role),
     targetDate: project?.target_date,
     clientName: clientContext?.fullName,
     clientEmail: clientContext?.email ?? (staffRecipient ? payload.client_email : undefined),
     contactName: staffRecipient ? payload.contact_name : undefined,
     companyName: staffRecipient ? payload.company_name : undefined,
     phone: staffRecipient ? payload.phone : undefined,
-    companyUrl: recipient.role === 'admin' ? companyUrlFor(payload.company_id) : undefined,
+    companyUrl: recipient.role === 'admin' ? companyUrlFor(appUrl, payload.company_id) : undefined,
     clientCompany: clientContext?.companyName,
     clientSince: clientContext?.createdAt,
     clientProjectCount: clientContext?.projectCount,
     leadManagerName: leadManager?.fullName ?? undefined,
-    reviewsUrl: APP_URL ? `${APP_URL}/reviews` : undefined,
+    reviewsUrl: `${appUrl}/reviews`,
     fromStatus: payload.from_status,
     toStatus: payload.to_status,
     status: payload.status,
@@ -117,7 +119,7 @@ function templateContextFor(row, { recipient, project, client, leadManager }) {
     leadName: payload.lead_name,
     leadCompany: payload.lead_company,
     leadEmail: payload.lead_email,
-    dealUrl: dealUrlFor(payload.deal_id),
+    dealUrl: dealUrlFor(appUrl, payload.deal_id),
     briefTitle: payload.brief_title,
     briefType: payload.brief_type,
     createdProject: payload.created_project === true,
@@ -191,6 +193,17 @@ async function drain(request) {
 
   if (!isEmailConfigured()) {
     return json({ ok: false, error: 'Email delivery is not configured.' }, 503);
+  }
+
+  // Resolved before claim_notification_email_batch so a bad configuration
+  // leaves the outbox untouched: nothing is claimed, leased, retried or marked
+  // failed, and the rows send normally on the first run after it is fixed.
+  let appUrl;
+  try {
+    appUrl = getAppUrl();
+  } catch (configError) {
+    console.error('CRM notification drain halted - app URL misconfigured:', configError.message);
+    return json({ ok: false, error: 'Application URL is not configured.' }, 503);
   }
 
   const { data: rows, error: claimError } = await supabase.rpc('claim_notification_email_batch', {
@@ -272,6 +285,7 @@ async function drain(request) {
         project,
         client: CLIENT_CONTEXT_EVENTS.has(row.event_type) ? clients.get(row.project_id) : null,
         leadManager: LEAD_MANAGER_EVENTS.has(row.event_type) ? leadManagers.get(row.project_id) : null,
+        appUrl,
       }),
     );
 

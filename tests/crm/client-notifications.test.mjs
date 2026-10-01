@@ -100,8 +100,8 @@ test('the drain maps new-client details for staff only, and links the admin to t
   assert.match(source, /clientEmail: clientContext\?\.email \?\? \(staffRecipient \? payload\.client_email : undefined\)/);
   assert.match(source, /contactName: staffRecipient \? payload\.contact_name : undefined/);
   assert.match(source, /companyName: staffRecipient \? payload\.company_name : undefined/);
-  assert.match(source, /companyUrl: recipient\.role === 'admin' \? companyUrlFor\(payload\.company_id\) : undefined/);
-  assert.match(source, /`\$\{APP_URL\}\/admin\/companies\/\$\{companyId\}`/);
+  assert.match(source, /companyUrl: recipient\.role === 'admin' \? companyUrlFor\(appUrl, payload\.company_id\) : undefined/);
+  assert.match(source, /`\$\{appUrl\}\/admin\/companies\/\$\{companyId\}`/);
 });
 
 test('the watchdog reports stuck email from both drain exits, without payloads', async () => {

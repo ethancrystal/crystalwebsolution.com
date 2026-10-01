@@ -28,8 +28,8 @@ test('unknown event types still render to null (no crash)', () => {
   assert.strictEqual(renderNotificationEmail('project.nonexistent', {}), null);
 });
 
-test('templateContextFor in the cron route supplies reviewsUrl built from APP_URL, the same way projectUrlFor does', async () => {
+test('templateContextFor in the cron route supplies reviewsUrl built from the resolved appUrl, the same way projectUrlFor does', async () => {
   const { readFile } = await import('node:fs/promises');
   const source = await readFile('app/api/cron/crm-notifications/route.js', 'utf8');
-  assert.match(source, /reviewsUrl:\s*APP_URL \? `\$\{APP_URL\}\/reviews` : undefined/);
+  assert.match(source, /reviewsUrl:\s*`\$\{appUrl\}\/reviews`/);
 });
