@@ -1,3 +1,28 @@
+## v1.118 — 2026-10-02
+
+Salvages SEO research and one auth test that existed only on a local machine
+or an unmerged branch. Docs and a test only; no app code, SQL or dependency
+changes.
+
+- `docs/seo/ubersuggest-export-2026-09-24/`: the Ubersuggest account export
+  taken before the account closed (8 files: project and tracked keywords,
+  both keyword lists, rank tracking and AI visibility, seed research, SERP
+  snapshots, competitor and backlink data, PageSpeed). It was untracked in
+  one checkout and is the only copy. All figures are Ubersuggest estimates.
+- `docs/seo/backlinks/prospects.md`: backlink prospects #11–16 from the
+  2026-09-17 backlinks lane (Zapier expert directory, Clutch, three Manassas
+  and Prince William civic pages, one paid sponsorship flagged for approval)
+  plus that pass's rejected list. From local commit `848434f`, never pushed.
+- `docs/seo/runs/2026-09-17.md`: that day's run log. It also corrects the
+  2026-09-16 log's claim that `seo/hire-shopify-developer` had been pushed.
+- `tests/crm/auth-redirect-config.test.mjs`: pins the Supabase Auth redirect
+  allow-list in `supabase/config.toml`. The apex and `www` production origins
+  and `lib/seo.mjs` `SITE_ORIGIN` must be listed, and no entry may point at a
+  retired domain (`crystalwebsolution.com`, `cdsportswearusa.com`), since a
+  host we don't control could receive sign-in tokens. Adapted from the
+  unmerged `97e1ded`; it reads only the list's entries, so comments can't
+  satisfy it.
+
 ## v1.117 — 2026-09-30
 
 C1: client arrival tour, needs-action ordering, verify continue.

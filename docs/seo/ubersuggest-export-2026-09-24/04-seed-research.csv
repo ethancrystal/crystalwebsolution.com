@@ -1,0 +1,48 @@
+seed_group,keyword,volume,sd,pd,cpc_usd,intent
+nova,web design northern virginia,140,12,14,25.03,Commercial
+nova,web design virginia,70,26,8,0,Commercial
+nova,web development virginia,30,47,1,0,Navigational
+nova,web design virginia beach,140,19,22,14.21,Commercial
+nova,affordable web design virginia,10,5,1,0,
+rfp,web design rfp,390,18,15,7.10,Commercial
+rfp,website rfp,170,19,17,16.46,Navigational
+rfp,web design rfp template,90,25,5,0,Informational
+rfp,website rfp sample,50,26,4,0,Transactional
+rfp,website rfp template,40,26,12,18.49,Navigational
+rfp,website rfp example,30,22,15,23.02,Informational
+rfp,how to write a website rfp,10,10,14,0,
+rfp,new website rfp,10,18,14,0,
+ai,ai automation agency,4400,33,27,17.80,Navigational
+ai,AI automation for small business,210,38,36,15.83,
+ai,workflow automation services,170,38,14,36.69,Commercial
+ai,ai automation agency services,170,25,5,0,Navigational
+ai,Workflow Automation Services (variant),140,35,7,35.00,
+ai,ai automation agency near me,110,11,16,20.23,Commercial
+ai,ai automation agency hub,70,29,37,23.27,Navigational
+ai,what is an ai automation agency,70,26,22,4.28,Informational
+ai,ai automation agency reddit,50,48,10,0,Informational
+ai,what is ai automation agency,50,28,26,14.15,Informational
+ai,ai workflow automation services,40,17,22,17.72,Commercial
+ai,ai automation agency business model,40,20,28,14.03,Commercial
+ai,ai automation agency pricing,30,19,4,10.12,Commercial
+ai,top ai automation agency,30,22,39,28.45,Commercial
+ai,ai automation agency website,30,18,42,14.09,
+ai,is ai automation agency worth it,20,11,17,7.65,
+ai,ai automation agency dubai,10,5,1,0,
+ai,ai automation agency usa,10,8,7,0,Navigational
+local,web design fairfax va,140,18,10,18.81,Commercial
+local,web design manassas,20,13,1,0,
+local,web design manassas va,20,5,1,0,
+dev,hire shopify developer,880,37,21,31.06,Navigational
+dev,custom web application development services,720,34,7,37.82,Commercial
+dev,custom web application development,480,29,5,62.64,Commercial
+dev,custom web application development company,480,29,5,32.53,Commercial
+dev,custom web application development firm,210,47,1,0,
+dev,custom web application development firms,110,6,2,0,
+dev,custom web application development solutions,50,29,14,0,Commercial
+dev,bespoke custom web application development,40,15,1,35.54,Commercial
+dev,custom web application development cost,40,32,20,0,Commercial
+dev,nextjs development agency,10,13,1,0,
+smb,small business website design,2900,43,22,31.21,Commercial
+smb,branding agency for small business,590,16,24,24.70,Commercial
+smb,website redesign cost,260,32,19,36.86,Commercial
