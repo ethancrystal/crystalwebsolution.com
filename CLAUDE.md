@@ -135,6 +135,11 @@ pnpm in `package.json`; do not switch package managers.
   sessions here do. Prefix the build with `NODE_ENV=production`: that fixed
   it on Linux (2026-09-26), and with it the build passes on Windows too
   (2026-09-27, 60/60 pages).
+- **Windows shells must invoke `pnpm.cmd`, not `pnpm`.** The extensionless
+  npm shim cannot be spawned directly on win32 — node `spawn` fails with
+  ENOENT (`spawn ...\npm\pnpm ENOENT`). Anything that execs pnpm
+  programmatically (workflow `world.run` gates, scripts) needs `pnpm.cmd`
+  in the args; plain `pnpm` works in Git Bash interactively.
 - **`next build` and `next dev` rewrite `tsconfig.json`.** Run
   `git checkout -- tsconfig.json` before committing.
 - Reproduce the CI build (`docker-ci.yml` `test` job) with its placeholders,
@@ -257,6 +262,26 @@ animation:
   UI that offers `admin` as an assignable role — it can only fail at the
   database.
 
+  **Status domains come from `lib/crm/project-contract.mjs` — never
+  hardcode them.** `PROJECT_STATUSES`, `ALLOWED_TRANSITIONS`,
+  `TASK_STATUSES`, `APPROVAL_DECISION_STATUSES`,
+  `DELIVERABLE_PUBLISH_STATUSES`, `TERMINAL_PROJECT_STATUSES` and the rest
+  are the single source; the database check constraints mirror them and
+  `tests/crm/crm-read-model-hardening.test.mjs` +
+  `tests/crm/contract-drift-hardening.test.mjs` pin both sides. Hand-rolled
+  literal maps have shipped three times (v1.91, briefly again in v1.110,
+  each time needing A1.2/#275 + v1.114 to remove) — a hand-picked map
+  silently strands legal transitions (`on_hold` was unreachable from the
+  admin page for a release cycle).
+
+  **Parallel agent branches editing the same file are the known recurrence
+  mechanism.** A fix on an unmerged side branch does not stop another
+  branch from carrying the old code into `main` (v1.110 re-imported the
+  hand-picked map that A1.2 had already removed on a side branch). When a
+  bug fix exists on an open branch, merge it before — not alongside — other
+  branches that touch the same files, and rely on the source-pin tests
+  above to fail CI on the branch that still carries the drift.
+
 ## Cursor project skills
 
 Reusable agent skills live in `.cursor/skills/` (one folder per skill, each
@@ -308,6 +333,14 @@ compared as numbers). Full rules in `VERSIONING.md`. Non-negotiable for every PR
    After any merge of `main` into a version-bump branch, check that `VERSION`
    and the top `CHANGELOG.md` heading still name this PR's version before it
    merges.
+7. **Renaming a PR title does not re-run `release-policy` — and re-running
+   the failed check replays a stale payload.** The check is
+   `workflow_run`-triggered, so its event payload carries the title from the
+   PR's last push: after a title renumber, the re-run keeps failing with the
+   old version (`The PR title names vX.NN but VERSION says vX.NN`). Push an
+   empty commit to the branch to trigger a fresh payload — that is the only
+   reliable way to re-validate the current title (hit on PR #273, v1.106 →
+   v1.109, 2026-09-30).
 
 ## Visual experience execution brief
 

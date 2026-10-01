@@ -1,4 +1,159 @@
-## v1.106 — 2026-09-30
+## v1.118 — 2026-10-02
+
+Client portal, phase 2: the admin and project manager home pages. No SQL.
+
+**Admin overview** (`/admin`) now renders inside the shared portal frame (the
+page's own header and sign-out are gone; the frame's top bar carries both) and
+is split into three tabs:
+- **Needs action**: pending staff requests, open projects without a project
+  manager (still linking to `/admin/projects?pm=none`), projects with unread
+  updates, and open projects with no update for 7 days. Each project row says
+  why it is there. A project waiting on the client is never counted as quiet.
+- **Projects**: open count, a chip per status that links to the filtered
+  project list (`/admin/projects?status=<status>`, new), and the latest
+  projects with their manager by name.
+- **CRM**: the companies, contacts, deals and tasks counts and every quick
+  action, unchanged. A count that fails to load shows a dash, not a false 0.
+The `isPm` branches were removed: `app/admin/layout.jsx` already requires the
+admin role, so they could never run.
+
+**Project manager home** (`/team`): **Needs you** (projects where it is the
+manager's move, unread updates, projects gone quiet) and **My projects** (open
+first, newest first), with plain status labels and unread counts. The role
+guard and the data reads stay on the server; unread counts are read there too.
+
+Shared pieces: `lib/crm/work-queue.mjs` (the rules, unit-tested),
+`StaffProjectList`, team-facing status wording (`staffStatusMeaning`), and a
+`badgeLabel` option on `Tabs` so a screen reader hears "3 to do". The
+closed-status set is now derived from `TERMINAL_PROJECT_STATUSES`; the
+contract-drift guard from v1.114 points at `lib/crm/labels.mjs` instead of
+`app/admin/page.jsx`, which no longer holds a set of its own.
+
+Tests: work-queue rules (8), both dashboards with the data layer mocked (8),
+the updated admin and drift contracts. `pnpm test` 733/733,
+`pnpm test:components` 189/189.
+
+## v1.117 — 2026-09-30
+
+C1: client arrival tour, needs-action ordering, verify continue.
+
+- New four-step client arrival tour (`components/crm/PortalTour.jsx`) on the
+  dashboard home, with Next/Back/Skip and a "Replay tour" button in the
+  header. Completion is remembered per browser via the
+  `cws.portal.tour.seen.v1` localStorage key (decision D2) — never re-opens
+  automatically; if storage is unavailable (private mode) the tour simply
+  shows every visit.
+- Dashboard home: the v1.109 "Needs your attention" strip already leads the
+  page and the section order runs projects → drafts → start for returning
+  clients; this PR carries the tour mount and "Replay tour" header action on
+  top of that reworked home (the earlier C1 section reorder was superseded by
+  v1.109's richer attention strip during the v1.111/v1.112 integration).
+- The verify-email confirmation page (`app/auth/confirm/page.jsx`) now
+  offers a "continue to dashboard" primary action alongside Back to Login,
+  so a client who has just verified isn't dumped back at the login form.
+- Build-only fix: the `/admin`, `/dashboard` and `/team` layouts export
+  `dynamic = 'force-dynamic'` so `next build` skips prerendering layouts
+  that call `requireRole` (reads cookies) while Supabase env vars are
+  placeholders in CI. No SQL, no new dependencies, no new notification
+  events.
+
+## v1.116 — 2026-09-30
+
+A1.2: admin status buttons follow ALLOWED_TRANSITIONS.
+
+- The admin project detail page (`app/admin/projects/[id]/page.jsx`) no
+  longer keeps a hand-rolled status-to-options map; it derives
+  `NEXT_OPTIONS` from `ALLOWED_TRANSITIONS` in
+  `lib/crm/project-contract.mjs`, the same expression the team page uses.
+  The hard-coded map never offered `brief_submitted -> planned` and omitted
+  the `on_hold`/`cancelled` statuses entirely, and it offered an illegal
+  `changes_requested -> client_review` transition.
+- Regression test added in `tests/crm/staff-workspaces.test.mjs`: asserts
+  the contract import, asserts `NEXT_OPTIONS` comes straight from
+  `ALLOWED_TRANSITIONS[project.status]`, and asserts no hand-rolled
+  status-to-array literal map may return.
+- Plan-of-record doc added: `docs/plans/2026-09-28-portal-workings.md`.
+## v1.115 — 2026-10-01
+
+Docs only: scheduled SEO ledger re-check. No runtime change.
+
+- `docs/seo/goals.md`: re-confirmed rung 1 (first reportable Search Console
+  impression for the RFP guide) on final data extended through 2026-09-28.
+  2026-09-27 (4 impressions) and 2026-09-28 (2 impressions) are both now
+  final; rung 1 was already marked Done by the prior scheduled check
+  (2026-09-29), and this run adds the extra day of final data plus a fresh
+  milestone-2 (exact query `rfp web development` + page) snapshot, still not
+  met. No site or content change.
+- Renumbered from v1.113 to v1.115: merging `main` (now at v1.114 via #278)
+  into this branch required a fresh bump, per the documented
+  "Update branch can silently drop the bump" hazard.
+
+## v1.114 — 2026-09-30
+
+Contract-drift hardening: every hardcoded status-domain literal in the app
+now derives from `lib/crm/project-contract.mjs`, with source-pin tests so
+the drift class found in v1.91/v1.110 cannot silently return.
+
+- New frozen contract constants: `APPROVAL_DECISION_STATUSES`,
+  `DELIVERABLE_PUBLISH_STATUSES` (verified intentional subsets of their
+  domains, matching the SQL guards in migrations 0011/0023/0047), and
+  `TERMINAL_PROJECT_STATUSES` (derived from `ALLOWED_TRANSITIONS`; a test
+  pins the equivalence).
+- `app/actions/project-actions.js` no longer hardcodes the task-status
+  domain or the approval/deliverable decision lists; the three separate
+  `CLOSED_*` terminal-status copies (`app/admin/page.jsx`,
+  `app/admin/projects/page.jsx`, `app/actions/assignment-actions.js`) all
+  import one constant.
+- The admin project status filter (`app/admin/projects/page.jsx`) derives
+  its options from `PROJECT_STATUSES` with byte-identical rendered text.
+- `tests/crm/contract-drift-hardening.test.mjs` (16 tests) pins migration
+  0047's SQL guard literals and every refactored site to the contract.
+
+## v1.110 — 2026-09-30
+
+Live project pages. Changes on a project now show up on every open project
+page without a refresh, and each page shows who else is looking at it.
+
+**Production drift recorded** (`0050`): the Realtime SQL behind this was run
+directly on the live database through the Supabase dashboard's SQL runner and
+never went through a migration, so the migration chain no longer reproduced
+production. `0050_realtime_project_updates_and_presence.sql` records it
+verbatim (a replay through `0050` matches every live Realtime function,
+trigger and policy hash), idempotent, plus the usual revoke on the three
+trigger functions. It adds `project_status_changed`, `project_task_changed`
+and `project_approval_changed` broadcasts on the existing private project
+topics, and presence on them. Client-facing (`shared`) sends are filtered: an
+internal task, or an approval on an internal deliverable, never reaches the
+client's topic. Payloads are identifiers only; pages re-read through the
+RLS-protected read model. The owner applies `0050` so `schema_migrations`
+matches; applying it changes no live behaviour.
+
+**One channel per project topic** (`lib/crm/projectRealtime.js`): supabase-js
+hands back the same channel for a topic it already has, so two components
+opening their own would collide. A ref-counted registry opens each private
+channel once, authorizes the socket before any join, tells listeners to
+re-read after a reconnect (events sent while offline are lost), and carries
+presence on the shared topic. The message thread moved onto it unchanged.
+
+**Pages**: the client, team and admin project pages re-read the workspace on
+status, task and approval changes (`components/crm/useProjectLive.js`,
+debounced), and show "Also here now: …" with names only
+(`ProjectPresence`). On the client page a new message refreshes only the tab
+badges, and anything arriving on the open Messages or Files tab is marked
+read at once.
+
+Owner: in the Supabase dashboard, Realtime settings, turn off "Allow public
+access" so project channels require authorization.
+
+Not yet broadcast: deliverable publishing (the Files badge updates on the next
+load, not live).
+
+Tests: pgTAP `0050_realtime_project_updates_and_presence.test.sql` (16 checks,
+PGlite: passes with 0050, the 10 positive checks fail without it;
+0009/0041/0046/0047/0048 still pass), the registry and live hook
+(`project-realtime`), the client page's live behaviour, 0050 contracts.
+
+## v1.109 — 2026-09-30
 
 Client portal, phase 1. The first of three portal improvements (then the
 admin and team dashboards, then settings and the customer profile). One
@@ -38,6 +193,60 @@ tasks and approvals. The timeline shows "CD Sportswear team" instead of
 Tests: pgTAP `0049_project_manager_names.test.sql` (11 checks, PGlite:
 passes with 0049, fails without it; 0041/0046/0047/0048 still pass), labels,
 Tabs, the manager card, the client project page and 0049 contracts.
+
+## v1.108 — 2026-09-29
+
+*Opened as v1.92; renumbered to v1.108; v1.106 and v1.109–v1.111 are held by #273 and its stack.*
+
+Docs only: the design spec for the CRM engagement engine. No runtime change.
+
+- `docs/superpowers/specs/2026-09-29-crm-engagement-engine-design.md` sets
+  out how the portal brings clients back without anyone on the team having to
+  chase them. It records the owner decisions from the 2026-09-29 brainstorm:
+  - rules and schedules only, no AI;
+  - a weekly digest plus instant emails when the client is needed;
+  - a noise budget of 1 automated email a day and 3 a week;
+  - client threads written by the client and the lead project manager, with
+    the admin reading only;
+  - Trustpilot and Google review asks after delivery;
+  - a referral that earns a talking-logo animation, one per client company.
+- The engine design uses database rules with a unique send ledger, feeding
+  the existing notification outbox. It ships switched off, with a dry run.
+- The spec also records the first decision on contextual offers: a
+  live-search domain offer with the second year free, which the team
+  registers. That design is still in progress.
+- Implementation follows as separate versioned PRs after the owner reviews
+  the spec.
+
+Verification: `pnpm test`.
+
+## v1.107 — 2026-09-30
+
+*Opened as v1.90. A later "Update branch" merge (`f553456`) replaced this entry and `VERSION` with main's; restored here and renumbered to v1.107, since v1.106 is held by #273.*
+
+Cluster integrity is now a build gate, and one piece of registry drift is
+corrected.
+
+- `tests/seo-cluster-integrity.test.mjs` (new, 7 assertions) enforces the
+  pillar + cluster rule in `docs/seo/STRATEGY.md` §3 across the three sources
+  that have to agree: `KEYWORD-REGISTRY.md`, `docs/seo/drafts/blog/*.md`, and
+  `GUIDE_LINKS` in `lib/servicePages.mjs`. It checks one keyword → one URL,
+  that a row claiming a draft has that file on disk, that every draft is
+  mapped, that `target_url` matches the filename, that every draft links up to
+  a real pillar with anchor text of 10+ characters, that an **approved** post
+  linking up to a pillar is linked back from it, and that every `guideLinks`
+  href is well formed. Each assertion was mutation-tested to confirm it fires.
+- `docs/seo/KEYWORD-REGISTRY.md`: `/blog/branding-vs-brand-identity` and
+  `/blog/logo-redesign-vs-refresh` were recorded as `draft 2026-09-22` but have
+  never existed as files in any branch (`git log --all --diff-filter=A`
+  returns nothing). Their page state now reads **not drafted**. Keywords,
+  target URLs and every other column are unchanged, so both mappings still
+  reserve their URLs.
+- `docs/seo/CLUSTER-INTEGRITY.md` (new) documents the seven invariants, what to
+  do when each fails, and what the test deliberately cannot see — live post
+  bodies live in Supabase, not the repo.
+
+No production code changed. `pnpm test` passes 625/625.
 
 ## v1.105 — 2026-09-30
 

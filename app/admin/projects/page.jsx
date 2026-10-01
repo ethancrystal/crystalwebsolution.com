@@ -3,25 +3,31 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { PROJECT_STATUSES, TERMINAL_PROJECT_STATUSES } from '@/lib/crm/project-contract.mjs';
 import { listProjectsForViewer } from '@/lib/crm/projects';
 import { SkeletonTable } from '@/components/crm/Skeleton';
 
-const STATUS_FILTERS = [
+// Derived from the contract so a status added to PROJECT_STATUSES can never
+// go missing from the dropdown (or from the table's status column below,
+// which reads the same list). Labels are the mechanical Title Case of each
+// snake_case value, byte-identical to the list this used to hardcode. The
+// client-facing copy in lib/crm/labels.mjs ('Brief received', 'Ready for
+// your review', ...) is a different register and is deliberately not used
+// here -- swapping it would change rendered text.
+const STATUS_FILTERS = Object.freeze([
   { value: '', label: 'All statuses' },
-  { value: 'brief_submitted', label: 'Brief Submitted' },
-  { value: 'planned', label: 'Planned' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'client_review', label: 'Client Review' },
-  { value: 'changes_requested', label: 'Changes Requested' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'delivered', label: 'Delivered' },
-  { value: 'on_hold', label: 'On Hold' },
-  { value: 'cancelled', label: 'Cancelled' },
-];
+  ...PROJECT_STATUSES.map((status) => ({
+    value: status,
+    label: status
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' '),
+  })),
+]);
 
 // A live project with no project manager yet. The admin home links here with
 // ?pm=none, and the "assign a project manager" email lands on one of these.
-const CLOSED_STATUSES = new Set(['delivered', 'cancelled']);
+const CLOSED_STATUSES = new Set(TERMINAL_PROJECT_STATUSES);
 
 function needsManager(project) {
   return !project.assignee && !CLOSED_STATUSES.has(project.status);

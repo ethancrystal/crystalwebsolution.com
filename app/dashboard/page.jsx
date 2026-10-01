@@ -13,6 +13,7 @@ import { BRIEF_TEMPLATES, BRIEF_TYPES, briefTypeLabel, stepProgress } from '@/li
 import { deleteBriefDraft, startBrief } from '@/app/actions/brief-actions';
 import BriefSubmissionForm from '@/components/crm/BriefSubmissionForm';
 import { BRIEF_ICONS } from '@/components/crm/briefIcons';
+import PortalTour from '@/components/crm/PortalTour';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
 import { SkeletonTable } from '@/components/crm/Skeleton';
 import { LoadingState } from '@/components/crm/Spinner';
@@ -35,6 +36,7 @@ export default function DashboardPage() {
   const [startingType, setStartingType] = useState(null);
   const [showFreeform, setShowFreeform] = useState(false);
   const [error, setError] = useState(null);
+  const [tourReplayToken, setTourReplayToken] = useState(0);
 
   const loadClientProjects = useCallback(async (userId, companyId) => {
     if (!companyId) {
@@ -217,6 +219,15 @@ export default function DashboardPage() {
       role="client"
       title="Projects"
       subtitle={`Welcome, ${profile?.full_name || user?.email || ''}`}
+      actions={
+        <button
+          type="button"
+          className="crm-button crm-button-ghost crm-button-small"
+          onClick={() => setTourReplayToken((token) => token + 1)}
+        >
+          Replay tour
+        </button>
+      }
     >
 
       {error && (
@@ -394,6 +405,8 @@ export default function DashboardPage() {
           )}
         </Fragment>
       ))}
+
+      <PortalTour replayToken={tourReplayToken} />
 
       <style jsx>{`
         .crm-dashboard {

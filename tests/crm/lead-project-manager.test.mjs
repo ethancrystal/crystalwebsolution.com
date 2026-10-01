@@ -84,20 +84,23 @@ test('the admin project page leads with the lead-manager card and can move a new
 
   assert.match(page, /import LeadManagerCard from '@\/components\/crm\/LeadManagerCard'/);
   assert.ok(page.indexOf('<LeadManagerCard') < page.indexOf('<ProjectOverview'), 'card renders above the overview');
-  assert.match(page, /brief_submitted: \['planned'\]/);
+  // Status options come from the contract, so brief_submitted -> planned is
+  // always offered (pinned further by tests/crm/staff-workspaces.test.mjs).
+  assert.match(page, /NEXT_OPTIONS\s*=\s*ALLOWED_TRANSITIONS\[project\.status\]\s*\|\|\s*\[\]/);
   assert.doesNotMatch(page, /assignProject\(/);
-  assert.doesNotMatch(page, /'cancelled'\]/);
 });
 
 test('every admin status button is a move the contract allows', async () => {
-  const { canTransition } = await import('../../lib/crm/project-contract.mjs');
+  const { ALLOWED_TRANSITIONS, canTransition } = await import('../../lib/crm/project-contract.mjs');
   const page = await readFile('app/admin/projects/[id]/page.jsx', 'utf8');
-  const block = page.slice(page.indexOf('const NEXT_OPTIONS = {'), page.indexOf('}[project.status]'));
-  const entries = [...block.matchAll(/(\w+): \[([^\]]*)\]/g)];
-  assert.ok(entries.length >= 5, 'NEXT_OPTIONS parsed');
-  for (const [, from, list] of entries) {
-    for (const to of list.split(',').map((value) => value.trim().replace(/'/g, '')).filter(Boolean)) {
-      assert.ok(canTransition(from, to), `${from} -> ${to} is offered but ALLOWED_TRANSITIONS rejects it`);
+  // The page no longer hand-picks options (A1.2): it offers exactly the
+  // contract's transitions, so every button is legal by construction.
+  assert.match(page, /import\s*\{\s*ALLOWED_TRANSITIONS,\s*canTransition\s*\}\s*from\s*'@\/lib\/crm\/project-contract\.mjs'/);
+  assert.match(page, /NEXT_OPTIONS\s*=\s*ALLOWED_TRANSITIONS\[project\.status\]\s*\|\|\s*\[\]/);
+  assert.doesNotMatch(page, /NEXT_OPTIONS\s*=\s*\{/);
+  for (const [from, list] of Object.entries(ALLOWED_TRANSITIONS)) {
+    for (const to of list) {
+      assert.ok(canTransition(from, to), `${from} -> ${to} is in ALLOWED_TRANSITIONS but canTransition rejects it`);
     }
   }
 

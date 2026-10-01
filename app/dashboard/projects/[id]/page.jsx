@@ -18,6 +18,8 @@ import ProjectApprovals from '@/components/crm/ProjectApprovals';
 import ProjectThread from '@/components/crm/ProjectThread';
 import NotificationsPanel from '@/components/crm/NotificationsPanel';
 import NotesPanel from '@/components/crm/NotesPanel';
+import ProjectPresence from '@/components/crm/ProjectPresence';
+import { touchesWorkspace, useProjectLive } from '@/components/crm/useProjectLive';
 import ProjectBriefs from '@/components/crm/ProjectBriefs';
 import { SkeletonDetail } from '@/components/crm/Skeleton';
 
@@ -127,11 +129,17 @@ export default function ClientProjectPage() {
     return counts;
   }, [notifications]);
 
-  async function openTab(nextTab) {
+  function openTab(nextTab) {
     setTab(nextTab);
-    if (nextTab !== 'messages' && nextTab !== 'files') return;
+  }
+
+  // Whatever lands on the open Messages or Files tab is read: on opening it,
+  // on a ?tab= deep link, and when a live update brings in something new
+  // while the client is already looking at it.
+  useEffect(() => {
+    if (tab !== 'messages' && tab !== 'files') return;
     const ids = notifications
-      .filter((notification) => !notification.read_at && tabForEvent(notification.event_type) === nextTab)
+      .filter((notification) => !notification.read_at && tabForEvent(notification.event_type) === tab)
       .map((notification) => notification.id);
     if (ids.length === 0) return;
 
@@ -141,12 +149,37 @@ export default function ClientProjectPage() {
     setNotifications((previous) => previous.map((notification) => (ids.includes(notification.id) ? { ...notification, read_at: now } : notification)));
     const formData = new FormData();
     for (const id of ids) formData.append('notificationId', id);
+    (async () => {
+      try {
+        await markNotificationsRead(formData);
+      } catch {
+        // Left unread on the server; nothing to show the client.
+      }
+    })();
+  }, [tab, notifications]);
+
+  // Live updates: a status, task or approval change re-reads the workspace
+  // (which also refreshes notifications and the manager's name); a new
+  // message only refreshes the notifications behind the tab badges, since
+  // ProjectThread reloads the conversation itself.
+  const refreshNotifications = useCallback(async () => {
+    if (!profile) return;
     try {
-      await markNotificationsRead(formData);
+      const list = await listNotifications(createClient(), { profile });
+      setNotifications((list ?? []).filter((notification) => notification.project_id === projectId));
     } catch {
-      // Left unread on the server; nothing to show the client.
+      // Badges stay as they are until the next load.
     }
-  }
+  }, [profile, projectId]);
+
+  const { viewers } = useProjectLive({
+    projectId,
+    profile,
+    onChange: (events) => {
+      if (touchesWorkspace(events)) loadWorkspace();
+      else refreshNotifications();
+    },
+  });
 
   if (isLoading) {
     return (
@@ -210,6 +243,7 @@ export default function ClientProjectPage() {
             </section>
           )}
 
+          <ProjectPresence viewers={viewers} />
           <ProjectManagerCard available={manager.available} name={manager.name} onMessage={() => openTab('messages')} />
           <ProjectOverview project={project} showBrief={false} showBackLink={false} />
           <ProjectTimeline history={activity} title="Recent activity" />
