@@ -1,3 +1,24 @@
+## v1.114 — 2026-09-30
+
+Contract-drift hardening: every hardcoded status-domain literal in the app
+now derives from `lib/crm/project-contract.mjs`, with source-pin tests so
+the drift class found in v1.91/v1.110 cannot silently return.
+
+- New frozen contract constants: `APPROVAL_DECISION_STATUSES`,
+  `DELIVERABLE_PUBLISH_STATUSES` (verified intentional subsets of their
+  domains, matching the SQL guards in migrations 0011/0023/0047), and
+  `TERMINAL_PROJECT_STATUSES` (derived from `ALLOWED_TRANSITIONS`; a test
+  pins the equivalence).
+- `app/actions/project-actions.js` no longer hardcodes the task-status
+  domain or the approval/deliverable decision lists; the three separate
+  `CLOSED_*` terminal-status copies (`app/admin/page.jsx`,
+  `app/admin/projects/page.jsx`, `app/actions/assignment-actions.js`) all
+  import one constant.
+- The admin project status filter (`app/admin/projects/page.jsx`) derives
+  its options from `PROJECT_STATUSES` with byte-identical rendered text.
+- `tests/crm/contract-drift-hardening.test.mjs` (16 tests) pins migration
+  0047's SQL guard literals and every refactored site to the contract.
+
 ## v1.110 — 2026-09-30
 
 Live project pages. Changes on a project now show up on every open project
