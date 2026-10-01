@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import { canTransition } from '@/lib/crm/project-contract.mjs';
+import { ALLOWED_TRANSITIONS, canTransition } from '@/lib/crm/project-contract.mjs';
 import { getProjectWorkspace } from '@/lib/crm/projects';
 import { transitionProject } from '@/app/actions/project-actions';
 import WorkspaceShell from '@/components/crm/WorkspaceShell';
@@ -124,16 +124,7 @@ export default function AdminProjectPage() {
   }
 
   const project = workspace.project;
-  // Hand-picked rather than ALLOWED_TRANSITIONS, which would add one-click
-  // buttons for terminal states such as cancelled.
-  const NEXT_OPTIONS = {
-    brief_submitted: ['planned'],
-    planned: ['in_progress'],
-    in_progress: ['client_review', 'on_hold'],
-    client_review: ['approved', 'changes_requested'],
-    changes_requested: ['in_progress'],
-    approved: ['delivered'],
-  }[project.status] || [];
+  const NEXT_OPTIONS = ALLOWED_TRANSITIONS[project.status] || [];
 
   return (
     <WorkspaceShell role="admin" title={project.title}>

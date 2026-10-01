@@ -1,27 +1,19 @@
-## v1.117 — 2026-09-30
+## v1.116 — 2026-09-30
 
-C1: client arrival tour, needs-action ordering, verify continue.
+A1.2: admin status buttons follow ALLOWED_TRANSITIONS.
 
-- New four-step client arrival tour (`components/crm/PortalTour.jsx`) on the
-  dashboard home, with Next/Back/Skip and a "Replay tour" button in the
-  header. Completion is remembered per browser via the
-  `cws.portal.tour.seen.v1` localStorage key (decision D2) — never re-opens
-  automatically; if storage is unavailable (private mode) the tour simply
-  shows every visit.
-- Dashboard home: the v1.109 "Needs your attention" strip already leads the
-  page and the section order runs projects → drafts → start for returning
-  clients; this PR carries the tour mount and "Replay tour" header action on
-  top of that reworked home (the earlier C1 section reorder was superseded by
-  v1.109's richer attention strip during the v1.111/v1.112 integration).
-- The verify-email confirmation page (`app/auth/confirm/page.jsx`) now
-  offers a "continue to dashboard" primary action alongside Back to Login,
-  so a client who has just verified isn't dumped back at the login form.
-- Build-only fix: the `/admin`, `/dashboard` and `/team` layouts export
-  `dynamic = 'force-dynamic'` so `next build` skips prerendering layouts
-  that call `requireRole` (reads cookies) while Supabase env vars are
-  placeholders in CI. No SQL, no new dependencies, no new notification
-  events.
-
+- The admin project detail page (`app/admin/projects/[id]/page.jsx`) no
+  longer keeps a hand-rolled status-to-options map; it derives
+  `NEXT_OPTIONS` from `ALLOWED_TRANSITIONS` in
+  `lib/crm/project-contract.mjs`, the same expression the team page uses.
+  The hard-coded map never offered `brief_submitted -> planned` and omitted
+  the `on_hold`/`cancelled` statuses entirely, and it offered an illegal
+  `changes_requested -> client_review` transition.
+- Regression test added in `tests/crm/staff-workspaces.test.mjs`: asserts
+  the contract import, asserts `NEXT_OPTIONS` comes straight from
+  `ALLOWED_TRANSITIONS[project.status]`, and asserts no hand-rolled
+  status-to-array literal map may return.
+- Plan-of-record doc added: `docs/plans/2026-09-28-portal-workings.md`.
 ## v1.115 — 2026-10-01
 
 Docs only: scheduled SEO ledger re-check. No runtime change.
