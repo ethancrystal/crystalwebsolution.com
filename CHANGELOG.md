@@ -14,6 +14,20 @@ A1.2: admin status buttons follow ALLOWED_TRANSITIONS.
   `ALLOWED_TRANSITIONS[project.status]`, and asserts no hand-rolled
   status-to-array literal map may return.
 - Plan-of-record doc added: `docs/plans/2026-09-28-portal-workings.md`.
+## v1.115 — 2026-10-01
+
+Docs only: scheduled SEO ledger re-check. No runtime change.
+
+- `docs/seo/goals.md`: re-confirmed rung 1 (first reportable Search Console
+  impression for the RFP guide) on final data extended through 2026-09-28.
+  2026-09-27 (4 impressions) and 2026-09-28 (2 impressions) are both now
+  final; rung 1 was already marked Done by the prior scheduled check
+  (2026-09-29), and this run adds the extra day of final data plus a fresh
+  milestone-2 (exact query `rfp web development` + page) snapshot, still not
+  met. No site or content change.
+- Renumbered from v1.113 to v1.115: merging `main` (now at v1.114 via #278)
+  into this branch required a fresh bump, per the documented
+  "Update branch can silently drop the bump" hazard.
 
 ## v1.114 — 2026-09-30
 
