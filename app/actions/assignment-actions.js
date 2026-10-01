@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 
 import { getAuthenticatedProfile } from '@/lib/auth/require-role';
 import { managerAssignedNote } from '@/lib/crm/notification-copy.mjs';
-import { canTransition } from '@/lib/crm/project-contract.mjs';
+import { TERMINAL_PROJECT_STATUSES, canTransition } from '@/lib/crm/project-contract.mjs';
 import { createClient } from '@/lib/supabase/server';
 
 // Lead project manager assignment for the admin project page.
@@ -27,7 +27,7 @@ import { createClient } from '@/lib/supabase/server';
 const CANONICAL_UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 // Finished projects no longer count toward a manager's workload.
-const CLOSED_PROJECT_STATUSES = new Set(['delivered', 'cancelled']);
+const CLOSED_PROJECT_STATUSES = new Set(TERMINAL_PROJECT_STATUSES);
 const MAX_NOTE_NAME_LENGTH = 120;
 
 function isCanonicalUuid(value) {
