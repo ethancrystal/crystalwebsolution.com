@@ -1,3 +1,43 @@
+## v1.119 — 2026-10-02
+
+Client portal, phase 3: settings for every role, and the customer profile.
+Stacked on v1.118. No SQL.
+
+**Settings** (`/dashboard/settings`, `/team/settings`, `/admin/settings`, and a
+"Settings" link in each role's navigation):
+- **Profile**: change your display name. Your sign-in email is shown read-only.
+  The name is saved on your own profile row (the session decides whose; the
+  form cannot name another account) and kept in step with the name Auth uses
+  for emails. A save that changed nothing is reported as a failure, not a
+  success.
+- **Password**: change it with your current password. The current password is
+  checked first (so a left-open session alone cannot change it), the check is
+  rate limited per account and connection, the same 6-character floor as the
+  reset form applies, and a security email is sent. A failed email never turns
+  a successful change into an error.
+- **Dashboard**: pick the tab your home page opens on (admin: Needs action,
+  Projects or CRM; project manager: Needs you or My projects; client: which tab
+  a project opens on). Stored in this browser only, per person, never sent to
+  the server. An explicit `?tab=` link or an earlier click still wins, and the
+  URL keeps working for reloads (`Tabs` gained a `defaultId`).
+- **Your company** (clients): a read-only card with the company's details.
+  Only the admin can edit companies; that is the database's rule.
+
+**Customer profile** (admin, `/admin/companies/[id]`): the company page now
+lists the company's projects, with status and project manager by name, and the
+people who have a portal account for it. Each list loads on its own, so one
+failing hides only itself.
+
+Not included: an email-notifications toggle. The outbox is written by many
+database functions for both channels, so honouring a per-person choice means a
+migration and a change to which emails are sent. That is a behaviour change for
+the owner to decide on first.
+
+Tests: validation and preferences (`account-settings-logic`), the two Server
+Actions with auth, Supabase, rate limiting and email mocked (`account-actions`),
+the settings forms (`account-settings`), `Tabs` defaults (`tabs-default`), the
+company profile (`company-activity`).
+
 ## v1.118 — 2026-10-02
 
 Client portal, phase 2: the admin and project manager home pages. No SQL.

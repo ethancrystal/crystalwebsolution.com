@@ -19,6 +19,7 @@ import ProjectThread from '@/components/crm/ProjectThread';
 import NotificationsPanel from '@/components/crm/NotificationsPanel';
 import NotesPanel from '@/components/crm/NotesPanel';
 import ProjectPresence from '@/components/crm/ProjectPresence';
+import { useDefaultTab } from '@/components/crm/useDefaultTab';
 import { touchesWorkspace, useProjectLive } from '@/components/crm/useProjectLive';
 import ProjectBriefs from '@/components/crm/ProjectBriefs';
 import { SkeletonDetail } from '@/components/crm/Skeleton';
@@ -172,6 +173,9 @@ export default function ClientProjectPage() {
     }
   }, [profile, projectId]);
 
+  // Settings > Dashboard: the tab this client chose to open projects on.
+  const defaultTab = useDefaultTab('client', profile?.id);
+
   const { viewers } = useProjectLive({
     projectId,
     profile,
@@ -300,7 +304,7 @@ export default function ClientProjectPage() {
         </div>
       )}
 
-      <Tabs label="Project sections" tabs={tabs} value={tab} onChange={openTab} />
+      <Tabs label="Project sections" tabs={tabs} value={tab} onChange={openTab} defaultId={defaultTab} />
 
       <style jsx>{`
         .cp-status-meaning {

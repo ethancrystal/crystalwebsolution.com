@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import Tabs from '@/components/crm/Tabs';
+import { useDefaultTab } from '@/components/crm/useDefaultTab';
 import StaffProjectList from '@/components/crm/StaffProjectList';
 import { isOpenProject, sortProjectsForList, workQueue } from '@/lib/crm/work-queue.mjs';
 
@@ -11,7 +12,8 @@ import { isOpenProject, sortProjectsForList, workQueue } from '@/lib/crm/work-qu
 
 const hrefFor = (project) => `/team/projects/${project.id}`;
 
-export default function TeamDashboard({ projects = [], unread = {} }) {
+export default function TeamDashboard({ projects = [], unread = {}, userId }) {
+  const defaultTab = useDefaultTab('project_manager', userId);
   const unreadByProject = useMemo(() => new Map(Object.entries(unread)), [unread]);
   const queue = useMemo(
     () => workQueue(projects, { role: 'project_manager', unreadByProject }),
@@ -27,6 +29,7 @@ export default function TeamDashboard({ projects = [], unread = {} }) {
   return (
     <Tabs
       label="Your work"
+      defaultId={defaultTab}
       tabs={[
         {
           id: 'needs-you',

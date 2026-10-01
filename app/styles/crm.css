@@ -552,6 +552,43 @@
   gap: 0.6rem;
 }
 
+/* ---------- settings (AccountSettings) and company details ---------- */
+
+.crm-settings {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 760px;
+}
+
+.crm-details {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.crm-details-row {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) minmax(0, 3fr);
+  gap: 1rem;
+}
+
+.crm-details dt {
+  color: var(--crm-muted);
+  font-size: 0.88rem;
+}
+
+.crm-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .crm-details-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.1rem;
+  }
+}
+
 /* ---------- tables and lists ---------- */
 
 .crm-table {

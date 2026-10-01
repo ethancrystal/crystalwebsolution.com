@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import EntityNotes from '@/components/crm/EntityNotes';
+import CompanyActivity from '@/components/crm/CompanyActivity';
 import { SkeletonDetail } from '@/components/crm/Skeleton';
 
 function formatDate(value) {
@@ -183,6 +184,7 @@ export default function CompanyDetailPage() {
       </div>
 
       <div className="crm-notes-wrap">
+        <CompanyActivity companyId={company.id} />
         <EntityNotes companyId={company.id} />
       </div>
 

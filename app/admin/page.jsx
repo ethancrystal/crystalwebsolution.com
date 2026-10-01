@@ -11,6 +11,7 @@ import WorkspaceShell from '@/components/crm/WorkspaceShell';
 import Tabs from '@/components/crm/Tabs';
 import StaffProjectList from '@/components/crm/StaffProjectList';
 import { LoadingState } from '@/components/crm/Spinner';
+import { useDefaultTab } from '@/components/crm/useDefaultTab';
 
 // The admin's home, in three tabs:
 //   Needs action  projects without a project manager, unread updates,
@@ -79,6 +80,7 @@ export default function AdminDashboard() {
     loadData();
   }, []);
 
+  const defaultTab = useDefaultTab('admin', profile?.id);
   const unread = useMemo(() => unreadByProject(notifications), [notifications]);
   const queue = useMemo(() => workQueue(projects ?? [], { role: 'admin', unreadByProject: unread }), [projects, unread]);
   const open = (projects ?? []).filter(isOpenProject);
@@ -210,6 +212,7 @@ export default function AdminDashboard() {
     >
       <Tabs
         label="Overview sections"
+        defaultId={defaultTab}
         tabs={[
           { id: 'needs-action', label: 'Needs action', badge: queue.length + (staffRequests > 0 ? 1 : 0), badgeLabel: 'to do', content: needsAction },
           { id: 'projects', label: 'Projects', content: projectsTab },

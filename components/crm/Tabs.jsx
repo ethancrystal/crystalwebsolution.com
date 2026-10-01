@@ -20,25 +20,44 @@ import { useEffect, useId, useRef, useState } from 'react';
 // - Pass `value` to control the selected tab from the page (for example a
 //   "Message your project manager" button that opens Messages); onChange
 //   still reports every change, including the one read from the URL.
+// - `defaultId` is the tab a person chose to open on (Settings > Dashboard). It
+//   arrives after mount, applies only if no ?tab= link and no click got there
+//   first, and keeps the URL clean: the default tab carries no ?tab=, every
+//   other tab (including the first) does, so a reload lands where it left off.
 
-export default function Tabs({ label, tabs, onChange, value, param = 'tab' }) {
+export default function Tabs({ label, tabs, onChange, value, param = 'tab', defaultId }) {
   const baseId = useId();
   const ids = tabs.map((tab) => tab.id);
   const [internal, setSelected] = useState(ids[0]);
   const selected = value && ids.includes(value) ? value : internal;
   const buttons = useRef({});
+  const home = defaultId && ids.includes(defaultId) ? defaultId : ids[0];
+  // True once a ?tab= link or a click has chosen the tab: the default never overrides that.
+  const chosen = useRef(false);
 
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get(param);
-    if (requested && ids.includes(requested) && requested !== ids[0]) {
-      setSelected(requested);
-      onChange?.(requested);
+    if (requested && ids.includes(requested)) {
+      chosen.current = true;
+      if (requested !== ids[0]) {
+        setSelected(requested);
+        onChange?.(requested);
+      }
     }
     // Read once on mount only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (chosen.current || !defaultId || defaultId === ids[0] || !ids.includes(defaultId)) return;
+    chosen.current = true;
+    setSelected(defaultId);
+    onChange?.(defaultId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultId]);
+
   function select(id, { focus = false } = {}) {
+    chosen.current = true;
     setSelected(id);
     writeUrl(id);
     if (focus) buttons.current[id]?.focus();
@@ -47,7 +66,7 @@ export default function Tabs({ label, tabs, onChange, value, param = 'tab' }) {
 
   function writeUrl(id) {
     const url = new URL(window.location.href);
-    if (id === ids[0]) url.searchParams.delete(param);
+    if (id === home) url.searchParams.delete(param);
     else url.searchParams.set(param, id);
     window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
   }

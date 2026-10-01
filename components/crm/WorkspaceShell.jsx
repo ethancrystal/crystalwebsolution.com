@@ -11,8 +11,14 @@ import { useMarketingHomeHref } from '@/lib/useMarketingHomeHref';
 // in the content column so it reads as part of the page, not the chrome.
 
 const NAV_BY_ROLE = {
-  client: [{ href: '/dashboard', label: 'Projects' }],
-  project_manager: [{ href: '/team', label: 'My projects' }],
+  client: [
+    { href: '/dashboard', label: 'Projects' },
+    { href: '/dashboard/settings', label: 'Settings' },
+  ],
+  project_manager: [
+    { href: '/team', label: 'My projects' },
+    { href: '/team/settings', label: 'Settings' },
+  ],
   admin: [
     { href: '/admin', label: 'Overview' },
     { href: '/admin/projects', label: 'Projects' },
@@ -23,6 +29,7 @@ const NAV_BY_ROLE = {
     { href: '/admin/tasks', label: 'Tasks' },
     { href: '/admin/users', label: 'Users' },
     { href: '/admin/blog', label: 'Blog' },
+    { href: '/admin/settings', label: 'Settings' },
   ],
 };
 

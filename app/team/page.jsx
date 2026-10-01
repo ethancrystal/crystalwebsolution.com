@@ -29,7 +29,7 @@ export default async function TeamPage() {
         <h2 id="assigned-projects-heading" className="crm-visually-hidden">
           Assigned projects
         </h2>
-        <TeamDashboard projects={projects} unread={unread} />
+        <TeamDashboard projects={projects} unread={unread} userId={profile.id} />
       </section>
     </WorkspaceShell>
   );

@@ -9,7 +9,10 @@ import { readFile } from 'node:fs/promises';
 
 test('the client project page is split into five tabs', async () => {
   const page = await readFile('app/dashboard/projects/[id]/page.jsx', 'utf8');
-  assert.match(page, /<Tabs label="Project sections" tabs=\{tabs\} value=\{tab\} onChange=\{openTab\} \/>/);
+  assert.match(page, /<Tabs label="Project sections" tabs=\{tabs\} value=\{tab\} onChange=\{openTab\} defaultId=\{defaultTab\} \/>/);
+  // The chosen default is read after mount, before any early return.
+  assert.match(page, /useDefaultTab\('client', profile\?\.id\)/);
+  assert.ok(page.indexOf("useDefaultTab('client'") < page.indexOf('if (isLoading)'));
   for (const id of ['overview', 'messages', 'files', 'tasks', 'brief']) {
     assert.match(page, new RegExp(`id: '${id}'`), id);
   }
