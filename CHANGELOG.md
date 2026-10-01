@@ -1,26 +1,24 @@
-## v1.112 — 2026-09-30
+## v1.114 — 2026-09-30
 
-C1: client arrival tour, needs-action ordering, verify continue.
+Contract-drift hardening: every hardcoded status-domain literal in the app
+now derives from `lib/crm/project-contract.mjs`, with source-pin tests so
+the drift class found in v1.91/v1.110 cannot silently return.
 
-- New four-step client arrival tour (`components/crm/PortalTour.jsx`) on the
-  dashboard home, with Next/Back/Skip and a "Replay tour" button in the
-  header. Completion is remembered per browser via the
-  `cws.portal.tour.seen.v1` localStorage key (decision D2) — never re-opens
-  automatically; if storage is unavailable (private mode) the tour simply
-  shows every visit.
-- Dashboard home: the v1.109 "Needs your attention" strip already leads the
-  page and the section order runs projects → drafts → start for returning
-  clients; this PR carries the tour mount and "Replay tour" header action on
-  top of that reworked home (the earlier C1 section reorder was superseded by
-  v1.109's richer attention strip during the v1.111/v1.112 integration).
-- The verify-email confirmation page (`app/auth/confirm/page.jsx`) now
-  offers a "continue to dashboard" primary action alongside Back to Login,
-  so a client who has just verified isn't dumped back at the login form.
-- Build-only fix: the `/admin`, `/dashboard` and `/team` layouts export
-  `dynamic = 'force-dynamic'` so `next build` skips prerendering layouts
-  that call `requireRole` (reads cookies) while Supabase env vars are
-  placeholders in CI. No SQL, no new dependencies, no new notification
-  events.
+- New frozen contract constants: `APPROVAL_DECISION_STATUSES`,
+  `DELIVERABLE_PUBLISH_STATUSES` (verified intentional subsets of their
+  domains, matching the SQL guards in migrations 0011/0023/0047), and
+  `TERMINAL_PROJECT_STATUSES` (derived from `ALLOWED_TRANSITIONS`; a test
+  pins the equivalence).
+- `app/actions/project-actions.js` no longer hardcodes the task-status
+  domain or the approval/deliverable decision lists; the three separate
+  `CLOSED_*` terminal-status copies (`app/admin/page.jsx`,
+  `app/admin/projects/page.jsx`, `app/actions/assignment-actions.js`) all
+  import one constant.
+- The admin project status filter (`app/admin/projects/page.jsx`) derives
+  its options from `PROJECT_STATUSES` with byte-identical rendered text.
+- `tests/crm/contract-drift-hardening.test.mjs` (16 tests) pins migration
+  0047's SQL guard literals and every refactored site to the contract.
+
 ## v1.110 — 2026-09-30
 
 Live project pages. Changes on a project now show up on every open project

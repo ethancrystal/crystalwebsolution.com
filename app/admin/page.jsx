@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { TERMINAL_PROJECT_STATUSES } from '@/lib/crm/project-contract.mjs';
 import { listProjectsForViewer } from '@/lib/crm/projects';
 import { signOut } from '@/app/auth/actions';
 import { LoadingState } from '@/components/crm/Spinner';
 
-const CLOSED_PROJECT_STATUSES = new Set(['delivered', 'cancelled']);
+const CLOSED_PROJECT_STATUSES = new Set(TERMINAL_PROJECT_STATUSES);
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
