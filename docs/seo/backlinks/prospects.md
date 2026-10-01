@@ -254,3 +254,148 @@ evidence with the URL checked and the date · authority read labelled as an
 estimate with its source. Flag anything that costs money. Score on relevance,
 geography, authority, organic visibility, editorial legitimacy and relationship
 strength, minus spam signals, paid-link language and excessive outbound links.
+
+
+---
+
+# Addendum — Backlinks lane, 2026-09-17
+
+Researched 2026-09-17 by an independent research agent (fetched each page
+today; the run has not re-fetched them itself). **Research only — nothing has
+been sent.** Screened against the 2026-09-10 list above to avoid duplicates;
+one apparent "new" candidate (Community Business Partnership) was in fact the
+same org already rejected as `cbponline.org` and was excluded.
+
+Baseline unchanged since 2026-09-10: `cdsportswearinc.com` DA 1, 0 backlinks,
+0 referring domains (Ubersuggest `backlinks_overview`, pulled 2026-09-17).
+`cdsportswearusa.com` unchanged too: DA 1, 6 backlinks, 3 referring domains,
+all signature-B PBN shells, all still nofollow (see `pbn-watch.md` — no new
+domains, no signature change, nothing to disavow).
+
+## Tier 1 — real, free, high topical fit
+
+### 11. Zapier Solution/Expert Partner Directory — `zapier.com`
+- **Page:** apply at `zapier.com/l/new-experts`; listed at `zapier.com/experts`
+- **Link to:** `/services/ai-automation`
+- **Reason:** visitors browsing Zapier's expert directory are actively looking
+  to hire someone to build automations — the listing serves their intent, not
+  ours.
+- **Route:** free application to the standard/emerging-partner tier (not the
+  high-revenue "Solution Partner" tier).
+- **Evidence (fetched 2026-09-17):** `zapier.com/l/new-experts` requires an
+  active business website (no LinkedIn/Fiverr-only profiles), a custom-domain
+  email (no Gmail/Hotmail/Outlook), and no sanctioned-country affiliation. No
+  revenue minimum stated. Review takes 7–21 business days. `zapier.com/experts`
+  shows partner cards with direct links to partner websites/booking pages,
+  confirming a real outbound link, not just a logo.
+- **Authority (est.):** DA 82, 118,308 referring domains (Ubersuggest
+  `domain_overview`, 2026-09-17).
+- **Payment:** none identified.
+
+### 12. Clutch.co — free Basic Profile + Contributed Content
+- **Page:** `clutch.co/get-listed`; features at
+  `help.clutch.co/en/knowledge/free-features-clutch-offers`
+- **Link to:** profile → `/services/web-design`, `/services/branding`;
+  Contributed Content article → `/blog/web-development-rfp-guide` (Clutch's
+  audience is buyers evaluating vendors — an RFP-writing piece fits directly)
+- **Route:** free "Basic" company profile, plus Clutch's own "Contributed
+  Content" program for listed companies to publish expertise articles on
+  Clutch's blog.
+- **Evidence (fetched 2026-09-17):** three tiers confirmed — Basic (free),
+  Verified (**$499/year — flagged, do not pursue without approval**), and
+  custom-priced Advertiser. The free-features page lists Company Profiles,
+  Client Reviews, and Contributed Content as free features. Did not confirm
+  whether the free profile's own outbound link is followed — spot-check a live
+  competitor profile before investing effort.
+- **Authority (est.):** DA 71, 61,311 referring domains (Ubersuggest,
+  2026-09-17).
+- **Payment:** Basic profile free. **The $499/year Verified tier needs
+  approval — do not pursue.**
+
+## Tier 2 — local Manassas / Prince William routes (outreach required, cost/process not fully confirmed)
+
+### 13. Historic Manassas, Inc. — Business Directory — `historicmanassas.org`
+- **Page:** `/business-directory/` (WP Business Directory plugin, ~35 "Service"
+  category listings)
+- **Link to:** `/blog/web-design-manassas-va` or homepage
+- **Route:** local business-association directory listing.
+- **Evidence (fetched 2026-09-17):** directory is real and live, organized by
+  category. Could not find a submission form or cost; a membership page
+  404'd, and the Old Town Business Association counterpart
+  (`manassasotba.com`) blocks automated fetches via robots.txt. **A phone call
+  (703-361-6599) is needed to confirm whether listing requires paid HMI
+  membership before spending outreach time on this.**
+- **Authority (est.):** DA 30, 445 referring domains (Ubersuggest,
+  2026-09-17).
+- **Payment:** **unconfirmed — likely requires membership dues. Flag for
+  approval once cost is known.**
+
+### 14. Prince William County Dept. of Economic Development — resource page — `pwcded.org`
+- **Page:** `/small-business-entrepreneurs`
+- **Link to:** `/blog/web-development-rfp-guide`
+- **Route:** direct outreach suggesting an addition to their curated resource
+  guide (`go.pwcded.org/smallbiz`) — no self-serve submission form found.
+- **Evidence (fetched 2026-09-17):** a 10-step guide for county entrepreneurs
+  already linking to Mason SBDC, SCORE, Virginia SCC, IRS, Grants.gov, Virginia
+  Career Works, the Chamber, MAGIC, Virginia PTAC, Community Business
+  Partnership Finance Center, the Women's Business Center, and Brickyard
+  coworking.
+- **Authority (est.):** DA 38, 617 referring domains (Ubersuggest,
+  2026-09-17).
+- **Payment:** none — free outreach ask; success not guaranteed.
+
+### 15. City of Manassas — Economic Development Resources page — `manassasva.gov`
+- **Page:** `/economic_development/resources.php`
+- **Link to:** `/blog/web-development-rfp-guide` or `/blog/web-design-manassas-va`
+- **Route:** direct outreach to the city's Economic Development office — same
+  pattern as #14, a distinct (city, not county) organization.
+- **Evidence (fetched 2026-09-17):** lists Flory Small Business Center, SCORE
+  Greater Washington DC, Virginia SBDC Lead Center, the Prince William
+  Chamber, Historic Manassas Inc., and the Old Town Business Association —
+  **no web design, branding, or RFP-guidance resource today**, which is the
+  gap this guide would fill.
+- **Authority (est.):** DA 38, 1,228 referring domains — notably higher than
+  the county page (Ubersuggest, 2026-09-17).
+- **Payment:** none — free outreach ask; success not guaranteed.
+
+## Tier 3 — real route, requires payment (flag for approval, not a quick win)
+
+### 16. Leadership Prince William — "Our Supporters" sponsor page — `leadershipprincewilliam.org`
+- **Page:** `/our-supporters/`
+- **Link to:** `/blog/web-design-manassas-va` or `/blog/branding-and-web-design-studio`
+- **Route:** paid annual sponsorship of this 501(c)(3) leadership-development
+  nonprofit.
+- **Evidence (fetched 2026-09-17):** sponsor logos confirmed linking to
+  sponsors' own sites (e.g. Sentara Northern Virginia Medical Center, Prince
+  William Living, Whitlock Wealth Management). Silver tier is **$5,000/year**
+  for "a hyperlinked logo and company profile," tiers range Mission ($2,500)
+  to Platinum ($25,000).
+- **Authority (est.):** DA 22, 288 referring domains (Ubersuggest,
+  2026-09-17) — low relative to cost.
+- **Payment: YES — $2,500–$25,000/year minimum. APPROVAL REQUIRED. Poor
+  cost-to-authority ratio for a DA-22 site; not recommended even with
+  approval unless the local-relationship value justifies it independently of
+  SEO.**
+
+## Checked and rejected, 2026-09-17 pass
+
+| Checked | Why rejected |
+|---|---|
+| Community Business Partnership (various search results) | Resolves to `cbponline.org`, already rejected 2026-09-10 (org has ceased operations) — not actually new |
+| goodfirms.co blog | Their own help center: "we currently do not accept any guest posts" |
+| sortlist.com | Sortlist markets "SEO backlinks" as a paid Sortlist+ feature from €129/mo — link value is explicitly monetized; skip |
+| shopify.com/partners/directory | Requires Plus-tier partner status, $500k+ referred revenue, 10+ Verified Skills across 3+ staff — unreachable for this studio |
+| retool.com/partners, retool.com/agencies | Free agency application exists but no visible public partner showcase with outbound links could be confirmed |
+| pipedream.com partners | Built for software companies with their own API, not service agencies — wrong fit |
+| nptechforgood.com | Guest posts explicitly restricted to nonprofit-sector bloggers/staff; for-profits pointed to paid sponsorship instead (not pursued, needs separate cost check if ever revisited) |
+| smashingmagazine.com | Contributor guidelines explicitly exclude "business-focused articles on procurement processes" — technical/tutorial focus only |
+| techsoup.org | Retried per standing instruction — still 403 on automated fetch. Unresolved; needs a manual browser check outside these tools if it stays a priority |
+| ecommercefastlane.com/write-for-us-shopify, magecomp.com, themefic.com, webiators.com, ecomxagency.com, gempages guest-post page, magnetoitsolutions.com | Same pattern as prior guest-post-farm rejections; one explicitly advertises paid "Guest Posts & Link Insertions." Not contacted |
+
+**Two items need a human step before they can move, not more research:** #13
+(one phone call to Historic Manassas Inc. to price membership) and confirming
+whether Clutch's free Basic-profile link is actually followed (spot-check a
+live competitor profile). Everything else here is either ready for MJ's
+approval-gated go-ahead (paid routes) or ready to attempt directly (free
+applications/outreach) once MJ says which to prioritize — outreach itself
+still requires MJ's per-message yes per Operations Manual §4.
