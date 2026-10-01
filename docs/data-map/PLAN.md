@@ -87,3 +87,19 @@ Merging into `main` deploys the app, not the database. The owner applies
 2. `pnpm test:db` against a local Supabase stack, if the images can be pulled here; otherwise say so.
 3. Browser check of the changed CRM screens and the homepage.
 4. Commit in reviewable pieces and push to `claude/funny-bardeen-i83gco`. No PR until the owner asks; a PR to `main` needs the `vX.NN` bump at that point.
+
+## Outcome (2026-10-01)
+
+| Item | Result |
+| --- | --- |
+| F10 | `5455f42`. `lib/appUrl.mjs#getAppUrl`; each auth-email call site resolves it before its first write. |
+| Retired-domain test accounts | `3a868e0`. Found while scoping, not in the original list: the provisioning script created confirmed staff accounts on `crystalwebsolution.com`. |
+| F12–F14 | `5e5d03b`. Review narrowed F13: the first version froze the whole backdrop on every eco device, which would have changed the look on 4-core phones. Only the backdrop's spin now stops, and only under reduced motion. |
+| D1–D7 | `e0381c5`, migration `0051`. pgTAP passed (57 assertions) on a standalone `supabase/postgres` 15 image; the full local stack could not pull its images here. |
+| F1–F9, F11 | `965461e`. |
+| Browser check | Homepage smoke in headless Chromium; CRM screens need a signed-in Supabase session, so they are left for a Vercel preview check. |
+
+Found during verification and recorded in `06-edge-cases.md`:
+
+- The live migration ledger ends at `0045`. `0046`–`0049` are not applied; `0050` is live without a ledger row.
+- One live staff account sits on the retired `crystalwebsolution.com` domain.

@@ -130,7 +130,7 @@ returned.
 
 | Id | Sev | Finding | Status | Detail |
 | --- | --- | --- | --- | --- |
-| U1 | High | The admin deal page's conversation always failed with "Unable to authorize project access." | `Fixed F1` (965461e) | `app/admin/deals/[id]/page.jsx` |
+| U1 | High | The admin deal page's conversation always failed with "Unable to authorize project access." Note: the page finds its project by `projects.source_deal_id`, which no app path sets (P7), so the thread only appears for a project linked by hand. | `Fixed F1` (965461e); link gap Open (P7) | `app/admin/deals/[id]/page.jsx` |
 | U2 | Medium | New CRM tasks were written as `open`, a status the select doesn't offer; `done` tasks still showed as overdue. | `Fixed F2` | `components/crm/taskUtils.mjs` |
 | U3 | Low | Date-only due dates showed the previous day west of UTC. | `Fixed F3` | `components/crm/ProjectTasks.jsx` |
 | U4 | Medium | A failed action replaced the whole project workspace; a double click sent a second transition; Cancelled had no confirmation. | `Fixed F4` | team and admin project pages |
