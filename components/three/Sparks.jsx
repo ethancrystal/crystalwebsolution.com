@@ -10,7 +10,9 @@ const COUNT = 120;
 
 export default function Sparks({ position = [0, 0, 0] }) {
   const points = useRef();
-  const lastPulse = useRef(0);
+  // Seeded from the live pulse so a blast fired on a subpage (nothing read it
+  // there) does not replay as a burst when this mounts on a return to '/'.
+  const lastPulse = useRef(pulse.t);
   const life = useRef(0);
 
   const { positions, velocities } = useMemo(() => {

@@ -306,7 +306,10 @@ const mobileFragmentShader = /* glsl */ `
 export default function Crystal({ position = [0, 0, 0], quality = RENDER_QUALITY.balanced }) {
   const outer = useRef();
   const core = useRef();
-  const lastPulse = useRef(0);
+  // Seed from the live pulse: blast() also runs on subpages (contact form and
+  // links) where nothing reads it, so pulse.t is already non-zero when this
+  // mounts on a return to '/'. Only blasts that land while mounted may burst.
+  const lastPulse = useRef(pulse.t);
   const energy = useRef(0);
 
   useFrame((state, delta) => {

@@ -1,11 +1,25 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SectionReveal from '../SectionReveal';
 import SectionHeader from '../shared/SectionHeader';
 import { useCardMouseReveal } from '../CardHoverReveal';
 import SectionSkeleton from '../ui/section-skeleton';
 import { lightApproach, dimApproach } from '../../lib/beacon';
+
+gsap.registerPlugin(ScrollTrigger);
+
+// Opening or closing a step changes the page height (grid-template-rows
+// transition on .approach-step-panel in app/styles/approach.css, 0.5s). Nothing
+// else in the tree tells ScrollTrigger the document grew, so the FocusVeil,
+// SectionHandoff and Mark triggers below this section keep the start/end they
+// measured at load and the veil drifts from the camera beats. Refresh once the
+// transition has settled. Must stay at or above that CSS duration
+// (tests/frameLifecycle.test.mjs checks it); under reduced motion the
+// transition is `none`, so the same delay is merely a short, harmless wait.
+export const APPROACH_SETTLE_MS = 560;
 
 const STEPS = [
   {
@@ -138,6 +152,19 @@ export default function Approach() {
   // Teardown: leave the compass on its own scroll-derived step when this
   // section unmounts.
   useEffect(() => () => { dimApproach(); }, []);
+
+  // Re-measure ScrollTrigger after a step opens or closes, once the height
+  // change has settled. One timer, reset by every toggle (switching steps
+  // opens one and closes another within the same transition) so a burst of
+  // clicks costs a single refresh, never one per frame. Skips the initial
+  // render: nothing has changed yet and SmoothScroll refreshes on mount.
+  const previousOpenRef = useRef(openIndex);
+  useEffect(() => {
+    if (previousOpenRef.current === openIndex) return undefined;
+    previousOpenRef.current = openIndex;
+    const timer = window.setTimeout(() => ScrollTrigger.refresh(), APPROACH_SETTLE_MS);
+    return () => window.clearTimeout(timer);
+  }, [openIndex]);
 
   const registerTrigger = useCallback((index, el) => {
     triggersRef.current[index] = el;
