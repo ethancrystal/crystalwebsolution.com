@@ -16,6 +16,8 @@ import ProjectTasks from '@/components/crm/ProjectTasks';
 import ProjectFiles from '@/components/crm/ProjectFiles';
 import ProjectApprovals from '@/components/crm/ProjectApprovals';
 import ProjectThread from '@/components/crm/ProjectThread';
+import ProjectPresence from '@/components/crm/ProjectPresence';
+import { touchesWorkspace, useProjectLive } from '@/components/crm/useProjectLive';
 import NotesPanel from '@/components/crm/NotesPanel';
 import { SkeletonDetail } from '@/components/crm/Skeleton';
 
@@ -69,6 +71,16 @@ export default function AdminProjectPage() {
   useEffect(() => {
     loadWorkspace();
   }, [loadWorkspace]);
+
+  // Status, task and approval changes made by anyone else on the project
+  // re-read the workspace; messages are ProjectThread's own business.
+  const { viewers } = useProjectLive({
+    projectId,
+    profile,
+    onChange: (events) => {
+      if (touchesWorkspace(events)) loadWorkspace();
+    },
+  });
 
   async function handleTransition(nextStatus) {
     if (!workspace?.project || !profile) return;
@@ -125,6 +137,7 @@ export default function AdminProjectPage() {
 
   return (
     <WorkspaceShell role="admin" title={project.title}>
+      <ProjectPresence viewers={viewers} />
       <LeadManagerCard
         projectId={projectId}
         projectStatus={project.status}
