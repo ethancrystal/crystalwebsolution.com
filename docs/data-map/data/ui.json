@@ -1,0 +1,5707 @@
+{
+  "domain": "ui",
+  "description": "CRM and auth screens: pages, components, read models, direct-table access, action calls, storage, realtime, browser storage and URL parameters.",
+  "nodes": [
+    {
+      "id": "page:/login",
+      "type": "page",
+      "label": "/login",
+      "file": "app/login/page.jsx",
+      "attrs": {
+        "route": "/login",
+        "render": "client",
+        "roles": [
+          "public"
+        ],
+        "gate": "public; middleware redirects a signed-in user away from /login, /signup, /forgot-password"
+      }
+    },
+    {
+      "id": "page:/login/client",
+      "type": "page",
+      "label": "/login/client",
+      "file": "app/login/client/page.jsx",
+      "attrs": {
+        "route": "/login/client",
+        "render": "rsc",
+        "roles": [
+          "public"
+        ],
+        "gate": "public; middleware redirects a signed-in user away from /login, /signup, /forgot-password"
+      }
+    },
+    {
+      "id": "page:/login/employee",
+      "type": "page",
+      "label": "/login/employee",
+      "file": "app/login/employee/page.jsx",
+      "attrs": {
+        "route": "/login/employee",
+        "render": "rsc",
+        "roles": [
+          "public"
+        ],
+        "gate": "public; middleware redirects a signed-in user away from /login, /signup, /forgot-password"
+      }
+    },
+    {
+      "id": "page:/login/admin",
+      "type": "page",
+      "label": "/login/admin",
+      "file": "app/login/admin/page.jsx",
+      "attrs": {
+        "route": "/login/admin",
+        "render": "rsc",
+        "roles": [
+          "public"
+        ],
+        "gate": "public; middleware redirects a signed-in user away from /login, /signup, /forgot-password"
+      }
+    },
+    {
+      "id": "page:/signup",
+      "type": "page",
+      "label": "/signup",
+      "file": "app/signup/page.jsx",
+      "attrs": {
+        "route": "/signup",
+        "render": "client",
+        "roles": [
+          "public"
+        ],
+        "gate": "public; middleware redirects a signed-in user away from /login, /signup, /forgot-password"
+      }
+    },
+    {
+      "id": "page:/forgot-password",
+      "type": "page",
+      "label": "/forgot-password",
+      "file": "app/forgot-password/page.jsx",
+      "attrs": {
+        "route": "/forgot-password",
+        "render": "client",
+        "roles": [
+          "public"
+        ],
+        "gate": "public; middleware redirects a signed-in user away from /login, /signup, /forgot-password"
+      }
+    },
+    {
+      "id": "page:/onboarding",
+      "type": "page",
+      "label": "/onboarding",
+      "file": "app/onboarding/page.jsx",
+      "attrs": {
+        "route": "/onboarding",
+        "render": "rsc",
+        "roles": [
+          "client"
+        ],
+        "gate": "middleware matcher only (not a protected portal); page requireRole([client]) -> /login/client"
+      }
+    },
+    {
+      "id": "page:/auth/confirm",
+      "type": "page",
+      "label": "/auth/confirm",
+      "file": "app/auth/confirm/page.jsx",
+      "attrs": {
+        "route": "/auth/confirm",
+        "render": "client",
+        "roles": [
+          "public"
+        ],
+        "gate": "public; in middleware matcher (/auth/:path*) but not a protected portal"
+      }
+    },
+    {
+      "id": "page:/auth/reset-password",
+      "type": "page",
+      "label": "/auth/reset-password",
+      "file": "app/auth/reset-password/page.jsx",
+      "attrs": {
+        "route": "/auth/reset-password",
+        "render": "client",
+        "roles": [
+          "public",
+          "signed-in"
+        ],
+        "gate": "in middleware matcher (/auth/:path*); needs a session to succeed (updateUser)"
+      }
+    },
+    {
+      "id": "page:/dashboard",
+      "type": "page",
+      "label": "/dashboard",
+      "file": "app/dashboard/page.jsx",
+      "attrs": {
+        "route": "/dashboard",
+        "render": "client",
+        "roles": [
+          "client"
+        ],
+        "gate": "middleware portalForPath=client + app/dashboard/layout.jsx requireRole([client]) -> /login/client"
+      }
+    },
+    {
+      "id": "page:/dashboard/briefs/[id]",
+      "type": "page",
+      "label": "/dashboard/briefs/[id]",
+      "file": "app/dashboard/briefs/[id]/page.jsx",
+      "attrs": {
+        "route": "/dashboard/briefs/[id]",
+        "render": "client",
+        "roles": [
+          "client"
+        ],
+        "gate": "middleware portalForPath=client + app/dashboard/layout.jsx requireRole([client]) -> /login/client"
+      }
+    },
+    {
+      "id": "page:/dashboard/projects/[id]",
+      "type": "page",
+      "label": "/dashboard/projects/[id]",
+      "file": "app/dashboard/projects/[id]/page.jsx",
+      "attrs": {
+        "route": "/dashboard/projects/[id]",
+        "render": "client",
+        "roles": [
+          "client"
+        ],
+        "gate": "middleware portalForPath=client + app/dashboard/layout.jsx requireRole([client]) -> /login/client"
+      }
+    },
+    {
+      "id": "page:/team",
+      "type": "page",
+      "label": "/team",
+      "file": "app/team/page.jsx",
+      "attrs": {
+        "route": "/team",
+        "render": "rsc",
+        "roles": [
+          "project_manager"
+        ],
+        "gate": "middleware portalForPath=employee + app/team/layout.jsx requireRole([project_manager]) -> /login/employee"
+      }
+    },
+    {
+      "id": "page:/team/projects/[id]",
+      "type": "page",
+      "label": "/team/projects/[id]",
+      "file": "app/team/projects/[id]/page.jsx",
+      "attrs": {
+        "route": "/team/projects/[id]",
+        "render": "client",
+        "roles": [
+          "project_manager"
+        ],
+        "gate": "middleware portalForPath=employee + app/team/layout.jsx requireRole([project_manager]) -> /login/employee"
+      }
+    },
+    {
+      "id": "page:/admin",
+      "type": "page",
+      "label": "/admin",
+      "file": "app/admin/page.jsx",
+      "attrs": {
+        "route": "/admin",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/projects",
+      "type": "page",
+      "label": "/admin/projects",
+      "file": "app/admin/projects/page.jsx",
+      "attrs": {
+        "route": "/admin/projects",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/projects/[id]",
+      "type": "page",
+      "label": "/admin/projects/[id]",
+      "file": "app/admin/projects/[id]/page.jsx",
+      "attrs": {
+        "route": "/admin/projects/[id]",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/companies",
+      "type": "page",
+      "label": "/admin/companies",
+      "file": "app/admin/companies/page.jsx",
+      "attrs": {
+        "route": "/admin/companies",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/companies/new",
+      "type": "page",
+      "label": "/admin/companies/new",
+      "file": "app/admin/companies/new/page.jsx",
+      "attrs": {
+        "route": "/admin/companies/new",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/companies/[id]",
+      "type": "page",
+      "label": "/admin/companies/[id]",
+      "file": "app/admin/companies/[id]/page.jsx",
+      "attrs": {
+        "route": "/admin/companies/[id]",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/companies/[id]/edit",
+      "type": "page",
+      "label": "/admin/companies/[id]/edit",
+      "file": "app/admin/companies/[id]/edit/page.jsx",
+      "attrs": {
+        "route": "/admin/companies/[id]/edit",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/contacts",
+      "type": "page",
+      "label": "/admin/contacts",
+      "file": "app/admin/contacts/page.jsx",
+      "attrs": {
+        "route": "/admin/contacts",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/contacts/new",
+      "type": "page",
+      "label": "/admin/contacts/new",
+      "file": "app/admin/contacts/new/page.jsx",
+      "attrs": {
+        "route": "/admin/contacts/new",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/contacts/[id]",
+      "type": "page",
+      "label": "/admin/contacts/[id]",
+      "file": "app/admin/contacts/[id]/page.jsx",
+      "attrs": {
+        "route": "/admin/contacts/[id]",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/contacts/[id]/edit",
+      "type": "page",
+      "label": "/admin/contacts/[id]/edit",
+      "file": "app/admin/contacts/[id]/edit/page.jsx",
+      "attrs": {
+        "route": "/admin/contacts/[id]/edit",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/deals",
+      "type": "page",
+      "label": "/admin/deals",
+      "file": "app/admin/deals/page.jsx",
+      "attrs": {
+        "route": "/admin/deals",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/deals/pipeline",
+      "type": "page",
+      "label": "/admin/deals/pipeline",
+      "file": "app/admin/deals/pipeline/page.jsx",
+      "attrs": {
+        "route": "/admin/deals/pipeline",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/deals/new",
+      "type": "page",
+      "label": "/admin/deals/new",
+      "file": "app/admin/deals/new/page.jsx",
+      "attrs": {
+        "route": "/admin/deals/new",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/deals/[id]",
+      "type": "page",
+      "label": "/admin/deals/[id]",
+      "file": "app/admin/deals/[id]/page.jsx",
+      "attrs": {
+        "route": "/admin/deals/[id]",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/deals/[id]/edit",
+      "type": "page",
+      "label": "/admin/deals/[id]/edit",
+      "file": "app/admin/deals/[id]/edit/page.jsx",
+      "attrs": {
+        "route": "/admin/deals/[id]/edit",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/tasks",
+      "type": "page",
+      "label": "/admin/tasks",
+      "file": "app/admin/tasks/page.jsx",
+      "attrs": {
+        "route": "/admin/tasks",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/tasks/new",
+      "type": "page",
+      "label": "/admin/tasks/new",
+      "file": "app/admin/tasks/new/page.jsx",
+      "attrs": {
+        "route": "/admin/tasks/new",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/tasks/[id]",
+      "type": "page",
+      "label": "/admin/tasks/[id]",
+      "file": "app/admin/tasks/[id]/page.jsx",
+      "attrs": {
+        "route": "/admin/tasks/[id]",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/tasks/[id]/edit",
+      "type": "page",
+      "label": "/admin/tasks/[id]/edit",
+      "file": "app/admin/tasks/[id]/edit/page.jsx",
+      "attrs": {
+        "route": "/admin/tasks/[id]/edit",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/users",
+      "type": "page",
+      "label": "/admin/users",
+      "file": "app/admin/users/page.jsx",
+      "attrs": {
+        "route": "/admin/users",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/users/invite",
+      "type": "page",
+      "label": "/admin/users/invite",
+      "file": "app/admin/users/invite/page.jsx",
+      "attrs": {
+        "route": "/admin/users/invite",
+        "render": "client",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin"
+      }
+    },
+    {
+      "id": "page:/admin/blog",
+      "type": "page",
+      "label": "/admin/blog",
+      "file": "app/admin/blog/page.jsx",
+      "attrs": {
+        "route": "/admin/blog",
+        "render": "rsc",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin; page also requireRole([admin])"
+      }
+    },
+    {
+      "id": "page:/admin/blog/new",
+      "type": "page",
+      "label": "/admin/blog/new",
+      "file": "app/admin/blog/new/page.jsx",
+      "attrs": {
+        "route": "/admin/blog/new",
+        "render": "rsc",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin; page also requireRole([admin])"
+      }
+    },
+    {
+      "id": "page:/admin/blog/[id]",
+      "type": "page",
+      "label": "/admin/blog/[id]",
+      "file": "app/admin/blog/[id]/page.jsx",
+      "attrs": {
+        "route": "/admin/blog/[id]",
+        "render": "rsc",
+        "roles": [
+          "admin"
+        ],
+        "gate": "middleware portalForPath=admin + app/admin/layout.jsx requireRole([admin]) -> /login/admin; page also requireRole([admin])"
+      }
+    },
+    {
+      "id": "component:components/auth/AuthPending.jsx",
+      "type": "component",
+      "label": "AuthPending.jsx",
+      "file": "components/auth/AuthPending.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Pending label and live-region announcer for auth screens. No data."
+      }
+    },
+    {
+      "id": "component:components/auth/PortalLoginForm.jsx",
+      "type": "component",
+      "label": "PortalLoginForm.jsx",
+      "file": "components/auth/PortalLoginForm.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Portal sign-in form; reads ?error and ?next; submits signIn."
+      }
+    },
+    {
+      "id": "component:components/crm/AdminFormShell.jsx",
+      "type": "component",
+      "label": "AdminFormShell.jsx",
+      "file": "components/crm/AdminFormShell.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Chrome for admin new/edit forms. No data."
+      }
+    },
+    {
+      "id": "component:components/crm/BriefSubmissionForm.jsx",
+      "type": "component",
+      "label": "BriefSubmissionForm.jsx",
+      "file": "components/crm/BriefSubmissionForm.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Free-form project form; submits createProject."
+      }
+    },
+    {
+      "id": "component:components/crm/BriefWizard.jsx",
+      "type": "component",
+      "label": "BriefWizard.jsx",
+      "file": "components/crm/BriefWizard.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Guided brief wizard with debounced autosave; submits saveBriefDraft and submitBrief."
+      }
+    },
+    {
+      "id": "component:components/crm/ClientOnboardingForm.jsx",
+      "type": "component",
+      "label": "ClientOnboardingForm.jsx",
+      "file": "components/crm/ClientOnboardingForm.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Company onboarding form; submits onboardClientCompany."
+      }
+    },
+    {
+      "id": "component:components/crm/EntityNotes.jsx",
+      "type": "component",
+      "label": "EntityNotes.jsx",
+      "file": "components/crm/EntityNotes.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "CRM notes on a company or contact; direct notes reads and insert."
+      }
+    },
+    {
+      "id": "component:components/crm/LeadManagerCard.jsx",
+      "type": "component",
+      "label": "LeadManagerCard.jsx",
+      "file": "components/crm/LeadManagerCard.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Admin lead-project-manager card; assignment actions."
+      }
+    },
+    {
+      "id": "component:components/crm/NotesPanel.jsx",
+      "type": "component",
+      "label": "NotesPanel.jsx",
+      "file": "components/crm/NotesPanel.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Project updates list (project_status_history) and post form."
+      }
+    },
+    {
+      "id": "component:components/crm/NotificationsPanel.jsx",
+      "type": "component",
+      "label": "NotificationsPanel.jsx",
+      "file": "components/crm/NotificationsPanel.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "In-app notification list with mark-read."
+      }
+    },
+    {
+      "id": "component:components/crm/PortalTour.jsx",
+      "type": "component",
+      "label": "PortalTour.jsx",
+      "file": "components/crm/PortalTour.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "First-run client tour; remembers dismissal in localStorage."
+      }
+    },
+    {
+      "id": "component:components/crm/ProjectApprovals.jsx",
+      "type": "component",
+      "label": "ProjectApprovals.jsx",
+      "file": "components/crm/ProjectApprovals.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Approvals list; staff decide via updateProjectApproval."
+      }
+    },
+    {
+      "id": "component:components/crm/ProjectBriefs.jsx",
+      "type": "component",
+      "label": "ProjectBriefs.jsx",
+      "file": "components/crm/ProjectBriefs.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Submitted briefs for one project; client can start another."
+      }
+    },
+    {
+      "id": "component:components/crm/ProjectFiles.jsx",
+      "type": "component",
+      "label": "ProjectFiles.jsx",
+      "file": "components/crm/ProjectFiles.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Files and deliverables list; staff upload deliverables; signed-URL download."
+      }
+    },
+    {
+      "id": "component:components/crm/ProjectManagerCard.jsx",
+      "type": "component",
+      "label": "ProjectManagerCard.jsx",
+      "file": "components/crm/ProjectManagerCard.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Client-facing project manager name card. No data of its own."
+      }
+    },
+    {
+      "id": "component:components/crm/ProjectOverview.jsx",
+      "type": "component",
+      "label": "ProjectOverview.jsx",
+      "file": "components/crm/ProjectOverview.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Project summary block. No data of its own."
+      }
+    },
+    {
+      "id": "component:components/crm/ProjectPresence.jsx",
+      "type": "component",
+      "label": "ProjectPresence.jsx",
+      "file": "components/crm/ProjectPresence.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "\"Also here now\" line from useProjectLive viewers. Names only."
+      }
+    },
+    {
+      "id": "component:components/crm/ProjectTasks.jsx",
+      "type": "component",
+      "label": "ProjectTasks.jsx",
+      "file": "components/crm/ProjectTasks.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Project task list (read only). No data of its own."
+      }
+    },
+    {
+      "id": "component:components/crm/ProjectThread.jsx",
+      "type": "component",
+      "label": "ProjectThread.jsx",
+      "file": "components/crm/ProjectThread.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Conversation panel (presentation half of useProjectThread)."
+      }
+    },
+    {
+      "id": "component:components/crm/ProjectTimeline.jsx",
+      "type": "component",
+      "label": "ProjectTimeline.jsx",
+      "file": "components/crm/ProjectTimeline.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Status history list. No data of its own."
+      }
+    },
+    {
+      "id": "component:components/crm/Skeleton.jsx",
+      "type": "component",
+      "label": "Skeleton.jsx",
+      "file": "components/crm/Skeleton.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Loading placeholders. No data."
+      }
+    },
+    {
+      "id": "component:components/crm/Spinner.jsx",
+      "type": "component",
+      "label": "Spinner.jsx",
+      "file": "components/crm/Spinner.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Loading indicator. No data."
+      }
+    },
+    {
+      "id": "component:components/crm/Tabs.jsx",
+      "type": "component",
+      "label": "Tabs.jsx",
+      "file": "components/crm/Tabs.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Accessible tabs; selected tab lives in the ?tab= URL param."
+      }
+    },
+    {
+      "id": "component:components/crm/WorkspaceShell.jsx",
+      "type": "component",
+      "label": "WorkspaceShell.jsx",
+      "file": "components/crm/WorkspaceShell.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Portal frame: nav per role and sign-out form."
+      }
+    },
+    {
+      "id": "component:components/crm/briefIcons.js",
+      "type": "component",
+      "label": "briefIcons.js",
+      "file": "components/crm/briefIcons.js",
+      "attrs": {
+        "kind": "helper",
+        "render": "client",
+        "summary": "Icon map per brief type. No data."
+      }
+    },
+    {
+      "id": "component:components/crm/taskUtils.mjs",
+      "type": "component",
+      "label": "taskUtils.mjs",
+      "file": "components/crm/taskUtils.mjs",
+      "attrs": {
+        "kind": "helper",
+        "render": "client",
+        "summary": "Task status normalisation, overdue test and DATE formatting helpers."
+      }
+    },
+    {
+      "id": "component:components/crm/useProjectLive.js",
+      "type": "component",
+      "label": "useProjectLive.js",
+      "file": "components/crm/useProjectLive.js",
+      "attrs": {
+        "kind": "hook",
+        "render": "client",
+        "summary": "Project realtime events plus presence for a page."
+      }
+    },
+    {
+      "id": "component:components/crm/useProjectThread.js",
+      "type": "component",
+      "label": "useProjectThread.js",
+      "file": "components/crm/useProjectThread.js",
+      "attrs": {
+        "kind": "hook",
+        "render": "client",
+        "summary": "Conversation state, message load, realtime refresh, uploads."
+      }
+    },
+    {
+      "id": "component:app/admin/blog/PostForm.jsx",
+      "type": "component",
+      "label": "PostForm.jsx",
+      "file": "app/admin/blog/PostForm.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Blog post create/edit form (lives under app/, not components/crm)."
+      }
+    },
+    {
+      "id": "component:app/admin/blog/PostRowActions.jsx",
+      "type": "component",
+      "label": "PostRowActions.jsx",
+      "file": "app/admin/blog/PostRowActions.jsx",
+      "attrs": {
+        "kind": "component",
+        "render": "client",
+        "summary": "Publish, unpublish, delete per blog row (lives under app/)."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projects.js#listProjectsForViewer",
+      "type": "lib",
+      "label": "listProjectsForViewer",
+      "file": "lib/crm/projects.js",
+      "attrs": {
+        "summary": "Project list per viewer role. Runs in the browser (client pages) or on the server (/team)."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "type": "lib",
+      "label": "getProjectWorkspace",
+      "file": "lib/crm/projects.js",
+      "attrs": {
+        "summary": "One project with history, attachments, tasks, approvals, deliverables, assignments. Role filters run in JS; RLS is authoritative."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projects.js#listProjectMessages",
+      "type": "lib",
+      "label": "listProjectMessages",
+      "file": "lib/crm/projects.js",
+      "attrs": {
+        "summary": "Keyset-paginated thread messages with sender profiles and ready attachments."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projects.js#listProjectTasks",
+      "type": "lib",
+      "label": "listProjectTasks",
+      "file": "lib/crm/projects.js",
+      "attrs": {
+        "summary": "Project tasks. No UI caller."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projects.js#listProjectApprovals",
+      "type": "lib",
+      "label": "listProjectApprovals",
+      "file": "lib/crm/projects.js",
+      "attrs": {
+        "summary": "Project approvals. No UI caller."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projects.js#listProjectDeliverables",
+      "type": "lib",
+      "label": "listProjectDeliverables",
+      "file": "lib/crm/projects.js",
+      "attrs": {
+        "summary": "Project deliverables. No UI caller."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projects.js#listNotifications",
+      "type": "lib",
+      "label": "listNotifications",
+      "file": "lib/crm/projects.js",
+      "attrs": {
+        "summary": "Own in-app notifications (all projects, unbounded)."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projects.js#getProjectManagerNames",
+      "type": "lib",
+      "label": "getProjectManagerNames",
+      "file": "lib/crm/projects.js",
+      "attrs": {
+        "summary": "Lead project manager display name per project through RPC project_manager_names (0049)."
+      }
+    },
+    {
+      "id": "lib:lib/crm/briefs.js#listDraftBriefs",
+      "type": "lib",
+      "label": "listDraftBriefs",
+      "file": "lib/crm/briefs.js",
+      "attrs": {
+        "summary": "Own draft briefs, newest 50."
+      }
+    },
+    {
+      "id": "lib:lib/crm/briefs.js#getBrief",
+      "type": "lib",
+      "label": "getBrief",
+      "file": "lib/crm/briefs.js",
+      "attrs": {
+        "summary": "One brief by id."
+      }
+    },
+    {
+      "id": "lib:lib/crm/briefs.js#listProjectBriefs",
+      "type": "lib",
+      "label": "listProjectBriefs",
+      "file": "lib/crm/briefs.js",
+      "attrs": {
+        "summary": "Submitted briefs of one project, oldest first."
+      }
+    },
+    {
+      "id": "lib:lib/crm/briefs.js#submittedBriefTypesByProject",
+      "type": "lib",
+      "label": "submittedBriefTypesByProject",
+      "file": "lib/crm/briefs.js",
+      "attrs": {
+        "summary": "brief_type list per project for dashboard cards."
+      }
+    },
+    {
+      "id": "lib:lib/crm/blog.js#listPublishedPosts",
+      "type": "lib",
+      "label": "listPublishedPosts",
+      "file": "lib/crm/blog.js",
+      "attrs": {
+        "summary": "Published posts for the public /blog listing (anon/server client)."
+      }
+    },
+    {
+      "id": "lib:lib/crm/blog.js#getPublishedPost",
+      "type": "lib",
+      "label": "getPublishedPost",
+      "file": "lib/crm/blog.js",
+      "attrs": {
+        "summary": "One published post by slug."
+      }
+    },
+    {
+      "id": "lib:lib/crm/blog.js#listPublishedSlugs",
+      "type": "lib",
+      "label": "listPublishedSlugs",
+      "file": "lib/crm/blog.js",
+      "attrs": {
+        "summary": "Published slugs for the sitemap (cookieless anon client)."
+      }
+    },
+    {
+      "id": "lib:lib/crm/blog.js#listAllPosts",
+      "type": "lib",
+      "label": "listAllPosts",
+      "file": "lib/crm/blog.js",
+      "attrs": {
+        "summary": "All posts including drafts for /admin/blog (limit 100)."
+      }
+    },
+    {
+      "id": "lib:lib/crm/blog.js#getPostById",
+      "type": "lib",
+      "label": "getPostById",
+      "file": "lib/crm/blog.js",
+      "attrs": {
+        "summary": "One post by id for the edit form."
+      }
+    },
+    {
+      "id": "lib:lib/crm/blog-contract.mjs#validateBlogPost",
+      "type": "lib",
+      "label": "validateBlogPost",
+      "file": "lib/crm/blog-contract.mjs",
+      "attrs": {
+        "summary": "Blog post bounds, slugify, excerpt and validation shared with the action."
+      }
+    },
+    {
+      "id": "lib:lib/crm/brief-templates.mjs#BRIEF_TEMPLATES",
+      "type": "lib",
+      "label": "BRIEF_TEMPLATES",
+      "file": "lib/crm/brief-templates.mjs",
+      "attrs": {
+        "summary": "Brief question templates, sanitising, progress, summary rendering."
+      }
+    },
+    {
+      "id": "lib:lib/crm/labels.mjs#projectStatusLabel",
+      "type": "lib",
+      "label": "projectStatusLabel",
+      "file": "lib/crm/labels.mjs",
+      "attrs": {
+        "summary": "Human labels and badge tones for status, category, task status, approval status."
+      }
+    },
+    {
+      "id": "lib:lib/crm/project-contract.mjs#ALLOWED_TRANSITIONS",
+      "type": "lib",
+      "label": "ALLOWED_TRANSITIONS",
+      "file": "lib/crm/project-contract.mjs",
+      "attrs": {
+        "summary": "Enums and helpers mirrored from the project delivery schema (status, visibility, task, approval, deliverable, topics)."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projectRealtime.js#subscribeProjectTopics",
+      "type": "lib",
+      "label": "subscribeProjectTopics",
+      "file": "lib/crm/projectRealtime.js",
+      "attrs": {
+        "summary": "Ref-counted registry of private project channels with presence and reconnect resync."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projectRealtime.js#projectTopic",
+      "type": "lib",
+      "label": "projectTopic",
+      "file": "lib/crm/projectRealtime.js",
+      "attrs": {
+        "summary": "Builds project:<id>:<visibility>."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projectRealtime.js#PROJECT_EVENTS",
+      "type": "lib",
+      "label": "PROJECT_EVENTS",
+      "file": "lib/crm/projectRealtime.js",
+      "attrs": {
+        "summary": "The five broadcast event names the client listens for."
+      }
+    },
+    {
+      "id": "lib:lib/crm/projectRealtime.js#RESYNC_EVENT",
+      "type": "lib",
+      "label": "RESYNC_EVENT",
+      "file": "lib/crm/projectRealtime.js",
+      "attrs": {
+        "summary": "Synthetic event emitted when a channel re-joins after a drop."
+      }
+    },
+    {
+      "id": "lib:lib/useUserRole.js#useUserRole",
+      "type": "lib",
+      "label": "useUserRole",
+      "file": "lib/useUserRole.js",
+      "attrs": {
+        "summary": "Hook: role from profiles.role for the signed-in user; reports a failed read as error, separate from role null."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "table:public.projects",
+      "to": "lib:lib/crm/projects.js#listProjectsForViewer",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectsForViewer",
+      "notes": "order created_at desc, id desc; client: eq company_id; project_manager: in assigned ids; admin: all; no limit"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "lib:lib/crm/projects.js#listProjectsForViewer",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectsForViewer",
+      "notes": "project_manager scope read (project_id by user_id) and primary assignee per project (earliest created_at); staff only under RLS"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "lib:lib/crm/projects.js#listProjectsForViewer",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectsForViewer",
+      "notes": "staff only; never fetched for clients"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "lib:lib/crm/projects.js#listProjectsForViewer",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectsForViewer",
+      "notes": "primary assignee names"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#getProjectWorkspace",
+      "notes": "eq id (client: also eq company_id); project_manager: assignment checked first"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "id",
+        "user_id",
+        "assigned_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#getProjectWorkspace",
+      "notes": "staff only (skipped for clients); project_manager assignment check"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#getProjectWorkspace",
+      "notes": "staff only"
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#getProjectWorkspace",
+      "notes": "eq project_id maybeSingle; a missing thread throws"
+    },
+    {
+      "from": "table:public.project_status_history",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "from_status",
+        "to_status",
+        "note",
+        "visibility",
+        "changed_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#getProjectWorkspace",
+      "notes": "order created_at asc; client: shared only (JS)"
+    },
+    {
+      "from": "table:public.project_attachments",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "message_id",
+        "uploaded_by",
+        "visibility",
+        "file_name",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#getProjectWorkspace",
+      "notes": "status=ready, includes unlinked (message_id null); client: shared only (JS)"
+    },
+    {
+      "from": "table:public.project_tasks",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "client_visible",
+        "assignee_id",
+        "created_by",
+        "due_date",
+        "completed_at",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#getProjectWorkspace",
+      "notes": "client: client_visible only (JS)"
+    },
+    {
+      "from": "table:public.project_approvals",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "deliverable_id",
+        "status",
+        "requested_by",
+        "reviewed_by",
+        "note",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#getProjectWorkspace",
+      "notes": "no JS filter; RLS 0041 hides approvals on internal deliverables from clients"
+    },
+    {
+      "from": "table:public.project_deliverables",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "description",
+        "version",
+        "file_name",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "visibility",
+        "created_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#getProjectWorkspace",
+      "notes": "no status filter (drafts included); client: shared only (JS)"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#getProjectWorkspace",
+      "notes": "every actor id found in the rows above"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "lib:lib/crm/projects.js#listProjectMessages",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectMessages",
+      "notes": "access check (loadProjectForViewer)"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "lib:lib/crm/projects.js#listProjectMessages",
+      "kind": "reads",
+      "fields": [
+        "project_id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectMessages",
+      "notes": "project_manager assignment check"
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "lib:lib/crm/projects.js#listProjectMessages",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectMessages",
+      "notes": "eq project_id maybeSingle"
+    },
+    {
+      "from": "table:public.project_messages",
+      "to": "lib:lib/crm/projects.js#listProjectMessages",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "thread_id",
+        "sender_id",
+        "visibility",
+        "body",
+        "client_generated_id",
+        "created_at",
+        "edited_at",
+        "edited_by"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectMessages",
+      "notes": "eq thread_id; order created_at desc, id desc; keyset cursor; limit min(n,100), UI asks 20; client: shared only (JS)"
+    },
+    {
+      "from": "table:public.project_attachments",
+      "to": "lib:lib/crm/projects.js#listProjectMessages",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "message_id",
+        "uploaded_by",
+        "visibility",
+        "file_name",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectMessages",
+      "notes": "all ready attachments of the project, filtered to the page message ids in JS"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "lib:lib/crm/projects.js#listProjectMessages",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectMessages",
+      "notes": "senders and uploaders"
+    },
+    {
+      "from": "table:public.project_tasks",
+      "to": "lib:lib/crm/projects.js#listProjectTasks",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "status",
+        "priority",
+        "client_visible",
+        "assignee_id",
+        "created_by",
+        "due_date"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectTasks",
+      "notes": "no UI caller"
+    },
+    {
+      "from": "table:public.project_approvals",
+      "to": "lib:lib/crm/projects.js#listProjectApprovals",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "deliverable_id",
+        "status",
+        "requested_by",
+        "reviewed_by",
+        "note"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectApprovals",
+      "notes": "no UI caller"
+    },
+    {
+      "from": "table:public.project_deliverables",
+      "to": "lib:lib/crm/projects.js#listProjectDeliverables",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "status",
+        "visibility",
+        "created_by"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listProjectDeliverables",
+      "notes": "no UI caller"
+    },
+    {
+      "from": "table:public.notifications_outbox",
+      "to": "lib:lib/crm/projects.js#listNotifications",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload",
+        "status",
+        "sent_at",
+        "read_at",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#listNotifications",
+      "notes": "eq user_id; order created_at desc, id desc; no limit; RLS 0041 returns in_app rows only"
+    },
+    {
+      "from": "table:public.project_briefs",
+      "to": "lib:lib/crm/briefs.js#listDraftBriefs",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "project_id",
+        "created_by",
+        "brief_type",
+        "title",
+        "answers",
+        "status",
+        "template_version",
+        "submitted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/briefs.js#listDraftBriefs",
+      "notes": "status=draft; order updated_at desc; limit 50; RLS: drafts only to their author"
+    },
+    {
+      "from": "table:public.project_briefs",
+      "to": "lib:lib/crm/briefs.js#getBrief",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "project_id",
+        "created_by",
+        "brief_type",
+        "title",
+        "answers",
+        "status",
+        "template_version",
+        "submitted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/briefs.js#getBrief",
+      "notes": "eq id maybeSingle"
+    },
+    {
+      "from": "table:public.project_briefs",
+      "to": "lib:lib/crm/briefs.js#listProjectBriefs",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "project_id",
+        "created_by",
+        "brief_type",
+        "title",
+        "answers",
+        "status",
+        "template_version",
+        "submitted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/briefs.js#listProjectBriefs",
+      "notes": "eq project_id, status=submitted; order submitted_at asc"
+    },
+    {
+      "from": "table:public.project_briefs",
+      "to": "lib:lib/crm/briefs.js#submittedBriefTypesByProject",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "brief_type"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/briefs.js#submittedBriefTypesByProject",
+      "notes": "in project ids, status=submitted"
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "lib:lib/crm/blog.js#listAllPosts",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "slug",
+        "title",
+        "excerpt",
+        "cover_image_url",
+        "status",
+        "published_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/blog.js#listAllPosts",
+      "notes": "order updated_at desc; limit 100 from /admin/blog; server client"
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "lib:lib/crm/blog.js#getPostById",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "slug",
+        "title",
+        "excerpt",
+        "body",
+        "cover_image_url",
+        "seo_title",
+        "seo_description",
+        "status",
+        "published_at",
+        "author_id",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/blog.js#getPostById",
+      "notes": "eq id maybeSingle; server client"
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "lib:lib/crm/blog.js#listPublishedPosts",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "slug",
+        "title",
+        "excerpt",
+        "cover_image_url",
+        "status",
+        "published_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/blog.js#listPublishedPosts",
+      "notes": "status=published; order published_at desc; limit 20 default; public marketing caller"
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "lib:lib/crm/blog.js#getPublishedPost",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "slug",
+        "title",
+        "excerpt",
+        "body",
+        "cover_image_url",
+        "seo_title",
+        "seo_description",
+        "status",
+        "published_at",
+        "author_id",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/blog.js#getPublishedPost",
+      "notes": "eq slug, status=published maybeSingle; public marketing caller"
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "lib:lib/crm/blog.js#listPublishedSlugs",
+      "kind": "reads",
+      "fields": [
+        "slug",
+        "published_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/blog.js#listPublishedSlugs",
+      "notes": "status=published; order published_at desc; limit 100; cookieless anon client"
+    },
+    {
+      "from": "lib:lib/crm/projects.js#getProjectManagerNames",
+      "to": "fn:public.project_manager_names",
+      "kind": "calls",
+      "fields": [
+        "p_project_ids"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/crm/projects.js#getProjectManagerNames",
+      "notes": "rpc(); error or exception returns { available: false } so callers show no name. RPC added in 0049; until applied the portal hides the manager card."
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "lib:lib/crm/projects.js#listProjectsForViewer",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#loadClientProjects",
+      "notes": "browser client; secondary reads in Promise.allSettled, a failed one leaves its state empty with no message"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "page:/dashboard",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#loadClientProjects",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "page:/dashboard",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#loadClientProjects",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/dashboard",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#loadClientProjects",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/dashboard",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#loadClientProjects",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "lib:lib/crm/projects.js#listNotifications",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#loadClientProjects",
+      "notes": "browser client; secondary reads in Promise.allSettled, a failed one leaves its state empty with no message"
+    },
+    {
+      "from": "table:public.notifications_outbox",
+      "to": "page:/dashboard",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload",
+        "status",
+        "sent_at",
+        "read_at",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#loadClientProjects",
+      "notes": "via lib:lib/crm/projects.js#listNotifications"
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "lib:lib/crm/projects.js#getProjectManagerNames",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#loadClientProjects",
+      "notes": "browser client; secondary reads in Promise.allSettled, a failed one leaves its state empty with no message"
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "lib:lib/crm/briefs.js#listDraftBriefs",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#loadClientProjects",
+      "notes": "browser client; secondary reads in Promise.allSettled, a failed one leaves its state empty with no message"
+    },
+    {
+      "from": "table:public.project_briefs",
+      "to": "page:/dashboard",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "project_id",
+        "created_by",
+        "brief_type",
+        "title",
+        "answers",
+        "status",
+        "template_version",
+        "submitted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#loadClientProjects",
+      "notes": "via lib:lib/crm/briefs.js#listDraftBriefs | via lib:lib/crm/briefs.js#submittedBriefTypesByProject"
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "lib:lib/crm/briefs.js#submittedBriefTypesByProject",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#loadClientProjects",
+      "notes": "browser client; secondary reads in Promise.allSettled, a failed one leaves its state empty with no message"
+    },
+    {
+      "from": "page:/dashboard/briefs/[id]",
+      "to": "lib:lib/crm/briefs.js#getBrief",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/briefs/[id]/page.jsx#ClientBriefPage",
+      "notes": "browser client"
+    },
+    {
+      "from": "table:public.project_briefs",
+      "to": "page:/dashboard/briefs/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "project_id",
+        "created_by",
+        "brief_type",
+        "title",
+        "answers",
+        "status",
+        "template_version",
+        "submitted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/briefs/[id]/page.jsx#ClientBriefPage",
+      "notes": "via lib:lib/crm/briefs.js#getBrief"
+    },
+    {
+      "from": "page:/dashboard/briefs/[id]",
+      "to": "lib:lib/crm/projects.js#listProjectsForViewer",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/briefs/[id]/page.jsx#ClientBriefPage",
+      "notes": "browser client"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "page:/dashboard/briefs/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/briefs/[id]/page.jsx#ClientBriefPage",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "page:/dashboard/briefs/[id]",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/briefs/[id]/page.jsx#ClientBriefPage",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/dashboard/briefs/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/briefs/[id]/page.jsx#ClientBriefPage",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/dashboard/briefs/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url",
+        "role",
+        "company_id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/briefs/[id]/page.jsx#ClientBriefPage",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer | eq id=auth user, single; the error is ignored (no company_id -> /onboarding)"
+    },
+    {
+      "from": "page:/dashboard/projects/[id]",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "browser client; rerun on every live status, task or approval event"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "id",
+        "user_id",
+        "assigned_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_status_history",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "from_status",
+        "to_status",
+        "note",
+        "visibility",
+        "changed_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_attachments",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "message_id",
+        "uploaded_by",
+        "visibility",
+        "file_name",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_tasks",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "client_visible",
+        "assignee_id",
+        "created_by",
+        "due_date",
+        "completed_at",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_approvals",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "deliverable_id",
+        "status",
+        "requested_by",
+        "reviewed_by",
+        "note",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_deliverables",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "description",
+        "version",
+        "file_name",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "visibility",
+        "created_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "page:/dashboard/projects/[id]",
+      "to": "lib:lib/crm/projects.js#listNotifications",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "browser client; rerun on every live status, task or approval event"
+    },
+    {
+      "from": "table:public.notifications_outbox",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload",
+        "status",
+        "sent_at",
+        "read_at",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#listNotifications"
+    },
+    {
+      "from": "page:/dashboard/projects/[id]",
+      "to": "lib:lib/crm/projects.js#getProjectManagerNames",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "browser client; rerun on every live status, task or approval event"
+    },
+    {
+      "from": "page:/team",
+      "to": "lib:lib/crm/projects.js#listProjectsForViewer",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/team/page.jsx#TeamPage",
+      "notes": "server client (RSC)"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "page:/team",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/page.jsx#TeamPage",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "page:/team",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/page.jsx#TeamPage",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/team",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/page.jsx#TeamPage",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/team",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/page.jsx#TeamPage",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "page:/team/projects/[id]",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "browser client; rerun on every live status, task or approval event"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "page:/team/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "page:/team/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "id",
+        "user_id",
+        "assigned_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/team/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "page:/team/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_status_history",
+      "to": "page:/team/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "from_status",
+        "to_status",
+        "note",
+        "visibility",
+        "changed_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_attachments",
+      "to": "page:/team/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "message_id",
+        "uploaded_by",
+        "visibility",
+        "file_name",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_tasks",
+      "to": "page:/team/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "client_visible",
+        "assignee_id",
+        "created_by",
+        "due_date",
+        "completed_at",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_approvals",
+      "to": "page:/team/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "deliverable_id",
+        "status",
+        "requested_by",
+        "reviewed_by",
+        "note",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_deliverables",
+      "to": "page:/team/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "description",
+        "version",
+        "file_name",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "visibility",
+        "created_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/team/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "page:/admin",
+      "to": "lib:lib/crm/projects.js#listProjectsForViewer",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": "browser client; used only to count open projects and projects with no manager"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "page:/admin",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "page:/admin",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer | count exact, head only (no rows); a failed or RLS-denied count is null and shows a dash with an Unavailable label plus an alert, not 0"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/admin",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url",
+        "role",
+        "company_id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer | eq id=auth user, single; the error is ignored, so a failed read leaves role null and hides the admin cards"
+    },
+    {
+      "from": "page:/admin/projects",
+      "to": "lib:lib/crm/projects.js#listProjectsForViewer",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/page.jsx#load",
+      "notes": "browser client"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "page:/admin/projects",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/page.jsx#load",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "page:/admin/projects",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/page.jsx#load",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/projects",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/page.jsx#load",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/admin/projects",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/page.jsx#load",
+      "notes": "via lib:lib/crm/projects.js#listProjectsForViewer"
+    },
+    {
+      "from": "page:/admin/projects/[id]",
+      "to": "lib:lib/crm/projects.js#getProjectWorkspace",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "browser client; rerun on every live status, task or approval event"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "page:/admin/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "page:/admin/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "id",
+        "user_id",
+        "assigned_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "page:/admin/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_status_history",
+      "to": "page:/admin/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "from_status",
+        "to_status",
+        "note",
+        "visibility",
+        "changed_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_attachments",
+      "to": "page:/admin/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "message_id",
+        "uploaded_by",
+        "visibility",
+        "file_name",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_tasks",
+      "to": "page:/admin/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "client_visible",
+        "assignee_id",
+        "created_by",
+        "due_date",
+        "completed_at",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_approvals",
+      "to": "page:/admin/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "deliverable_id",
+        "status",
+        "requested_by",
+        "reviewed_by",
+        "note",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.project_deliverables",
+      "to": "page:/admin/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "description",
+        "version",
+        "file_name",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "visibility",
+        "created_by",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/admin/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#loadWorkspace",
+      "notes": "via lib:lib/crm/projects.js#getProjectWorkspace"
+    },
+    {
+      "from": "component:components/crm/useProjectThread.js",
+      "to": "lib:lib/crm/projects.js#listProjectMessages",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#useProjectThread",
+      "notes": "browser client; replaces the message list with the newest 20 on every call"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "component:components/crm/useProjectThread.js",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "status",
+        "target_date",
+        "budget_amount",
+        "currency",
+        "created_by",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#useProjectThread",
+      "notes": "via lib:lib/crm/projects.js#listProjectMessages"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "component:components/crm/useProjectThread.js",
+      "kind": "reads",
+      "fields": [
+        "project_id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#useProjectThread",
+      "notes": "via lib:lib/crm/projects.js#listProjectMessages"
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "component:components/crm/useProjectThread.js",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#useProjectThread",
+      "notes": "via lib:lib/crm/projects.js#listProjectMessages"
+    },
+    {
+      "from": "table:public.project_messages",
+      "to": "component:components/crm/useProjectThread.js",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "thread_id",
+        "sender_id",
+        "visibility",
+        "body",
+        "client_generated_id",
+        "created_at",
+        "edited_at",
+        "edited_by"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#useProjectThread",
+      "notes": "via lib:lib/crm/projects.js#listProjectMessages"
+    },
+    {
+      "from": "table:public.project_attachments",
+      "to": "component:components/crm/useProjectThread.js",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "message_id",
+        "uploaded_by",
+        "visibility",
+        "file_name",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "created_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#useProjectThread",
+      "notes": "via lib:lib/crm/projects.js#listProjectMessages"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "component:components/crm/useProjectThread.js",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "avatar_url"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#useProjectThread",
+      "notes": "via lib:lib/crm/projects.js#listProjectMessages"
+    },
+    {
+      "from": "component:components/crm/ProjectBriefs.jsx",
+      "to": "lib:lib/crm/briefs.js#listProjectBriefs",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectBriefs.jsx#ProjectBriefs",
+      "notes": "browser client; once on mount, never refreshed"
+    },
+    {
+      "from": "table:public.project_briefs",
+      "to": "component:components/crm/ProjectBriefs.jsx",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "project_id",
+        "created_by",
+        "brief_type",
+        "title",
+        "answers",
+        "status",
+        "template_version",
+        "submitted_at",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectBriefs.jsx#ProjectBriefs",
+      "notes": "via lib:lib/crm/briefs.js#listProjectBriefs"
+    },
+    {
+      "from": "page:/admin/blog",
+      "to": "lib:lib/crm/blog.js#listAllPosts",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/blog/page.jsx#AdminBlogPage",
+      "notes": "server client (RSC); limit 100"
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "page:/admin/blog",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "slug",
+        "title",
+        "excerpt",
+        "cover_image_url",
+        "status",
+        "published_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/blog/page.jsx#AdminBlogPage",
+      "notes": "via lib:lib/crm/blog.js#listAllPosts"
+    },
+    {
+      "from": "page:/admin/blog/[id]",
+      "to": "lib:lib/crm/blog.js#getPostById",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/blog/[id]/page.jsx#EditPostPage",
+      "notes": "server client (RSC)"
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "page:/admin/blog/[id]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "slug",
+        "title",
+        "excerpt",
+        "body",
+        "cover_image_url",
+        "seo_title",
+        "seo_description",
+        "status",
+        "published_at",
+        "author_id",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/blog/[id]/page.jsx#EditPostPage",
+      "notes": "via lib:lib/crm/blog.js#getPostById"
+    },
+    {
+      "from": "component:components/crm/ProjectThread.jsx",
+      "to": "component:components/crm/useProjectThread.js",
+      "kind": "calls",
+      "fields": [
+        "projectId",
+        "profile"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectThread.jsx#ProjectThread",
+      "notes": "ProjectThread renders purely from what the hook returns"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "reads",
+      "fields": [
+        "role"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "lib/useUserRole.js#useUserRole",
+      "notes": "eq id=auth user, single. A read error yields role null plus error (ROLE_LOAD_ERROR); the new and users pages check error before redirecting."
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "page:/admin",
+      "kind": "reads",
+      "fields": [
+        "id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": "count exact, head only (no rows); a failed or RLS-denied count is null and shows a dash with an Unavailable label plus an alert, not 0"
+    },
+    {
+      "from": "table:public.deals",
+      "to": "page:/admin",
+      "kind": "reads",
+      "fields": [
+        "id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": "count exact, head only (no rows); a failed or RLS-denied count is null and shows a dash with an Unavailable label plus an alert, not 0"
+    },
+    {
+      "from": "table:public.tasks",
+      "to": "page:/admin",
+      "kind": "reads",
+      "fields": [
+        "id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": "count exact, head only (no rows); a failed or RLS-denied count is null and shows a dash with an Unavailable label plus an alert, not 0"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/dashboard",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#DashboardPage",
+      "notes": "eq id=auth user, single; full row including role, company_id, avatar_url, requested_staff_access"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#ClientProjectPage",
+      "notes": "eq id=auth user, single; full row including role, company_id, avatar_url, requested_staff_access"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/team/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#TeamProjectPage",
+      "notes": "eq id=auth user, single; full row including role, company_id, avatar_url, requested_staff_access"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/admin/projects",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/page.jsx#AdminProjectsPage",
+      "notes": "eq id=auth user, single; full row including role, company_id, avatar_url, requested_staff_access"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/admin/projects/[id]",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#AdminProjectPage",
+      "notes": "eq id=auth user, single; full row including role, company_id, avatar_url, requested_staff_access"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/admin/deals/[id]",
+      "kind": "reads",
+      "fields": [
+        "*",
+        "full_name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/page.jsx#DealDetailPage",
+      "notes": "eq id=auth user, single; full row including role, company_id, avatar_url, requested_staff_access | eq id=deal.owner_id single; the error is ignored (owner shows a dash)"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/companies",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/companies/page.jsx#CompaniesPage",
+      "notes": "order created_at desc; no limit"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/companies/[id]",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/companies/[id]/page.jsx#CompanyDetailPage",
+      "notes": "eq id (URL param) single"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/companies/[id]/edit",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/companies/[id]/edit/page.jsx#EditCompanyPage",
+      "notes": "eq id (URL param) single; prefills the form"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/contacts/new",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/new/page.jsx#NewContactPage",
+      "notes": "order name asc; no limit; company picker"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/contacts/[id]/edit",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/[id]/edit/page.jsx#EditContactPage",
+      "notes": "order name asc; no limit; company picker"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/deals/new",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/new/page.jsx#NewDealPage",
+      "notes": "order name asc; no limit; company picker"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/deals/[id]/edit",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/edit/page.jsx#EditDealPage",
+      "notes": "order name asc; no limit; company picker"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/tasks/new",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/new/page.jsx#NewTaskPage",
+      "notes": "order name asc; no limit; company picker"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/tasks/[id]/edit",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/[id]/edit/page.jsx#EditTaskPage",
+      "notes": "order name asc; no limit; company picker"
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "page:/admin/contacts",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/page.jsx#ContactsPage",
+      "notes": "order created_at desc; no limit"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/contacts",
+      "kind": "reads",
+      "fields": [
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/page.jsx#ContactsPage",
+      "notes": "embedded join companies(name)"
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "page:/admin/contacts/[id]",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/[id]/page.jsx#ContactDetailPage",
+      "notes": "eq id single"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/contacts/[id]",
+      "kind": "reads",
+      "fields": [
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/[id]/page.jsx#ContactDetailPage",
+      "notes": "embedded join companies(name)"
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "page:/admin/contacts/[id]/edit",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/[id]/edit/page.jsx#EditContactPage",
+      "notes": "eq id single; prefills the form"
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "page:/admin/deals/new",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "first_name",
+        "last_name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/new/page.jsx#NewDealPage",
+      "notes": "eq company_id=selected company; order first_name; refetched on every company change, no cancellation"
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "page:/admin/deals/[id]/edit",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "first_name",
+        "last_name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/edit/page.jsx#EditDealPage",
+      "notes": "eq company_id=selected company; order first_name; refetched on every company change, no cancellation"
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "page:/admin/tasks/new",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "first_name",
+        "last_name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/new/page.jsx#NewTaskPage",
+      "notes": "eq company_id=selected company; order first_name; refetched on every company change, no cancellation"
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "page:/admin/tasks/[id]/edit",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "first_name",
+        "last_name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/[id]/edit/page.jsx#EditTaskPage",
+      "notes": "eq company_id=selected company; order first_name; refetched on every company change, no cancellation"
+    },
+    {
+      "from": "table:public.deals",
+      "to": "page:/admin/deals",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/page.jsx#DealsPage",
+      "notes": "order created_at desc; no limit"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/deals",
+      "kind": "reads",
+      "fields": [
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/page.jsx#DealsPage",
+      "notes": "embedded join companies(name)"
+    },
+    {
+      "from": "table:public.deals",
+      "to": "page:/admin/deals/pipeline",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/pipeline/page.jsx#DealsPipelinePage",
+      "notes": "order created_at desc; no limit"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/deals/pipeline",
+      "kind": "reads",
+      "fields": [
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/pipeline/page.jsx#DealsPipelinePage",
+      "notes": "embedded join companies(name)"
+    },
+    {
+      "from": "table:public.deals",
+      "to": "page:/admin/deals/[id]",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/page.jsx#DealDetailPage",
+      "notes": "eq id single"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/deals/[id]",
+      "kind": "reads",
+      "fields": [
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/page.jsx#DealDetailPage",
+      "notes": "embedded join companies(name)"
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "page:/admin/deals/[id]",
+      "kind": "reads",
+      "fields": [
+        "first_name",
+        "last_name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/page.jsx#DealDetailPage",
+      "notes": "embedded join contacts(first_name, last_name)"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "page:/admin/deals/[id]",
+      "kind": "reads",
+      "fields": [
+        "id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/page.jsx#DealDetailPage",
+      "notes": "eq source_deal_id=URL id maybeSingle; decides whether NotesPanel and ProjectThread render"
+    },
+    {
+      "from": "table:public.deals",
+      "to": "page:/admin/deals/[id]/edit",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/edit/page.jsx#EditDealPage",
+      "notes": "eq id single; prefills the form"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/admin/deals/[id]/edit",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/edit/page.jsx#EditDealPage",
+      "notes": "eq role=project_manager; order full_name; an error becomes an empty list"
+    },
+    {
+      "from": "table:public.deals",
+      "to": "page:/admin/tasks/new",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "title"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/new/page.jsx#NewTaskPage",
+      "notes": "eq company_id=selected company; order title"
+    },
+    {
+      "from": "table:public.deals",
+      "to": "page:/admin/tasks/[id]/edit",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "title"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/[id]/edit/page.jsx#EditTaskPage",
+      "notes": "eq company_id=selected company; order title"
+    },
+    {
+      "from": "table:public.tasks",
+      "to": "page:/admin/tasks",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/page.jsx#TasksPage",
+      "notes": "order due_date asc nulls last; no limit"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/tasks",
+      "kind": "reads",
+      "fields": [
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/page.jsx#TasksPage",
+      "notes": "embedded join companies(name)"
+    },
+    {
+      "from": "table:public.tasks",
+      "to": "page:/admin/tasks/[id]",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/[id]/page.jsx#TaskDetailPage",
+      "notes": "eq id single"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "page:/admin/tasks/[id]",
+      "kind": "reads",
+      "fields": [
+        "name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/[id]/page.jsx#TaskDetailPage",
+      "notes": "embedded join companies(name)"
+    },
+    {
+      "from": "table:public.deals",
+      "to": "page:/admin/tasks/[id]",
+      "kind": "reads",
+      "fields": [
+        "title"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/[id]/page.jsx#TaskDetailPage",
+      "notes": "embedded join deals(title)"
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "page:/admin/tasks/[id]",
+      "kind": "reads",
+      "fields": [
+        "first_name",
+        "last_name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/[id]/page.jsx#TaskDetailPage",
+      "notes": "embedded join contacts(first_name, last_name)"
+    },
+    {
+      "from": "table:public.tasks",
+      "to": "page:/admin/tasks/[id]/edit",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/[id]/edit/page.jsx#EditTaskPage",
+      "notes": "eq id single; legacy status open/completed is mapped to todo/done on load"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "page:/admin/users",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "role",
+        "company_id",
+        "created_at",
+        "requested_staff_access"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/users/page.jsx#UsersPage",
+      "notes": "order created_at desc; no limit; only after useUserRole says admin"
+    },
+    {
+      "from": "table:public.project_status_history",
+      "to": "component:components/crm/NotesPanel.jsx",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/NotesPanel.jsx#NotesPanel",
+      "notes": "eq project_id=prop; order created_at desc; no limit; no JS visibility filter (RLS only); loaded once and after its own post"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "component:components/crm/NotesPanel.jsx",
+      "kind": "reads",
+      "fields": [
+        "full_name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/NotesPanel.jsx#NotesPanel",
+      "notes": "embedded join profiles(full_name) through changed_by"
+    },
+    {
+      "from": "table:public.notes",
+      "to": "component:components/crm/EntityNotes.jsx",
+      "kind": "reads",
+      "fields": [
+        "*"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/EntityNotes.jsx#EntityNotes",
+      "notes": "eq company_id=prop, contact_id = prop or IS NULL; order created_at desc; no limit"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "component:components/crm/EntityNotes.jsx",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/EntityNotes.jsx#EntityNotes",
+      "notes": "in author ids (created_by of the notes above)"
+    },
+    {
+      "from": "page:/admin/companies",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/companies/page.jsx#CompaniesPage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Only isAdmin or isPm is read, so a failed role read behaves as not admin (hides Add buttons)."
+    },
+    {
+      "from": "page:/admin/companies/new",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/companies/new/page.jsx#NewCompanyPage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Reads error as well: a failed role read skips the redirect and shows ROLE_LOAD_ERROR."
+    },
+    {
+      "from": "page:/admin/contacts",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/page.jsx#ContactsPage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Only isAdmin or isPm is read, so a failed role read behaves as not admin (hides Add buttons)."
+    },
+    {
+      "from": "page:/admin/contacts/new",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/new/page.jsx#NewContactPage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Reads error as well: a failed role read skips the redirect and shows ROLE_LOAD_ERROR."
+    },
+    {
+      "from": "page:/admin/deals",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/page.jsx#DealsPage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Only isAdmin or isPm is read, so a failed role read behaves as not admin (hides Add buttons)."
+    },
+    {
+      "from": "page:/admin/deals/pipeline",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/pipeline/page.jsx#DealsPipelinePage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Only isAdmin or isPm is read, so a failed role read behaves as not admin (hides Add buttons)."
+    },
+    {
+      "from": "page:/admin/deals/new",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/new/page.jsx#NewDealPage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Reads error as well: a failed role read skips the redirect and shows ROLE_LOAD_ERROR."
+    },
+    {
+      "from": "page:/admin/deals/[id]",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/page.jsx#DealDetailPage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Only isAdmin or isPm is read, so a failed role read behaves as not admin (hides Add buttons)."
+    },
+    {
+      "from": "page:/admin/deals/[id]/edit",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/edit/page.jsx#EditDealPage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Only isAdmin or isPm is read, so a failed role read behaves as not admin (hides Add buttons)."
+    },
+    {
+      "from": "page:/admin/tasks/new",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/new/page.jsx#NewTaskPage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Reads error as well: a failed role read skips the redirect and shows ROLE_LOAD_ERROR."
+    },
+    {
+      "from": "page:/admin/users",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/users/page.jsx#UsersPage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Reads error as well: a failed role read skips the redirect and shows ROLE_LOAD_ERROR."
+    },
+    {
+      "from": "page:/admin/users/invite",
+      "to": "lib:lib/useUserRole.js#useUserRole",
+      "kind": "calls",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/users/invite/page.jsx#InviteUserPage",
+      "notes": "role gate in the page; cosmetic because the admin layout already limits /admin/** to admin. Reads error as well: a failed role read skips the redirect and shows ROLE_LOAD_ERROR."
+    },
+    {
+      "from": "page:/admin/companies/new",
+      "to": "table:public.companies",
+      "kind": "inserts",
+      "fields": [
+        "name",
+        "email",
+        "phone",
+        "website",
+        "industry",
+        "employee_count",
+        "created_by"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/companies/new/page.jsx#handleSubmit",
+      "notes": "name, email typed (required); phone, website, industry typed or null; employee_count Number() or null; created_by = auth.getUser().id; website is type=text with no URL check"
+    },
+    {
+      "from": "page:/admin/companies/[id]/edit",
+      "to": "table:public.companies",
+      "kind": "updates",
+      "fields": [
+        "name",
+        "email",
+        "phone",
+        "website",
+        "industry",
+        "employee_count"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/companies/[id]/edit/page.jsx#handleSubmit",
+      "notes": "eq id = URL param; .select() so zero matched rows is reported as an error; no updated_at guard (last write wins)"
+    },
+    {
+      "from": "page:/admin/companies/[id]",
+      "to": "table:public.companies",
+      "kind": "deletes",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/companies/[id]/page.jsx#handleDelete",
+      "notes": "eq id = URL param; .select() so zero rows is an error; the confirm text says contacts, deals, tasks and notes cascade; projects.company_id has no ON DELETE action in 0009 so a company with projects fails with a raw Postgres error"
+    },
+    {
+      "from": "page:/admin/contacts/new",
+      "to": "table:public.contacts",
+      "kind": "inserts",
+      "fields": [
+        "company_id",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "title",
+        "linkedin_url",
+        "status",
+        "created_by"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/new/page.jsx#handleSubmit",
+      "notes": "company_id from the select; names and email typed; phone, title, linkedin_url typed or null; status from the select (lead, prospect, customer, inactive); created_by = auth user id"
+    },
+    {
+      "from": "page:/admin/contacts/[id]/edit",
+      "to": "table:public.contacts",
+      "kind": "updates",
+      "fields": [
+        "company_id",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "title",
+        "linkedin_url",
+        "status"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/[id]/edit/page.jsx#handleSubmit",
+      "notes": "eq id = URL param; .select() zero-row check; changing company_id leaves existing notes on the old company"
+    },
+    {
+      "from": "page:/admin/contacts/[id]",
+      "to": "table:public.contacts",
+      "kind": "deletes",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/contacts/[id]/page.jsx#handleDelete",
+      "notes": "eq id = URL param; { count: exact }; count 0 is an error"
+    },
+    {
+      "from": "page:/admin/deals/new",
+      "to": "table:public.deals",
+      "kind": "inserts",
+      "fields": [
+        "company_id",
+        "contact_id",
+        "title",
+        "description",
+        "value",
+        "stage",
+        "probability",
+        "expected_close_date",
+        "project_type",
+        "owner_id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/new/page.jsx#handleSubmit",
+      "notes": "company_id required (JS re-check); value and probability Number(); project_type from PROJECT_CATEGORIES; owner_id = auth user id (the admin); deals has no created_by column"
+    },
+    {
+      "from": "page:/admin/deals/[id]/edit",
+      "to": "table:public.deals",
+      "kind": "updates",
+      "fields": [
+        "company_id",
+        "contact_id",
+        "title",
+        "description",
+        "value",
+        "stage",
+        "probability",
+        "expected_close_date",
+        "owner_id",
+        "project_type"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/edit/page.jsx#handleSubmit",
+      "notes": "eq id = URL param; owner_id from the Assigned Project Manager select, prefilled with the current owner; .select() zero-row check"
+    },
+    {
+      "from": "page:/admin/deals/pipeline",
+      "to": "table:public.deals",
+      "kind": "updates",
+      "fields": [
+        "stage"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/pipeline/page.jsx#handleStageChange",
+      "notes": "eq id = card; stage from the card select; optimistic with whole-list rollback; zero rows is an error"
+    },
+    {
+      "from": "page:/admin/deals/[id]",
+      "to": "table:public.deals",
+      "kind": "deletes",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/page.jsx#handleDelete",
+      "notes": "eq id = URL param; .select() zero-row check; projects.source_deal_id has no ON DELETE action in 0009 so a deal that became a project cannot be deleted"
+    },
+    {
+      "from": "page:/admin/tasks/new",
+      "to": "table:public.tasks",
+      "kind": "inserts",
+      "fields": [
+        "company_id",
+        "deal_id",
+        "contact_id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "due_date",
+        "assigned_to",
+        "created_by"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/new/page.jsx#handleSubmit",
+      "notes": "status from the select (first offered option); priority from TASK_PRIORITIES; assigned_to and created_by both = auth user id (no assignee picker)"
+    },
+    {
+      "from": "page:/admin/tasks/[id]/edit",
+      "to": "table:public.tasks",
+      "kind": "updates",
+      "fields": [
+        "company_id",
+        "deal_id",
+        "contact_id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "due_date"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/[id]/edit/page.jsx#handleSubmit",
+      "notes": "eq id = URL param; a legacy open/completed status is saved back as todo/done even if the user did not touch it"
+    },
+    {
+      "from": "page:/admin/tasks/[id]",
+      "to": "table:public.tasks",
+      "kind": "deletes",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/[id]/page.jsx#handleDelete",
+      "notes": "eq id = URL param; { count: exact }; count 0 is an error"
+    },
+    {
+      "from": "component:components/crm/EntityNotes.jsx",
+      "to": "table:public.notes",
+      "kind": "inserts",
+      "fields": [
+        "company_id",
+        "contact_id",
+        "content",
+        "visibility",
+        "created_by"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/EntityNotes.jsx#handleSubmit",
+      "notes": "company_id and contact_id from props; content typed (trimmed, no maxLength); visibility hard-coded 'internal'; created_by = auth user id"
+    },
+    {
+      "from": "component:components/auth/PortalLoginForm.jsx",
+      "to": "action:app/auth/actions.js#signIn",
+      "kind": "submits",
+      "fields": [
+        "portal",
+        "next",
+        "email",
+        "password"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/auth/PortalLoginForm.jsx#handleSubmit",
+      "notes": "hidden: portal (derived from portal.login), next (from ?next= through safeNextForPortal; omitted when invalid); typed: email (controlled), password"
+    },
+    {
+      "from": "page:/signup",
+      "to": "action:app/auth/actions.js#signUp",
+      "kind": "submits",
+      "fields": [
+        "accountType",
+        "fullName",
+        "email",
+        "password",
+        "confirmPassword"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/signup/page.jsx#handleSubmit",
+      "notes": "typed; accountType from a radio (client or employee). confirmPassword is compared in the browser only; the action never reads it"
+    },
+    {
+      "from": "page:/forgot-password",
+      "to": "action:app/auth/actions.js#requestPasswordReset",
+      "kind": "submits",
+      "fields": [
+        "email"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/forgot-password/page.jsx#handleSubmit",
+      "notes": "typed"
+    },
+    {
+      "from": "page:/auth/confirm",
+      "to": "action:app/auth/actions.js#resendConfirmationEmail",
+      "kind": "submits",
+      "fields": [
+        "email"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/auth/confirm/page.jsx#handleResend",
+      "notes": "derived from the ?email= URL param, not typed; an error result or a thrown call shows \"We couldn't resend the email\" and returns the button to its idle state"
+    },
+    {
+      "from": "page:/auth/reset-password",
+      "to": "action:app/auth/actions.js#updatePassword",
+      "kind": "submits",
+      "fields": [
+        "password",
+        "confirmPassword"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/auth/reset-password/page.jsx#handleSubmit",
+      "notes": "typed; confirmPassword is compared in the browser only"
+    },
+    {
+      "from": "component:components/crm/WorkspaceShell.jsx",
+      "to": "action:app/auth/actions.js#signOut",
+      "kind": "submits",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/WorkspaceShell.jsx#WorkspaceShell",
+      "notes": "form action, no fields; redirects to /login"
+    },
+    {
+      "from": "page:/admin",
+      "to": "action:app/auth/actions.js#signOut",
+      "kind": "submits",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": "form action, no fields; redirects to /login"
+    },
+    {
+      "from": "component:components/crm/ClientOnboardingForm.jsx",
+      "to": "action:app/actions/onboarding-actions.js#onboardClientCompany",
+      "kind": "submits",
+      "fields": [
+        "companyName",
+        "contactName",
+        "phone"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ClientOnboardingForm.jsx#handleSubmit",
+      "notes": "typed (maxLength 120, 120, 40)"
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "action:app/actions/brief-actions.js#startBrief",
+      "kind": "submits",
+      "fields": [
+        "briefType"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#handleStartBrief",
+      "notes": "derived: the clicked service card"
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "action:app/actions/brief-actions.js#deleteBriefDraft",
+      "kind": "submits",
+      "fields": [
+        "briefId"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#handleDeleteDraft",
+      "notes": "derived: draft row loaded by listDraftBriefs; after window.confirm"
+    },
+    {
+      "from": "component:components/crm/ProjectBriefs.jsx",
+      "to": "action:app/actions/brief-actions.js#startBrief",
+      "kind": "submits",
+      "fields": [
+        "briefType",
+        "projectId"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectBriefs.jsx#handleStart",
+      "notes": "derived: clicked type button and the projectId prop"
+    },
+    {
+      "from": "component:components/crm/BriefWizard.jsx",
+      "to": "action:app/actions/brief-actions.js#saveBriefDraft",
+      "kind": "submits",
+      "fields": [
+        "briefId",
+        "answers"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/BriefWizard.jsx#flush",
+      "notes": "derived: brief.id and JSON.stringify(answersRef.current); debounced 900 ms"
+    },
+    {
+      "from": "component:components/crm/BriefWizard.jsx",
+      "to": "action:app/actions/brief-actions.js#submitBrief",
+      "kind": "submits",
+      "fields": [
+        "briefId",
+        "destination",
+        "projectId",
+        "projectTitle",
+        "targetDate"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/BriefWizard.jsx#handleSubmit",
+      "notes": "destination from radio; projectId (attach) from the project select; projectTitle typed or derived briefDisplayTitle(); targetDate typed or derived from answers.deadline or answers.start_date"
+    },
+    {
+      "from": "component:components/crm/BriefSubmissionForm.jsx",
+      "to": "action:app/actions/project-actions.js#createProject",
+      "kind": "submits",
+      "fields": [
+        "title",
+        "brief",
+        "targetDate",
+        "category"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/BriefSubmissionForm.jsx#handleBriefSubmit",
+      "notes": "typed; brief and category are optional in the form but required by the action"
+    },
+    {
+      "from": "page:/team/projects/[id]",
+      "to": "action:app/actions/project-actions.js#transitionProject",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "fromStatus",
+        "toStatus",
+        "note"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#handleTransition",
+      "notes": "projectId and fromStatus from the loaded workspace; toStatus from the clicked button (every ALLOWED_TRANSITIONS target; cancelled asks window.confirm first); note derived \"Status moved to <status>.\"; visibility not sent (action default shared); buttons disabled while the call is pending; a failure shows beside the buttons (actionError) and keeps the workspace on screen"
+    },
+    {
+      "from": "page:/admin/projects/[id]",
+      "to": "action:app/actions/project-actions.js#transitionProject",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "fromStatus",
+        "toStatus",
+        "visibility",
+        "note"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#handleTransition",
+      "notes": "same as team (confirm for cancelled, buttons disabled while pending, actionError) plus visibility hard-coded 'shared'; note derived \"Status moved to <status> by admin.\""
+    },
+    {
+      "from": "page:/team/projects/[id]",
+      "to": "action:app/actions/project-actions.js#createProjectTask",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "title",
+        "dueDate",
+        "priority",
+        "clientVisible"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#handleAddTask",
+      "notes": "typed: title, dueDate (omitted when empty), priority select, clientVisible checkbox sent as 'true'/'false'; status, description, assignee never sent (action defaults)"
+    },
+    {
+      "from": "component:components/crm/LeadManagerCard.jsx",
+      "to": "action:app/actions/assignment-actions.js#listProjectManagerCandidates",
+      "kind": "submits",
+      "fields": [],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/LeadManagerCard.jsx#loadCandidates",
+      "notes": "no arguments"
+    },
+    {
+      "from": "component:components/crm/LeadManagerCard.jsx",
+      "to": "action:app/actions/assignment-actions.js#setLeadProjectManager",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "userId"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/LeadManagerCard.jsx#handleAssign",
+      "notes": "projectId prop; userId from the picked candidate button"
+    },
+    {
+      "from": "component:components/crm/LeadManagerCard.jsx",
+      "to": "action:app/actions/project-actions.js#removeProjectAssignment",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "userId"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/LeadManagerCard.jsx#handleRemove",
+      "notes": "projectId prop; userId from the assignment row; no confirmation"
+    },
+    {
+      "from": "component:components/crm/ProjectFiles.jsx",
+      "to": "action:app/actions/project-actions.js#createProjectDeliverable",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "title",
+        "fileName",
+        "mimeType",
+        "sizeBytes"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectFiles.jsx#handleUpload",
+      "notes": "derived from the picked File: title = file.name, fileName, mimeType = file.type or 'application/octet-stream', sizeBytes; visibility not sent (default shared)"
+    },
+    {
+      "from": "component:components/crm/ProjectFiles.jsx",
+      "to": "action:app/actions/project-actions.js#publishDeliverable",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "deliverableId",
+        "status"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectFiles.jsx#handleUpload",
+      "notes": "deliverableId from the reserve result; status hard-coded 'submitted'"
+    },
+    {
+      "from": "component:components/crm/ProjectFiles.jsx",
+      "to": "action:app/actions/project-actions.js#createAttachmentDownloadUrl",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "assetId",
+        "kind"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectFiles.jsx#handleDownload",
+      "notes": "assetId from the clicked row; kind 'attachment' or 'deliverable'; result signedUrl opened with window.open"
+    },
+    {
+      "from": "component:components/crm/useProjectThread.js",
+      "to": "action:app/actions/project-actions.js#createAttachmentDownloadUrl",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "assetId",
+        "kind"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#handleDownload",
+      "notes": "kind hard-coded 'attachment'; result signedUrl opened with window.open"
+    },
+    {
+      "from": "component:components/crm/useProjectThread.js",
+      "to": "action:app/actions/project-actions.js#postProjectMessage",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "body",
+        "clientGeneratedId",
+        "attachmentIds"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#handleSend",
+      "notes": "body typed (trimmed); clientGeneratedId = crypto.randomUUID() kept across retries; attachmentIds = ready staged files; visibility not sent (default shared)"
+    },
+    {
+      "from": "component:components/crm/useProjectThread.js",
+      "to": "action:app/actions/project-actions.js#editProjectMessage",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "messageId",
+        "body"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#handleSaveEdit",
+      "notes": "messageId from the edited row; body typed (trimmed)"
+    },
+    {
+      "from": "component:components/crm/useProjectThread.js",
+      "to": "action:app/actions/project-actions.js#reserveAttachment",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "fileName",
+        "mimeType",
+        "sizeBytes"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#handleFileChange",
+      "notes": "derived from the picked File; mimeType falls back to 'application/octet-stream'; visibility not sent (default shared)"
+    },
+    {
+      "from": "component:components/crm/useProjectThread.js",
+      "to": "action:app/actions/project-actions.js#finalizeAttachment",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "attachmentId"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#handleFileChange",
+      "notes": "attachmentId from the reserve result; called at file-pick time (before Send) and from the retry path"
+    },
+    {
+      "from": "component:components/crm/ProjectApprovals.jsx",
+      "to": "action:app/actions/project-actions.js#updateProjectApproval",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "approvalId",
+        "status"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectApprovals.jsx#decide",
+      "notes": "status hard-coded 'approved' or 'rejected' by the button; rendered with canDecide only on /team and /admin project pages"
+    },
+    {
+      "from": "component:components/crm/NotificationsPanel.jsx",
+      "to": "action:app/actions/project-actions.js#markNotificationsRead",
+      "kind": "submits",
+      "fields": [
+        "notificationId"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/NotificationsPanel.jsx#markRead",
+      "notes": "one or all unread ids from the notifications prop; local read set updated only when ok; a not-ok result or a thrown call shows an inline status message"
+    },
+    {
+      "from": "page:/dashboard/projects/[id]",
+      "to": "action:app/actions/project-actions.js#markNotificationsRead",
+      "kind": "submits",
+      "fields": [
+        "notificationId"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#ClientProjectPage",
+      "notes": "ids of unread notifications mapped to the open Messages or Files tab; badge cleared optimistically; a failure is swallowed and the server copy stays unread"
+    },
+    {
+      "from": "component:components/crm/NotesPanel.jsx",
+      "to": "action:app/actions/project-actions.js#postProjectNote",
+      "kind": "submits",
+      "fields": [
+        "projectId",
+        "note"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/NotesPanel.jsx#handleSubmit",
+      "notes": "note typed (trimmed, no maxLength; action allows 2000); visibility not sent (default shared)"
+    },
+    {
+      "from": "page:/admin/users",
+      "to": "action:app/admin/users/actions.js#changeUserRole",
+      "kind": "submits",
+      "fields": [
+        "userId",
+        "role"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/users/page.jsx#handleRoleChange",
+      "notes": "userId from the row; role from the select (project_manager or client); optimistic"
+    },
+    {
+      "from": "page:/admin/users",
+      "to": "action:app/admin/users/actions.js#resolveStaffRequest",
+      "kind": "submits",
+      "fields": [
+        "userId",
+        "decision"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/users/page.jsx#handleStaffRequest",
+      "notes": "decision hard-coded 'approve' or 'decline' by the button; optimistic"
+    },
+    {
+      "from": "page:/admin/users/invite",
+      "to": "action:app/admin/users/actions.js#inviteUser",
+      "kind": "submits",
+      "fields": [
+        "email",
+        "fullName",
+        "role"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/users/invite/page.jsx#handleSubmit",
+      "notes": "typed; role select offers project_manager only"
+    },
+    {
+      "from": "component:app/admin/blog/PostForm.jsx",
+      "to": "action:app/actions/blog-actions.js#createPostAction",
+      "kind": "submits",
+      "fields": [
+        "title",
+        "slug",
+        "excerpt",
+        "body",
+        "seoTitle",
+        "seoDescription",
+        "coverImageUrl",
+        "status"
+      ],
+      "via": "user",
+      "when": "prop action = createPostAction",
+      "source": "app/admin/blog/PostForm.jsx#PostForm",
+      "notes": "typed; action is passed as a prop by /admin/blog/new; the action ends with redirect(/admin/blog/{id}), so the new-post form is left after a successful create"
+    },
+    {
+      "from": "component:app/admin/blog/PostForm.jsx",
+      "to": "action:app/actions/blog-actions.js#updatePostAction",
+      "kind": "submits",
+      "fields": [
+        "id",
+        "title",
+        "slug",
+        "excerpt",
+        "body",
+        "seoTitle",
+        "seoDescription",
+        "coverImageUrl",
+        "status"
+      ],
+      "via": "user",
+      "when": "prop action = updatePostAction",
+      "source": "app/admin/blog/PostForm.jsx#PostForm",
+      "notes": "id is a hidden input from the loaded post; the rest typed; action is passed as a prop by /admin/blog/[id]"
+    },
+    {
+      "from": "component:app/admin/blog/PostRowActions.jsx",
+      "to": "action:app/actions/blog-actions.js#setPostStatusAction",
+      "kind": "submits",
+      "fields": [
+        "id",
+        "status"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/blog/PostRowActions.jsx#toggleStatus",
+      "notes": "id from the row; status derived (the opposite of the current status)"
+    },
+    {
+      "from": "component:app/admin/blog/PostRowActions.jsx",
+      "to": "action:app/actions/blog-actions.js#deletePostAction",
+      "kind": "submits",
+      "fields": [
+        "id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/blog/PostRowActions.jsx#remove",
+      "notes": "id from the row; after an in-page Confirm delete step"
+    },
+    {
+      "from": "component:components/crm/useProjectThread.js",
+      "to": "bucket:project-files",
+      "kind": "uploads",
+      "fields": [
+        "storagePath",
+        "file"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#handleFileChange",
+      "notes": "storage.from(project-files).upload(storagePath, file, { upsert: false }) with the user JWT, right after reserveAttachment and before finalizeAttachment; path {project_id}/{attachment_id}/{safe_filename} from the reservation; insert policy needs the attachment pending and uploaded_by = caller (0009)"
+    },
+    {
+      "from": "component:components/crm/useProjectThread.js",
+      "to": "bucket:project-files",
+      "kind": "uploads",
+      "fields": [
+        "storagePath",
+        "file"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#retryStagedAttachment",
+      "notes": "retry path: re-uploads only when the first upload did not complete (uploaded=false); upsert false so an object that actually landed makes the retry fail with a duplicate error; the user can then Remove the staged file (the pending reservation is reclaimed by cleanup)"
+    },
+    {
+      "from": "component:components/crm/ProjectFiles.jsx",
+      "to": "bucket:project-files",
+      "kind": "uploads",
+      "fields": [
+        "storagePath",
+        "file"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectFiles.jsx#handleUpload",
+      "notes": "staff deliverable upload after createProjectDeliverable (row status draft), before publishDeliverable; no upsert option; no retry path; insert policy needs the deliverable draft and created_by = caller (0013)"
+    },
+    {
+      "from": "component:components/crm/useProjectThread.js",
+      "to": "lib:lib/crm/projectRealtime.js#subscribeProjectTopics",
+      "kind": "calls",
+      "fields": [
+        "topics",
+        "onEvent"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#useProjectThread",
+      "notes": "topics: shared always, internal when role is not client; opened only after the thread id is known; no presence option"
+    },
+    {
+      "from": "component:components/crm/useProjectLive.js",
+      "to": "lib:lib/crm/projectRealtime.js#subscribeProjectTopics",
+      "kind": "calls",
+      "fields": [
+        "topics",
+        "onEvent",
+        "onPresence",
+        "presence"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectLive.js#useProjectLive",
+      "notes": "topics: shared always, internal when role is not client; presence payload { userId, name } tracked on the shared topic only"
+    },
+    {
+      "from": "realtime:project:{id}:shared",
+      "to": "lib:lib/crm/projectRealtime.js#subscribeProjectTopics",
+      "kind": "delivers",
+      "fields": [
+        "project_message_created",
+        "project_message_updated",
+        "project_status_changed",
+        "project_task_changed",
+        "project_approval_changed",
+        "resync"
+      ],
+      "via": "user",
+      "when": "any project participant",
+      "source": "lib/crm/projectRealtime.js#subscribeProjectTopics",
+      "notes": "private broadcast; payload carries identifiers only (project_id plus message_id, task_id or approval_id); authorised by private.can_subscribe_project_topic; resync is synthesised in the browser on every re-join after the first"
+    },
+    {
+      "from": "realtime:project:{id}:shared",
+      "to": "component:components/crm/useProjectThread.js",
+      "kind": "delivers",
+      "fields": [
+        "project_message_created",
+        "project_message_updated",
+        "resync"
+      ],
+      "via": "user",
+      "when": "payload.project_id equals the open project and payload.visibility equals the topic visibility",
+      "source": "components/crm/useProjectThread.js#useProjectThread",
+      "notes": "every accepted event runs load(), which replaces messages with the newest 20; other event names are ignored"
+    },
+    {
+      "from": "realtime:project:{id}:shared",
+      "to": "component:components/crm/useProjectLive.js",
+      "kind": "delivers",
+      "fields": [
+        "project_message_created",
+        "project_message_updated",
+        "project_status_changed",
+        "project_task_changed",
+        "project_approval_changed",
+        "resync"
+      ],
+      "via": "user",
+      "when": "payload.project_id equals the open project (resync always)",
+      "source": "components/crm/useProjectLive.js#useProjectLive",
+      "notes": "events are collected in a Set and flushed after 250 ms to onChange(events); the pages reload the workspace unless only message events arrived"
+    },
+    {
+      "from": "realtime:project:{id}:internal",
+      "to": "lib:lib/crm/projectRealtime.js#subscribeProjectTopics",
+      "kind": "delivers",
+      "fields": [
+        "project_message_created",
+        "project_message_updated",
+        "project_status_changed",
+        "project_task_changed",
+        "project_approval_changed",
+        "resync"
+      ],
+      "via": "user",
+      "when": "staff who can view internal records",
+      "source": "lib/crm/projectRealtime.js#subscribeProjectTopics",
+      "notes": "private broadcast; payload carries identifiers only (project_id plus message_id, task_id or approval_id); authorised by private.can_subscribe_project_topic; resync is synthesised in the browser on every re-join after the first"
+    },
+    {
+      "from": "realtime:project:{id}:internal",
+      "to": "component:components/crm/useProjectThread.js",
+      "kind": "delivers",
+      "fields": [
+        "project_message_created",
+        "project_message_updated",
+        "resync"
+      ],
+      "via": "user",
+      "when": "payload.project_id equals the open project and payload.visibility equals the topic visibility",
+      "source": "components/crm/useProjectThread.js#useProjectThread",
+      "notes": "every accepted event runs load(), which replaces messages with the newest 20; other event names are ignored"
+    },
+    {
+      "from": "realtime:project:{id}:internal",
+      "to": "component:components/crm/useProjectLive.js",
+      "kind": "delivers",
+      "fields": [
+        "project_message_created",
+        "project_message_updated",
+        "project_status_changed",
+        "project_task_changed",
+        "project_approval_changed",
+        "resync"
+      ],
+      "via": "user",
+      "when": "payload.project_id equals the open project (resync always)",
+      "source": "components/crm/useProjectLive.js#useProjectLive",
+      "notes": "events are collected in a Set and flushed after 250 ms to onChange(events); the pages reload the workspace unless only message events arrived"
+    },
+    {
+      "from": "realtime:project:{id}:shared",
+      "to": "component:components/crm/useProjectLive.js",
+      "kind": "delivers",
+      "fields": [
+        "presence sync: userId",
+        "presence sync: name"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectLive.js#uniqueViewers",
+      "notes": "presence state of every socket on the shared topic; uniqueViewers drops self and de-duplicates by userId; shown by ProjectPresence"
+    },
+    {
+      "from": "component:components/crm/useProjectLive.js",
+      "to": "realtime:project:{id}:shared",
+      "kind": "broadcasts",
+      "fields": [
+        "userId",
+        "name"
+      ],
+      "via": "user",
+      "when": "channel joined (SUBSCRIBED) with a presence payload",
+      "source": "components/crm/useProjectLive.js#useProjectLive",
+      "notes": "presence track { userId: profile.id, name: profile.full_name } on the shared topic only; allowed by the realtime.messages insert policy for presence (0050); the browser cannot send broadcast events (no insert policy)"
+    },
+    {
+      "from": "page:/dashboard/projects/[id]",
+      "to": "component:components/crm/useProjectLive.js",
+      "kind": "calls",
+      "fields": [
+        "projectId",
+        "profile",
+        "onChange"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#ClientProjectPage",
+      "notes": "onChange: workspace events reload getProjectWorkspace, notifications and manager name; message-only bursts reload notifications only"
+    },
+    {
+      "from": "page:/team/projects/[id]",
+      "to": "component:components/crm/useProjectLive.js",
+      "kind": "calls",
+      "fields": [
+        "projectId",
+        "profile",
+        "onChange"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#TeamProjectPage",
+      "notes": "onChange: workspace events (status, task, approval, resync) call loadWorkspace(); message-only bursts are ignored here"
+    },
+    {
+      "from": "page:/admin/projects/[id]",
+      "to": "component:components/crm/useProjectLive.js",
+      "kind": "calls",
+      "fields": [
+        "projectId",
+        "profile",
+        "onChange"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#AdminProjectPage",
+      "notes": "onChange: workspace events (status, task, approval, resync) call loadWorkspace(); message-only bursts are ignored here"
+    },
+    {
+      "from": "page:/dashboard/projects/[id]",
+      "to": "component:components/crm/ProjectThread.jsx",
+      "kind": "calls",
+      "fields": [
+        "projectId",
+        "profile"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#ClientProjectPage",
+      "notes": "profile must be the full loaded profile row (id, role, company_id); the deal page passes the linked project id and only renders it when one exists"
+    },
+    {
+      "from": "page:/team/projects/[id]",
+      "to": "component:components/crm/ProjectThread.jsx",
+      "kind": "calls",
+      "fields": [
+        "projectId",
+        "profile"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#TeamProjectPage",
+      "notes": "profile must be the full loaded profile row (id, role, company_id); the deal page passes the linked project id and only renders it when one exists"
+    },
+    {
+      "from": "page:/admin/projects/[id]",
+      "to": "component:components/crm/ProjectThread.jsx",
+      "kind": "calls",
+      "fields": [
+        "projectId",
+        "profile"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#AdminProjectPage",
+      "notes": "profile must be the full loaded profile row (id, role, company_id); the deal page passes the linked project id and only renders it when one exists"
+    },
+    {
+      "from": "page:/admin/deals/[id]",
+      "to": "component:components/crm/ProjectThread.jsx",
+      "kind": "calls",
+      "fields": [
+        "projectId",
+        "profile"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/deals/[id]/page.jsx#DealDetailPage",
+      "notes": "profile must be the full loaded profile row (id, role, company_id); the deal page passes the linked project id and only renders it when one exists"
+    },
+    {
+      "from": "component:components/crm/PortalTour.jsx",
+      "to": "storage:local:cws.portal.tour.seen.v1",
+      "kind": "sets",
+      "fields": [
+        "ISO timestamp"
+      ],
+      "via": "browser",
+      "when": "Skip tour, Finish, or Escape",
+      "source": "components/crm/PortalTour.jsx#writeSeenKey",
+      "notes": "key cws.portal.tour.seen.v1 = new Date().toISOString(); per browser, not per user; removed again by clearSeenKey when \"Replay tour\" is pressed"
+    },
+    {
+      "from": "storage:local:cws.portal.tour.seen.v1",
+      "to": "component:components/crm/PortalTour.jsx",
+      "kind": "gets",
+      "fields": [
+        "presence of the key"
+      ],
+      "via": "browser",
+      "when": "mount",
+      "source": "components/crm/PortalTour.jsx#readSeenKey",
+      "notes": "tour opens when the key is absent or storage throws (private mode)"
+    },
+    {
+      "from": "component:app/admin/blog/PostForm.jsx",
+      "to": "page:/admin/blog/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "server",
+      "when": "createPostAction ok (the action calls redirect(/admin/blog/{id}))",
+      "source": "app/admin/blog/PostForm.jsx#PostForm",
+      "notes": "redirect() is thrown by the server action, not by PostForm"
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "component:components/crm/PortalTour.jsx",
+      "kind": "calls",
+      "fields": [
+        "replayToken"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#DashboardPage",
+      "notes": "the Replay tour button bumps replayToken; any value above 0 clears the key and reopens the tour"
+    },
+    {
+      "from": "param:error",
+      "to": "component:components/auth/PortalLoginForm.jsx",
+      "kind": "gets",
+      "fields": [
+        "error"
+      ],
+      "via": "browser",
+      "when": "",
+      "source": "components/auth/PortalLoginForm.jsx#PortalLoginForm",
+      "notes": "read once in useEffect from window.location.search; 'configuration' shows the configuration message, any other value shows the generic portal error"
+    },
+    {
+      "from": "param:next",
+      "to": "component:components/auth/PortalLoginForm.jsx",
+      "kind": "gets",
+      "fields": [
+        "next"
+      ],
+      "via": "browser",
+      "when": "",
+      "source": "components/auth/PortalLoginForm.jsx#PortalLoginForm",
+      "notes": "validated with safeNextForPortal(portalName, value); a valid value becomes the hidden next input, an invalid one is dropped silently"
+    },
+    {
+      "from": "param:email",
+      "to": "page:/auth/confirm",
+      "kind": "gets",
+      "fields": [
+        "email"
+      ],
+      "via": "browser",
+      "when": "",
+      "source": "app/auth/confirm/page.jsx#ConfirmContent",
+      "notes": "useSearchParams; shown nowhere, used as the resend target; hides the resend row when empty"
+    },
+    {
+      "from": "param:reason",
+      "to": "page:/auth/reset-password",
+      "kind": "gets",
+      "fields": [
+        "reason"
+      ],
+      "via": "browser",
+      "when": "",
+      "source": "app/auth/reset-password/page.jsx#InviteAwareForm",
+      "notes": "reason=invite switches the copy only; the action does not read it"
+    },
+    {
+      "from": "param:pm",
+      "to": "page:/admin/projects",
+      "kind": "gets",
+      "fields": [
+        "pm"
+      ],
+      "via": "browser",
+      "when": "",
+      "source": "app/admin/projects/page.jsx#AdminProjectsPage",
+      "notes": "read once on mount; pm=none presets the 'Needs a project manager' filter"
+    },
+    {
+      "from": "page:/admin",
+      "to": "param:pm",
+      "kind": "sets",
+      "fields": [
+        "pm"
+      ],
+      "via": "browser",
+      "when": "projectStats.needsManager > 0",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": "link /admin/projects?pm=none"
+    },
+    {
+      "from": "component:components/crm/BriefWizard.jsx",
+      "to": "param:brief",
+      "kind": "sets",
+      "fields": [
+        "brief"
+      ],
+      "via": "browser",
+      "when": "",
+      "source": "components/crm/BriefWizard.jsx#handleSubmit",
+      "notes": "router.push(/dashboard/projects/{id}?brief=submitted) after submitBrief ok"
+    },
+    {
+      "from": "param:brief",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "gets",
+      "fields": [
+        "brief"
+      ],
+      "via": "browser",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#ClientProjectPage",
+      "notes": "brief=submitted shows the received banner (justSubmitted state) and the param is removed with history.replaceState"
+    },
+    {
+      "from": "page:/dashboard/projects/[id]",
+      "to": "param:brief",
+      "kind": "sets",
+      "fields": [
+        "brief"
+      ],
+      "via": "browser",
+      "when": "after reading brief=submitted",
+      "source": "app/dashboard/projects/[id]/page.jsx#ClientProjectPage",
+      "notes": "removal only: replaceState drops the param, keeps tab and other params"
+    },
+    {
+      "from": "param:tab",
+      "to": "component:components/crm/Tabs.jsx",
+      "kind": "gets",
+      "fields": [
+        "tab"
+      ],
+      "via": "browser",
+      "when": "mount",
+      "source": "components/crm/Tabs.jsx#Tabs",
+      "notes": "read once; ignored when not one of the tab ids or equal to the first tab"
+    },
+    {
+      "from": "component:components/crm/Tabs.jsx",
+      "to": "param:tab",
+      "kind": "sets",
+      "fields": [
+        "tab"
+      ],
+      "via": "browser",
+      "when": "tab selected, or the controlling page changes value",
+      "source": "components/crm/Tabs.jsx#writeUrl",
+      "notes": "history.replaceState; the first tab removes the param; other query params are kept"
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "page:/login/client",
+      "kind": "redirects",
+      "fields": [],
+      "via": "server",
+      "when": "every /dashboard/** request: requireRole([client]) fails (no session, profile read error, or another role)",
+      "source": "app/dashboard/layout.jsx#DashboardLayout",
+      "notes": "layout gate; middleware has already redirected unauthenticated and wrong-role requests"
+    },
+    {
+      "from": "page:/team",
+      "to": "page:/login/employee",
+      "kind": "redirects",
+      "fields": [],
+      "via": "server",
+      "when": "every /team/** request: requireRole([project_manager]) fails",
+      "source": "app/team/layout.jsx#TeamLayout",
+      "notes": "layout gate"
+    },
+    {
+      "from": "page:/admin",
+      "to": "page:/login/admin",
+      "kind": "redirects",
+      "fields": [],
+      "via": "server",
+      "when": "every /admin/** request: requireRole([admin]) fails",
+      "source": "app/admin/layout.jsx#AdminLayout",
+      "notes": "layout gate; getAuthenticatedProfile returns null on a profile read error, so a transient error redirects a real admin"
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "page:/login",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "no user, or profile read failed",
+      "source": "app/dashboard/page.jsx#DashboardPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "page:/admin",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "profile.role = admin",
+      "source": "app/dashboard/page.jsx#DashboardPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "page:/team",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "profile.role = project_manager",
+      "source": "app/dashboard/page.jsx#DashboardPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "page:/onboarding",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "client without company_id",
+      "source": "app/dashboard/page.jsx#DashboardPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "page:/dashboard/briefs/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "startBrief ok",
+      "source": "app/dashboard/page.jsx#handleStartBrief",
+      "notes": ""
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "free-form createProject ok",
+      "source": "app/dashboard/page.jsx#handleProjectCreated",
+      "notes": ""
+    },
+    {
+      "from": "page:/dashboard/briefs/[id]",
+      "to": "page:/login/client",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "no user",
+      "source": "app/dashboard/briefs/[id]/page.jsx#ClientBriefPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/dashboard/briefs/[id]",
+      "to": "page:/onboarding",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "profile has no company_id",
+      "source": "app/dashboard/briefs/[id]/page.jsx#ClientBriefPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/dashboard/briefs/[id]",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "brief already submitted and has a project_id",
+      "source": "app/dashboard/briefs/[id]/page.jsx#ClientBriefPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/onboarding",
+      "to": "page:/dashboard",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "profile.company_id already set",
+      "source": "app/onboarding/page.jsx#ClientOnboardingPage",
+      "notes": ""
+    },
+    {
+      "from": "component:components/crm/BriefWizard.jsx",
+      "to": "page:/dashboard/projects/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "submitBrief ok",
+      "source": "components/crm/BriefWizard.jsx#handleSubmit",
+      "notes": "adds ?brief=submitted"
+    },
+    {
+      "from": "component:components/crm/ProjectBriefs.jsx",
+      "to": "page:/dashboard/briefs/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "startBrief ok",
+      "source": "components/crm/ProjectBriefs.jsx#handleStart",
+      "notes": ""
+    },
+    {
+      "from": "page:/auth/confirm",
+      "to": "page:/dashboard",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "link \"continue to dashboard\"; works only when a session exists, otherwise middleware sends the visitor to /login/client",
+      "source": "app/auth/confirm/page.jsx#ConfirmContent",
+      "notes": ""
+    },
+    {
+      "from": "page:/auth/confirm",
+      "to": "page:/login",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "link \"Back to Login\"",
+      "source": "app/auth/confirm/page.jsx#ConfirmContent",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/users",
+      "to": "page:/admin",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "useUserRole says not admin (including a role read error)",
+      "source": "app/admin/users/page.jsx#UsersPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/users/invite",
+      "to": "page:/admin",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "useUserRole says not admin (including a role read error)",
+      "source": "app/admin/users/invite/page.jsx#InviteUserPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/companies/new",
+      "to": "page:/admin/companies",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "useUserRole says not admin",
+      "source": "app/admin/companies/new/page.jsx#NewCompanyPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/contacts/new",
+      "to": "page:/admin/contacts",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "useUserRole says not admin",
+      "source": "app/admin/contacts/new/page.jsx#NewContactPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/deals/new",
+      "to": "page:/admin/deals",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "useUserRole says not admin",
+      "source": "app/admin/deals/new/page.jsx#NewDealPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/tasks/new",
+      "to": "page:/admin/tasks",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "useUserRole says not admin",
+      "source": "app/admin/tasks/new/page.jsx#NewTaskPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/companies/new",
+      "to": "page:/admin/companies/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "insert ok",
+      "source": "app/admin/companies/new/page.jsx#handleSubmit",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/contacts/new",
+      "to": "page:/admin/contacts/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "insert ok",
+      "source": "app/admin/contacts/new/page.jsx#handleSubmit",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/deals/new",
+      "to": "page:/admin/deals/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "insert ok",
+      "source": "app/admin/deals/new/page.jsx#handleSubmit",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/tasks/new",
+      "to": "page:/admin/tasks/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "insert ok",
+      "source": "app/admin/tasks/new/page.jsx#handleSubmit",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/companies/[id]/edit",
+      "to": "page:/admin/companies/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "update ok",
+      "source": "app/admin/companies/[id]/edit/page.jsx#handleSubmit",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/contacts/[id]/edit",
+      "to": "page:/admin/contacts/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "update ok",
+      "source": "app/admin/contacts/[id]/edit/page.jsx#handleSubmit",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/deals/[id]/edit",
+      "to": "page:/admin/deals/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "update ok",
+      "source": "app/admin/deals/[id]/edit/page.jsx#handleSubmit",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/tasks/[id]/edit",
+      "to": "page:/admin/tasks/[id]",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "update ok",
+      "source": "app/admin/tasks/[id]/edit/page.jsx#handleSubmit",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/companies/[id]",
+      "to": "page:/admin/companies",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "delete ok",
+      "source": "app/admin/companies/[id]/page.jsx#handleDelete",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/contacts/[id]",
+      "to": "page:/admin/contacts",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "delete ok",
+      "source": "app/admin/contacts/[id]/page.jsx#handleDelete",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/deals/[id]",
+      "to": "page:/admin/deals",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "delete ok",
+      "source": "app/admin/deals/[id]/page.jsx#handleDelete",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin/tasks/[id]",
+      "to": "page:/admin/tasks",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "delete ok",
+      "source": "app/admin/tasks/[id]/page.jsx#handleDelete",
+      "notes": ""
+    },
+    {
+      "from": "page:/admin",
+      "to": "page:/admin/projects",
+      "kind": "redirects",
+      "fields": [],
+      "via": "browser",
+      "when": "link; with ?pm=none when projects need a manager",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": ""
+    },
+    {
+      "from": "page:/team/projects/[id]",
+      "to": "lib:lib/crm/project-contract.mjs#ALLOWED_TRANSITIONS",
+      "kind": "calls",
+      "fields": [
+        "ALLOWED_TRANSITIONS",
+        "canTransition"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/team/projects/[id]/page.jsx#TeamProjectPage",
+      "notes": "transition buttons offered = every ALLOWED_TRANSITIONS target of the loaded status, including terminal cancelled with no confirmation"
+    },
+    {
+      "from": "page:/admin/projects/[id]",
+      "to": "lib:lib/crm/project-contract.mjs#ALLOWED_TRANSITIONS",
+      "kind": "calls",
+      "fields": [
+        "ALLOWED_TRANSITIONS",
+        "canTransition"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/[id]/page.jsx#AdminProjectPage",
+      "notes": "same list as the team page"
+    },
+    {
+      "from": "page:/admin/projects",
+      "to": "lib:lib/crm/project-contract.mjs#ALLOWED_TRANSITIONS",
+      "kind": "calls",
+      "fields": [
+        "PROJECT_STATUSES",
+        "TERMINAL_PROJECT_STATUSES"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/projects/page.jsx#AdminProjectsPage",
+      "notes": "status filter options and the needs-a-manager rule"
+    },
+    {
+      "from": "page:/admin",
+      "to": "lib:lib/crm/project-contract.mjs#ALLOWED_TRANSITIONS",
+      "kind": "calls",
+      "fields": [
+        "TERMINAL_PROJECT_STATUSES"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/page.jsx#AdminDashboard",
+      "notes": "open-project count excludes delivered and cancelled"
+    },
+    {
+      "from": "page:/admin/tasks/new",
+      "to": "lib:lib/crm/project-contract.mjs#ALLOWED_TRANSITIONS",
+      "kind": "calls",
+      "fields": [
+        "TASK_STATUSES",
+        "TASK_PRIORITIES"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/new/page.jsx#NewTaskPage",
+      "notes": "the legacy tasks table reuses the project_tasks lists"
+    },
+    {
+      "from": "page:/admin/tasks/[id]/edit",
+      "to": "lib:lib/crm/project-contract.mjs#ALLOWED_TRANSITIONS",
+      "kind": "calls",
+      "fields": [
+        "TASK_STATUSES",
+        "TASK_PRIORITIES"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/tasks/[id]/edit/page.jsx#EditTaskPage",
+      "notes": "the legacy tasks table reuses the project_tasks lists"
+    },
+    {
+      "from": "component:components/crm/useProjectThread.js",
+      "to": "lib:lib/crm/projectRealtime.js#projectTopic",
+      "kind": "calls",
+      "fields": [
+        "projectTopic"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectThread.js#useProjectThread",
+      "notes": "builds project:<id>:<visibility> without the UUID check in project-contract sharedProjectTopic/internalProjectTopic"
+    },
+    {
+      "from": "component:components/crm/useProjectLive.js",
+      "to": "lib:lib/crm/projectRealtime.js#projectTopic",
+      "kind": "calls",
+      "fields": [
+        "projectTopic"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/useProjectLive.js#useProjectLive",
+      "notes": "same builder"
+    },
+    {
+      "from": "component:components/crm/ProjectOverview.jsx",
+      "to": "lib:lib/crm/labels.mjs#projectStatusLabel",
+      "kind": "calls",
+      "fields": [
+        "projectStatusLabel",
+        "projectStatusBadgeClass",
+        "projectCategoryLabel"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectOverview.jsx#ProjectOverview",
+      "notes": ""
+    },
+    {
+      "from": "component:components/crm/ProjectTimeline.jsx",
+      "to": "lib:lib/crm/labels.mjs#projectStatusLabel",
+      "kind": "calls",
+      "fields": [
+        "projectStatusLabel"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectTimeline.jsx#ProjectTimeline",
+      "notes": ""
+    },
+    {
+      "from": "component:components/crm/ProjectTasks.jsx",
+      "to": "lib:lib/crm/labels.mjs#projectStatusLabel",
+      "kind": "calls",
+      "fields": [
+        "taskStatusLabel"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectTasks.jsx#ProjectTasks",
+      "notes": ""
+    },
+    {
+      "from": "component:components/crm/ProjectApprovals.jsx",
+      "to": "lib:lib/crm/labels.mjs#projectStatusLabel",
+      "kind": "calls",
+      "fields": [
+        "approvalStatusLabel"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectApprovals.jsx#ProjectApprovals",
+      "notes": ""
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "lib:lib/crm/labels.mjs#projectStatusLabel",
+      "kind": "calls",
+      "fields": [
+        "projectStatusLabel",
+        "projectStatusBadgeClass",
+        "projectStatusMeaning",
+        "CLIENT_ACTION_STATUSES"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#DashboardPage",
+      "notes": "client-facing status copy and the needs-your-attention rule (status client_review)"
+    },
+    {
+      "from": "page:/dashboard/projects/[id]",
+      "to": "lib:lib/crm/labels.mjs#projectStatusLabel",
+      "kind": "calls",
+      "fields": [
+        "projectStatusMeaning",
+        "CLIENT_ACTION_STATUSES"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/projects/[id]/page.jsx#ClientProjectPage",
+      "notes": ""
+    },
+    {
+      "from": "page:/dashboard",
+      "to": "lib:lib/crm/brief-templates.mjs#BRIEF_TEMPLATES",
+      "kind": "calls",
+      "fields": [
+        "BRIEF_TEMPLATES",
+        "BRIEF_TYPES",
+        "briefTypeLabel",
+        "stepProgress"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/page.jsx#DashboardPage",
+      "notes": "service cards and draft progress bars"
+    },
+    {
+      "from": "component:components/crm/BriefWizard.jsx",
+      "to": "lib:lib/crm/brief-templates.mjs#BRIEF_TEMPLATES",
+      "kind": "calls",
+      "fields": [
+        "getBriefTemplate",
+        "missingRequiredAnswers",
+        "briefSections",
+        "briefDisplayTitle",
+        "FIELD_LIMITS",
+        "isEmptyAnswer"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/BriefWizard.jsx#BriefWizard",
+      "notes": "questions, required-field check, review sections, suggested title, input maxLength"
+    },
+    {
+      "from": "component:components/crm/ProjectBriefs.jsx",
+      "to": "lib:lib/crm/brief-templates.mjs#BRIEF_TEMPLATES",
+      "kind": "calls",
+      "fields": [
+        "briefSections",
+        "briefTypeLabel",
+        "BRIEF_TEMPLATES",
+        "BRIEF_TYPES"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "components/crm/ProjectBriefs.jsx#ProjectBriefs",
+      "notes": ""
+    },
+    {
+      "from": "page:/dashboard/briefs/[id]",
+      "to": "lib:lib/crm/brief-templates.mjs#BRIEF_TEMPLATES",
+      "kind": "calls",
+      "fields": [
+        "getBriefTemplate"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/dashboard/briefs/[id]/page.jsx#ClientBriefPage",
+      "notes": "a brief whose type has no template is shown as not found"
+    },
+    {
+      "from": "component:app/admin/blog/PostForm.jsx",
+      "to": "lib:lib/crm/blog-contract.mjs#validateBlogPost",
+      "kind": "calls",
+      "fields": [
+        "EXCERPT_MAX_LENGTH",
+        "SEO_DESCRIPTION_MAX_LENGTH",
+        "SEO_TITLE_MAX_LENGTH",
+        "SLUG_MAX_LENGTH",
+        "TITLE_MAX_LENGTH"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "app/admin/blog/PostForm.jsx#PostForm",
+      "notes": "input maxLength only; the body has no client maximum (action allows 100000)"
+    }
+  ]
+}

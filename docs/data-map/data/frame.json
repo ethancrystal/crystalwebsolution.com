@@ -1,0 +1,3333 @@
+{
+  "domain": "frame",
+  "description": "Scroll, pointer and media inputs, lib singletons, WebGL actors and DOM sinks of the homepage frame pipeline.",
+  "nodes": [
+    {
+      "id": "input:browser.scroll",
+      "type": "input",
+      "label": "Scroll: wheel, touch, keys, scrollbar, programmatic",
+      "file": "components/SmoothScroll.jsx",
+      "attrs": {
+        "captured": "Lenis (smooth) or window scroll listener (native)",
+        "clock": "TK or EV"
+      }
+    },
+    {
+      "id": "input:browser.pointer",
+      "type": "input",
+      "label": "Pointer move / up / cancel on window",
+      "file": "components/three/CameraRig.jsx",
+      "attrs": {
+        "clock": "EV",
+        "events": [
+          "pointermove",
+          "pointerup",
+          "pointercancel"
+        ]
+      }
+    },
+    {
+      "id": "input:browser.click",
+      "type": "input",
+      "label": "Click: hero, Approach step toggle, in-page anchor, any link",
+      "file": "components/sections/Hero.jsx",
+      "attrs": {
+        "clock": "EV"
+      }
+    },
+    {
+      "id": "input:browser.hover-focus",
+      "type": "input",
+      "label": "Hover and focus: Services rows, contact controls",
+      "file": "components/sections/Services.jsx",
+      "attrs": {
+        "clock": "EV"
+      }
+    },
+    {
+      "id": "input:browser.resize",
+      "type": "input",
+      "label": "Resize: window, body ResizeObserver, fonts, images, zoom, accordion growth",
+      "file": "components/SmoothScroll.jsx",
+      "attrs": {
+        "clock": "RO or EV or TK limit poll"
+      }
+    },
+    {
+      "id": "input:browser.visibility",
+      "type": "input",
+      "label": "Tab visibility (document.visibilitychange)",
+      "attrs": {
+        "handlers": "none in the homepage pipeline; only subpage stage modules listen",
+        "note": "rAF pauses; resume passes the full gap to Lenis because lagSmoothing(0)"
+      }
+    },
+    {
+      "id": "input:media.prefers-reduced-motion",
+      "type": "input",
+      "label": "prefers-reduced-motion media query",
+      "file": "lib/motionScale.js",
+      "attrs": {
+        "liveListeners": "motionScale, SmoothScroll, useRenderQuality, useExperienceFeatures, Lab, ServiceEmblem3D",
+        "oneShotReads": "Loader, Hero, SectionHandoff, Marquee, Services guard, DecodeText, Magnetic, Menu, PageTransition"
+      }
+    },
+    {
+      "id": "input:media.pointer-coarse",
+      "type": "input",
+      "label": "(pointer: coarse) media query",
+      "file": "lib/interactionGuards.mjs",
+      "attrs": {
+        "oneShot": true
+      }
+    },
+    {
+      "id": "input:media.viewport-width",
+      "type": "input",
+      "label": "Viewport-width breakpoints: 767.5, 767.99, 767, 900, 700 px",
+      "file": "lib/renderQuality.mjs",
+      "attrs": {
+        "note": "five different thresholds across five modules"
+      }
+    },
+    {
+      "id": "input:device.capabilities",
+      "type": "input",
+      "label": "Device capability: deviceMemory, hardwareConcurrency, devicePixelRatio, saveData, connection",
+      "file": "lib/renderQuality.mjs",
+      "attrs": {}
+    },
+    {
+      "id": "input:device.webgl",
+      "type": "input",
+      "label": "WebGL availability (real context probe)",
+      "file": "lib/webglSupport.mjs",
+      "attrs": {
+        "cachedForDocumentLifetime": true
+      }
+    },
+    {
+      "id": "input:url.hash",
+      "type": "input",
+      "label": "URL hash (initial and in-page)",
+      "file": "components/SmoothScroll.jsx",
+      "attrs": {
+        "oneShot": "initial alignment only"
+      }
+    },
+    {
+      "id": "input:url.search",
+      "type": "input",
+      "label": "URL search params: features, latestFeatures, motion",
+      "file": "lib/experienceFeatures.mjs",
+      "attrs": {
+        "readWhen": "hook init and media-query change only"
+      }
+    },
+    {
+      "id": "input:router.navigation",
+      "type": "input",
+      "label": "Route change (App Router navigation, back/forward)",
+      "file": "components/PageTransition.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "input:browser.session-intro-seen",
+      "type": "input",
+      "label": "sessionStorage cws:intro-seen",
+      "file": "components/Loader.jsx",
+      "attrs": {
+        "storageNode": "storage:session:cws:intro-seen (owned by external.json)"
+      }
+    },
+    {
+      "id": "singleton:scrollState.progress",
+      "type": "singleton",
+      "label": "scrollState.progress",
+      "file": "lib/scrollState.js",
+      "attrs": {
+        "valueType": "number, nominally 0..1",
+        "initial": 0
+      }
+    },
+    {
+      "id": "singleton:scrollState.velocity",
+      "type": "singleton",
+      "label": "scrollState.velocity",
+      "file": "lib/scrollState.js",
+      "attrs": {
+        "valueType": "number; Lenis velocity x 1000 (units UNVERIFIED); native mode 0",
+        "initial": 0
+      }
+    },
+    {
+      "id": "singleton:scrollState.focus",
+      "type": "singleton",
+      "label": "scrollState.focus",
+      "file": "lib/scrollState.js",
+      "attrs": {
+        "valueType": "0 or 1",
+        "initial": 0
+      }
+    },
+    {
+      "id": "singleton:pulse.t",
+      "type": "singleton",
+      "label": "pulse.t",
+      "file": "lib/pulse.js",
+      "attrs": {
+        "valueType": "ms timestamp",
+        "initial": 0
+      }
+    },
+    {
+      "id": "singleton:pulse.x",
+      "type": "singleton",
+      "label": "pulse.x",
+      "file": "lib/pulse.js",
+      "attrs": {
+        "valueType": "0..1 viewport x",
+        "initial": 0
+      }
+    },
+    {
+      "id": "singleton:pulse.y",
+      "type": "singleton",
+      "label": "pulse.y",
+      "file": "lib/pulse.js",
+      "attrs": {
+        "valueType": "0..1 viewport y",
+        "initial": 0
+      }
+    },
+    {
+      "id": "singleton:motionScale.value",
+      "type": "singleton",
+      "label": "motionScale.value",
+      "file": "lib/motionScale.js",
+      "attrs": {
+        "valueType": "0 or 1",
+        "initial": "set at module eval"
+      }
+    },
+    {
+      "id": "singleton:motionFlight.progress",
+      "type": "singleton",
+      "label": "motionFlight.progress",
+      "file": "lib/motionFlight.mjs",
+      "attrs": {
+        "valueType": "number",
+        "initial": 0,
+        "productionWriters": 0
+      }
+    },
+    {
+      "id": "singleton:motionFlight.active",
+      "type": "singleton",
+      "label": "motionFlight.active",
+      "file": "lib/motionFlight.mjs",
+      "attrs": {
+        "valueType": "boolean",
+        "initial": false,
+        "productionWriters": 0
+      }
+    },
+    {
+      "id": "singleton:motionFlight.enabled",
+      "type": "singleton",
+      "label": "motionFlight.enabled",
+      "file": "lib/motionFlight.mjs",
+      "attrs": {
+        "valueType": "boolean",
+        "initial": false,
+        "productionWriters": 0
+      }
+    },
+    {
+      "id": "singleton:motionFlight.prewarm",
+      "type": "singleton",
+      "label": "motionFlight.prewarm",
+      "file": "lib/motionFlight.mjs",
+      "attrs": {
+        "valueType": "boolean",
+        "initial": false,
+        "productionWriters": 0,
+        "productionReaders": 0
+      }
+    },
+    {
+      "id": "singleton:motionFlight.ready",
+      "type": "singleton",
+      "label": "motionFlight.ready",
+      "file": "lib/motionFlight.mjs",
+      "attrs": {
+        "valueType": "boolean",
+        "initial": false,
+        "productionWriters": 0
+      }
+    },
+    {
+      "id": "singleton:motionFlight.listeners",
+      "type": "singleton",
+      "label": "motionFlight listeners Set",
+      "file": "lib/motionFlight.mjs",
+      "attrs": {
+        "valueType": "Set<fn>",
+        "initial": "empty"
+      }
+    },
+    {
+      "id": "singleton:pointerState.x",
+      "type": "singleton",
+      "label": "pointerState.x",
+      "file": "lib/pointerState.js",
+      "attrs": {
+        "valueType": "-1..1",
+        "initial": 0
+      }
+    },
+    {
+      "id": "singleton:pointerState.y",
+      "type": "singleton",
+      "label": "pointerState.y",
+      "file": "lib/pointerState.js",
+      "attrs": {
+        "valueType": "-1..1, grows downward",
+        "initial": 0
+      }
+    },
+    {
+      "id": "singleton:beacon.index",
+      "type": "singleton",
+      "label": "beacon.index",
+      "file": "lib/beacon.js",
+      "attrs": {
+        "valueType": "-1 or 0..7",
+        "initial": -1,
+        "noUnmountReset": true
+      }
+    },
+    {
+      "id": "singleton:approachBeacon.step",
+      "type": "singleton",
+      "label": "approachBeacon.step",
+      "file": "lib/beacon.js",
+      "attrs": {
+        "valueType": "-1 or 0..3",
+        "initial": -1
+      }
+    },
+    {
+      "id": "singleton:scrollLock.locked",
+      "type": "singleton",
+      "label": "scrollLock.locked",
+      "file": "lib/scrollLock.js",
+      "attrs": {
+        "valueType": "boolean",
+        "initial": false
+      }
+    },
+    {
+      "id": "singleton:scrollLock.api",
+      "type": "singleton",
+      "label": "scrollLock.api",
+      "file": "lib/scrollLock.js",
+      "attrs": {
+        "valueType": "{stop,start} or null",
+        "initial": null
+      }
+    },
+    {
+      "id": "singleton:beatProgress.hero",
+      "type": "singleton",
+      "label": "beatProgress.hero",
+      "file": "lib/beatProgress.js",
+      "attrs": {
+        "valueType": "0..1 scroll fraction of the section layout top",
+        "initial": "0/8",
+        "forced": "always 0 after a measure"
+      }
+    },
+    {
+      "id": "singleton:beatProgress.about",
+      "type": "singleton",
+      "label": "beatProgress.about",
+      "file": "lib/beatProgress.js",
+      "attrs": {
+        "valueType": "0..1 scroll fraction of the section layout top",
+        "initial": "1/8"
+      }
+    },
+    {
+      "id": "singleton:beatProgress.services",
+      "type": "singleton",
+      "label": "beatProgress.services",
+      "file": "lib/beatProgress.js",
+      "attrs": {
+        "valueType": "0..1 scroll fraction of the section layout top",
+        "initial": "2/8"
+      }
+    },
+    {
+      "id": "singleton:beatProgress.approach",
+      "type": "singleton",
+      "label": "beatProgress.approach",
+      "file": "lib/beatProgress.js",
+      "attrs": {
+        "valueType": "0..1 scroll fraction of the section layout top",
+        "initial": "3/8"
+      }
+    },
+    {
+      "id": "singleton:beatProgress.stories",
+      "type": "singleton",
+      "label": "beatProgress.stories",
+      "file": "lib/beatProgress.js",
+      "attrs": {
+        "valueType": "0..1 scroll fraction of the section layout top",
+        "initial": "4/8"
+      }
+    },
+    {
+      "id": "singleton:beatProgress.mark",
+      "type": "singleton",
+      "label": "beatProgress.mark",
+      "file": "lib/beatProgress.js",
+      "attrs": {
+        "valueType": "0..1 scroll fraction of the section layout top",
+        "initial": "5/8"
+      }
+    },
+    {
+      "id": "singleton:beatProgress.lab",
+      "type": "singleton",
+      "label": "beatProgress.lab",
+      "file": "lib/beatProgress.js",
+      "attrs": {
+        "valueType": "0..1 scroll fraction of the section layout top",
+        "initial": "6/8"
+      }
+    },
+    {
+      "id": "singleton:beatProgress.motion",
+      "type": "singleton",
+      "label": "beatProgress.motion",
+      "file": "lib/beatProgress.js",
+      "attrs": {
+        "valueType": "0..1 scroll fraction of the section layout top",
+        "initial": "7/8"
+      }
+    },
+    {
+      "id": "singleton:beatProgress.contact",
+      "type": "singleton",
+      "label": "beatProgress.contact",
+      "file": "lib/beatProgress.js",
+      "attrs": {
+        "valueType": "0..1 scroll fraction of the section layout top",
+        "initial": "8/8",
+        "forced": "always 1 after a measure"
+      }
+    },
+    {
+      "id": "singleton:beatProgress.measuredLimit",
+      "type": "singleton",
+      "label": "measuredLimit (module let)",
+      "file": "lib/beatProgress.js",
+      "attrs": {
+        "valueType": "px",
+        "initial": 0
+      }
+    },
+    {
+      "id": "singleton:journey.LAB_WINDOW.start",
+      "type": "singleton",
+      "label": "LAB_WINDOW.start",
+      "file": "lib/journey.js",
+      "attrs": {
+        "valueType": "0..1",
+        "initial": "6/8"
+      }
+    },
+    {
+      "id": "singleton:journey.LAB_WINDOW.end",
+      "type": "singleton",
+      "label": "LAB_WINDOW.end",
+      "file": "lib/journey.js",
+      "attrs": {
+        "valueType": "0..1",
+        "initial": "7/8"
+      }
+    },
+    {
+      "id": "singleton:journey.MOTION_WINDOW.start",
+      "type": "singleton",
+      "label": "MOTION_WINDOW.start",
+      "file": "lib/journey.js",
+      "attrs": {
+        "valueType": "0..1",
+        "initial": "7/8",
+        "productionReaders": 0
+      }
+    },
+    {
+      "id": "singleton:journey.MOTION_WINDOW.end",
+      "type": "singleton",
+      "label": "MOTION_WINDOW.end",
+      "file": "lib/journey.js",
+      "attrs": {
+        "valueType": "0..1",
+        "initial": 1
+      }
+    },
+    {
+      "id": "singleton:cameraRig.curLook",
+      "type": "singleton",
+      "label": "curLook (module Vector3)",
+      "file": "components/three/CameraRig.jsx",
+      "attrs": {
+        "valueType": "THREE.Vector3",
+        "initial": "(0,0,0)",
+        "resetOnMount": true
+      }
+    },
+    {
+      "id": "singleton:dom.html.data-scroll-unlocked",
+      "type": "singleton",
+      "label": "html[data-scroll-unlocked]",
+      "file": "lib/scrollLock.js",
+      "attrs": {
+        "valueType": "'1' or absent",
+        "kind": "dataset flag"
+      }
+    },
+    {
+      "id": "singleton:dom.html.data-cws-intro-seen",
+      "type": "singleton",
+      "label": "html[data-cws-intro-seen]",
+      "file": "components/Loader.jsx",
+      "attrs": {
+        "valueType": "'1' or absent",
+        "kind": "dataset flag"
+      }
+    },
+    {
+      "id": "singleton:gsap.lagSmoothing",
+      "type": "singleton",
+      "label": "gsap.ticker.lagSmoothing(0)",
+      "file": "components/SmoothScroll.jsx",
+      "attrs": {
+        "valueType": "process-global gsap setting",
+        "initial": "gsap default",
+        "neverRestored": true
+      }
+    },
+    {
+      "id": "singleton:webglSupport.cached",
+      "type": "singleton",
+      "label": "webglSupport cached",
+      "file": "lib/webglSupport.mjs",
+      "attrs": {
+        "valueType": "boolean or undefined",
+        "initial": "undefined"
+      }
+    },
+    {
+      "id": "lib:lib/beatProgress.js#measureBeats",
+      "type": "lib",
+      "label": "measureBeats(limit)",
+      "file": "lib/beatProgress.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/beatProgress.js#currentBeatIndex",
+      "type": "lib",
+      "label": "currentBeatIndex(progress)",
+      "file": "lib/beatProgress.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/beatProgress.js#sectionTop",
+      "type": "lib",
+      "label": "sectionTop(el)",
+      "file": "lib/beatProgress.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/beatProgress.js#BEAT_IDS",
+      "type": "lib",
+      "label": "BEAT_IDS",
+      "file": "lib/beatProgress.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/sceneActivity.mjs#isBeatProgressActive",
+      "type": "lib",
+      "label": "isBeatProgressActive(...)",
+      "file": "lib/sceneActivity.mjs",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/pulse.js#blast",
+      "type": "lib",
+      "label": "blast(x, y)",
+      "file": "lib/pulse.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/beacon.js#light",
+      "type": "lib",
+      "label": "light(i)",
+      "file": "lib/beacon.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/beacon.js#dim",
+      "type": "lib",
+      "label": "dim()",
+      "file": "lib/beacon.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/beacon.js#lightApproach",
+      "type": "lib",
+      "label": "lightApproach(step)",
+      "file": "lib/beacon.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/beacon.js#dimApproach",
+      "type": "lib",
+      "label": "dimApproach()",
+      "file": "lib/beacon.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/scrollLock.js#lockScroll",
+      "type": "lib",
+      "label": "lockScroll()",
+      "file": "lib/scrollLock.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/scrollLock.js#unlockScroll",
+      "type": "lib",
+      "label": "unlockScroll()",
+      "file": "lib/scrollLock.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/scrollLock.js#registerScrollApi",
+      "type": "lib",
+      "label": "registerScrollApi(api)",
+      "file": "lib/scrollLock.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/journey.js#STOPS",
+      "type": "lib",
+      "label": "STOPS",
+      "file": "lib/journey.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/journey.js#CLUSTERS",
+      "type": "lib",
+      "label": "CLUSTERS",
+      "file": "lib/journey.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/journey.js#VOLUME",
+      "type": "lib",
+      "label": "VOLUME",
+      "file": "lib/journey.js",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/journeyNav.mjs#JOURNEY_NAV",
+      "type": "lib",
+      "label": "JOURNEY_NAV",
+      "file": "lib/journeyNav.mjs",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/renderQuality.mjs#resolveRenderQuality",
+      "type": "lib",
+      "label": "resolveRenderQuality(...)",
+      "file": "lib/renderQuality.mjs",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "type": "lib",
+      "label": "useRenderQuality()",
+      "file": "lib/useRenderQuality.js",
+      "attrs": {
+        "state": "React state, not a singleton"
+      }
+    },
+    {
+      "id": "lib:lib/experienceFeatures.mjs#resolveExperienceFeatures",
+      "type": "lib",
+      "label": "resolveExperienceFeatures(...)",
+      "file": "lib/experienceFeatures.mjs",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/useExperienceFeatures.js#useExperienceFeatures",
+      "type": "lib",
+      "label": "useExperienceFeatures()",
+      "file": "lib/useExperienceFeatures.js",
+      "attrs": {
+        "state": "React state, not a singleton"
+      }
+    },
+    {
+      "id": "lib:lib/webglSupport.mjs#canUseWebGL",
+      "type": "lib",
+      "label": "canUseWebGL()",
+      "file": "lib/webglSupport.mjs",
+      "attrs": {}
+    },
+    {
+      "id": "lib:lib/interactionGuards.mjs#skipsPointerAnimation",
+      "type": "lib",
+      "label": "skipsPointerAnimation()",
+      "file": "lib/interactionGuards.mjs",
+      "attrs": {
+        "oneShot": true
+      }
+    },
+    {
+      "id": "lib:lib/motionFlight.mjs#updateMotionFlight",
+      "type": "lib",
+      "label": "updateMotionFlight(patch)",
+      "file": "lib/motionFlight.mjs",
+      "attrs": {
+        "productionCallers": 0
+      }
+    },
+    {
+      "id": "lib:lib/motionFlight.mjs#setMotionReady",
+      "type": "lib",
+      "label": "setMotionReady(ready)",
+      "file": "lib/motionFlight.mjs",
+      "attrs": {
+        "productionCallers": 0,
+        "lastProductionCaller": "components/three/FlyingCarousel.jsx, deleted in 7a7fd5f (v1.69)"
+      }
+    },
+    {
+      "id": "lib:lib/motionFlight.mjs#subscribeMotionFlight",
+      "type": "lib",
+      "label": "subscribeMotionFlight(fn)",
+      "file": "lib/motionFlight.mjs",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/Experience.jsx",
+      "type": "component",
+      "label": "Experience (homepage mount root)",
+      "file": "components/Experience.jsx",
+      "attrs": {
+        "mountedOn": "/ only",
+        "mounts": [
+          "SmoothScroll",
+          "Loader",
+          "Scene",
+          "FocusVeil",
+          "Nav",
+          "ScrollProgress",
+          "nine beat sections",
+          "JourneyNav"
+        ]
+      }
+    },
+    {
+      "id": "component:components/SmoothScroll.jsx",
+      "type": "component",
+      "label": "SmoothScroll (conductor)",
+      "file": "components/SmoothScroll.jsx",
+      "attrs": {
+        "mountedOn": "/ and 14 subpages",
+        "clock": "TK (Lenis tick), EV, RO"
+      }
+    },
+    {
+      "id": "component:components/Scene.jsx",
+      "type": "component",
+      "label": "Scene (single fixed Canvas)",
+      "file": "components/Scene.jsx",
+      "attrs": {
+        "mountedOn": "/ only",
+        "dynamic": "next/dynamic ssr:false"
+      }
+    },
+    {
+      "id": "component:components/FocusVeil.jsx",
+      "type": "component",
+      "label": "FocusVeil",
+      "file": "components/FocusVeil.jsx",
+      "attrs": {
+        "mountedOn": "/ and 14 subpages (inert on subpages: no [data-quiet])",
+        "clock": "ST"
+      }
+    },
+    {
+      "id": "component:components/Loader.jsx",
+      "type": "component",
+      "label": "Loader (intro curtain)",
+      "file": "components/Loader.jsx",
+      "attrs": {
+        "mountedOn": "/ only",
+        "clock": "TL"
+      }
+    },
+    {
+      "id": "component:components/PageTransition.jsx",
+      "type": "component",
+      "label": "PageTransition (root layout)",
+      "file": "components/PageTransition.jsx",
+      "attrs": {
+        "mountedOn": "every route"
+      }
+    },
+    {
+      "id": "component:components/Nav.jsx",
+      "type": "component",
+      "label": "Nav (homepage header)",
+      "file": "components/Nav.jsx",
+      "attrs": {
+        "mountedOn": "/ only",
+        "note": "local React state from native scroll; not a singleton consumer"
+      }
+    },
+    {
+      "id": "component:components/Menu.jsx",
+      "type": "component",
+      "label": "Menu (overlay)",
+      "file": "components/Menu.jsx",
+      "attrs": {
+        "note": "sets body overflow hidden; does not use scrollLock"
+      }
+    },
+    {
+      "id": "component:components/three/CameraRig.jsx",
+      "type": "component",
+      "label": "CameraRig (writer role)",
+      "file": "components/three/CameraRig.jsx",
+      "attrs": {
+        "role": "writes pointerState and curLook"
+      }
+    },
+    {
+      "id": "component:components/sections/Hero.jsx",
+      "type": "component",
+      "label": "Hero section",
+      "file": "components/sections/Hero.jsx",
+      "attrs": {
+        "beatId": "hero",
+        "quiet": true
+      }
+    },
+    {
+      "id": "component:components/sections/About.jsx",
+      "type": "component",
+      "label": "About section",
+      "file": "components/sections/About.jsx",
+      "attrs": {
+        "beatId": "about",
+        "quiet": true
+      }
+    },
+    {
+      "id": "component:components/sections/Services.jsx",
+      "type": "component",
+      "label": "Services section (writer role)",
+      "file": "components/sections/Services.jsx",
+      "attrs": {
+        "beatId": "services",
+        "quiet": true,
+        "clock": "TK + EV"
+      }
+    },
+    {
+      "id": "component:components/sections/Approach.jsx",
+      "type": "component",
+      "label": "Approach section",
+      "file": "components/sections/Approach.jsx",
+      "attrs": {
+        "beatId": "approach",
+        "quiet": true
+      }
+    },
+    {
+      "id": "component:components/sections/Stories.jsx",
+      "type": "component",
+      "label": "Stories section",
+      "file": "components/sections/Stories.jsx",
+      "attrs": {
+        "beatId": "stories",
+        "quiet": true
+      }
+    },
+    {
+      "id": "component:components/sections/Mark.jsx",
+      "type": "component",
+      "label": "Mark section",
+      "file": "components/sections/Mark.jsx",
+      "attrs": {
+        "beatId": "mark",
+        "note": "calls ScrollTrigger.refresh after fonts.ready"
+      }
+    },
+    {
+      "id": "component:components/sections/Lab.jsx",
+      "type": "component",
+      "label": "Lab section (reader role)",
+      "file": "components/sections/Lab.jsx",
+      "attrs": {
+        "beatId": "lab",
+        "clock": "TK",
+        "note": "sticky 340svh stage; DOM/CSS-3D cards"
+      }
+    },
+    {
+      "id": "component:components/sections/Motion.jsx",
+      "type": "component",
+      "label": "Motion section",
+      "file": "components/sections/Motion.jsx",
+      "attrs": {
+        "beatId": "motion",
+        "note": "normal-flow section, not pinned"
+      }
+    },
+    {
+      "id": "component:components/sections/Contact.jsx",
+      "type": "component",
+      "label": "Contact section",
+      "file": "components/sections/Contact.jsx",
+      "attrs": {
+        "beatId": "contact",
+        "quiet": true
+      }
+    },
+    {
+      "id": "actor:components/three/CameraRig.jsx",
+      "type": "actor",
+      "label": "CameraRig (camera pose, roll, FOV)",
+      "file": "components/three/CameraRig.jsx",
+      "attrs": {
+        "clock": "RF",
+        "sink": "camera.position, lookAt, rotation.z, fov"
+      }
+    },
+    {
+      "id": "actor:components/three/FocusDimmer.jsx",
+      "type": "actor",
+      "label": "FocusDimmer (exposure)",
+      "file": "components/three/FocusDimmer.jsx",
+      "attrs": {
+        "clock": "RF",
+        "sink": "gl.toneMappingExposure"
+      }
+    },
+    {
+      "id": "actor:components/three/Crystal.jsx",
+      "type": "actor",
+      "label": "Crystal",
+      "file": "components/three/Crystal.jsx",
+      "attrs": {
+        "clock": "RF",
+        "sink": "uniforms, rotation, scale, core emissive"
+      }
+    },
+    {
+      "id": "actor:components/three/Sparks.jsx",
+      "type": "actor",
+      "label": "Sparks",
+      "file": "components/three/Sparks.jsx",
+      "attrs": {
+        "clock": "RF",
+        "sink": "point positions and opacity"
+      }
+    },
+    {
+      "id": "actor:components/three/Particles.jsx",
+      "type": "actor",
+      "label": "Particles",
+      "file": "components/three/Particles.jsx",
+      "attrs": {
+        "clock": "RF",
+        "sink": "uTime, uVelocity, uOpacity"
+      }
+    },
+    {
+      "id": "actor:components/three/BackdropMorph.jsx",
+      "type": "actor",
+      "label": "BackdropMorph",
+      "file": "components/three/BackdropMorph.jsx",
+      "attrs": {
+        "clock": "RF",
+        "sink": "shell colour, rotation, z"
+      }
+    },
+    {
+      "id": "actor:components/three/ServiceRail.jsx",
+      "type": "actor",
+      "label": "ServiceRail",
+      "file": "components/three/ServiceRail.jsx",
+      "attrs": {
+        "clock": "RF",
+        "sink": "emblem emissive, scale, z, actor meshes, rail y"
+      }
+    },
+    {
+      "id": "actor:components/three/ApproachCompass.jsx",
+      "type": "actor",
+      "label": "ApproachCompass",
+      "file": "components/three/ApproachCompass.jsx",
+      "attrs": {
+        "clock": "RF",
+        "sink": "marker emissive"
+      }
+    },
+    {
+      "id": "actor:components/three/Effects.jsx",
+      "type": "actor",
+      "label": "Effects (post-processing)",
+      "file": "components/three/Effects.jsx",
+      "attrs": {
+        "clock": "FX subscriber",
+        "sink": "DepthOfField branch (never renders in production)"
+      }
+    },
+    {
+      "id": "actor:components/three/Lights.jsx",
+      "type": "actor",
+      "label": "Lights (static)",
+      "file": "components/three/Lights.jsx",
+      "attrs": {
+        "clock": "none",
+        "note": "reads CLUSTERS only"
+      }
+    },
+    {
+      "id": "actor:components/ScrollProgress.jsx",
+      "type": "actor",
+      "label": "ScrollProgress bar",
+      "file": "components/ScrollProgress.jsx",
+      "attrs": {
+        "clock": "TK",
+        "sink": ".scroll-progress-bar transform"
+      }
+    },
+    {
+      "id": "actor:components/JourneyNav.jsx",
+      "type": "actor",
+      "label": "JourneyNav",
+      "file": "components/JourneyNav.jsx",
+      "attrs": {
+        "clock": "TK",
+        "sink": "aria-current, index text, label text"
+      }
+    },
+    {
+      "id": "actor:components/Marquee.jsx",
+      "type": "actor",
+      "label": "Marquee",
+      "file": "components/Marquee.jsx",
+      "attrs": {
+        "clock": "TK",
+        "sink": ".marquee-track transform"
+      }
+    },
+    {
+      "id": "actor:components/sections/Services.jsx",
+      "type": "actor",
+      "label": "Services rows and ghost marker",
+      "file": "components/sections/Services.jsx",
+      "attrs": {
+        "clock": "TK + EV",
+        "sink": ".is-active, aria-current, marker y and number"
+      }
+    },
+    {
+      "id": "actor:components/sections/Lab.jsx",
+      "type": "actor",
+      "label": "Lab card flight",
+      "file": "components/sections/Lab.jsx",
+      "attrs": {
+        "clock": "TK, every frame",
+        "sink": "card transform, opacity, pointer-events, tabIndex"
+      }
+    },
+    {
+      "id": "actor:app/styles/loader.css",
+      "type": "actor",
+      "label": "loader.css scroll lock rule",
+      "file": "app/styles/loader.css",
+      "attrs": {
+        "clock": "CSS",
+        "sink": "html overflow hidden before unlock"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "input:browser.scroll",
+      "to": "singleton:scrollState.progress",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "TK inside lenis.raf on each Lenis scroll event; native mode: window scroll event",
+      "source": "components/SmoothScroll.jsx#onScroll",
+      "notes": "SmoothScroll Lenis path writes progress; native path is updateNativeScroll (clamped 0..1). Whether Lenis also emits on native or touch scroll is UNVERIFIED."
+    },
+    {
+      "from": "input:browser.scroll",
+      "to": "singleton:scrollState.velocity",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "TK inside lenis.raf",
+      "source": "components/SmoothScroll.jsx#onScroll",
+      "notes": "velocity * 1000 (Lenis units UNVERIFIED). Native mode writes 0 (updateNativeScroll)."
+    },
+    {
+      "from": "input:browser.scroll",
+      "to": "singleton:scrollState.focus",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "ST, driven by ScrollTrigger.update() inside the Lenis scroll callback",
+      "source": "components/FocusVeil.jsx#onToggle",
+      "notes": "Indirect: scroll moves quiet-section ScrollTriggers; FocusVeil counts active ones."
+    },
+    {
+      "from": "input:browser.scroll",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "native mode only: every scroll event",
+      "source": "components/SmoothScroll.jsx#updateNativeScroll",
+      "notes": "Lenis mode measures on mount, on limit change in the tick, and on body resize, not per scroll event (R11)."
+    },
+    {
+      "from": "input:browser.scroll",
+      "to": "singleton:beacon.index",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "TK auto-advance while the Services window is active",
+      "source": "components/sections/Services.jsx#activateRow",
+      "notes": "Disabled on coarse pointer or reduced motion (skipsPointerAnimation one-shot). Writer component: Services."
+    },
+    {
+      "from": "input:browser.scroll",
+      "to": "component:components/Nav.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "EV native scroll",
+      "source": "components/Nav.jsx#onScroll",
+      "notes": "window.scrollY > 24 sets local state scrolled. Not a singleton."
+    },
+    {
+      "from": "component:components/PageTransition.jsx",
+      "to": "input:browser.scroll",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "after a route commit with no hash",
+      "source": "components/PageTransition.jsx#scrollTo",
+      "notes": "Synthetic scroll input: window.scrollTo(0, 0). How a freshly built Lenis syncs to it is UNVERIFIED."
+    },
+    {
+      "from": "input:url.hash",
+      "to": "singleton:scrollState.progress",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "one rAF after configureScroll, once per SmoothScroll mount",
+      "source": "components/SmoothScroll.jsx#alignHash",
+      "notes": "lenis.scrollTo(target, immediate) or window.scrollTo in native mode; then Lenis emits onScroll."
+    },
+    {
+      "from": "input:url.hash",
+      "to": "singleton:scrollState.velocity",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "same",
+      "source": "components/SmoothScroll.jsx#alignHash",
+      "notes": "Native mode writes 0. Lenis mode writes whatever the immediate jump emits (UNVERIFIED)."
+    },
+    {
+      "from": "input:browser.click",
+      "to": "singleton:scrollState.progress",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV document click on a#id or a/#id while on /, Lenis mode only",
+      "source": "components/SmoothScroll.jsx#onClick",
+      "notes": "lenis.scrollTo(sectionTop(target) for beat ids). Native mode uses the browser default."
+    },
+    {
+      "from": "input:browser.click",
+      "to": "component:components/SmoothScroll.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "EV",
+      "source": "components/SmoothScroll.jsx#onClick",
+      "notes": "Anchor handler also sets tabindex=-1 and focuses the target."
+    },
+    {
+      "from": "input:browser.click",
+      "to": "component:components/PageTransition.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "EV window capture, not reduced motion",
+      "source": "components/PageTransition.jsx#onClick",
+      "notes": "Fades #main-content out, then router.push. Skips same-page hash jumps, CRM and auth paths."
+    },
+    {
+      "from": "input:browser.click",
+      "to": "component:components/Menu.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "EV open toggle",
+      "source": "components/Menu.jsx#overflow",
+      "notes": "document.body.style.overflow hidden while open. Does not call lockScroll."
+    },
+    {
+      "from": "input:browser.resize",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RO on document.body, plus TK poll when scrollHeight - height changes",
+      "source": "components/SmoothScroll.jsx#remeasure",
+      "notes": "Also fires on every frame of the 0.5s Approach accordion transition and when fonts or images change layout."
+    },
+    {
+      "from": "input:browser.resize",
+      "to": "singleton:scrollState.progress",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "TK on the frame Lenis limit changes",
+      "source": "components/SmoothScroll.jsx#tick",
+      "notes": "scrollState.progress = lenis.progress. Lenis emits no scroll event for a resize, so this is the only resync."
+    },
+    {
+      "from": "input:browser.resize",
+      "to": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "EV window resize",
+      "source": "lib/useRenderQuality.js#resize",
+      "notes": "Re-reads quality. Zoom that pushes devicePixelRatio to 2 or more can flip high to balanced (R26)."
+    },
+    {
+      "from": "input:browser.pointer",
+      "to": "singleton:pointerState.x",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV window pointermove",
+      "source": "components/three/CameraRig.jsx#onMove",
+      "notes": "Writer component: CameraRig. Reset to 0 on pointerup or pointercancel for non-mouse pointers, and on unmount."
+    },
+    {
+      "from": "input:browser.pointer",
+      "to": "singleton:pointerState.y",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV window pointermove",
+      "source": "components/three/CameraRig.jsx#onMove",
+      "notes": "Writer component: CameraRig. y grows downward."
+    },
+    {
+      "from": "component:components/three/CameraRig.jsx",
+      "to": "singleton:pointerState.x",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV; mount adds listeners, unmount removes and zeroes",
+      "source": "components/three/CameraRig.jsx#onRelease",
+      "notes": "Only window listener for pointer position in the pipeline."
+    },
+    {
+      "from": "component:components/three/CameraRig.jsx",
+      "to": "singleton:pointerState.y",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV; mount adds listeners, unmount removes and zeroes",
+      "source": "components/three/CameraRig.jsx#onRelease",
+      "notes": ""
+    },
+    {
+      "from": "component:components/three/CameraRig.jsx",
+      "to": "singleton:cameraRig.curLook",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "RF each frame (damped lerp); layout effect resets to 0,0,0 on mount",
+      "source": "components/three/CameraRig.jsx#curLook",
+      "notes": "Module-level vector, outlives the component."
+    },
+    {
+      "from": "input:browser.click",
+      "to": "singleton:pulse.t",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV click anywhere in the hero section",
+      "source": "components/sections/Hero.jsx#onBlast",
+      "notes": "Writer: Hero onBlast -> blast(clientX/innerWidth, clientY/innerHeight). Keyboard-initiated clicks give 0,0."
+    },
+    {
+      "from": "input:browser.hover-focus",
+      "to": "singleton:pulse.t",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV focus on the name field (home variant on /, plus /contact, /process, /about, /services/[slug])",
+      "source": "components/marketing/ContactForm.jsx#blast",
+      "notes": "Also components/marketing/ContactPulseLinks.jsx hover and focus on /contact. Fixed coordinates 0.5/0.4/0.6, 0.5."
+    },
+    {
+      "from": "input:browser.click",
+      "to": "singleton:pulse.x",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV click anywhere in the hero section",
+      "source": "components/sections/Hero.jsx#onBlast",
+      "notes": "Writer: Hero onBlast -> blast(clientX/innerWidth, clientY/innerHeight). Keyboard-initiated clicks give 0,0."
+    },
+    {
+      "from": "input:browser.hover-focus",
+      "to": "singleton:pulse.x",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV focus on the name field (home variant on /, plus /contact, /process, /about, /services/[slug])",
+      "source": "components/marketing/ContactForm.jsx#blast",
+      "notes": "Also components/marketing/ContactPulseLinks.jsx hover and focus on /contact. Fixed coordinates 0.5/0.4/0.6, 0.5."
+    },
+    {
+      "from": "input:browser.click",
+      "to": "singleton:pulse.y",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV click anywhere in the hero section",
+      "source": "components/sections/Hero.jsx#onBlast",
+      "notes": "Writer: Hero onBlast -> blast(clientX/innerWidth, clientY/innerHeight). Keyboard-initiated clicks give 0,0."
+    },
+    {
+      "from": "input:browser.hover-focus",
+      "to": "singleton:pulse.y",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV focus on the name field (home variant on /, plus /contact, /process, /about, /services/[slug])",
+      "source": "components/marketing/ContactForm.jsx#blast",
+      "notes": "Also components/marketing/ContactPulseLinks.jsx hover and focus on /contact. Fixed coordinates 0.5/0.4/0.6, 0.5."
+    },
+    {
+      "from": "input:browser.hover-focus",
+      "to": "singleton:beacon.index",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV row pointerenter or focus (light); row pointerleave or blur (dim)",
+      "source": "components/sections/Services.jsx#focusRow",
+      "notes": "Same field as the scroll auto-advance (R4)."
+    },
+    {
+      "from": "component:components/sections/Services.jsx",
+      "to": "singleton:beacon.index",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "TK tick and EV",
+      "source": "components/sections/Services.jsx#activateRow",
+      "notes": "No unmount reset: the last value persists after the section unmounts."
+    },
+    {
+      "from": "input:browser.click",
+      "to": "singleton:approachBeacon.step",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "EV click or Enter or Space on an Approach step trigger",
+      "source": "components/sections/Approach.jsx#onToggle",
+      "notes": "setOpenIndex then effect lightApproach(openIndex)."
+    },
+    {
+      "from": "component:components/sections/Approach.jsx",
+      "to": "singleton:approachBeacon.step",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX on openIndex; unmount calls dimApproach()",
+      "source": "components/sections/Approach.jsx#lightApproach",
+      "notes": ""
+    },
+    {
+      "from": "input:media.prefers-reduced-motion",
+      "to": "lib:lib/interactionGuards.mjs#skipsPointerAnimation",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "FX one-shot at mount",
+      "source": "lib/interactionGuards.mjs#skipsPointerAnimation",
+      "notes": "Not live: a mid-session change is ignored."
+    },
+    {
+      "from": "input:media.pointer-coarse",
+      "to": "lib:lib/interactionGuards.mjs#skipsPointerAnimation",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "FX one-shot at mount",
+      "source": "lib/interactionGuards.mjs#skipsPointerAnimation",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/interactionGuards.mjs#skipsPointerAnimation",
+      "to": "actor:components/sections/Services.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "FX one-shot at mount",
+      "source": "components/sections/Services.jsx#skipsPointerAnimation",
+      "notes": "True disables the ghost marker and the scroll auto-advance, so beacon.index is never written by scroll."
+    },
+    {
+      "from": "input:media.prefers-reduced-motion",
+      "to": "singleton:motionScale.value",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "MQ change, module-lifetime listener never removed",
+      "source": "lib/motionScale.js#apply",
+      "notes": "Set once at module evaluation, then live."
+    },
+    {
+      "from": "input:media.prefers-reduced-motion",
+      "to": "singleton:scrollState.velocity",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "MQ change: configureScroll swaps Lenis for native scroll",
+      "source": "components/SmoothScroll.jsx#updateNativeScroll",
+      "notes": "Native mode forces velocity 0."
+    },
+    {
+      "from": "input:media.prefers-reduced-motion",
+      "to": "component:components/SmoothScroll.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "MQ change",
+      "source": "components/SmoothScroll.jsx#configureScroll",
+      "notes": "Tears down and rebuilds the scroll driver, re-adds the Lenis tick at the end of the ticker list, ScrollTrigger.refresh()."
+    },
+    {
+      "from": "input:media.prefers-reduced-motion",
+      "to": "singleton:scrollLock.api",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "MQ change",
+      "source": "components/SmoothScroll.jsx#registerScrollApi",
+      "notes": "Native mode never registers an api; Lenis teardown sets api to null."
+    },
+    {
+      "from": "input:media.prefers-reduced-motion",
+      "to": "component:components/Loader.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "FX one-shot at mount",
+      "source": "components/Loader.jsx#unlockScroll",
+      "notes": "Reduced motion skips the intro and unlocks immediately."
+    },
+    {
+      "from": "input:media.prefers-reduced-motion",
+      "to": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "MQ change",
+      "source": "lib/useRenderQuality.js#reduced",
+      "notes": "Reduced motion forces the eco tier (animate false)."
+    },
+    {
+      "from": "input:media.prefers-reduced-motion",
+      "to": "lib:lib/useExperienceFeatures.js#useExperienceFeatures",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "MQ change",
+      "source": "lib/useExperienceFeatures.js#reduced",
+      "notes": "?motion=full overrides it (R24)."
+    },
+    {
+      "from": "input:media.viewport-width",
+      "to": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "MQ change at 767.5px",
+      "source": "lib/useRenderQuality.js#compact",
+      "notes": ""
+    },
+    {
+      "from": "input:media.viewport-width",
+      "to": "lib:lib/useExperienceFeatures.js#useExperienceFeatures",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "MQ change at 767.99px",
+      "source": "lib/useExperienceFeatures.js#compact",
+      "notes": ""
+    },
+    {
+      "from": "input:media.viewport-width",
+      "to": "actor:components/three/ServiceRail.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF per frame: state.size.width > 900",
+      "source": "components/three/ServiceRail.jsx#canShow",
+      "notes": "Rail hidden at 900px and below."
+    },
+    {
+      "from": "input:device.capabilities",
+      "to": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "FX mount, MQ change, connection change, resize",
+      "source": "lib/renderQuality.mjs#readRenderQuality",
+      "notes": "eco if reduced motion, saveData, memory <= 4 or cores <= 4; balanced if compact, memory <= 6, cores <= 6 or DPR >= 2."
+    },
+    {
+      "from": "lib:lib/renderQuality.mjs#resolveRenderQuality",
+      "to": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "pure policy called by readRenderQuality",
+      "source": "lib/renderQuality.mjs#resolveRenderQuality",
+      "notes": ""
+    },
+    {
+      "from": "input:url.search",
+      "to": "lib:lib/experienceFeatures.mjs#resolveExperienceFeatures",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "hook init and media-query change only",
+      "source": "lib/experienceFeatures.mjs#resolveExperienceFeatures",
+      "notes": "features=legacy, latestFeatures=off, motion=full|legacy."
+    },
+    {
+      "from": "lib:lib/experienceFeatures.mjs#resolveExperienceFeatures",
+      "to": "lib:lib/useExperienceFeatures.js#useExperienceFeatures",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "pure policy",
+      "source": "lib/experienceFeatures.mjs#readExperienceFeatures",
+      "notes": ""
+    },
+    {
+      "from": "input:device.webgl",
+      "to": "lib:lib/webglSupport.mjs#canUseWebGL",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "FX-time useState initializer in Scene, once per document",
+      "source": "lib/webglSupport.mjs#canUseWebGL",
+      "notes": "Real context probe, then loseContext."
+    },
+    {
+      "from": "lib:lib/webglSupport.mjs#canUseWebGL",
+      "to": "singleton:webglSupport.cached",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "first call",
+      "source": "lib/webglSupport.mjs#cached",
+      "notes": ""
+    },
+    {
+      "from": "singleton:webglSupport.cached",
+      "to": "lib:lib/webglSupport.mjs#canUseWebGL",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "every later call",
+      "source": "lib/webglSupport.mjs#cached",
+      "notes": "returns the cached answer for the document lifetime"
+    },
+    {
+      "from": "lib:lib/webglSupport.mjs#canUseWebGL",
+      "to": "component:components/Scene.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "mount",
+      "source": "components/Scene.jsx#canUseWebGL",
+      "notes": "false: Scene returns null; every DOM writer still runs; CameraRig never mounts so pointerState is never written."
+    },
+    {
+      "from": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "to": "component:components/Scene.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "React render on tier change",
+      "source": "components/Scene.jsx#useRenderQuality",
+      "notes": "quality object, not per-frame."
+    },
+    {
+      "from": "lib:lib/useExperienceFeatures.js#useExperienceFeatures",
+      "to": "actor:components/sections/Lab.jsx",
+      "kind": "feeds",
+      "fields": [
+        "flyingCarousel"
+      ],
+      "via": "browser",
+      "when": "React render; Lab effect re-runs on change",
+      "source": "components/sections/Lab.jsx#useExperienceFeatures",
+      "notes": "Re-running the effect re-adds the Lab ticker after the Lenis tick."
+    },
+    {
+      "from": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "to": "actor:components/three/Crystal.jsx",
+      "kind": "feeds",
+      "fields": [
+        "quality.tier",
+        "quality.animate"
+      ],
+      "via": "browser",
+      "when": "React render on tier change, not per frame",
+      "source": "components/Scene.jsx#quality",
+      "notes": "Passed as a prop by components/Scene.jsx; eco sets animate false."
+    },
+    {
+      "from": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "to": "actor:components/three/ServiceRail.jsx",
+      "kind": "feeds",
+      "fields": [
+        "quality.animate"
+      ],
+      "via": "browser",
+      "when": "React render on tier change, not per frame",
+      "source": "components/Scene.jsx#quality",
+      "notes": "Passed as a prop by components/Scene.jsx; eco sets animate false."
+    },
+    {
+      "from": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "to": "actor:components/three/ApproachCompass.jsx",
+      "kind": "feeds",
+      "fields": [
+        "quality.animate"
+      ],
+      "via": "browser",
+      "when": "React render on tier change, not per frame",
+      "source": "components/Scene.jsx#quality",
+      "notes": "Passed as a prop by components/Scene.jsx; eco sets animate false."
+    },
+    {
+      "from": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "to": "actor:components/three/Particles.jsx",
+      "kind": "feeds",
+      "fields": [
+        "quality.particleCount",
+        "quality.animate"
+      ],
+      "via": "browser",
+      "when": "React render on tier change, not per frame",
+      "source": "components/Scene.jsx#quality",
+      "notes": "Passed as a prop by components/Scene.jsx; eco sets animate false."
+    },
+    {
+      "from": "lib:lib/useRenderQuality.js#useRenderQuality",
+      "to": "actor:components/three/Effects.jsx",
+      "kind": "feeds",
+      "fields": [
+        "quality.postprocessing"
+      ],
+      "via": "browser",
+      "when": "React render on tier change, not per frame",
+      "source": "components/Scene.jsx#quality",
+      "notes": "Passed as a prop by components/Scene.jsx; eco sets animate false."
+    },
+    {
+      "from": "input:browser.session-intro-seen",
+      "to": "singleton:dom.html.data-cws-intro-seen",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "pre-hydration inline script (seen only), then Loader on seen or reduced or intro complete",
+      "source": "app/layout.jsx#cwsIntroSeen",
+      "notes": "The inline script does not set it for reduced motion alone; Loader does at mount."
+    },
+    {
+      "from": "input:browser.session-intro-seen",
+      "to": "singleton:dom.html.data-scroll-unlocked",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "pre-hydration inline script when seen or reduced motion",
+      "source": "app/layout.jsx#scrollUnlocked",
+      "notes": ""
+    },
+    {
+      "from": "input:browser.session-intro-seen",
+      "to": "singleton:scrollLock.locked",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX at Loader mount",
+      "source": "components/Loader.jsx#SESSION_KEY",
+      "notes": "Seen: unlockScroll. Not seen: lockScroll, timeline, unlockScroll on complete or unmount."
+    },
+    {
+      "from": "component:components/Loader.jsx",
+      "to": "lib:lib/scrollLock.js#lockScroll",
+      "kind": "calls",
+      "fields": [],
+      "via": "browser",
+      "when": "FX mount, first visit this session, motion allowed",
+      "source": "components/Loader.jsx#lockScroll",
+      "notes": ""
+    },
+    {
+      "from": "component:components/Loader.jsx",
+      "to": "lib:lib/scrollLock.js#unlockScroll",
+      "kind": "calls",
+      "fields": [],
+      "via": "browser",
+      "when": "FX seen or reduced, TL onComplete, FX unmount",
+      "source": "components/Loader.jsx#unlockScroll",
+      "notes": ""
+    },
+    {
+      "from": "component:components/SmoothScroll.jsx",
+      "to": "lib:lib/scrollLock.js#registerScrollApi",
+      "kind": "calls",
+      "fields": [],
+      "via": "browser",
+      "when": "FX mount, Lenis mode only",
+      "source": "components/SmoothScroll.jsx#registerScrollApi",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/scrollLock.js#lockScroll",
+      "to": "singleton:scrollLock.locked",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/scrollLock.js#lockScroll",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/scrollLock.js#lockScroll",
+      "to": "singleton:dom.html.data-scroll-unlocked",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/scrollLock.js#lockScroll",
+      "notes": "deletes the flag"
+    },
+    {
+      "from": "singleton:scrollLock.api",
+      "to": "lib:lib/scrollLock.js#lockScroll",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/scrollLock.js#lockScroll",
+      "notes": "calls api.stop() or api.start() when an api is registered"
+    },
+    {
+      "from": "lib:lib/scrollLock.js#unlockScroll",
+      "to": "singleton:scrollLock.locked",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/scrollLock.js#unlockScroll",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/scrollLock.js#unlockScroll",
+      "to": "singleton:dom.html.data-scroll-unlocked",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/scrollLock.js#unlockScroll",
+      "notes": "sets '1'"
+    },
+    {
+      "from": "singleton:scrollLock.api",
+      "to": "lib:lib/scrollLock.js#unlockScroll",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/scrollLock.js#unlockScroll",
+      "notes": "calls api.stop() or api.start() when an api is registered"
+    },
+    {
+      "from": "lib:lib/scrollLock.js#registerScrollApi",
+      "to": "singleton:scrollLock.api",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/scrollLock.js#registerScrollApi",
+      "notes": "applies the current locked state to the new api"
+    },
+    {
+      "from": "component:components/SmoothScroll.jsx",
+      "to": "singleton:scrollLock.api",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX teardown, Lenis mode",
+      "source": "components/SmoothScroll.jsx#scrollLock",
+      "notes": "scrollLock.api = null"
+    },
+    {
+      "from": "singleton:scrollLock.locked",
+      "to": "lib:lib/scrollLock.js#registerScrollApi",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/scrollLock.js#registerScrollApi",
+      "notes": ""
+    },
+    {
+      "from": "singleton:dom.html.data-scroll-unlocked",
+      "to": "actor:app/styles/loader.css",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "CSS",
+      "source": "app/styles/loader.css",
+      "notes": "html:has(.loader):not([data-scroll-unlocked]) overflow hidden"
+    },
+    {
+      "from": "singleton:dom.html.data-cws-intro-seen",
+      "to": "actor:app/styles/loader.css",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "CSS",
+      "source": "app/styles/loader.css",
+      "notes": "html[data-cws-intro-seen] .loader display none"
+    },
+    {
+      "from": "singleton:dom.html.data-cws-intro-seen",
+      "to": "component:components/sections/Hero.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "render time",
+      "source": "components/sections/Hero.jsx#introSeen",
+      "notes": "introDelay 0.15 vs 2.6."
+    },
+    {
+      "from": "component:components/SmoothScroll.jsx",
+      "to": "singleton:gsap.lagSmoothing",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX on every Lenis setup",
+      "source": "components/SmoothScroll.jsx#lagSmoothing",
+      "notes": "Process-global, never restored."
+    },
+    {
+      "from": "singleton:gsap.lagSmoothing",
+      "to": "actor:components/Marquee.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/Marquee.jsx#deltaMS",
+      "notes": "Resume after a hidden tab delivers the full gap; Marquee clamps dt to 0.05."
+    },
+    {
+      "from": "component:components/SmoothScroll.jsx",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "calls",
+      "fields": [],
+      "via": "browser",
+      "when": "FX mount, TK limit change, RO body; native: every scroll",
+      "source": "components/SmoothScroll.jsx#remeasure",
+      "notes": "lenis.limit is the baseline."
+    },
+    {
+      "from": "lib:lib/beatProgress.js#sectionTop",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#sectionTop",
+      "notes": "offsetTop sum up the offsetParent chain; ignores transforms."
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "subpage SmoothScroll mount",
+      "source": "components/SmoothScroll.jsx#remeasure",
+      "notes": "No beat elements exist, so beats are skipped but hero=0, contact=1, both windows and measuredLimit are still rewritten (R14)."
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "component:components/Experience.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "navigation to or from /",
+      "source": "components/Experience.jsx#Experience",
+      "notes": "Mounts or unmounts the homepage tree and every writer in it."
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "component:components/SmoothScroll.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "navigation to a subpage",
+      "source": "components/marketing/SubpageExperience.jsx#SmoothScroll",
+      "notes": "Each marketing page remounts SmoothScroll (Lenis rebuilt); remount per route is UNVERIFIED for subpage to subpage."
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "component:components/FocusVeil.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "navigation",
+      "source": "components/FocusVeil.jsx#FocusVeil",
+      "notes": "Unmount resets focus to 0; subpage FocusVeil creates zero triggers."
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:beatProgress.hero",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureBeats",
+      "notes": "forced to 0 after the loop"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:beatProgress.about",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureBeats",
+      "notes": "clamp01(sectionTop(el) / limit); skipped if the element is absent"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:beatProgress.services",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureBeats",
+      "notes": "clamp01(sectionTop(el) / limit); skipped if the element is absent"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:beatProgress.approach",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureBeats",
+      "notes": "clamp01(sectionTop(el) / limit); skipped if the element is absent"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:beatProgress.stories",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureBeats",
+      "notes": "clamp01(sectionTop(el) / limit); skipped if the element is absent"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:beatProgress.mark",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureBeats",
+      "notes": "clamp01(sectionTop(el) / limit); skipped if the element is absent"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:beatProgress.lab",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureBeats",
+      "notes": "clamp01(sectionTop(el) / limit); skipped if the element is absent"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:beatProgress.motion",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureBeats",
+      "notes": "clamp01(sectionTop(el) / limit); skipped if the element is absent"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:beatProgress.contact",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureBeats",
+      "notes": "forced to 1 after the sticky-window measures"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:beatProgress.measuredLimit",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measuredLimit",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:journey.LAB_WINDOW.start",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureStickyWindow",
+      "notes": "copy of beatProgress[id]"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:journey.LAB_WINDOW.end",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureStickyWindow",
+      "notes": "min(1, max((top + max(offsetHeight - innerHeight, 1)) / limit, start + 1e-4)); fallback when the element is absent"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:journey.MOTION_WINDOW.start",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureStickyWindow",
+      "notes": "copy of beatProgress[id]"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#measureBeats",
+      "to": "singleton:journey.MOTION_WINDOW.end",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#measureStickyWindow",
+      "notes": "min(1, max((top + max(offsetHeight - innerHeight, 1)) / limit, start + 1e-4)); fallback when the element is absent"
+    },
+    {
+      "from": "component:components/sections/Hero.jsx",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Hero.jsx#hero",
+      "notes": "DOM id \"hero\" is the measured beat anchor"
+    },
+    {
+      "from": "component:components/sections/About.jsx",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/About.jsx#about",
+      "notes": "DOM id \"about\" is the measured beat anchor"
+    },
+    {
+      "from": "component:components/sections/Services.jsx",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Services.jsx#services",
+      "notes": "DOM id \"services\" is the measured beat anchor"
+    },
+    {
+      "from": "component:components/sections/Approach.jsx",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Approach.jsx#approach",
+      "notes": "DOM id \"approach\" is the measured beat anchor"
+    },
+    {
+      "from": "component:components/sections/Stories.jsx",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Stories.jsx#stories",
+      "notes": "DOM id \"stories\" is the measured beat anchor"
+    },
+    {
+      "from": "component:components/sections/Mark.jsx",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Mark.jsx#mark",
+      "notes": "DOM id \"mark\" is the measured beat anchor"
+    },
+    {
+      "from": "component:components/sections/Lab.jsx",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Lab.jsx#lab",
+      "notes": "DOM id \"lab\" is the measured beat anchor"
+    },
+    {
+      "from": "component:components/sections/Motion.jsx",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Motion.jsx#motion",
+      "notes": "DOM id \"motion\" is the measured beat anchor"
+    },
+    {
+      "from": "component:components/sections/Contact.jsx",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Contact.jsx#contact",
+      "notes": "DOM id \"contact\" is the measured beat anchor"
+    },
+    {
+      "from": "component:components/sections/Hero.jsx",
+      "to": "component:components/FocusVeil.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Hero.jsx#data-quiet",
+      "notes": "data-quiet attribute selects a ScrollTrigger (top 65% to bottom 35%)"
+    },
+    {
+      "from": "component:components/sections/About.jsx",
+      "to": "component:components/FocusVeil.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/About.jsx#data-quiet",
+      "notes": "data-quiet attribute selects a ScrollTrigger (top 65% to bottom 35%)"
+    },
+    {
+      "from": "component:components/sections/Services.jsx",
+      "to": "component:components/FocusVeil.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Services.jsx#data-quiet",
+      "notes": "data-quiet attribute selects a ScrollTrigger (top 65% to bottom 35%)"
+    },
+    {
+      "from": "component:components/sections/Approach.jsx",
+      "to": "component:components/FocusVeil.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Approach.jsx#data-quiet",
+      "notes": "data-quiet attribute selects a ScrollTrigger (top 65% to bottom 35%)"
+    },
+    {
+      "from": "component:components/sections/Stories.jsx",
+      "to": "component:components/FocusVeil.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Stories.jsx#data-quiet",
+      "notes": "data-quiet attribute selects a ScrollTrigger (top 65% to bottom 35%)"
+    },
+    {
+      "from": "component:components/sections/Contact.jsx",
+      "to": "component:components/FocusVeil.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/sections/Contact.jsx#data-quiet",
+      "notes": "data-quiet attribute selects a ScrollTrigger (top 65% to bottom 35%)"
+    },
+    {
+      "from": "component:components/sections/Mark.jsx",
+      "to": "component:components/FocusVeil.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "after document.fonts.ready",
+      "source": "components/sections/Mark.jsx#refresh",
+      "notes": "ScrollTrigger.refresh() re-measures every trigger, including the FocusVeil ones. Whether it re-fires onToggle for active triggers is UNVERIFIED (R25)."
+    },
+    {
+      "from": "component:components/sections/Approach.jsx",
+      "to": "component:components/FocusVeil.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "560ms after an accordion step opens or closes",
+      "source": "components/sections/Approach.jsx#APPROACH_SETTLE_MS",
+      "notes": "ScrollTrigger.refresh() added by F14 (uncommitted at read time)."
+    },
+    {
+      "from": "component:components/FocusVeil.jsx",
+      "to": "singleton:scrollState.focus",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "ST onToggle, once at mount, and 0 at unmount",
+      "source": "components/FocusVeil.jsx#apply",
+      "notes": "Counter of active [data-quiet] triggers, floored at 0."
+    },
+    {
+      "from": "singleton:scrollState.progress",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#scrollState",
+      "notes": "clamped 0..1; picks the camera segment"
+    },
+    {
+      "from": "singleton:scrollState.progress",
+      "to": "actor:components/three/BackdropMorph.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/BackdropMorph.jsx#scrollState",
+      "notes": "unclamped; hue lerp and z recession"
+    },
+    {
+      "from": "singleton:scrollState.progress",
+      "to": "actor:components/three/Crystal.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF, only while animating",
+      "source": "components/three/Crystal.jsx#uScrollProgress",
+      "notes": "alpha 0.94 - progress * 0.08"
+    },
+    {
+      "from": "singleton:scrollState.progress",
+      "to": "actor:components/three/ServiceRail.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/ServiceRail.jsx#scrollState",
+      "notes": "activity window and step ease"
+    },
+    {
+      "from": "singleton:scrollState.progress",
+      "to": "actor:components/three/ApproachCompass.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/ApproachCompass.jsx#scrollState",
+      "notes": "activity window and step ease"
+    },
+    {
+      "from": "singleton:scrollState.progress",
+      "to": "actor:components/sections/Services.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "TK",
+      "source": "components/sections/Services.jsx#scrollState",
+      "notes": "auto-advance step"
+    },
+    {
+      "from": "singleton:scrollState.progress",
+      "to": "actor:components/sections/Lab.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "TK every frame",
+      "source": "components/sections/Lab.jsx#syncProgress",
+      "notes": "flight progress within LAB_WINDOW"
+    },
+    {
+      "from": "singleton:scrollState.progress",
+      "to": "actor:components/JourneyNav.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "TK, and once at mount",
+      "source": "components/JourneyNav.jsx#currentBeatIndex",
+      "notes": "via currentBeatIndex"
+    },
+    {
+      "from": "singleton:scrollState.progress",
+      "to": "actor:components/ScrollProgress.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "TK",
+      "source": "components/ScrollProgress.jsx#scaleX",
+      "notes": "unclamped scaleX"
+    },
+    {
+      "from": "singleton:scrollState.velocity",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#velocity",
+      "notes": "roll and FOV surge, both x motionScale"
+    },
+    {
+      "from": "singleton:scrollState.velocity",
+      "to": "actor:components/three/Particles.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF, skipped when animate is false",
+      "source": "components/three/Particles.jsx#uVelocity",
+      "notes": "uVelocity and uOpacity"
+    },
+    {
+      "from": "singleton:scrollState.velocity",
+      "to": "actor:components/three/Crystal.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF, only while animating",
+      "source": "components/three/Crystal.jsx#uScrollVelocity",
+      "notes": "rotation.y term is live; uScrollVelocity is declared in the vertex shader but never referenced there (R23)"
+    },
+    {
+      "from": "singleton:scrollState.velocity",
+      "to": "actor:components/Marquee.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "TK",
+      "source": "components/Marquee.jsx#velocity",
+      "notes": "boost 1 + min(|v| * 0.002, 4); direction flips below -20"
+    },
+    {
+      "from": "singleton:scrollState.focus",
+      "to": "actor:components/three/FocusDimmer.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/FocusDimmer.jsx#scrollState",
+      "notes": "damped 1 - exp(-dt * 5); exposure 1.0 to 0.8"
+    },
+    {
+      "from": "singleton:pulse.t",
+      "to": "actor:components/three/Crystal.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/Crystal.jsx#lastPulse",
+      "notes": "compares to lastPulse seeded from pulse.t at mount (F12, uncommitted at read time)"
+    },
+    {
+      "from": "singleton:pulse.t",
+      "to": "actor:components/three/Sparks.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/Sparks.jsx#lastPulse",
+      "notes": "compares to lastPulse seeded from pulse.t at mount (F12)"
+    },
+    {
+      "from": "singleton:pulse.x",
+      "to": "actor:components/three/Crystal.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF, only while animating",
+      "source": "components/three/Crystal.jsx#uMouse",
+      "notes": "uMouse = (x, 1 - y); read every animated frame, not only on a burst"
+    },
+    {
+      "from": "singleton:pulse.y",
+      "to": "actor:components/three/Crystal.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF, only while animating",
+      "source": "components/three/Crystal.jsx#uMouse",
+      "notes": ""
+    },
+    {
+      "from": "singleton:motionScale.value",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#motionScale",
+      "notes": "parallax (F13), roll and FOV surge"
+    },
+    {
+      "from": "singleton:motionScale.value",
+      "to": "actor:components/three/ServiceRail.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/ServiceRail.jsx#motionScale",
+      "notes": "effectively dead: reduced motion forces eco, animate false, rail hidden (R7)"
+    },
+    {
+      "from": "singleton:motionFlight.active",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#motionLocked",
+      "notes": "no production writer, so motionLocked is always false (R2)"
+    },
+    {
+      "from": "singleton:motionFlight.enabled",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#motionLocked",
+      "notes": "no production writer (R2)"
+    },
+    {
+      "from": "singleton:motionFlight.active",
+      "to": "actor:components/three/Effects.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "FX subscriber",
+      "source": "components/three/Effects.jsx#useMotionEffectMode",
+      "notes": "DepthOfField branch never renders (R2)"
+    },
+    {
+      "from": "singleton:motionFlight.enabled",
+      "to": "actor:components/three/Effects.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "FX subscriber",
+      "source": "components/three/Effects.jsx#useMotionEffectMode",
+      "notes": ""
+    },
+    {
+      "from": "singleton:motionFlight.ready",
+      "to": "actor:components/three/Effects.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "FX subscriber",
+      "source": "components/three/Effects.jsx#useMotionEffectMode",
+      "notes": ""
+    },
+    {
+      "from": "actor:components/three/Effects.jsx",
+      "to": "singleton:motionFlight.listeners",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX mount; unsubscribes on unmount",
+      "source": "components/three/Effects.jsx#subscribeMotionFlight",
+      "notes": "Subscriber is never notified in production (no writer)."
+    },
+    {
+      "from": "singleton:motionFlight.listeners",
+      "to": "actor:components/three/Effects.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "FX callback",
+      "source": "lib/motionFlight.mjs#notifyListeners",
+      "notes": "never fires in production"
+    },
+    {
+      "from": "singleton:pointerState.x",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#pointerState",
+      "notes": "camera x += x * 0.55 * motionScale (F13)"
+    },
+    {
+      "from": "singleton:pointerState.y",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#pointerState",
+      "notes": "camera y += -y * 0.35 * motionScale (F13)"
+    },
+    {
+      "from": "singleton:beacon.index",
+      "to": "actor:components/three/ServiceRail.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/ServiceRail.jsx#beacon",
+      "notes": "any non -1 value is treated as hover (LEVEL_HOVER 1.5), including scroll auto-advance values (R4)"
+    },
+    {
+      "from": "singleton:approachBeacon.step",
+      "to": "actor:components/three/ApproachCompass.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF, only while animate and in window",
+      "source": "components/three/ApproachCompass.jsx#approachBeacon",
+      "notes": "overrides the scroll-derived step"
+    },
+    {
+      "from": "singleton:cameraRig.curLook",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#curLook",
+      "notes": ""
+    },
+    {
+      "from": "singleton:beatProgress.hero",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#beatProgress",
+      "notes": "segment lookup: last i < 8 with progress >= beatProgress[BEAT_IDS[i]]"
+    },
+    {
+      "from": "singleton:beatProgress.about",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#beatProgress",
+      "notes": "segment lookup: last i < 8 with progress >= beatProgress[BEAT_IDS[i]]"
+    },
+    {
+      "from": "singleton:beatProgress.services",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#beatProgress",
+      "notes": "segment lookup: last i < 8 with progress >= beatProgress[BEAT_IDS[i]]"
+    },
+    {
+      "from": "singleton:beatProgress.approach",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#beatProgress",
+      "notes": "segment lookup: last i < 8 with progress >= beatProgress[BEAT_IDS[i]]"
+    },
+    {
+      "from": "singleton:beatProgress.stories",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#beatProgress",
+      "notes": "segment lookup: last i < 8 with progress >= beatProgress[BEAT_IDS[i]]"
+    },
+    {
+      "from": "singleton:beatProgress.mark",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#beatProgress",
+      "notes": "segment lookup: last i < 8 with progress >= beatProgress[BEAT_IDS[i]]"
+    },
+    {
+      "from": "singleton:beatProgress.lab",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#beatProgress",
+      "notes": "segment lookup: last i < 8 with progress >= beatProgress[BEAT_IDS[i]]"
+    },
+    {
+      "from": "singleton:beatProgress.motion",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#beatProgress",
+      "notes": "segment lookup: last i < 8 with progress >= beatProgress[BEAT_IDS[i]]"
+    },
+    {
+      "from": "singleton:beatProgress.contact",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/CameraRig.jsx#beatProgress",
+      "notes": "segment lookup: last i < 8 with progress >= beatProgress[BEAT_IDS[i]]"
+    },
+    {
+      "from": "singleton:beatProgress.about",
+      "to": "lib:lib/sceneActivity.mjs#isBeatProgressActive",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/sceneActivity.mjs#isBeatProgressActive",
+      "notes": "midpoints with the neighbouring beats, overscan 0.025"
+    },
+    {
+      "from": "singleton:beatProgress.services",
+      "to": "lib:lib/sceneActivity.mjs#isBeatProgressActive",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/sceneActivity.mjs#isBeatProgressActive",
+      "notes": "midpoints with the neighbouring beats, overscan 0.025"
+    },
+    {
+      "from": "singleton:beatProgress.approach",
+      "to": "lib:lib/sceneActivity.mjs#isBeatProgressActive",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/sceneActivity.mjs#isBeatProgressActive",
+      "notes": "midpoints with the neighbouring beats, overscan 0.025"
+    },
+    {
+      "from": "singleton:beatProgress.stories",
+      "to": "lib:lib/sceneActivity.mjs#isBeatProgressActive",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/sceneActivity.mjs#isBeatProgressActive",
+      "notes": "midpoints with the neighbouring beats, overscan 0.025"
+    },
+    {
+      "from": "lib:lib/sceneActivity.mjs#isBeatProgressActive",
+      "to": "actor:components/three/ServiceRail.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF or TK",
+      "source": "components/three/ServiceRail.jsx#isBeatProgressActive",
+      "notes": "gates the frame body"
+    },
+    {
+      "from": "lib:lib/sceneActivity.mjs#isBeatProgressActive",
+      "to": "actor:components/three/ApproachCompass.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF or TK",
+      "source": "components/three/ApproachCompass.jsx#isBeatProgressActive",
+      "notes": "gates the frame body"
+    },
+    {
+      "from": "lib:lib/sceneActivity.mjs#isBeatProgressActive",
+      "to": "actor:components/sections/Services.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF or TK",
+      "source": "components/sections/Services.jsx#isBeatProgressActive",
+      "notes": "gates the frame body"
+    },
+    {
+      "from": "singleton:beatProgress.services",
+      "to": "actor:components/three/ServiceRail.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/ServiceRail.jsx#beatProgress",
+      "notes": "ease = clamp01((p - services) / (approach - services)); step = floor(ease * 8) (R1)"
+    },
+    {
+      "from": "singleton:beatProgress.services",
+      "to": "actor:components/sections/Services.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "TK",
+      "source": "components/sections/Services.jsx#beatProgress",
+      "notes": "same step math as ServiceRail (R1)"
+    },
+    {
+      "from": "singleton:beatProgress.approach",
+      "to": "actor:components/three/ServiceRail.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/ServiceRail.jsx#beatProgress",
+      "notes": "ease = clamp01((p - services) / (approach - services)); step = floor(ease * 8) (R1)"
+    },
+    {
+      "from": "singleton:beatProgress.approach",
+      "to": "actor:components/sections/Services.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "TK",
+      "source": "components/sections/Services.jsx#beatProgress",
+      "notes": "same step math as ServiceRail (R1)"
+    },
+    {
+      "from": "singleton:beatProgress.approach",
+      "to": "actor:components/three/ApproachCompass.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/ApproachCompass.jsx#beatProgress",
+      "notes": "step = floor(ease * 4) (R1)"
+    },
+    {
+      "from": "singleton:beatProgress.stories",
+      "to": "actor:components/three/ApproachCompass.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/ApproachCompass.jsx#beatProgress",
+      "notes": "step = floor(ease * 4) (R1)"
+    },
+    {
+      "from": "singleton:beatProgress.about",
+      "to": "lib:lib/beatProgress.js#currentBeatIndex",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#currentBeatIndex",
+      "notes": "reverse ascending-threshold walk, same rule as the camera"
+    },
+    {
+      "from": "singleton:beatProgress.services",
+      "to": "lib:lib/beatProgress.js#currentBeatIndex",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#currentBeatIndex",
+      "notes": "reverse ascending-threshold walk, same rule as the camera"
+    },
+    {
+      "from": "singleton:beatProgress.approach",
+      "to": "lib:lib/beatProgress.js#currentBeatIndex",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#currentBeatIndex",
+      "notes": "reverse ascending-threshold walk, same rule as the camera"
+    },
+    {
+      "from": "singleton:beatProgress.stories",
+      "to": "lib:lib/beatProgress.js#currentBeatIndex",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#currentBeatIndex",
+      "notes": "reverse ascending-threshold walk, same rule as the camera"
+    },
+    {
+      "from": "singleton:beatProgress.mark",
+      "to": "lib:lib/beatProgress.js#currentBeatIndex",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#currentBeatIndex",
+      "notes": "reverse ascending-threshold walk, same rule as the camera"
+    },
+    {
+      "from": "singleton:beatProgress.lab",
+      "to": "lib:lib/beatProgress.js#currentBeatIndex",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#currentBeatIndex",
+      "notes": "reverse ascending-threshold walk, same rule as the camera"
+    },
+    {
+      "from": "singleton:beatProgress.motion",
+      "to": "lib:lib/beatProgress.js#currentBeatIndex",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#currentBeatIndex",
+      "notes": "reverse ascending-threshold walk, same rule as the camera"
+    },
+    {
+      "from": "singleton:beatProgress.measuredLimit",
+      "to": "lib:lib/beatProgress.js#currentBeatIndex",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#BOUNDARY_SLACK_PX",
+      "notes": "2px slack expressed as a fraction of the measured limit"
+    },
+    {
+      "from": "singleton:journey.MOTION_WINDOW.end",
+      "to": "lib:lib/beatProgress.js#currentBeatIndex",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#MOTION_WINDOW",
+      "notes": "Contact boundary: progress >= MOTION_WINDOW.end returns the last beat (R3)"
+    },
+    {
+      "from": "lib:lib/beatProgress.js#currentBeatIndex",
+      "to": "actor:components/JourneyNav.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "TK",
+      "source": "components/JourneyNav.jsx#currentBeatIndex",
+      "notes": "writes aria-current and text only when the index changes"
+    },
+    {
+      "from": "singleton:journey.LAB_WINDOW.start",
+      "to": "actor:components/sections/Lab.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "TK",
+      "source": "components/sections/Lab.jsx#LAB_WINDOW",
+      "notes": ""
+    },
+    {
+      "from": "singleton:journey.LAB_WINDOW.end",
+      "to": "actor:components/sections/Lab.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "TK",
+      "source": "components/sections/Lab.jsx#LAB_WINDOW",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/journey.js#STOPS",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/three/CameraRig.jsx#STOPS",
+      "notes": "pre-built POS and LOOK vectors at module scope"
+    },
+    {
+      "from": "lib:lib/journey.js#CLUSTERS",
+      "to": "component:components/Scene.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/Scene.jsx#CLUSTERS",
+      "notes": "actor z depths"
+    },
+    {
+      "from": "lib:lib/journey.js#CLUSTERS",
+      "to": "actor:components/three/Lights.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/three/Lights.jsx#CLUSTERS",
+      "notes": "point-light z depths"
+    },
+    {
+      "from": "lib:lib/journey.js#VOLUME",
+      "to": "actor:components/three/Particles.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/three/Particles.jsx#VOLUME",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/journeyNav.mjs#JOURNEY_NAV",
+      "to": "actor:components/JourneyNav.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/JourneyNav.jsx#JOURNEY_NAV",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/beatProgress.js#BEAT_IDS",
+      "to": "lib:lib/beatProgress.js#measureBeats",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#BEAT_IDS",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/beatProgress.js#BEAT_IDS",
+      "to": "actor:components/three/CameraRig.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "components/three/CameraRig.jsx#BEAT_IDS",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/beatProgress.js#BEAT_IDS",
+      "to": "lib:lib/beatProgress.js#currentBeatIndex",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beatProgress.js#BEAT_IDS",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/beatProgress.js#BEAT_IDS",
+      "to": "lib:lib/journeyNav.mjs#JOURNEY_NAV",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/journeyNav.mjs#BEAT_IDS",
+      "notes": "LABELS keyed by beat id"
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "singleton:scrollState.focus",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX unmount of FocusVeil",
+      "source": "components/FocusVeil.jsx#focus",
+      "notes": "focus = 0 on leaving a page"
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "singleton:approachBeacon.step",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX unmount of Approach",
+      "source": "components/sections/Approach.jsx#dimApproach",
+      "notes": "step = -1"
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "singleton:pointerState.x",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX unmount of CameraRig",
+      "source": "components/three/CameraRig.jsx#pointerState",
+      "notes": "reset to 0"
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "singleton:pointerState.y",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX unmount of CameraRig",
+      "source": "components/three/CameraRig.jsx#pointerState",
+      "notes": "reset to 0"
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "singleton:cameraRig.curLook",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX layout effect at the next CameraRig mount (F12)",
+      "source": "components/three/CameraRig.jsx#curLook",
+      "notes": "reset to 0,0,0"
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "singleton:scrollLock.locked",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX unmount of Loader",
+      "source": "components/Loader.jsx#unlockScroll",
+      "notes": "unlockScroll() on leaving /"
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "singleton:scrollLock.api",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "FX teardown of SmoothScroll",
+      "source": "components/SmoothScroll.jsx#scrollLock",
+      "notes": "api = null; a new api registers when the next page mounts"
+    },
+    {
+      "from": "input:router.navigation",
+      "to": "singleton:scrollState.progress",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "TK first tick of the new SmoothScroll (limit !== lastLimit)",
+      "source": "components/SmoothScroll.jsx#tick",
+      "notes": "Until then progress and velocity keep the previous page values (section 5.3)."
+    },
+    {
+      "from": "input:media.prefers-reduced-motion",
+      "to": "singleton:scrollState.progress",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "MQ change then EV scroll",
+      "source": "components/SmoothScroll.jsx#updateNativeScroll",
+      "notes": "Native mode: clamp(scrollY / limit), limit floored at 1."
+    },
+    {
+      "from": "component:components/sections/Hero.jsx",
+      "to": "lib:lib/pulse.js#blast",
+      "kind": "calls",
+      "fields": [],
+      "via": "browser",
+      "when": "EV click",
+      "source": "components/sections/Hero.jsx#blast",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/pulse.js#blast",
+      "to": "singleton:pulse.t",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/pulse.js#blast",
+      "notes": "performance.now()"
+    },
+    {
+      "from": "lib:lib/pulse.js#blast",
+      "to": "singleton:pulse.x",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/pulse.js#blast",
+      "notes": "argument, default 0.5"
+    },
+    {
+      "from": "lib:lib/pulse.js#blast",
+      "to": "singleton:pulse.y",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/pulse.js#blast",
+      "notes": "argument, default 0.5"
+    },
+    {
+      "from": "component:components/sections/Services.jsx",
+      "to": "lib:lib/beacon.js#light",
+      "kind": "calls",
+      "fields": [],
+      "via": "browser",
+      "when": "activateRow",
+      "source": "components/sections/Services.jsx#light",
+      "notes": ""
+    },
+    {
+      "from": "component:components/sections/Services.jsx",
+      "to": "lib:lib/beacon.js#dim",
+      "kind": "calls",
+      "fields": [],
+      "via": "browser",
+      "when": "row pointerleave or blur",
+      "source": "components/sections/Services.jsx#dim",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/beacon.js#light",
+      "to": "singleton:beacon.index",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beacon.js#light",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/beacon.js#dim",
+      "to": "singleton:beacon.index",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beacon.js#dim",
+      "notes": "sets -1"
+    },
+    {
+      "from": "component:components/sections/Approach.jsx",
+      "to": "lib:lib/beacon.js#lightApproach",
+      "kind": "calls",
+      "fields": [],
+      "via": "browser",
+      "when": "FX on openIndex, including -1 at mount",
+      "source": "components/sections/Approach.jsx#lightApproach",
+      "notes": ""
+    },
+    {
+      "from": "component:components/sections/Approach.jsx",
+      "to": "lib:lib/beacon.js#dimApproach",
+      "kind": "calls",
+      "fields": [],
+      "via": "browser",
+      "when": "FX unmount",
+      "source": "components/sections/Approach.jsx#dimApproach",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/beacon.js#lightApproach",
+      "to": "singleton:approachBeacon.step",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beacon.js#lightApproach",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/beacon.js#dimApproach",
+      "to": "singleton:approachBeacon.step",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/beacon.js#dimApproach",
+      "notes": "sets -1"
+    },
+    {
+      "from": "component:components/SmoothScroll.jsx",
+      "to": "lib:lib/beatProgress.js#sectionTop",
+      "kind": "calls",
+      "fields": [],
+      "via": "browser",
+      "when": "EV anchor click on a beat id",
+      "source": "components/SmoothScroll.jsx#sectionTop",
+      "notes": ""
+    },
+    {
+      "from": "component:components/SmoothScroll.jsx",
+      "to": "singleton:scrollState.progress",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "TK Lenis scroll event, TK limit-change resync, EV native scroll",
+      "source": "components/SmoothScroll.jsx#onScroll",
+      "notes": "Three code paths: onScroll, tick (progress = lenis.progress), updateNativeScroll."
+    },
+    {
+      "from": "component:components/SmoothScroll.jsx",
+      "to": "singleton:scrollState.velocity",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "TK Lenis scroll event; native path writes 0",
+      "source": "components/SmoothScroll.jsx#onScroll",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/motionFlight.mjs#updateMotionFlight",
+      "to": "singleton:motionFlight.progress",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/motionFlight.mjs#updateMotionFlight",
+      "notes": "No production caller; only tests/latestFeatures.test.mjs"
+    },
+    {
+      "from": "lib:lib/motionFlight.mjs#updateMotionFlight",
+      "to": "singleton:motionFlight.active",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/motionFlight.mjs#updateMotionFlight",
+      "notes": "No production caller; only tests/latestFeatures.test.mjs"
+    },
+    {
+      "from": "lib:lib/motionFlight.mjs#updateMotionFlight",
+      "to": "singleton:motionFlight.enabled",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/motionFlight.mjs#updateMotionFlight",
+      "notes": "No production caller; only tests/latestFeatures.test.mjs"
+    },
+    {
+      "from": "lib:lib/motionFlight.mjs#updateMotionFlight",
+      "to": "singleton:motionFlight.prewarm",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/motionFlight.mjs#updateMotionFlight",
+      "notes": "No production caller; only tests/latestFeatures.test.mjs"
+    },
+    {
+      "from": "lib:lib/motionFlight.mjs#updateMotionFlight",
+      "to": "singleton:motionFlight.ready",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/motionFlight.mjs#updateMotionFlight",
+      "notes": "No production caller; only tests/latestFeatures.test.mjs"
+    },
+    {
+      "from": "lib:lib/motionFlight.mjs#setMotionReady",
+      "to": "singleton:motionFlight.ready",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/motionFlight.mjs#setMotionReady",
+      "notes": "No production caller since components/three/FlyingCarousel.jsx was deleted in 7a7fd5f (v1.69)"
+    },
+    {
+      "from": "lib:lib/motionFlight.mjs#subscribeMotionFlight",
+      "to": "singleton:motionFlight.listeners",
+      "kind": "writes",
+      "fields": [],
+      "via": "browser",
+      "when": "",
+      "source": "lib/motionFlight.mjs#subscribeMotionFlight",
+      "notes": ""
+    },
+    {
+      "from": "singleton:motionScale.value",
+      "to": "actor:components/three/BackdropMorph.jsx",
+      "kind": "feeds",
+      "fields": [],
+      "via": "browser",
+      "when": "RF",
+      "source": "components/three/BackdropMorph.jsx#motionScale",
+      "notes": "scales the shell's spin; 0 under reduced motion (F13)"
+    }
+  ]
+}

@@ -1,0 +1,4810 @@
+{
+  "domain": "external",
+  "description": "Environment variables, outbound services, HTTP layer, CI/CD and scripts, static marketing content, browser storage and analytics events (chapter 07).",
+  "nodes": [
+    {
+      "id": "ext:supabase-auth",
+      "type": "ext",
+      "label": "Supabase Auth (GoTrue)",
+      "file": "lib/supabase/admin.js",
+      "attrs": {
+        "origin": "<NEXT_PUBLIC_SUPABASE_URL>/auth/v1",
+        "credentials": [
+          "NEXT_PUBLIC_SUPABASE_ANON_KEY (user calls)",
+          "SUPABASE_SERVICE_ROLE_KEY (auth.admin.*)",
+          "user JWT in sb-* cookie"
+        ],
+        "dataOut": [
+          "email",
+          "password",
+          "full_name and account_type metadata",
+          "token_hash",
+          "session JWTs"
+        ],
+        "failure": "portal middleware: getUser error on a protected path redirects to login (closed); must-set-password RPC fails open; admin calls fail the action"
+      }
+    },
+    {
+      "id": "ext:supabase-db",
+      "type": "ext",
+      "label": "Supabase Postgres (PostgREST / RPC)",
+      "file": "lib/supabase/server.js",
+      "attrs": {
+        "origin": "<NEXT_PUBLIC_SUPABASE_URL>/rest/v1",
+        "credentials": [
+          "anon key + user JWT (RLS applies)",
+          "service role (RLS bypassed): lib/supabase/admin.js"
+        ],
+        "failure": "blog readers return [] (soft); sitemap throws at runtime and keeps the last good copy; contact CRM write is best-effort; cron returns 500/503"
+      }
+    },
+    {
+      "id": "ext:supabase-storage",
+      "type": "ext",
+      "label": "Supabase Storage",
+      "file": "components/crm/ProjectFiles.jsx",
+      "attrs": {
+        "origin": "<NEXT_PUBLIC_SUPABASE_URL>/storage/v1",
+        "buckets": [
+          "project-files (app)",
+          "blog-covers (CI script; no migration creates it)"
+        ],
+        "credentials": [
+          "user JWT (browser uploads)",
+          "service role (cron removal, CI cover upload)"
+        ],
+        "failure": "upload errors surface in the UI; cron cleanup retries through a durable queue; CI cover upload throws and fails the workflow"
+      }
+    },
+    {
+      "id": "ext:supabase-realtime",
+      "type": "ext",
+      "label": "Supabase Realtime",
+      "file": "lib/crm/projectRealtime.js",
+      "attrs": {
+        "origin": "wss://<ref>.supabase.co/realtime/v1 (CSP wss: twin derived from NEXT_PUBLIC_SUPABASE_URL)",
+        "credentials": [
+          "user JWT via supabase.realtime.setAuth()"
+        ],
+        "dataOut": [
+          "private channel join (project:<id>:shared|internal)",
+          "presence payload {userId, name}"
+        ],
+        "failure": "console.warn; live updates silently stop, pages keep working on reload"
+      }
+    },
+    {
+      "id": "ext:resend",
+      "type": "ext",
+      "label": "Resend",
+      "file": "lib/email/resend.js",
+      "attrs": {
+        "origin": "https://api.resend.com (resend SDK 6.18.1)",
+        "credentials": [
+          "RESEND_API_KEY"
+        ],
+        "dataOut": [
+          "from",
+          "to",
+          "subject",
+          "html",
+          "text",
+          "reply_to",
+          "tags (category)",
+          "Idempotency-Key (cron: outbox-<id>)"
+        ],
+        "failure": "EmailError: retryable for network, 429, 5xx; terminal for other 4xx. Contact ack and auth resend/reset swallow errors; signUp and invite report them"
+      }
+    },
+    {
+      "id": "ext:hcaptcha",
+      "type": "ext",
+      "label": "hCaptcha",
+      "file": "lib/hcaptcha.mjs",
+      "attrs": {
+        "origin": [
+          "https://js.hcaptcha.com/1/api.js (browser)",
+          "https://*.hcaptcha.com (iframe, XHR)",
+          "https://api.hcaptcha.com/siteverify (server)"
+        ],
+        "credentials": [
+          "NEXT_PUBLIC_HCAPTCHA_SITE_KEY (public)",
+          "HCAPTCHA_SECRET"
+        ],
+        "dataOut": [
+          "browser: device and behaviour signals to hCaptcha",
+          "server: secret, token, sitekey, client IP"
+        ],
+        "failure": "server fails closed in production (503 unavailable, 400 rejected); browser loader timeout 10 s blocks the form and shows the mailto fallback"
+      }
+    },
+    {
+      "id": "ext:upstash",
+      "type": "ext",
+      "label": "Upstash Redis (rate limiting)",
+      "file": "lib/rateLimit.mjs",
+      "attrs": {
+        "origin": "host from UPSTASH_REDIS_REST_URL (UNVERIFIED; REST over HTTPS)",
+        "credentials": [
+          "UPSTASH_REDIS_REST_TOKEN"
+        ],
+        "dataOut": [
+          "keys ratelimit:<bucket>:<identifier> where identifier is a client IP or a normalised email address"
+        ],
+        "failure": "contact form: fail closed in production (503); signUp/resend/reset: fail open"
+      }
+    },
+    {
+      "id": "ext:sentry",
+      "type": "ext",
+      "label": "Sentry",
+      "file": "instrumentation-client.js",
+      "attrs": {
+        "origin": [
+          "https://*.ingest.us.sentry.io (runtime, CSP-limited to US ingest)",
+          "Sentry API (build: release and source maps, only with SENTRY_UPLOAD_SOURCEMAPS=true + token)"
+        ],
+        "credentials": [
+          "NEXT_PUBLIC_SENTRY_DSN (browser)",
+          "SENTRY_DSN (server, edge)",
+          "SENTRY_AUTH_TOKEN (build)"
+        ],
+        "dataOut": [
+          "error events",
+          "traces 10% (client, server, edge)",
+          "session replay 10% of sessions, 100% on error (text/inputs masked, media and iframes blocked)",
+          "URLs including query strings",
+          "one warning message with outbox counters from the cron route"
+        ],
+        "consent": "none",
+        "failure": "SDK errors are swallowed; a blocked or absent DSN means no reports and no visible symptom"
+      }
+    },
+    {
+      "id": "ext:ga4",
+      "type": "ext",
+      "label": "Google Analytics 4 (gtag.js)",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "origin": [
+          "https://www.googletagmanager.com/gtag/js (loader)",
+          "https://*.google-analytics.com, https://*.analytics.google.com, https://*.g.doubleclick.net, https://www.google.com (hits)"
+        ],
+        "credentials": [
+          "NEXT_PUBLIC_GA_ID (public measurement ID)"
+        ],
+        "dataOut": [
+          "page_location (query allow-listed), page_title, page_referrer",
+          "generate_lead {form_location, budget}",
+          "consent commands",
+          "IP and user agent (by transport)"
+        ],
+        "consent": "Consent Mode v2, all four signals default denied; banner choice stored in localStorage",
+        "failure": "every entry point no-ops when GA_ID is unset; CSP-blocked hits fail silently"
+      }
+    },
+    {
+      "id": "ext:gtm",
+      "type": "ext",
+      "label": "Google Tag Manager",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "origin": [
+          "https://www.googletagmanager.com/gtm.js",
+          "https://www.googletagmanager.com/ns.html (noscript iframe)"
+        ],
+        "credentials": [
+          "NEXT_PUBLIC_GTM_ID (default GTM-KJZPCQNM in production builds)"
+        ],
+        "dataOut": [
+          "IP, user agent, origin-only Referer by transport",
+          "whatever the container tags send (container contents UNVERIFIED)"
+        ],
+        "consent": "loads before consent; Consent Mode defaults are queued first; non-Google tags are not governed by it",
+        "failure": "a non-Google pixel the container injects is blocked by CSP script-src/connect-src, silently"
+      }
+    },
+    {
+      "id": "ext:trustpilot",
+      "type": "ext",
+      "label": "Trustpilot TrustBox",
+      "file": "components/marketing/TrustpilotWidget.jsx",
+      "attrs": {
+        "origin": "https://widget.trustpilot.com (bootstrap script + iframe)",
+        "credentials": [
+          "business-unit id, template id, token (lib/site.js SITE.trustpilot, public embed values)"
+        ],
+        "dataOut": [
+          "IP and user agent",
+          "business-unit id and token"
+        ],
+        "consent": "none",
+        "failure": "blocked or slow script leaves the fallback text link"
+      }
+    },
+    {
+      "id": "ext:contact-webhook",
+      "type": "ext",
+      "label": "Contact form webhook",
+      "file": "app/api/contact/route.js",
+      "attrs": {
+        "origin": "arbitrary https URL from CONTACT_WEBHOOK_URL (UNVERIFIED destination)",
+        "credentials": [
+          "URL itself (may embed a token)"
+        ],
+        "dataOut": [
+          "name",
+          "email",
+          "company",
+          "budget",
+          "brief",
+          "website (honeypot, always empty on this path)"
+        ],
+        "failure": "aborted after CONTACT_WEBHOOK_TIMEOUT_MS (default 5000); counted not delivered; submission succeeds if the email went"
+      }
+    },
+    {
+      "id": "ext:github-actions",
+      "type": "ext",
+      "label": "GitHub Actions",
+      "file": ".github/workflows/docker-ci.yml",
+      "attrs": {
+        "role": "runs the three workflows; hosts repository secrets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and variables NEXT_PUBLIC_*, SEO_BLOG_COVERS_BUCKET (existence UNVERIFIED)"
+      }
+    },
+    {
+      "id": "ext:vercel",
+      "type": "ext",
+      "label": "Vercel",
+      "file": "vercel.json",
+      "attrs": {
+        "role": "builds and hosts both hosts from one project; runs the daily cron; holds all runtime env values (UNVERIFIED from the repo); Git integration deploys on merge to main"
+      }
+    },
+    {
+      "id": "ext:ghcr",
+      "type": "ext",
+      "label": "GitHub Container Registry",
+      "file": ".github/workflows/docker-ci.yml",
+      "attrs": {
+        "origin": "ghcr.io/ethancrystal/crystalwebsolution.com",
+        "credentials": [
+          "GITHUB_TOKEN"
+        ],
+        "dataOut": [
+          "Docker image (tags: branch, pr, short sha, latest on main) and a cosign keyless signature"
+        ],
+        "note": "image name is the repo name, not a live domain"
+      }
+    },
+    {
+      "id": "ext:indexnow",
+      "type": "ext",
+      "label": "IndexNow",
+      "file": "scripts/seo/indexnow-ping.mjs",
+      "attrs": {
+        "origin": "https://api.indexnow.org/indexnow",
+        "dataOut": [
+          "host",
+          "key",
+          "keyLocation",
+          "urlList"
+        ],
+        "failure": "manual script; non-2xx throws"
+      }
+    },
+    {
+      "id": "ext:google-fonts",
+      "type": "ext",
+      "label": "Google Fonts (build time only)",
+      "file": "app/layout.jsx",
+      "attrs": {
+        "origin": "fonts.googleapis.com / fonts.gstatic.com, fetched by next/font/google during next build",
+        "note": "fonts are self-hosted afterwards; font-src is self and data: only; no runtime request. A build host without access to Google fonts cannot build (UNVERIFIED fallback behaviour)."
+      }
+    },
+    {
+      "id": "env:NEXT_PUBLIC_SUPABASE_URL",
+      "type": "env",
+      "label": "NEXT_PUBLIC_SUPABASE_URL",
+      "file": "next.config.js",
+      "attrs": {
+        "public": true,
+        "secret": false,
+        "kind": "public",
+        "runtime": "client-inlined",
+        "runtimes": [
+          "client-inlined",
+          "server",
+          "edge",
+          "build"
+        ],
+        "readAt": [
+          "next.config.js#supabaseUrl",
+          "middleware.js#supabaseUrl",
+          "lib/supabase/server.js#supabaseUrl",
+          "lib/supabase/browser.js#createClient",
+          "lib/supabase/admin.js#createAdminClient",
+          "lib/auth/require-role.js#requireRole",
+          "lib/crm/blog.js#publicClient",
+          "scripts/seo/publish-blog-drafts.mjs#main",
+          "Dockerfile#NEXT_PUBLIC_SUPABASE_URL"
+        ],
+        "fallback": "none (publish script tries SUPABASE_URL first)",
+        "breaks": "Unset or not http(s): next.config.js drops the Supabase origin and its wss: twin from CSP connect-src, so every browser call (CRM reads, Realtime, Storage) is blocked while the build still passes. browser.js throws on first use, server.js throws \"Supabase authentication is not configured\", middleware sends portal paths to <login>?error=configuration, /blog and the sitemap return no posts, createAdminClient hands supabase-js an undefined URL."
+      }
+    },
+    {
+      "id": "env:NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "type": "env",
+      "label": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "file": "middleware.js",
+      "attrs": {
+        "public": true,
+        "secret": false,
+        "kind": "public",
+        "runtime": "client-inlined",
+        "runtimes": [
+          "client-inlined",
+          "server",
+          "edge"
+        ],
+        "readAt": [
+          "middleware.js#supabaseAnonKey",
+          "lib/supabase/server.js#supabaseAnonKey",
+          "lib/supabase/browser.js#createClient",
+          "lib/auth/require-role.js#requireRole",
+          "lib/crm/blog.js#publicClient",
+          "Dockerfile#NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        ],
+        "fallback": "none",
+        "breaks": "Same failure set as the URL minus the CSP effect. Public by design: RLS is the boundary. A wrong key makes every anon/user call fail with an auth error."
+      }
+    },
+    {
+      "id": "env:NEXT_PUBLIC_APP_URL",
+      "type": "env",
+      "label": "NEXT_PUBLIC_APP_URL",
+      "file": "lib/appUrl.mjs",
+      "attrs": {
+        "public": true,
+        "secret": false,
+        "kind": "public",
+        "runtime": "client-inlined",
+        "runtimes": [
+          "client-inlined",
+          "server",
+          "build"
+        ],
+        "readAt": [
+          "lib/appUrl.mjs#readEnv",
+          "Dockerfile#NEXT_PUBLIC_APP_URL",
+          "docker-compose.yml#NEXT_PUBLIC_APP_URL",
+          ".github/workflows/docker-ci.yml#NEXT_PUBLIC_APP_URL"
+        ],
+        "consumers": [
+          "lib/supabase/admin.js#buildVerifyUrl",
+          "app/auth/actions.js#getAppUrl",
+          "app/admin/users/actions.js#getAppUrl",
+          "app/api/contact/route.js#dealUrlFor",
+          "app/api/cron/crm-notifications/route.js#drain"
+        ],
+        "fallback": "Vercel Preview: https://$VERCEL_URL. Non-production: http://localhost:3000. Production: none (throws AppUrlError).",
+        "breaks": "Unset, invalid, path/query/credentials-bearing, a retired host, or (Vercel Production) not https: getAppUrl() throws. signUp and invite return \"temporarily unavailable\" before any account or link exists; resend-confirmation and password reset return their generic success with no email; the cron drain returns 503 and leaves the outbox untouched; the contact email goes out without its \"View in CRM\" link. Value is baked at build."
+      }
+    },
+    {
+      "id": "env:NEXT_PUBLIC_CRM_ENABLED",
+      "type": "env",
+      "label": "NEXT_PUBLIC_CRM_ENABLED",
+      "file": "lib/crmFlag.js",
+      "attrs": {
+        "public": true,
+        "secret": false,
+        "kind": "public",
+        "runtime": "client-inlined",
+        "runtimes": [
+          "client-inlined",
+          "edge",
+          "build"
+        ],
+        "readAt": [
+          "lib/crmFlag.js#CRM_ENABLED",
+          "next.config.js#crmEnabled"
+        ],
+        "fallback": "enabled unless the trimmed, lower-cased value is exactly \"false\"",
+        "breaks": "0, off, no or a typo leave the CRM public. \"false\": middleware redirects every matched portal path home, the host split collapses to app->www only, and Nav/Menu/SubpageNav hide the login links. Parsed twice (lib/crmFlag.js and next.config.js) with the same expression; the two must agree."
+      }
+    },
+    {
+      "id": "env:NEXT_PUBLIC_GA_ID",
+      "type": "env",
+      "label": "NEXT_PUBLIC_GA_ID",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "public": true,
+        "secret": false,
+        "kind": "public",
+        "runtime": "client-inlined",
+        "runtimes": [
+          "client-inlined"
+        ],
+        "readAt": [
+          "lib/analytics.mjs#GA_ID"
+        ],
+        "fallback": "\"\" (must match /^G-[A-Z0-9]{4,}$/i)",
+        "breaks": "Unset or malformed: the gtag script, RouteTracker, pageview() and trackEvent() all no-op, so generate_lead never reaches the dataLayer even when GTM is on. A well-formed but unserved ID loads a 404 script and counts nothing. docs/ANALYTICS.md records Production set to G-B42BM1Q95J, whose gtag/js 404s (confirmed 2026-09-28; current state UNVERIFIED)."
+      }
+    },
+    {
+      "id": "env:NEXT_PUBLIC_GTM_ID",
+      "type": "env",
+      "label": "NEXT_PUBLIC_GTM_ID",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "public": true,
+        "secret": false,
+        "kind": "public",
+        "runtime": "client-inlined",
+        "runtimes": [
+          "client-inlined"
+        ],
+        "readAt": [
+          "lib/analytics.mjs#GTM_ID"
+        ],
+        "fallback": "GTM-KJZPCQNM (DEFAULT_GTM_ID) whenever NODE_ENV is production; always off otherwise",
+        "breaks": "A non-container value (for example \"off\") disables GTM. Unset keeps the production container on in every production build: Vercel previews, CI builds, the ghcr image and local pnpm build/start."
+      }
+    },
+    {
+      "id": "env:NEXT_PUBLIC_GSC_VERIFICATION",
+      "type": "env",
+      "label": "NEXT_PUBLIC_GSC_VERIFICATION",
+      "file": "app/layout.jsx",
+      "attrs": {
+        "public": true,
+        "secret": false,
+        "kind": "public",
+        "runtime": "client-inlined",
+        "runtimes": [
+          "client-inlined",
+          "server"
+        ],
+        "readAt": [
+          "app/layout.jsx#metadata"
+        ],
+        "fallback": "omitted",
+        "breaks": "Unset: no google-site-verification meta (right for previews). Set on a preview: that host claims the Search Console property."
+      }
+    },
+    {
+      "id": "env:NEXT_PUBLIC_HCAPTCHA_SITE_KEY",
+      "type": "env",
+      "label": "NEXT_PUBLIC_HCAPTCHA_SITE_KEY",
+      "file": "lib/hcaptcha.mjs",
+      "attrs": {
+        "public": true,
+        "secret": false,
+        "kind": "public",
+        "runtime": "client-inlined",
+        "runtimes": [
+          "client-inlined",
+          "server"
+        ],
+        "readAt": [
+          "lib/hcaptcha.mjs#INLINED_SITE_KEY",
+          "lib/hcaptcha.mjs#getHCaptchaSiteKey"
+        ],
+        "fallback": "HCAPTCHA_DEFAULT_SITE_KEY, the production site key hard-coded in lib/hcaptcha.mjs",
+        "breaks": "A key from a different hCaptcha site than HCAPTCHA_SECRET belongs to: hCaptcha answers with a mismatch code, which the code maps to \"rejected\" (400, \"complete the security check\") on every attempt; only invalid/missing-input-secret maps to 503."
+      }
+    },
+    {
+      "id": "env:NEXT_PUBLIC_SENTRY_DSN",
+      "type": "env",
+      "label": "NEXT_PUBLIC_SENTRY_DSN",
+      "file": "instrumentation-client.js",
+      "attrs": {
+        "public": true,
+        "secret": false,
+        "kind": "public",
+        "runtime": "client-inlined",
+        "runtimes": [
+          "client-inlined"
+        ],
+        "readAt": [
+          "instrumentation-client.js#dsn"
+        ],
+        "fallback": "undefined: browser SDK sends nothing",
+        "breaks": "Not a Docker build arg, so the self-hosted image has no browser reporting. A DSN on another ingest host (EU, or non-regional oNNN.ingest.sentry.io) is blocked by CSP, which only allows *.ingest.us.sentry.io."
+      }
+    },
+    {
+      "id": "env:SUPABASE_SERVICE_ROLE_KEY",
+      "type": "env",
+      "label": "SUPABASE_SERVICE_ROLE_KEY",
+      "file": "lib/supabase/admin.js",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "server",
+        "runtimes": [
+          "server",
+          "ci",
+          "script"
+        ],
+        "readAt": [
+          "lib/supabase/admin.js#createAdminClient",
+          "scripts/seo/publish-blog-drafts.mjs#main",
+          "scripts/provision-crm-test-users.mjs#getSupabase",
+          ".github/workflows/seo-publish-blog.yml#SUPABASE_SERVICE_ROLE_KEY"
+        ],
+        "fallback": "none",
+        "breaks": "createAdminClient throws: signUp/invite answer \"temporarily unavailable\", the contact route skips the CRM write silently, the cron drain returns 503. The publish script warns and exits 0. Bypasses RLS, so only server code, CI and scripts may hold it. In Docker it must be supplied at run time, not build time (Dockerfile comment)."
+      }
+    },
+    {
+      "id": "env:RESEND_API_KEY",
+      "type": "env",
+      "label": "RESEND_API_KEY",
+      "file": "lib/email/resend.js",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "lib/email/resend.js#isEmailConfigured",
+          "lib/email/resend.js#getResendClient"
+        ],
+        "fallback": "none",
+        "breaks": "isEmailConfigured() is false: the contact route relies on the webhook alone (503 if there is no webhook either); the cron drain returns 503 after attachment cleanup; sendEmail throws a non-retryable EmailError (signUp reports \"Account created, but the confirmation email failed\", resend/reset swallow it)."
+      }
+    },
+    {
+      "id": "env:HCAPTCHA_SECRET",
+      "type": "env",
+      "label": "HCAPTCHA_SECRET",
+      "file": "lib/hcaptcha.mjs",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "lib/hcaptcha.mjs#hasSecret",
+          "lib/hcaptcha.mjs#verifyHCaptchaToken"
+        ],
+        "fallback": "none",
+        "breaks": "VERCEL_ENV=production: every contact submission returns 503 (fail closed, reason \"misconfigured\"). Elsewhere verification is skipped (\"not-enforced\"). A wrong secret makes hCaptcha answer invalid-input-secret, which is also 503 and logged."
+      }
+    },
+    {
+      "id": "env:UPSTASH_REDIS_REST_URL",
+      "type": "env",
+      "label": "UPSTASH_REDIS_REST_URL",
+      "file": "lib/rateLimit.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "lib/rateLimit.mjs#configured",
+          "lib/rateLimit.mjs#defaultStrictLimit"
+        ],
+        "fallback": "none",
+        "breaks": "See the token row; both must be set for the limiter to exist."
+      }
+    },
+    {
+      "id": "env:UPSTASH_REDIS_REST_TOKEN",
+      "type": "env",
+      "label": "UPSTASH_REDIS_REST_TOKEN",
+      "file": "lib/rateLimit.mjs",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "lib/rateLimit.mjs#configured",
+          "lib/rateLimit.mjs#redis",
+          "lib/rateLimit.mjs#checkRateLimitStrict"
+        ],
+        "fallback": "none",
+        "breaks": "Contact form: Production returns 503 for every submission (fail closed, \"not-configured\"); non-production lets it through. Auth actions (signUp, resend, reset): no throttling at all (fail open), with one console.warn in production."
+      }
+    },
+    {
+      "id": "env:CRM_CRON_SECRET",
+      "type": "env",
+      "label": "CRM_CRON_SECRET",
+      "file": "app/api/cron/crm-notifications/route.js",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "app/api/cron/crm-notifications/route.js#isAuthorised"
+        ],
+        "fallback": "none",
+        "breaks": "Accepted alongside CRON_SECRET; with neither set the endpoint always answers 401. Must equal Supabase Vault crm_cron_secret (pg_cron sends it as x-cron-secret); on mismatch pg_cron calls get 401 and the outbox stops draining, and the watchdog and its Sentry warning live inside the same route, so they stay silent too."
+      }
+    },
+    {
+      "id": "env:CRON_SECRET",
+      "type": "env",
+      "label": "CRON_SECRET",
+      "file": "app/api/cron/crm-notifications/route.js",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "app/api/cron/crm-notifications/route.js#isAuthorised"
+        ],
+        "fallback": "none",
+        "breaks": "Vercel Cron sends Authorization: Bearer $CRON_SECRET only when a variable of this name exists (route.js comment); if only CRM_CRON_SECRET is set, the daily Vercel cron gets 401 every day. pg_cron is unaffected."
+      }
+    },
+    {
+      "id": "env:CONTACT_WEBHOOK_URL",
+      "type": "env",
+      "label": "CONTACT_WEBHOOK_URL",
+      "file": "app/api/contact/route.js",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "app/api/contact/route.js#webhookUrl"
+        ],
+        "fallback": "unset: email-only delivery",
+        "breaks": "Treated as a secret because webhook URLs usually embed a token. Receives the full lead (name, email, company, budget, brief). Unreachable or slow: aborted after CONTACT_WEBHOOK_TIMEOUT_MS and counted \"not delivered\"; the visitor still sees success if the email went. Unset and no RESEND_API_KEY: 503."
+      }
+    },
+    {
+      "id": "env:CONTACT_WEBHOOK_TIMEOUT_MS",
+      "type": "env",
+      "label": "CONTACT_WEBHOOK_TIMEOUT_MS",
+      "file": "app/api/contact/route.js",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "app/api/contact/route.js#webhookTimeoutMs"
+        ],
+        "fallback": "5000; values outside 500-10000 or non-integers fall back to 5000",
+        "breaks": "Too low drops slow-but-working webhooks; the route waits at most this long before moving on."
+      }
+    },
+    {
+      "id": "env:RESEND_FROM_EMAIL",
+      "type": "env",
+      "label": "RESEND_FROM_EMAIL",
+      "file": "lib/email/resend.js",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "lib/email/resend.js#getFromAddress"
+        ],
+        "fallback": "CD Sportswear INC <no-reply@cdsportswearinc.com> (DEFAULT_FROM)",
+        "breaks": "A domain Resend has not verified gets a 4xx, which isRetryableStatus treats as terminal; the outbox marks the row provider_terminal."
+      }
+    },
+    {
+      "id": "env:RESEND_REPLY_TO",
+      "type": "env",
+      "label": "RESEND_REPLY_TO",
+      "file": "lib/email/resend.js",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "lib/email/resend.js#getReplyToAddress"
+        ],
+        "fallback": "SITE.email (sales@cdsportswearinc.com)",
+        "breaks": "Replies to every automated mail except the contact notification (which sets replyTo to the visitor) go to this address."
+      }
+    },
+    {
+      "id": "env:CONTACT_NOTIFICATION_EMAIL",
+      "type": "env",
+      "label": "CONTACT_NOTIFICATION_EMAIL",
+      "file": "lib/email/resend.js",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "lib/email/resend.js#getOperationsAddress"
+        ],
+        "fallback": "SITE.email (sales@cdsportswearinc.com)",
+        "breaks": "Recipient of every contact brief. A wrong value silently redirects lead mail; there is no delivery check."
+      }
+    },
+    {
+      "id": "env:SENTRY_DSN",
+      "type": "env",
+      "label": "SENTRY_DSN",
+      "file": "sentry.server.config.js",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "server",
+        "runtimes": [
+          "server",
+          "edge"
+        ],
+        "readAt": [
+          "sentry.server.config.js#dsn",
+          "sentry.edge.config.js#dsn"
+        ],
+        "fallback": "undefined: server and edge SDKs send nothing",
+        "breaks": "Server and edge errors (including onRequestError) are lost. Not a secret in the credential sense (a DSN only permits ingest) but kept server-side."
+      }
+    },
+    {
+      "id": "env:SENTRY_AUTH_TOKEN",
+      "type": "env",
+      "label": "SENTRY_AUTH_TOKEN",
+      "file": "next.config.js",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "build",
+        "runtimes": [
+          "build"
+        ],
+        "readAt": [
+          "next.config.js#authToken",
+          "next.config.js#shouldUploadSentrySourceMaps"
+        ],
+        "fallback": "none",
+        "breaks": "No source-map upload and no release create/finalize/deploy; browser and server stack traces stay minified. Needs SENTRY_UPLOAD_SOURCEMAPS=true as well."
+      }
+    },
+    {
+      "id": "env:SENTRY_UPLOAD_SOURCEMAPS",
+      "type": "env",
+      "label": "SENTRY_UPLOAD_SOURCEMAPS",
+      "file": "next.config.js",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "build",
+        "runtimes": [
+          "build"
+        ],
+        "readAt": [
+          "next.config.js#shouldUploadSentrySourceMaps"
+        ],
+        "fallback": "off unless the value is exactly \"true\" and SENTRY_AUTH_TOKEN is set",
+        "breaks": "Any other value, including \"1\" or \"TRUE\", leaves sourcemaps disabled."
+      }
+    },
+    {
+      "id": "env:TRUSTED_PROXY_HOPS",
+      "type": "env",
+      "label": "TRUSTED_PROXY_HOPS",
+      "file": "lib/rateLimit.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "lib/rateLimit.mjs#getClientIp"
+        ],
+        "fallback": "unset: no client IP off Vercel",
+        "breaks": "Read only when VERCEL is not \"1\" (Docker, own proxy). Must be an integer 1-5. Unset there: getClientIp returns null, the contact limiter treats the request as allowed (not production) and the auth limiters fail open, so the self-hosted image does no throttling."
+      }
+    },
+    {
+      "id": "env:NODE_ENV",
+      "type": "env",
+      "label": "NODE_ENV",
+      "file": "instrumentation-client.js",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "platform",
+        "runtime": "server",
+        "runtimes": [
+          "server",
+          "edge",
+          "client-inlined",
+          "build"
+        ],
+        "readAt": [
+          "instrumentation-client.js#isDevelopment",
+          "sentry.server.config.js#isDevelopment",
+          "sentry.edge.config.js#isDevelopment",
+          "lib/analytics.mjs#resolveGtmId",
+          "lib/rateLimit.mjs#checkRateLimit",
+          "lib/appUrl.mjs#readEnv",
+          "Dockerfile#NODE_ENV"
+        ],
+        "fallback": "set by Next (production for next build/start)",
+        "breaks": "Sentry environment is this value, so Vercel previews and Production both report \"production\". It also turns on the default GTM container and the strict app-URL rules."
+      }
+    },
+    {
+      "id": "env:NEXT_RUNTIME",
+      "type": "env",
+      "label": "NEXT_RUNTIME",
+      "file": "instrumentation.js",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "platform",
+        "runtime": "server",
+        "runtimes": [
+          "server",
+          "edge"
+        ],
+        "readAt": [
+          "instrumentation.js#register"
+        ],
+        "fallback": "set by Next",
+        "breaks": "Decides whether sentry.server.config.js (nodejs) or sentry.edge.config.js (edge) loads."
+      }
+    },
+    {
+      "id": "env:NEXT_PHASE",
+      "type": "env",
+      "label": "NEXT_PHASE",
+      "file": "app/sitemap.js",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "platform",
+        "runtime": "build",
+        "runtimes": [
+          "build"
+        ],
+        "readAt": [
+          "app/sitemap.js#duringBuild"
+        ],
+        "fallback": "set by Next",
+        "breaks": "phase-production-build lets the sitemap fall back to its static route list if the post read fails (CI builds against a placeholder Supabase URL)."
+      }
+    },
+    {
+      "id": "env:VERCEL_ENV",
+      "type": "env",
+      "label": "VERCEL_ENV",
+      "file": "app/api/sentry-verification/route.js",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "platform",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "app/api/sentry-verification/route.js#GET",
+          "lib/hcaptcha.mjs#isProduction",
+          "lib/rateLimit.mjs#isProductionDeployment",
+          "lib/appUrl.mjs#readEnv"
+        ],
+        "fallback": "unset off Vercel",
+        "breaks": "\"production\" switches on fail-closed contact limiting, mandatory hCaptcha and the https-only app URL. \"preview\" opens /api/sentry-verification and the VERCEL_URL app-URL fallback. Docker and local runs are never \"production\" by this test."
+      }
+    },
+    {
+      "id": "env:VERCEL",
+      "type": "env",
+      "label": "VERCEL",
+      "file": "lib/rateLimit.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "platform",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "lib/rateLimit.mjs#getClientIp"
+        ],
+        "fallback": "unset off Vercel",
+        "breaks": "\"1\" makes getClientIp trust x-real-ip / x-vercel-forwarded-for and ignore a client-sent x-forwarded-for."
+      }
+    },
+    {
+      "id": "env:VERCEL_URL",
+      "type": "env",
+      "label": "VERCEL_URL",
+      "file": "lib/appUrl.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "platform",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "lib/appUrl.mjs#readEnv"
+        ],
+        "fallback": "unset off Vercel",
+        "breaks": "Used only on a Vercel Preview with NEXT_PUBLIC_APP_URL unset: emailed links become https://$VERCEL_URL."
+      }
+    },
+    {
+      "id": "env:CI",
+      "type": "env",
+      "label": "CI",
+      "file": "next.config.js",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "platform",
+        "runtime": "build",
+        "runtimes": [
+          "build",
+          "ci"
+        ],
+        "readAt": [
+          "next.config.js#silent"
+        ],
+        "fallback": "set by GitHub Actions",
+        "breaks": "The Sentry build plugin is silent unless CI is set (silent: !process.env.CI)."
+      }
+    },
+    {
+      "id": "env:PORT",
+      "type": "env",
+      "label": "PORT",
+      "file": "Dockerfile",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "Dockerfile#PORT"
+        ],
+        "fallback": "3000 (Dockerfile ENV)",
+        "breaks": "Read by the Next standalone server.js, not by repo code (consumer inside node_modules UNVERIFIED)."
+      }
+    },
+    {
+      "id": "env:HOSTNAME",
+      "type": "env",
+      "label": "HOSTNAME",
+      "file": "Dockerfile",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "server",
+        "runtimes": [
+          "server"
+        ],
+        "readAt": [
+          "Dockerfile#HOSTNAME"
+        ],
+        "fallback": "0.0.0.0 (Dockerfile ENV)",
+        "breaks": "Read by the Next standalone server.js, not by repo code (consumer inside node_modules UNVERIFIED)."
+      }
+    },
+    {
+      "id": "env:SUPABASE_URL",
+      "type": "env",
+      "label": "SUPABASE_URL",
+      "file": "scripts/seo/publish-blog-drafts.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script",
+          "ci"
+        ],
+        "readAt": [
+          "scripts/seo/publish-blog-drafts.mjs#main",
+          "scripts/provision-crm-test-users.mjs#getSupabase",
+          "scripts/verify-crm-preview-authorization.mjs#signIn",
+          ".github/workflows/seo-publish-blog.yml#SUPABASE_URL"
+        ],
+        "fallback": "publish script falls back to NEXT_PUBLIC_SUPABASE_URL; the others have none",
+        "breaks": "Whichever project this names is the one written to. Nothing in the repo checks that it is not production. Stored as a GitHub secret."
+      }
+    },
+    {
+      "id": "env:SUPABASE_ANON_KEY",
+      "type": "env",
+      "label": "SUPABASE_ANON_KEY",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#signIn"
+        ],
+        "fallback": "none",
+        "breaks": "The preview-authorization script refuses to run. Public by design, like the NEXT_PUBLIC_ twin."
+      }
+    },
+    {
+      "id": "env:SEO_BLOG_COVERS_BUCKET",
+      "type": "env",
+      "label": "SEO_BLOG_COVERS_BUCKET",
+      "file": "scripts/seo/publish-blog-drafts.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script",
+          "ci"
+        ],
+        "readAt": [
+          "scripts/seo/publish-blog-drafts.mjs#BUCKET",
+          ".github/workflows/seo-publish-blog.yml#SEO_BLOG_COVERS_BUCKET"
+        ],
+        "fallback": "blog-covers (a GitHub repository variable in CI)",
+        "breaks": "Names the Storage bucket for cover uploads. No migration creates blog-covers, so a draft with cover_image fails until the bucket exists."
+      }
+    },
+    {
+      "id": "env:LIVECHECK_BASE_URL",
+      "type": "env",
+      "label": "LIVECHECK_BASE_URL",
+      "file": "scripts/livecheck.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/livecheck.mjs#BASE"
+        ],
+        "fallback": "http://localhost:3000",
+        "breaks": "Points the Playwright smoke check at another deployment. Read-only."
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_ENVIRONMENT",
+      "type": "env",
+      "label": "CRM_PREVIEW_ENVIRONMENT",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#configuredPreview"
+        ],
+        "fallback": "none",
+        "breaks": "Must equal \"preview\" or the script refuses. The guard is self-declared: nothing stops pointing it at production credentials."
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_CLIENT_A_EMAIL",
+      "type": "env",
+      "label": "CRM_PREVIEW_CLIENT_A_EMAIL",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Login for one fixture user; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_CLIENT_B_EMAIL",
+      "type": "env",
+      "label": "CRM_PREVIEW_CLIENT_B_EMAIL",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Login for one fixture user; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_EMPLOYEE_EMAIL",
+      "type": "env",
+      "label": "CRM_PREVIEW_EMPLOYEE_EMAIL",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Login for one fixture user; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_ADMIN_EMAIL",
+      "type": "env",
+      "label": "CRM_PREVIEW_ADMIN_EMAIL",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Login for one fixture user; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_CLIENT_A_PASSWORD",
+      "type": "env",
+      "label": "CRM_PREVIEW_CLIENT_A_PASSWORD",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Password for the fixture user above; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_CLIENT_B_PASSWORD",
+      "type": "env",
+      "label": "CRM_PREVIEW_CLIENT_B_PASSWORD",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Password for the fixture user above; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_EMPLOYEE_PASSWORD",
+      "type": "env",
+      "label": "CRM_PREVIEW_EMPLOYEE_PASSWORD",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Password for the fixture user above; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_ADMIN_PASSWORD",
+      "type": "env",
+      "label": "CRM_PREVIEW_ADMIN_PASSWORD",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Password for the fixture user above; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_CLIENT_A_PROJECT_ID",
+      "type": "env",
+      "label": "CRM_PREVIEW_CLIENT_A_PROJECT_ID",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Row id the script probes for allow/deny; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_CLIENT_B_PROJECT_ID",
+      "type": "env",
+      "label": "CRM_PREVIEW_CLIENT_B_PROJECT_ID",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Row id the script probes for allow/deny; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_EMPLOYEE_ASSIGNED_PROJECT_ID",
+      "type": "env",
+      "label": "CRM_PREVIEW_EMPLOYEE_ASSIGNED_PROJECT_ID",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Row id the script probes for allow/deny; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_EMPLOYEE_UNASSIGNED_PROJECT_ID",
+      "type": "env",
+      "label": "CRM_PREVIEW_EMPLOYEE_UNASSIGNED_PROJECT_ID",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Row id the script probes for allow/deny; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_PREVIEW_CLIENT_A_THREAD_ID",
+      "type": "env",
+      "label": "CRM_PREVIEW_CLIENT_A_THREAD_ID",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV"
+        ],
+        "fallback": "none",
+        "breaks": "Row id the script probes for allow/deny; missing aborts the script.",
+        "group": "preview-fixture"
+      }
+    },
+    {
+      "id": "env:CRM_TEST_EMPLOYEE_EMAIL",
+      "type": "env",
+      "label": "CRM_TEST_EMPLOYEE_EMAIL",
+      "file": "scripts/provision-crm-test-users.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/provision-crm-test-users.mjs#EMPLOYEE_EMAIL"
+        ],
+        "fallback": "ethan+employee@cdsportswearinc.com",
+        "breaks": "Added by the uncommitted bug-fix work (not in 1c17666). The script refuses any retired-domain address (isRetiredDomainEmail)."
+      }
+    },
+    {
+      "id": "env:CRM_TEST_CLIENT_EMAIL",
+      "type": "env",
+      "label": "CRM_TEST_CLIENT_EMAIL",
+      "file": "scripts/provision-crm-test-users.mjs",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "scripts/provision-crm-test-users.mjs#CLIENT_EMAIL"
+        ],
+        "fallback": "ethan+client@cdsportswearinc.com",
+        "breaks": "Same as the employee address."
+      }
+    },
+    {
+      "id": "env:GITHUB_TOKEN",
+      "type": "env",
+      "label": "GITHUB_TOKEN",
+      "file": ".github/workflows/docker-ci.yml",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "ci",
+        "runtimes": [
+          "ci"
+        ],
+        "readAt": [
+          ".github/workflows/docker-ci.yml#GITHUB_TOKEN",
+          ".github/workflows/dependabot-auto-merge.yml#GITHUB_TOKEN"
+        ],
+        "fallback": "issued per workflow run by GitHub",
+        "breaks": "docker-ci uses it to log in to ghcr (packages: write); dependabot-auto-merge passes it as GH_TOKEN to gh pr merge (contents/pull-requests: write)."
+      }
+    },
+    {
+      "id": "env:SUPABASE_AUTH_SITE_URL",
+      "type": "env",
+      "label": "SUPABASE_AUTH_SITE_URL",
+      "file": "supabase/config.toml",
+      "attrs": {
+        "public": false,
+        "secret": false,
+        "kind": "config",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "supabase/config.toml:160"
+        ],
+        "fallback": "none in the file",
+        "breaks": "Supabase CLI only (supabase start): the local stack's Auth site_url. The hosted project's Site URL is a dashboard setting, UNVERIFIED from the repo."
+      }
+    },
+    {
+      "id": "env:OPENAI_API_KEY",
+      "type": "env",
+      "label": "OPENAI_API_KEY",
+      "file": "supabase/config.toml",
+      "attrs": {
+        "public": false,
+        "secret": true,
+        "kind": "secret",
+        "runtime": "script",
+        "runtimes": [
+          "script"
+        ],
+        "readAt": [
+          "supabase/config.toml:101"
+        ],
+        "fallback": "none",
+        "breaks": "Supabase CLI only: enables the Studio AI assistant on the local stack. Unset leaves it off (UNVERIFIED CLI behaviour)."
+      }
+    },
+    {
+      "id": "cron:vercel.crm-notifications",
+      "type": "cron",
+      "label": "Vercel cron: crm-notifications (daily 13:00 UTC)",
+      "file": "vercel.json",
+      "attrs": {
+        "schedule": "0 13 * * *",
+        "method": "GET",
+        "auth": "Authorization: Bearer $CRON_SECRET",
+        "primaryScheduler": "cron:pg_cron.drain-crm-outbox (every 5 min, POST, x-cron-secret from Vault)"
+      }
+    },
+    {
+      "id": "workflow:.github/workflows/docker-ci.yml",
+      "type": "workflow",
+      "label": "Docker CI",
+      "file": ".github/workflows/docker-ci.yml",
+      "attrs": {
+        "triggers": [
+          "push to main",
+          "pull_request to main"
+        ],
+        "jobs": [
+          "test (pnpm test, test:components, build with placeholder env)",
+          "build (image build; push + cosign only when not a PR)"
+        ],
+        "secrets": [
+          "GITHUB_TOKEN"
+        ],
+        "vars": [
+          "NEXT_PUBLIC_SUPABASE_URL",
+          "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+          "NEXT_PUBLIC_APP_URL"
+        ],
+        "touchesProduction": false
+      }
+    },
+    {
+      "id": "workflow:.github/workflows/seo-publish-blog.yml",
+      "type": "workflow",
+      "label": "SEO: publish approved blog drafts",
+      "file": ".github/workflows/seo-publish-blog.yml",
+      "attrs": {
+        "triggers": [
+          "push to main touching docs/seo/drafts/blog/** or the script",
+          "workflow_dispatch (dry_run default true)"
+        ],
+        "secrets": [
+          "SUPABASE_URL",
+          "SUPABASE_SERVICE_ROLE_KEY"
+        ],
+        "vars": [
+          "SEO_BLOG_COVERS_BUCKET"
+        ],
+        "serviceRole": true,
+        "touchesProduction": true,
+        "environmentProtection": false
+      }
+    },
+    {
+      "id": "workflow:.github/workflows/dependabot-auto-merge.yml",
+      "type": "workflow",
+      "label": "Dependabot auto-merge and release-policy",
+      "file": ".github/workflows/dependabot-auto-merge.yml",
+      "attrs": {
+        "triggers": [
+          "pull_request to main (opened, reopened, synchronize, ready_for_review, edited)"
+        ],
+        "secrets": [
+          "GITHUB_TOKEN"
+        ],
+        "effect": "enable-dependabot-auto-merge needs release-policy; release-policy rejects any title that is not vX.NN - summary, so Dependabot PRs never reach auto-merge"
+      }
+    },
+    {
+      "id": "workflow:.github/dependabot.yml",
+      "type": "workflow",
+      "label": "Dependabot configuration",
+      "file": ".github/dependabot.yml",
+      "attrs": {
+        "kind": "config",
+        "schedule": "weekly Monday 09:00 America/Los_Angeles",
+        "ecosystems": [
+          "npm",
+          "github-actions",
+          "docker"
+        ]
+      }
+    },
+    {
+      "id": "script:scripts/seo/publish-blog-drafts.mjs",
+      "type": "script",
+      "label": "publish-blog-drafts",
+      "file": "scripts/seo/publish-blog-drafts.mjs",
+      "attrs": {
+        "trigger": "seo-publish-blog.yml or manual",
+        "serviceRole": true,
+        "touchesProduction": true,
+        "writes": [
+          "blog_posts (status always draft)",
+          "Storage covers/<slug>.<ext>"
+        ]
+      }
+    },
+    {
+      "id": "script:scripts/seo/indexnow-ping.mjs",
+      "type": "script",
+      "label": "indexnow-ping",
+      "file": "scripts/seo/indexnow-ping.mjs",
+      "attrs": {
+        "trigger": "manual",
+        "serviceRole": false,
+        "touchesProduction": false,
+        "writes": [
+          "POST api.indexnow.org"
+        ]
+      }
+    },
+    {
+      "id": "script:scripts/livecheck.mjs",
+      "type": "script",
+      "label": "livecheck",
+      "file": "scripts/livecheck.mjs",
+      "attrs": {
+        "trigger": "pnpm livecheck (manual)",
+        "readOnly": true,
+        "routes": [
+          "/",
+          "/work",
+          "/services/web-design",
+          "/about",
+          "/services",
+          "/contact",
+          "/process",
+          "/reviews",
+          "/embroidery-screen-printing-web-design"
+        ]
+      }
+    },
+    {
+      "id": "script:scripts/provision-crm-test-users.mjs",
+      "type": "script",
+      "label": "provision-crm-test-users",
+      "file": "scripts/provision-crm-test-users.mjs",
+      "attrs": {
+        "trigger": "pnpm crm:provision-test-users (manual; dry run unless --execute)",
+        "serviceRole": true,
+        "touchesProduction": "whatever SUPABASE_URL names"
+      }
+    },
+    {
+      "id": "script:scripts/verify-crm-preview-authorization.mjs",
+      "type": "script",
+      "label": "verify-crm-preview-authorization",
+      "file": "scripts/verify-crm-preview-authorization.mjs",
+      "attrs": {
+        "trigger": "pnpm crm:verify:preview (manual)",
+        "serviceRole": false,
+        "readOnly": true
+      }
+    },
+    {
+      "id": "script:scripts/release-policy.mjs",
+      "type": "script",
+      "label": "release-policy",
+      "file": "scripts/release-policy.mjs",
+      "attrs": {
+        "trigger": "dependabot-auto-merge.yml (release-policy job)",
+        "pure": true
+      }
+    },
+    {
+      "id": "script:Dockerfile",
+      "type": "script",
+      "label": "Dockerfile (3-stage standalone image)",
+      "file": "Dockerfile",
+      "attrs": {
+        "kind": "dockerfile",
+        "buildArgs": [
+          "NEXT_PUBLIC_SUPABASE_URL",
+          "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+          "NEXT_PUBLIC_APP_URL"
+        ],
+        "base": "node:26-alpine (CI uses Node 24)"
+      }
+    },
+    {
+      "id": "script:docker-compose.yml",
+      "type": "script",
+      "label": "docker-compose.yml",
+      "file": "docker-compose.yml",
+      "attrs": {
+        "kind": "compose",
+        "envFile": ".env.local"
+      }
+    },
+    {
+      "id": "event:ga4.page_view",
+      "type": "event",
+      "label": "page_view",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "params": [
+          "page_location",
+          "page_title",
+          "page_referrer"
+        ],
+        "preceded": [
+          "js",
+          "config {send_page_view:false}",
+          "set"
+        ],
+        "consentGated": "Consent Mode v2",
+        "pii": "query string reduced to campaign allow-list"
+      }
+    },
+    {
+      "id": "event:ga4.generate_lead",
+      "type": "event",
+      "label": "generate_lead",
+      "file": "components/marketing/ContactForm.jsx",
+      "attrs": {
+        "params": [
+          "form_location",
+          "budget"
+        ],
+        "consentGated": "Consent Mode v2",
+        "pii": "none by code"
+      }
+    },
+    {
+      "id": "event:gtm.gtm.js",
+      "type": "event",
+      "label": "gtm.js (container load)",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "params": [
+          "gtm.start",
+          "event: 'gtm.js'"
+        ],
+        "consentGated": "no (load precedes consent; defaults queued first)",
+        "pii": "none by code"
+      }
+    },
+    {
+      "id": "event:ga4.consent_default",
+      "type": "event",
+      "label": "consent default",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "kind": "consent command",
+        "params": [
+          "ad_storage",
+          "ad_user_data",
+          "ad_personalization",
+          "analytics_storage = denied",
+          "wait_for_update 500"
+        ]
+      }
+    },
+    {
+      "id": "event:ga4.consent_update",
+      "type": "event",
+      "label": "consent update",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "kind": "consent command",
+        "params": [
+          "ad_storage",
+          "ad_user_data",
+          "ad_personalization",
+          "analytics_storage = granted|denied"
+        ]
+      }
+    },
+    {
+      "id": "storage:local:cws:analytics-consent",
+      "type": "storage",
+      "label": "localStorage cws:analytics-consent",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "values": [
+          "granted",
+          "denied"
+        ],
+        "lifetime": "until cleared, per origin (www and app are separate)"
+      }
+    },
+    {
+      "id": "storage:session:cws:intro-seen",
+      "type": "storage",
+      "label": "sessionStorage cws:intro-seen",
+      "file": "components/Loader.jsx",
+      "attrs": {
+        "values": [
+          "1"
+        ],
+        "lifetime": "browser tab session"
+      }
+    },
+    {
+      "id": "storage:local:cws.portal.tour.seen.v1",
+      "type": "storage",
+      "label": "localStorage cws.portal.tour.seen.v1",
+      "file": "components/crm/PortalTour.jsx",
+      "attrs": {
+        "values": [
+          "ISO timestamp"
+        ],
+        "lifetime": "until cleared; per browser, not per user"
+      }
+    },
+    {
+      "id": "storage:session:sentryReplaySession",
+      "type": "storage",
+      "label": "sessionStorage sentryReplaySession (Sentry Replay)",
+      "file": "instrumentation-client.js",
+      "attrs": {
+        "verified": false,
+        "note": "Sentry library default; key name and lifetime UNVERIFIED (node_modules not readable here)"
+      }
+    },
+    {
+      "id": "cookie:_ga",
+      "type": "cookie",
+      "label": "_ga",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "verified": false,
+        "setBy": "gtag.js, only after analytics_storage is granted",
+        "lifetime": "Google default about 2 years (UNVERIFIED)",
+        "contains": "GA client id"
+      }
+    },
+    {
+      "id": "cookie:_ga_<stream-id>",
+      "type": "cookie",
+      "label": "_ga_<stream-id>",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "verified": false,
+        "setBy": "gtag.js, only after analytics_storage is granted",
+        "lifetime": "Google default about 2 years (UNVERIFIED)",
+        "contains": "GA session state"
+      }
+    },
+    {
+      "id": "page:/",
+      "type": "page",
+      "label": "/",
+      "file": "app/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "SITE",
+          "SERVICE_PAGES (Services beat)",
+          "REVIEWS (Stories beat)",
+          "PROJECTS + CLIENT_TILE_IMAGES (Motion beat)",
+          "ContactForm + Trustpilot (Contact beat)"
+        ],
+        "jsonLd": "Organization+ProfessionalService and WebSite from app/layout.jsx",
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/about",
+      "type": "page",
+      "label": "/about",
+      "file": "app/about/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "SITE",
+          "REVIEW_STATS",
+          "ContactForm variant about"
+        ],
+        "jsonLd": [
+          "BreadcrumbList",
+          "FAQPage"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/blog",
+      "type": "page",
+      "label": "/blog",
+      "file": "app/blog/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "blog_posts via listPublishedPosts (limit 20)"
+        ],
+        "dynamic": "force-dynamic",
+        "jsonLd": [
+          "BreadcrumbList",
+          "Blog (safeJsonLd)"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/blog/[slug]",
+      "type": "page",
+      "label": "/blog/[slug]",
+      "file": "app/blog/[slug]/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "blog_posts via getPublishedPost",
+          "listPublishedPosts (3 other posts)",
+          "RELATED_BY_SLUG (14 hard-coded slugs)"
+        ],
+        "dynamic": "force-dynamic",
+        "jsonLd": [
+          "BreadcrumbList",
+          "BlogPosting (safeJsonLd)"
+        ],
+        "robots": "index; noindex when the slug is missing or a draft"
+      }
+    },
+    {
+      "id": "page:/contact",
+      "type": "page",
+      "label": "/contact",
+      "file": "app/contact/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "SITE",
+          "REVIEW_STATS",
+          "ContactForm variant marketing"
+        ],
+        "jsonLd": [
+          "BreadcrumbList",
+          "FAQPage"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/embroidery-screen-printing-web-design",
+      "type": "page",
+      "label": "/embroidery-screen-printing-web-design",
+      "file": "app/embroidery-screen-printing-web-design/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "hard-coded copy",
+          "SITE"
+        ],
+        "jsonLd": [
+          "BreadcrumbList",
+          "FAQPage",
+          "Article"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/hire/shopify-developer",
+      "type": "page",
+      "label": "/hire/shopify-developer",
+      "file": "app/hire/shopify-developer/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "hard-coded copy",
+          "SITE"
+        ],
+        "jsonLd": [
+          "BreadcrumbList",
+          "FAQPage",
+          "Article"
+        ],
+        "robots": "noindex, follow; absent from sitemap, present in llms.txt"
+      }
+    },
+    {
+      "id": "page:/privacy",
+      "type": "page",
+      "label": "/privacy",
+      "file": "app/privacy/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "SITE",
+          "cityStateZip",
+          "LAST_UPDATED constant"
+        ],
+        "jsonLd": [
+          "BreadcrumbList"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/process",
+      "type": "page",
+      "label": "/process",
+      "file": "app/process/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "SITE",
+          "ContactForm variant marketing"
+        ],
+        "jsonLd": [
+          "BreadcrumbList"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/reviews",
+      "type": "page",
+      "label": "/reviews",
+      "file": "app/reviews/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "REVIEWS",
+          "REVIEW_STATS"
+        ],
+        "jsonLd": [
+          "BreadcrumbList",
+          "FAQPage",
+          "ItemList of Review"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/services",
+      "type": "page",
+      "label": "/services",
+      "file": "app/services/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "SERVICE_PAGES"
+        ],
+        "jsonLd": [
+          "BreadcrumbList",
+          "FAQPage",
+          "ItemList"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/services/[slug]",
+      "type": "page",
+      "label": "/services/[slug]",
+      "file": "app/services/[slug]/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "SERVICE_PAGES (generateStaticParams, 9 slugs)",
+          "PROJECTS",
+          "ContactForm variant service-<slug>"
+        ],
+        "jsonLd": [
+          "BreadcrumbList",
+          "FAQPage",
+          "Service"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/terms",
+      "type": "page",
+      "label": "/terms",
+      "file": "app/terms/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "SITE",
+          "cityStateZip",
+          "LAST_UPDATED constant"
+        ],
+        "jsonLd": [
+          "BreadcrumbList"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/work",
+      "type": "page",
+      "label": "/work",
+      "file": "app/work/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "PROJECTS"
+        ],
+        "jsonLd": [
+          "BreadcrumbList",
+          "FAQPage",
+          "ItemList"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/work/[slug]",
+      "type": "page",
+      "label": "/work/[slug]",
+      "file": "app/work/[slug]/page.jsx",
+      "attrs": {
+        "dataSources": [
+          "PROJECTS (generateStaticParams, 6 slugs)",
+          "SERVICE_PAGES"
+        ],
+        "jsonLd": [
+          "BreadcrumbList",
+          "CreativeWork"
+        ],
+        "robots": "index"
+      }
+    },
+    {
+      "id": "page:/sitemap.xml",
+      "type": "page",
+      "label": "/sitemap.xml",
+      "file": "app/sitemap.js",
+      "attrs": {
+        "revalidate": 3600,
+        "dataSources": [
+          "11 static routes",
+          "SERVICE_PAGE_SLUGS (9)",
+          "PROJECTS (6)",
+          "blog_posts slugs (limit 100)"
+        ],
+        "lastmod": "posts only (updated_at or published_at)"
+      }
+    },
+    {
+      "id": "page:/robots.txt",
+      "type": "page",
+      "label": "/robots.txt",
+      "file": "app/robots.js",
+      "attrs": {
+        "dataSources": [
+          "SITE_ORIGIN",
+          "PRIVATE_PATHS (12)",
+          "NAMED_CRAWLERS (8)"
+        ]
+      }
+    },
+    {
+      "id": "page:/opengraph-image",
+      "type": "page",
+      "label": "/opengraph-image",
+      "file": "app/opengraph-image.jsx",
+      "attrs": {
+        "size": "1200x630 PNG",
+        "prerendered": "at build",
+        "dataSources": [
+          "SITE.name",
+          "SITE.statement",
+          "SITE.city"
+        ]
+      }
+    },
+    {
+      "id": "page:/llms.txt",
+      "type": "page",
+      "label": "/llms.txt",
+      "file": "public/llms.txt",
+      "attrs": {
+        "static": true,
+        "dataSources": [
+          "hand-written mirror of the sitemap plus 14 blog slugs"
+        ],
+        "guard": "tests/seo-identity-and-crawl.test.mjs (every sitemap URL and every pillar-linked post must appear)"
+      }
+    },
+    {
+      "id": "page:/2aa3a082044a1c787011f08d0c31fd1f.txt",
+      "type": "page",
+      "label": "/2aa3a082044a1c787011f08d0c31fd1f.txt",
+      "file": "public/2aa3a082044a1c787011f08d0c31fd1f.txt",
+      "attrs": {
+        "static": true,
+        "role": "IndexNow key file; indexnow-ping.mjs reads it from disk and names it as keyLocation"
+      }
+    },
+    {
+      "id": "component:components/marketing/BreadcrumbSchema.jsx",
+      "type": "component",
+      "label": "BreadcrumbSchema",
+      "file": "components/marketing/BreadcrumbSchema.jsx",
+      "attrs": {
+        "externalData": "emits BreadcrumbList JSON-LD via safeJsonLd"
+      }
+    },
+    {
+      "id": "component:components/marketing/CaseGallery.jsx",
+      "type": "component",
+      "label": "CaseGallery",
+      "file": "components/marketing/CaseGallery.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/CaseNavRail.jsx",
+      "type": "component",
+      "label": "CaseNavRail",
+      "file": "components/marketing/CaseNavRail.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/ContactForm.jsx",
+      "type": "component",
+      "label": "ContactForm",
+      "file": "components/marketing/ContactForm.jsx",
+      "attrs": {
+        "externalData": "POST /api/contact; fires generate_lead; reads getHCaptchaSiteKey",
+        "pii": "name, email, company, brief typed by the visitor"
+      }
+    },
+    {
+      "id": "component:components/marketing/ContactPulseLinks.jsx",
+      "type": "component",
+      "label": "ContactPulseLinks",
+      "file": "components/marketing/ContactPulseLinks.jsx",
+      "attrs": {
+        "externalData": "SITE email, phone, address"
+      }
+    },
+    {
+      "id": "component:components/marketing/ContentSection.jsx",
+      "type": "component",
+      "label": "ContentSection",
+      "file": "components/marketing/ContentSection.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/FaqSchema.jsx",
+      "type": "component",
+      "label": "FaqSchema",
+      "file": "components/marketing/FaqSchema.jsx",
+      "attrs": {
+        "externalData": "emits FAQPage JSON-LD (bare JSON.stringify of static data)"
+      }
+    },
+    {
+      "id": "component:components/marketing/FoundingRail.jsx",
+      "type": "component",
+      "label": "FoundingRail",
+      "file": "components/marketing/FoundingRail.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/HCaptcha.jsx",
+      "type": "component",
+      "label": "HCaptcha",
+      "file": "components/marketing/HCaptcha.jsx",
+      "attrs": {
+        "externalData": "injects js.hcaptcha.com on mount; renders the widget with the site key"
+      }
+    },
+    {
+      "id": "component:components/marketing/HeroStage.jsx",
+      "type": "component",
+      "label": "HeroStage",
+      "file": "components/marketing/HeroStage.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/MarketingFooter.jsx",
+      "type": "component",
+      "label": "MarketingFooter",
+      "file": "components/marketing/MarketingFooter.jsx",
+      "attrs": {
+        "externalData": "mounts TrustpilotWidget; contact data from SITE"
+      }
+    },
+    {
+      "id": "component:components/marketing/MarketingShell.jsx",
+      "type": "component",
+      "label": "MarketingShell",
+      "file": "components/marketing/MarketingShell.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/PageHero.jsx",
+      "type": "component",
+      "label": "PageHero",
+      "file": "components/marketing/PageHero.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/PostBody.jsx",
+      "type": "component",
+      "label": "PostBody",
+      "file": "components/marketing/PostBody.jsx",
+      "attrs": {
+        "externalData": "renders blog post body through lib/blogMarkdown.mjs; author images load from any https host"
+      }
+    },
+    {
+      "id": "component:components/marketing/ProcessHero.jsx",
+      "type": "component",
+      "label": "ProcessHero",
+      "file": "components/marketing/ProcessHero.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/ProcessRail.jsx",
+      "type": "component",
+      "label": "ProcessRail",
+      "file": "components/marketing/ProcessRail.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/ProcessStepsRail.jsx",
+      "type": "component",
+      "label": "ProcessStepsRail",
+      "file": "components/marketing/ProcessStepsRail.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/ServiceEmblem.jsx",
+      "type": "component",
+      "label": "ServiceEmblem",
+      "file": "components/marketing/ServiceEmblem.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/ServiceGlyph.jsx",
+      "type": "component",
+      "label": "ServiceGlyph",
+      "file": "components/marketing/ServiceGlyph.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/ServiceGrid.jsx",
+      "type": "component",
+      "label": "ServiceGrid",
+      "file": "components/marketing/ServiceGrid.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/ServicePage.jsx",
+      "type": "component",
+      "label": "ServicePage",
+      "file": "components/marketing/ServicePage.jsx",
+      "attrs": {
+        "externalData": "SERVICE_PAGES via getRelatedServices, PROJECTS via getProject, ContactForm"
+      }
+    },
+    {
+      "id": "component:components/marketing/ServiceSchema.jsx",
+      "type": "component",
+      "label": "ServiceSchema",
+      "file": "components/marketing/ServiceSchema.jsx",
+      "attrs": {
+        "externalData": "emits Service JSON-LD (bare JSON.stringify of static data)"
+      }
+    },
+    {
+      "id": "component:components/marketing/ServiceThreadArc.jsx",
+      "type": "component",
+      "label": "ServiceThreadArc",
+      "file": "components/marketing/ServiceThreadArc.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/ShapeWaves.jsx",
+      "type": "component",
+      "label": "ShapeWaves",
+      "file": "components/marketing/ShapeWaves.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/StageContext.jsx",
+      "type": "component",
+      "label": "StageContext",
+      "file": "components/marketing/StageContext.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/marketing/SubpageExperience.jsx",
+      "type": "component",
+      "label": "SubpageExperience",
+      "file": "components/marketing/SubpageExperience.jsx",
+      "attrs": {
+        "externalData": "mounts SubpageNav, MarketingFooter (so Trustpilot) on every inner page"
+      }
+    },
+    {
+      "id": "component:components/marketing/SubpageNav.jsx",
+      "type": "component",
+      "label": "SubpageNav",
+      "file": "components/marketing/SubpageNav.jsx",
+      "attrs": {
+        "externalData": "SITE.nav, CRM_ENABLED for the login link"
+      }
+    },
+    {
+      "id": "component:components/marketing/TrustpilotWidget.jsx",
+      "type": "component",
+      "label": "TrustpilotWidget",
+      "file": "components/marketing/TrustpilotWidget.jsx",
+      "attrs": {
+        "externalData": "next/script lazyOnload of widget.trustpilot.com bootstrap; renders iframe"
+      }
+    },
+    {
+      "id": "component:components/marketing/WorkLibrary.jsx",
+      "type": "component",
+      "label": "WorkLibrary",
+      "file": "components/marketing/WorkLibrary.jsx",
+      "attrs": {}
+    },
+    {
+      "id": "component:components/Analytics.jsx",
+      "type": "component",
+      "label": "Analytics",
+      "file": "components/Analytics.jsx",
+      "attrs": {
+        "externalData": "loads gtag.js; RouteTracker fires page_view; TagManagerLoader fallback loads gtm.js; mounts ConsentBanner"
+      }
+    },
+    {
+      "id": "component:components/ConsentBanner.jsx",
+      "type": "component",
+      "label": "ConsentBanner",
+      "file": "components/ConsentBanner.jsx",
+      "attrs": {
+        "externalData": "reads and writes localStorage cws:analytics-consent; pushes consent update"
+      }
+    },
+    {
+      "id": "component:app/layout.jsx",
+      "type": "component",
+      "label": "Root layout",
+      "file": "app/layout.jsx",
+      "attrs": {
+        "externalData": "default metadata, optional GSC verification meta, Organization/WebSite JSON-LD, GTM head snippet and noscript iframe, next/font/google, mounts Analytics and PageTransition"
+      }
+    },
+    {
+      "id": "component:app/error.jsx",
+      "type": "component",
+      "label": "Route error boundary",
+      "file": "app/error.jsx",
+      "attrs": {
+        "externalData": "Sentry.captureException tag surface=app-error-boundary"
+      }
+    },
+    {
+      "id": "component:app/global-error.jsx",
+      "type": "component",
+      "label": "Global error boundary",
+      "file": "app/global-error.jsx",
+      "attrs": {
+        "externalData": "Sentry.captureException tag surface=global-error-boundary"
+      }
+    },
+    {
+      "id": "lib:lib/analytics.mjs",
+      "type": "lib",
+      "label": "lib/analytics.mjs",
+      "file": "lib/analytics.mjs",
+      "attrs": {
+        "role": "GA4/GTM bridge: ID gates, consent, pageview and trackEvent, GTM head snippet",
+        "exports": [
+          "GA_ID",
+          "GTM_ID",
+          "DEFAULT_GTM_ID",
+          "UNTRACKED_PREFIXES",
+          "TRACKING_PARAMS",
+          "setConsent",
+          "pageview",
+          "trackEvent"
+        ]
+      }
+    },
+    {
+      "id": "lib:lib/seo.mjs",
+      "type": "lib",
+      "label": "lib/seo.mjs",
+      "file": "lib/seo.mjs",
+      "attrs": {
+        "role": "single record of the canonical host and site URL helpers",
+        "exports": [
+          "SITE_ORIGIN",
+          "SITE_HOST",
+          "SOCIAL_IMAGE_PATH",
+          "OWN_HOSTNAMES",
+          "absoluteUrl",
+          "toSitePath"
+        ]
+      }
+    },
+    {
+      "id": "lib:lib/jsonLd.mjs",
+      "type": "lib",
+      "label": "lib/jsonLd.mjs",
+      "file": "lib/jsonLd.mjs",
+      "attrs": {
+        "role": "safeJsonLd escapes <, >, & and U+2028/2029 for ld+json injection"
+      }
+    },
+    {
+      "id": "lib:lib/projects.js",
+      "type": "lib",
+      "label": "lib/projects.js",
+      "file": "lib/projects.js",
+      "attrs": {
+        "records": 6,
+        "role": "case studies"
+      }
+    },
+    {
+      "id": "lib:lib/reviews.js",
+      "type": "lib",
+      "label": "lib/reviews.js",
+      "file": "lib/reviews.js",
+      "attrs": {
+        "records": 20,
+        "role": "named reviewer records plus computed REVIEW_STATS"
+      }
+    },
+    {
+      "id": "lib:lib/services.mjs",
+      "type": "lib",
+      "label": "lib/services.mjs",
+      "file": "lib/services.mjs",
+      "attrs": {
+        "records": 8,
+        "role": "homepage service rows and rail signals"
+      }
+    },
+    {
+      "id": "lib:lib/servicePages.mjs",
+      "type": "lib",
+      "label": "lib/servicePages.mjs",
+      "file": "lib/servicePages.mjs",
+      "attrs": {
+        "records": 9,
+        "role": "per-service page content, FAQ, related links, POSTS (11 hard-coded blog slugs)"
+      }
+    },
+    {
+      "id": "lib:lib/site.js",
+      "type": "lib",
+      "label": "lib/site.js",
+      "file": "lib/site.js",
+      "attrs": {
+        "role": "brand, contact, address, Trustpilot ids, nav (single source for 37+ importers)"
+      }
+    },
+    {
+      "id": "lib:lib/serviceSignals.mjs",
+      "type": "lib",
+      "label": "lib/serviceSignals.mjs",
+      "file": "lib/serviceSignals.mjs",
+      "attrs": {
+        "role": "3D rail motion metadata keyed by signal"
+      }
+    },
+    {
+      "id": "lib:lib/serviceSignalBlurbs.mjs",
+      "type": "lib",
+      "label": "lib/serviceSignalBlurbs.mjs",
+      "file": "lib/serviceSignalBlurbs.mjs",
+      "attrs": {
+        "role": "one-line tooltip copy shown by the 3D service emblem"
+      }
+    },
+    {
+      "id": "lib:lib/serviceSignalGeometry.mjs",
+      "type": "lib",
+      "label": "lib/serviceSignalGeometry.mjs",
+      "file": "lib/serviceSignalGeometry.mjs",
+      "attrs": {
+        "role": "procedural geometry per signal"
+      }
+    },
+    {
+      "id": "lib:lib/clientTileImages.mjs",
+      "type": "lib",
+      "label": "lib/clientTileImages.mjs",
+      "file": "lib/clientTileImages.mjs",
+      "attrs": {
+        "records": 31,
+        "role": "decorative third-party screenshots for the Motion marquee"
+      }
+    },
+    {
+      "id": "lib:lib/blogMarkdown.mjs",
+      "type": "lib",
+      "label": "lib/blogMarkdown.mjs",
+      "file": "lib/blogMarkdown.mjs",
+      "attrs": {
+        "role": "markdown to tokens; safeHref and safeImageSrc (any https image host allowed)"
+      }
+    },
+    {
+      "id": "lib:instrumentation.js",
+      "type": "lib",
+      "label": "instrumentation.js",
+      "file": "instrumentation.js",
+      "attrs": {
+        "role": "loads sentry.server.config or sentry.edge.config by NEXT_RUNTIME; exports onRequestError"
+      }
+    },
+    {
+      "id": "lib:instrumentation-client.js",
+      "type": "lib",
+      "label": "instrumentation-client.js",
+      "file": "instrumentation-client.js",
+      "attrs": {
+        "role": "browser Sentry init: tracing 10%, replay 10%/100%"
+      }
+    },
+    {
+      "id": "lib:sentry.server.config.js",
+      "type": "lib",
+      "label": "sentry.server.config.js",
+      "file": "sentry.server.config.js",
+      "attrs": {
+        "role": "server Sentry init: traces 10%, health and cron routes sampled at 0"
+      }
+    },
+    {
+      "id": "lib:sentry.edge.config.js",
+      "type": "lib",
+      "label": "sentry.edge.config.js",
+      "file": "sentry.edge.config.js",
+      "attrs": {
+        "role": "edge Sentry init: traces 10%"
+      }
+    },
+    {
+      "id": "lib:next.config.js",
+      "type": "lib",
+      "label": "next.config.js",
+      "file": "next.config.js",
+      "attrs": {
+        "role": "CSP and security headers, host redirects, standalone output, Sentry build plugin"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_URL",
+      "to": "lib:next.config.js",
+      "kind": "configures",
+      "via": "",
+      "when": "build",
+      "source": "next.config.js#supabaseUrl",
+      "notes": "derives the connect-src origin and its wss: twin"
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_URL",
+      "to": "ext:supabase-auth",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/supabase/browser.js#createClient",
+      "notes": "project host for all four Supabase services"
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_URL",
+      "to": "ext:supabase-db",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/supabase/browser.js#createClient",
+      "notes": "project host for all four Supabase services"
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_URL",
+      "to": "ext:supabase-storage",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/supabase/browser.js#createClient",
+      "notes": "project host for all four Supabase services"
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_URL",
+      "to": "ext:supabase-realtime",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/supabase/browser.js#createClient",
+      "notes": "project host for all four Supabase services"
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_URL",
+      "to": "script:Dockerfile",
+      "kind": "configures",
+      "via": "",
+      "when": "build arg",
+      "source": "Dockerfile#NEXT_PUBLIC_SUPABASE_URL",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_URL",
+      "to": "script:docker-compose.yml",
+      "kind": "configures",
+      "via": "",
+      "when": "build arg",
+      "source": "docker-compose.yml#NEXT_PUBLIC_SUPABASE_URL",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_URL",
+      "to": "workflow:.github/workflows/docker-ci.yml",
+      "kind": "configures",
+      "via": "",
+      "when": "test job placeholder; build job repository variable",
+      "source": ".github/workflows/docker-ci.yml#NEXT_PUBLIC_SUPABASE_URL",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_URL",
+      "to": "script:scripts/seo/publish-blog-drafts.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/seo/publish-blog-drafts.mjs#NEXT_PUBLIC_SUPABASE_URL",
+      "notes": "fallback after SUPABASE_URL"
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "to": "ext:supabase-db",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/supabase/browser.js#anonKey",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "to": "ext:supabase-auth",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/supabase/server.js#supabaseAnonKey",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "to": "script:Dockerfile",
+      "kind": "configures",
+      "via": "",
+      "when": "build arg",
+      "source": "Dockerfile#NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "to": "script:docker-compose.yml",
+      "kind": "configures",
+      "via": "",
+      "when": "build arg",
+      "source": "docker-compose.yml#NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "to": "workflow:.github/workflows/docker-ci.yml",
+      "kind": "configures",
+      "via": "",
+      "when": "test job placeholder; build job repository variable",
+      "source": ".github/workflows/docker-ci.yml#NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_APP_URL",
+      "to": "script:Dockerfile",
+      "kind": "configures",
+      "via": "",
+      "when": "build arg",
+      "source": "Dockerfile#NEXT_PUBLIC_APP_URL",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_APP_URL",
+      "to": "script:docker-compose.yml",
+      "kind": "configures",
+      "via": "",
+      "when": "build arg; defaults to http://localhost:3000",
+      "source": "docker-compose.yml#NEXT_PUBLIC_APP_URL",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_APP_URL",
+      "to": "workflow:.github/workflows/docker-ci.yml",
+      "kind": "configures",
+      "via": "",
+      "when": "test job placeholder https://placeholder.invalid; build job repository variable",
+      "source": ".github/workflows/docker-ci.yml#NEXT_PUBLIC_APP_URL",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_CRM_ENABLED",
+      "to": "lib:next.config.js",
+      "kind": "configures",
+      "via": "",
+      "when": "build",
+      "source": "next.config.js#crmEnabled",
+      "notes": "selects the host-split redirect set"
+    },
+    {
+      "from": "env:NEXT_PUBLIC_GA_ID",
+      "to": "lib:lib/analytics.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/analytics.mjs#GA_ID",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_GA_ID",
+      "to": "ext:ga4",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "components/Analytics.jsx#GA_ID",
+      "notes": "interpolated into gtag/js?id="
+    },
+    {
+      "from": "env:NEXT_PUBLIC_GTM_ID",
+      "to": "lib:lib/analytics.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/analytics.mjs#GTM_ID",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_GTM_ID",
+      "to": "ext:gtm",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "app/layout.jsx#GTM_ID",
+      "notes": "default container GTM-KJZPCQNM when unset in a production build"
+    },
+    {
+      "from": "env:NEXT_PUBLIC_GSC_VERIFICATION",
+      "to": "component:app/layout.jsx",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "app/layout.jsx#NEXT_PUBLIC_GSC_VERIFICATION",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_HCAPTCHA_SITE_KEY",
+      "to": "ext:hcaptcha",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/hcaptcha.mjs#getHCaptchaSiteKey",
+      "notes": "widget site key and the sitekey sent to siteverify"
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SENTRY_DSN",
+      "to": "lib:instrumentation-client.js",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "instrumentation-client.js#dsn",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PUBLIC_SENTRY_DSN",
+      "to": "ext:sentry",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "instrumentation-client.js#dsn",
+      "notes": ""
+    },
+    {
+      "from": "env:SENTRY_DSN",
+      "to": "lib:sentry.server.config.js",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "sentry.server.config.js#dsn",
+      "notes": ""
+    },
+    {
+      "from": "env:SENTRY_DSN",
+      "to": "lib:sentry.edge.config.js",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "sentry.edge.config.js#dsn",
+      "notes": ""
+    },
+    {
+      "from": "env:SENTRY_DSN",
+      "to": "ext:sentry",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "sentry.server.config.js#dsn",
+      "notes": ""
+    },
+    {
+      "from": "env:SENTRY_AUTH_TOKEN",
+      "to": "lib:next.config.js",
+      "kind": "configures",
+      "via": "",
+      "when": "build",
+      "source": "next.config.js#authToken",
+      "notes": ""
+    },
+    {
+      "from": "env:SENTRY_AUTH_TOKEN",
+      "to": "ext:sentry",
+      "kind": "configures",
+      "via": "",
+      "when": "build, with SENTRY_UPLOAD_SOURCEMAPS=true",
+      "source": "next.config.js#authToken",
+      "notes": ""
+    },
+    {
+      "from": "env:SENTRY_UPLOAD_SOURCEMAPS",
+      "to": "lib:next.config.js",
+      "kind": "configures",
+      "via": "",
+      "when": "build",
+      "source": "next.config.js#shouldUploadSentrySourceMaps",
+      "notes": ""
+    },
+    {
+      "from": "env:NODE_ENV",
+      "to": "lib:lib/analytics.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/analytics.mjs#resolveGtmId",
+      "notes": "production enables the default GTM container"
+    },
+    {
+      "from": "env:NODE_ENV",
+      "to": "lib:instrumentation-client.js",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "instrumentation-client.js#isDevelopment",
+      "notes": "sample rates and the environment label"
+    },
+    {
+      "from": "env:NODE_ENV",
+      "to": "lib:sentry.server.config.js",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "sentry.server.config.js#isDevelopment",
+      "notes": ""
+    },
+    {
+      "from": "env:NODE_ENV",
+      "to": "lib:sentry.edge.config.js",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "sentry.edge.config.js#isDevelopment",
+      "notes": ""
+    },
+    {
+      "from": "env:NODE_ENV",
+      "to": "script:Dockerfile",
+      "kind": "configures",
+      "via": "",
+      "when": "runner stage ENV",
+      "source": "Dockerfile#NODE_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_RUNTIME",
+      "to": "lib:instrumentation.js",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "instrumentation.js#register",
+      "notes": ""
+    },
+    {
+      "from": "env:NEXT_PHASE",
+      "to": "page:/sitemap.xml",
+      "kind": "configures",
+      "via": "",
+      "when": "build",
+      "source": "app/sitemap.js#duringBuild",
+      "notes": ""
+    },
+    {
+      "from": "env:CI",
+      "to": "lib:next.config.js",
+      "kind": "configures",
+      "via": "",
+      "when": "build",
+      "source": "next.config.js#silent",
+      "notes": ""
+    },
+    {
+      "from": "env:PORT",
+      "to": "script:Dockerfile",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "Dockerfile#PORT",
+      "notes": ""
+    },
+    {
+      "from": "env:HOSTNAME",
+      "to": "script:Dockerfile",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "Dockerfile#HOSTNAME",
+      "notes": ""
+    },
+    {
+      "from": "env:SUPABASE_SERVICE_ROLE_KEY",
+      "to": "ext:supabase-auth",
+      "kind": "configures",
+      "via": "service_role",
+      "when": "",
+      "source": "lib/supabase/admin.js#createAdminClient",
+      "notes": ""
+    },
+    {
+      "from": "env:SUPABASE_SERVICE_ROLE_KEY",
+      "to": "ext:supabase-db",
+      "kind": "configures",
+      "via": "service_role",
+      "when": "",
+      "source": "lib/supabase/admin.js#createAdminClient",
+      "notes": ""
+    },
+    {
+      "from": "env:SUPABASE_SERVICE_ROLE_KEY",
+      "to": "ext:supabase-storage",
+      "kind": "configures",
+      "via": "service_role",
+      "when": "",
+      "source": "lib/supabase/admin.js#createAdminClient",
+      "notes": ""
+    },
+    {
+      "from": "env:SUPABASE_SERVICE_ROLE_KEY",
+      "to": "script:scripts/seo/publish-blog-drafts.mjs",
+      "kind": "configures",
+      "via": "service_role",
+      "when": "",
+      "source": "scripts/seo/publish-blog-drafts.mjs#main",
+      "notes": ""
+    },
+    {
+      "from": "env:SUPABASE_SERVICE_ROLE_KEY",
+      "to": "script:scripts/provision-crm-test-users.mjs",
+      "kind": "configures",
+      "via": "service_role",
+      "when": "",
+      "source": "scripts/provision-crm-test-users.mjs#getSupabase",
+      "notes": ""
+    },
+    {
+      "from": "env:SUPABASE_SERVICE_ROLE_KEY",
+      "to": "workflow:.github/workflows/seo-publish-blog.yml",
+      "kind": "configures",
+      "via": "service_role",
+      "when": "",
+      "source": ".github/workflows/seo-publish-blog.yml#SUPABASE_SERVICE_ROLE_KEY",
+      "notes": "GitHub repository secret"
+    },
+    {
+      "from": "env:RESEND_API_KEY",
+      "to": "ext:resend",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/email/resend.js#getResendClient",
+      "notes": ""
+    },
+    {
+      "from": "env:RESEND_FROM_EMAIL",
+      "to": "ext:resend",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/email/resend.js#getFromAddress",
+      "notes": ""
+    },
+    {
+      "from": "env:RESEND_REPLY_TO",
+      "to": "ext:resend",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/email/resend.js#getReplyToAddress",
+      "notes": ""
+    },
+    {
+      "from": "env:CONTACT_NOTIFICATION_EMAIL",
+      "to": "ext:resend",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/email/resend.js#getOperationsAddress",
+      "notes": "recipient of contact briefs"
+    },
+    {
+      "from": "env:HCAPTCHA_SECRET",
+      "to": "ext:hcaptcha",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/hcaptcha.mjs#verifyHCaptchaToken",
+      "notes": ""
+    },
+    {
+      "from": "env:UPSTASH_REDIS_REST_URL",
+      "to": "ext:upstash",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/rateLimit.mjs#redis",
+      "notes": ""
+    },
+    {
+      "from": "env:UPSTASH_REDIS_REST_TOKEN",
+      "to": "ext:upstash",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/rateLimit.mjs#redis",
+      "notes": ""
+    },
+    {
+      "from": "env:TRUSTED_PROXY_HOPS",
+      "to": "ext:upstash",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "lib/rateLimit.mjs#getClientIp",
+      "notes": "chooses which X-Forwarded-For entry becomes the rate-limit key off Vercel"
+    },
+    {
+      "from": "env:CONTACT_WEBHOOK_URL",
+      "to": "ext:contact-webhook",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "app/api/contact/route.js#webhookUrl",
+      "notes": ""
+    },
+    {
+      "from": "env:CONTACT_WEBHOOK_TIMEOUT_MS",
+      "to": "ext:contact-webhook",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "app/api/contact/route.js#webhookTimeoutMs",
+      "notes": ""
+    },
+    {
+      "from": "env:CRON_SECRET",
+      "to": "cron:vercel.crm-notifications",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "app/api/cron/crm-notifications/route.js#isAuthorised",
+      "notes": "Vercel attaches it as Authorization: Bearer"
+    },
+    {
+      "from": "env:CRM_CRON_SECRET",
+      "to": "cron:vercel.crm-notifications",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "app/api/cron/crm-notifications/route.js#isAuthorised",
+      "notes": "also accepted; must equal Vault crm_cron_secret for pg_cron"
+    },
+    {
+      "from": "env:SUPABASE_URL",
+      "to": "script:scripts/seo/publish-blog-drafts.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/seo/publish-blog-drafts.mjs#main",
+      "notes": ""
+    },
+    {
+      "from": "env:SUPABASE_URL",
+      "to": "script:scripts/provision-crm-test-users.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/provision-crm-test-users.mjs#getSupabase",
+      "notes": ""
+    },
+    {
+      "from": "env:SUPABASE_URL",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#signIn",
+      "notes": ""
+    },
+    {
+      "from": "env:SUPABASE_URL",
+      "to": "workflow:.github/workflows/seo-publish-blog.yml",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": ".github/workflows/seo-publish-blog.yml#SUPABASE_URL",
+      "notes": "GitHub repository secret"
+    },
+    {
+      "from": "env:SUPABASE_ANON_KEY",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#signIn",
+      "notes": ""
+    },
+    {
+      "from": "env:SEO_BLOG_COVERS_BUCKET",
+      "to": "script:scripts/seo/publish-blog-drafts.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/seo/publish-blog-drafts.mjs#BUCKET",
+      "notes": ""
+    },
+    {
+      "from": "env:SEO_BLOG_COVERS_BUCKET",
+      "to": "workflow:.github/workflows/seo-publish-blog.yml",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": ".github/workflows/seo-publish-blog.yml#SEO_BLOG_COVERS_BUCKET",
+      "notes": "GitHub repository variable"
+    },
+    {
+      "from": "env:LIVECHECK_BASE_URL",
+      "to": "script:scripts/livecheck.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/livecheck.mjs#BASE",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_ENVIRONMENT",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#configuredPreview",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_CLIENT_A_EMAIL",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_CLIENT_B_EMAIL",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_EMPLOYEE_EMAIL",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_ADMIN_EMAIL",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_CLIENT_A_PASSWORD",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_CLIENT_B_PASSWORD",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_EMPLOYEE_PASSWORD",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_ADMIN_PASSWORD",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_CLIENT_A_PROJECT_ID",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_CLIENT_B_PROJECT_ID",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_EMPLOYEE_ASSIGNED_PROJECT_ID",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_EMPLOYEE_UNASSIGNED_PROJECT_ID",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_PREVIEW_CLIENT_A_THREAD_ID",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#REQUIRED_ENV",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_TEST_EMPLOYEE_EMAIL",
+      "to": "script:scripts/provision-crm-test-users.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/provision-crm-test-users.mjs#EMPLOYEE_EMAIL",
+      "notes": ""
+    },
+    {
+      "from": "env:CRM_TEST_CLIENT_EMAIL",
+      "to": "script:scripts/provision-crm-test-users.mjs",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": "scripts/provision-crm-test-users.mjs#CLIENT_EMAIL",
+      "notes": ""
+    },
+    {
+      "from": "env:GITHUB_TOKEN",
+      "to": "workflow:.github/workflows/docker-ci.yml",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": ".github/workflows/docker-ci.yml#GITHUB_TOKEN",
+      "notes": "ghcr login"
+    },
+    {
+      "from": "env:GITHUB_TOKEN",
+      "to": "workflow:.github/workflows/dependabot-auto-merge.yml",
+      "kind": "configures",
+      "via": "",
+      "when": "",
+      "source": ".github/workflows/dependabot-auto-merge.yml#GITHUB_TOKEN",
+      "notes": "passed as GH_TOKEN to gh pr merge"
+    },
+    {
+      "from": "component:components/marketing/ContactForm.jsx",
+      "to": "route:POST /api/contact",
+      "kind": "submits",
+      "fields": [
+        "name",
+        "email",
+        "company",
+        "budget",
+        "brief",
+        "website",
+        "hcaptchaToken"
+      ],
+      "via": "browser",
+      "when": "submit, after client validation and a solved hCaptcha",
+      "source": "components/marketing/ContactForm.jsx#submitForm",
+      "notes": ""
+    },
+    {
+      "from": "component:components/marketing/ContactForm.jsx",
+      "to": "event:ga4.generate_lead",
+      "kind": "emits",
+      "fields": [
+        "form_location",
+        "budget"
+      ],
+      "via": "browser",
+      "when": "only after /api/contact answers 2xx; no-op when GA_ID is unset",
+      "source": "components/marketing/ContactForm.jsx#trackEvent",
+      "notes": ""
+    },
+    {
+      "from": "component:components/Analytics.jsx",
+      "to": "event:ga4.page_view",
+      "kind": "emits",
+      "fields": [
+        "page_location",
+        "page_title",
+        "page_referrer"
+      ],
+      "via": "browser",
+      "when": "pathname or serialized search change on a trackable path; GA_ID required",
+      "source": "components/Analytics.jsx#RouteTracker",
+      "notes": ""
+    },
+    {
+      "from": "component:components/Analytics.jsx",
+      "to": "event:gtm.gtm.js",
+      "kind": "emits",
+      "via": "browser",
+      "when": "fallback: document opened on an untracked path, then navigated to a public one",
+      "source": "components/Analytics.jsx#TagManagerLoader",
+      "notes": ""
+    },
+    {
+      "from": "component:app/layout.jsx",
+      "to": "event:gtm.gtm.js",
+      "kind": "emits",
+      "via": "browser",
+      "when": "inline head script on first load of a trackable path",
+      "source": "app/layout.jsx#gtmHeadSnippet",
+      "notes": ""
+    },
+    {
+      "from": "component:app/layout.jsx",
+      "to": "event:ga4.consent_default",
+      "kind": "emits",
+      "via": "browser",
+      "when": "inline head script, before gtm.js",
+      "source": "app/layout.jsx#gtmHeadSnippet",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/analytics.mjs",
+      "to": "event:ga4.consent_default",
+      "kind": "emits",
+      "via": "browser",
+      "when": "first analytics use or first banner choice, if the head snippet has not run",
+      "source": "lib/analytics.mjs#ensureConsentDefaults",
+      "notes": ""
+    },
+    {
+      "from": "component:components/ConsentBanner.jsx",
+      "to": "event:ga4.consent_update",
+      "kind": "emits",
+      "via": "browser",
+      "when": "visitor presses Accept or Decline",
+      "source": "components/ConsentBanner.jsx#setConsent",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/analytics.mjs",
+      "to": "event:ga4.consent_update",
+      "kind": "emits",
+      "via": "browser",
+      "when": "replays a stored choice at load",
+      "source": "lib/analytics.mjs#ensureConsentDefaults",
+      "notes": ""
+    },
+    {
+      "from": "event:ga4.page_view",
+      "to": "ext:ga4",
+      "kind": "sends",
+      "fields": [
+        "page_location",
+        "page_title",
+        "page_referrer"
+      ],
+      "via": "browser",
+      "when": "GA_ID valid and path trackable; cookieless while analytics_storage is denied",
+      "source": "lib/analytics.mjs#pageview",
+      "notes": ""
+    },
+    {
+      "from": "event:ga4.generate_lead",
+      "to": "ext:ga4",
+      "kind": "sends",
+      "fields": [
+        "form_location",
+        "budget"
+      ],
+      "via": "browser",
+      "when": "GA_ID valid",
+      "source": "lib/analytics.mjs#trackEvent",
+      "notes": ""
+    },
+    {
+      "from": "event:ga4.generate_lead",
+      "to": "ext:gtm",
+      "kind": "sends",
+      "via": "browser",
+      "when": "",
+      "source": "lib/analytics.mjs#trackEvent",
+      "notes": "dataLayer is shared, so a GTM trigger can read it; only when GA_ID is valid because trackEvent returns early otherwise"
+    },
+    {
+      "from": "event:gtm.gtm.js",
+      "to": "ext:gtm",
+      "kind": "sends",
+      "via": "browser",
+      "when": "GTM_ID set (default on in production builds)",
+      "source": "lib/analytics.mjs#loadTagManager",
+      "notes": ""
+    },
+    {
+      "from": "event:ga4.consent_default",
+      "to": "ext:ga4",
+      "kind": "sends",
+      "fields": [
+        "ad_storage",
+        "ad_user_data",
+        "ad_personalization",
+        "analytics_storage"
+      ],
+      "via": "browser",
+      "when": "",
+      "source": "lib/analytics.mjs#consentPayload",
+      "notes": ""
+    },
+    {
+      "from": "event:ga4.consent_default",
+      "to": "ext:gtm",
+      "kind": "sends",
+      "fields": [
+        "ad_storage",
+        "ad_user_data",
+        "ad_personalization",
+        "analytics_storage"
+      ],
+      "via": "browser",
+      "when": "",
+      "source": "lib/analytics.mjs#consentPayload",
+      "notes": ""
+    },
+    {
+      "from": "event:ga4.consent_update",
+      "to": "ext:ga4",
+      "kind": "sends",
+      "fields": [
+        "ad_storage",
+        "ad_user_data",
+        "ad_personalization",
+        "analytics_storage"
+      ],
+      "via": "browser",
+      "when": "",
+      "source": "lib/analytics.mjs#consentPayload",
+      "notes": ""
+    },
+    {
+      "from": "event:ga4.consent_update",
+      "to": "ext:gtm",
+      "kind": "sends",
+      "fields": [
+        "ad_storage",
+        "ad_user_data",
+        "ad_personalization",
+        "analytics_storage"
+      ],
+      "via": "browser",
+      "when": "",
+      "source": "lib/analytics.mjs#consentPayload",
+      "notes": ""
+    },
+    {
+      "from": "component:components/Analytics.jsx",
+      "to": "ext:ga4",
+      "kind": "sends",
+      "via": "browser",
+      "when": "GA_ID valid; next/script afterInteractive loads gtag/js?id=GA_ID",
+      "source": "components/Analytics.jsx#Script",
+      "notes": ""
+    },
+    {
+      "from": "component:app/layout.jsx",
+      "to": "ext:gtm",
+      "kind": "sends",
+      "via": "browser",
+      "when": "GTM_ID set: head snippet loads gtm.js; noscript iframe loads ns.html on every route including CRM",
+      "source": "app/layout.jsx#GTM_ID",
+      "notes": ""
+    },
+    {
+      "from": "component:components/marketing/HCaptcha.jsx",
+      "to": "ext:hcaptcha",
+      "kind": "sends",
+      "via": "browser",
+      "when": "mount of any page with ContactForm (/, /contact, /about, /process, /services/[slug])",
+      "source": "components/marketing/HCaptcha.jsx#loadHCaptchaScript",
+      "notes": ""
+    },
+    {
+      "from": "component:components/marketing/TrustpilotWidget.jsx",
+      "to": "ext:trustpilot",
+      "kind": "sends",
+      "via": "browser",
+      "when": "every page with the homepage Contact beat or MarketingFooter; lazyOnload; no consent",
+      "source": "components/marketing/TrustpilotWidget.jsx#TRUSTPILOT_BOOTSTRAP_SRC",
+      "notes": ""
+    },
+    {
+      "from": "component:app/error.jsx",
+      "to": "ext:sentry",
+      "kind": "emits",
+      "via": "browser",
+      "when": "route error boundary renders",
+      "source": "app/error.jsx#Sentry",
+      "notes": ""
+    },
+    {
+      "from": "component:app/global-error.jsx",
+      "to": "ext:sentry",
+      "kind": "emits",
+      "via": "browser",
+      "when": "root layout throws",
+      "source": "app/global-error.jsx#Sentry",
+      "notes": ""
+    },
+    {
+      "from": "lib:instrumentation-client.js",
+      "to": "ext:sentry",
+      "kind": "emits",
+      "via": "browser",
+      "when": "unhandled errors, 10% traces, replay 10% of sessions and 100% of error sessions, on every route including CRM; no consent",
+      "source": "instrumentation-client.js#Sentry",
+      "notes": ""
+    },
+    {
+      "from": "lib:sentry.server.config.js",
+      "to": "ext:sentry",
+      "kind": "emits",
+      "via": "server",
+      "when": "server errors, 10% traces (health and cron sampled at 0)",
+      "source": "sentry.server.config.js#Sentry",
+      "notes": ""
+    },
+    {
+      "from": "lib:sentry.edge.config.js",
+      "to": "ext:sentry",
+      "kind": "emits",
+      "via": "edge",
+      "when": "middleware errors, 10% traces",
+      "source": "sentry.edge.config.js#Sentry",
+      "notes": ""
+    },
+    {
+      "from": "lib:instrumentation.js",
+      "to": "ext:sentry",
+      "kind": "emits",
+      "via": "server",
+      "when": "every uncaught server request error",
+      "source": "instrumentation.js#onRequestError",
+      "notes": ""
+    },
+    {
+      "from": "lib:next.config.js",
+      "to": "ext:sentry",
+      "kind": "sends",
+      "via": "server",
+      "when": "build, only with SENTRY_UPLOAD_SOURCEMAPS=true and SENTRY_AUTH_TOKEN: release and source maps",
+      "source": "next.config.js#withSentryConfig",
+      "notes": ""
+    },
+    {
+      "from": "ext:google-fonts",
+      "to": "component:app/layout.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "build: next/font/google downloads and self-hosts Space Grotesk, Inter, Space Mono",
+      "source": "app/layout.jsx#Space_Grotesk",
+      "notes": ""
+    },
+    {
+      "from": "ext:vercel",
+      "to": "cron:vercel.crm-notifications",
+      "kind": "calls",
+      "via": "",
+      "when": "0 13 * * *",
+      "source": "vercel.json",
+      "notes": ""
+    },
+    {
+      "from": "cron:vercel.crm-notifications",
+      "to": "route:GET /api/cron/crm-notifications",
+      "kind": "calls",
+      "via": "server",
+      "when": "0 13 * * * UTC; Authorization: Bearer $CRON_SECRET",
+      "source": "vercel.json",
+      "notes": "backstop; the 5-minute scheduler is cron:pg_cron.drain-crm-outbox"
+    },
+    {
+      "from": "ext:github-actions",
+      "to": "workflow:.github/workflows/docker-ci.yml",
+      "kind": "calls",
+      "via": "",
+      "when": "push or pull_request on main",
+      "source": ".github/workflows/docker-ci.yml",
+      "notes": ""
+    },
+    {
+      "from": "ext:github-actions",
+      "to": "workflow:.github/workflows/seo-publish-blog.yml",
+      "kind": "calls",
+      "via": "",
+      "when": "push to main touching docs/seo/drafts/blog/** or the script; workflow_dispatch from any ref",
+      "source": ".github/workflows/seo-publish-blog.yml",
+      "notes": ""
+    },
+    {
+      "from": "ext:github-actions",
+      "to": "workflow:.github/workflows/dependabot-auto-merge.yml",
+      "kind": "calls",
+      "via": "",
+      "when": "pull_request on main",
+      "source": ".github/workflows/dependabot-auto-merge.yml",
+      "notes": ""
+    },
+    {
+      "from": "workflow:.github/workflows/docker-ci.yml",
+      "to": "script:Dockerfile",
+      "kind": "calls",
+      "via": "",
+      "when": "build job, after the test job passes",
+      "source": ".github/workflows/docker-ci.yml#build-push-action",
+      "notes": ""
+    },
+    {
+      "from": "workflow:.github/workflows/docker-ci.yml",
+      "to": "ext:ghcr",
+      "kind": "uploads",
+      "via": "",
+      "when": "push to main only (not on pull requests); also cosign keyless signature",
+      "source": ".github/workflows/docker-ci.yml#build-push-action",
+      "notes": ""
+    },
+    {
+      "from": "workflow:.github/workflows/seo-publish-blog.yml",
+      "to": "script:scripts/seo/publish-blog-drafts.mjs",
+      "kind": "calls",
+      "via": "",
+      "when": "--dry-run on workflow_dispatch with dry_run=true, otherwise a real write",
+      "source": ".github/workflows/seo-publish-blog.yml#publish-blog-drafts",
+      "notes": ""
+    },
+    {
+      "from": "workflow:.github/workflows/dependabot-auto-merge.yml",
+      "to": "script:scripts/release-policy.mjs",
+      "kind": "calls",
+      "via": "",
+      "when": "",
+      "source": ".github/workflows/dependabot-auto-merge.yml#validateRelease",
+      "notes": "imported from the PR's own checkout"
+    },
+    {
+      "from": "script:scripts/seo/publish-blog-drafts.mjs",
+      "to": "table:public.blog_posts",
+      "kind": "inserts",
+      "fields": [
+        "title",
+        "slug",
+        "body",
+        "excerpt",
+        "seo_title",
+        "seo_description",
+        "cover_image_url",
+        "status"
+      ],
+      "via": "service_role",
+      "when": "approved: true draft with no existing row; status forced to draft",
+      "source": "scripts/seo/publish-blog-drafts.mjs#upsert",
+      "notes": ""
+    },
+    {
+      "from": "script:scripts/seo/publish-blog-drafts.mjs",
+      "to": "table:public.blog_posts",
+      "kind": "updates",
+      "fields": [
+        "title",
+        "slug",
+        "body",
+        "excerpt",
+        "seo_title",
+        "seo_description",
+        "cover_image_url",
+        "status"
+      ],
+      "via": "service_role",
+      "when": "existing row that is not published; overwrites any /admin/blog edits to that draft",
+      "source": "scripts/seo/publish-blog-drafts.mjs#upsert",
+      "notes": ""
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "script:scripts/seo/publish-blog-drafts.mjs",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "status"
+      ],
+      "via": "service_role",
+      "when": "",
+      "source": "scripts/seo/publish-blog-drafts.mjs#upsert",
+      "notes": ""
+    },
+    {
+      "from": "script:scripts/seo/publish-blog-drafts.mjs",
+      "to": "ext:supabase-storage",
+      "kind": "uploads",
+      "fields": [
+        "covers/<slug>.<ext>"
+      ],
+      "via": "service_role",
+      "when": "approved draft with cover_image; upsert true",
+      "source": "scripts/seo/publish-blog-drafts.mjs#uploadCover",
+      "notes": "bucket blog-covers (SEO_BLOG_COVERS_BUCKET) is created by no migration"
+    },
+    {
+      "from": "script:scripts/provision-crm-test-users.mjs",
+      "to": "ext:supabase-auth",
+      "kind": "sends",
+      "fields": [
+        "email",
+        "email_confirm"
+      ],
+      "via": "service_role",
+      "when": "--execute; creates confirmed accounts",
+      "source": "scripts/provision-crm-test-users.mjs#ensureAuthUser",
+      "notes": ""
+    },
+    {
+      "from": "script:scripts/provision-crm-test-users.mjs",
+      "to": "table:public.profiles",
+      "kind": "upserts",
+      "fields": [
+        "id",
+        "role",
+        "full_name"
+      ],
+      "via": "service_role",
+      "when": "--execute",
+      "source": "scripts/provision-crm-test-users.mjs#setProfileRole",
+      "notes": ""
+    },
+    {
+      "from": "script:scripts/verify-crm-preview-authorization.mjs",
+      "to": "ext:supabase-auth",
+      "kind": "sends",
+      "fields": [
+        "email",
+        "password"
+      ],
+      "via": "anon",
+      "when": "four password sign-ins",
+      "source": "scripts/verify-crm-preview-authorization.mjs#signIn",
+      "notes": ""
+    },
+    {
+      "from": "table:public.projects",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "reads",
+      "fields": [
+        "id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#expectRows",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_messages",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "reads",
+      "fields": [
+        "id"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#expectNoRows",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_tasks",
+      "to": "script:scripts/verify-crm-preview-authorization.mjs",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "client_visible"
+      ],
+      "via": "user",
+      "when": "",
+      "source": "scripts/verify-crm-preview-authorization.mjs#expectNoRows",
+      "notes": ""
+    },
+    {
+      "from": "script:scripts/seo/indexnow-ping.mjs",
+      "to": "ext:indexnow",
+      "kind": "sends",
+      "fields": [
+        "host",
+        "key",
+        "keyLocation",
+        "urlList"
+      ],
+      "via": "server",
+      "when": "manual run without --dry-run",
+      "source": "scripts/seo/indexnow-ping.mjs#sendPing",
+      "notes": ""
+    },
+    {
+      "from": "page:/2aa3a082044a1c787011f08d0c31fd1f.txt",
+      "to": "ext:indexnow",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "scripts/seo/indexnow-ping.mjs#findKeyFile",
+      "notes": "key read from public/ on disk; IndexNow fetches the same file over HTTP to validate it"
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "page:/blog",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "slug",
+        "title",
+        "excerpt",
+        "cover_image_url",
+        "status",
+        "published_at",
+        "updated_at"
+      ],
+      "via": "anon",
+      "when": "every request (force-dynamic); newest 20",
+      "source": "app/blog/page.jsx#listPublishedPosts",
+      "notes": ""
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "page:/blog/[slug]",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "slug",
+        "title",
+        "excerpt",
+        "body",
+        "cover_image_url",
+        "seo_title",
+        "seo_description",
+        "status",
+        "published_at",
+        "author_id",
+        "created_at",
+        "updated_at"
+      ],
+      "via": "anon",
+      "when": "every request; also listPublishedPosts for 3 other posts",
+      "source": "app/blog/[slug]/page.jsx#getPublishedPost",
+      "notes": ""
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "page:/sitemap.xml",
+      "kind": "reads",
+      "fields": [
+        "slug",
+        "published_at",
+        "updated_at"
+      ],
+      "via": "anon",
+      "when": "hourly revalidate; limit 100",
+      "source": "app/sitemap.js#listPublishedSlugs",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/about",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/about/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/blog",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/blog/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/blog/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/blog/[slug]/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/contact",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/contact/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/embroidery-screen-printing-web-design",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/embroidery-screen-printing-web-design/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/hire/shopify-developer",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/hire/shopify-developer/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/privacy",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/privacy/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/process",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/process/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/reviews",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/reviews/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/services",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/services/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/services/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/services/[slug]/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/terms",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/terms/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/work",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/work/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/work/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/work/[slug]/page.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/site.js#SITE",
+      "notes": "via components/sections/Hero.jsx, Lab.jsx, Contact.jsx and Nav.jsx/Menu.jsx"
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "page:/opengraph-image",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/opengraph-image.jsx#SITE",
+      "notes": "name, statement, city"
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "component:app/layout.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/layout.jsx#SITE",
+      "notes": "metadata, Organization and WebSite JSON-LD"
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "component:components/marketing/ContactForm.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/ContactForm.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "component:components/marketing/ContactPulseLinks.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/ContactPulseLinks.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "component:components/marketing/MarketingFooter.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/MarketingFooter.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "component:components/marketing/ServicePage.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/ServicePage.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "component:components/marketing/ServiceSchema.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/ServiceSchema.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "component:components/marketing/SubpageNav.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/SubpageNav.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/site.js",
+      "to": "component:components/marketing/TrustpilotWidget.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/TrustpilotWidget.jsx#SITE",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/about",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/about/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/blog",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/blog/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/blog/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/blog/[slug]/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/contact",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/contact/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/embroidery-screen-printing-web-design",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/embroidery-screen-printing-web-design/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/hire/shopify-developer",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/hire/shopify-developer/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/privacy",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/privacy/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/process",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/process/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/reviews",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/reviews/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/services",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/services/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/services/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/services/[slug]/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/terms",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/terms/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/work",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/work/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/work/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/work/[slug]/page.jsx#absoluteUrl",
+      "notes": "canonical, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "component:app/layout.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/layout.jsx#SITE_ORIGIN",
+      "notes": "metadataBase, og:url, JSON-LD @id"
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/sitemap.xml",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/sitemap.js#SITE_ORIGIN",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "page:/robots.txt",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/robots.js#SITE_ORIGIN",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "component:components/marketing/BreadcrumbSchema.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/BreadcrumbSchema.jsx#absoluteUrl",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "component:components/marketing/ServiceSchema.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/ServiceSchema.jsx#SITE_ORIGIN",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/seo.mjs",
+      "to": "lib:lib/blogMarkdown.mjs",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/blogMarkdown.mjs#toSitePath",
+      "notes": "owned and retired hosts become relative paths"
+    },
+    {
+      "from": "lib:lib/jsonLd.mjs",
+      "to": "page:/blog",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/blog/page.jsx#safeJsonLd",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/jsonLd.mjs",
+      "to": "page:/blog/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/blog/[slug]/page.jsx#safeJsonLd",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/jsonLd.mjs",
+      "to": "component:components/marketing/BreadcrumbSchema.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/BreadcrumbSchema.jsx#safeJsonLd",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/blogMarkdown.mjs",
+      "to": "component:components/marketing/PostBody.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/PostBody.jsx#parseMarkdown",
+      "notes": ""
+    },
+    {
+      "from": "component:components/marketing/PostBody.jsx",
+      "to": "page:/blog/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/blog/[slug]/page.jsx#PostBody",
+      "notes": "author images may load from any https host (CSP img-src https:)"
+    },
+    {
+      "from": "lib:lib/projects.js",
+      "to": "page:/work",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/work/page.jsx#PROJECTS",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/projects.js",
+      "to": "page:/work/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/work/[slug]/page.jsx#PROJECTS",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/projects.js",
+      "to": "page:/sitemap.xml",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/sitemap.js#PROJECTS",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/projects.js",
+      "to": "component:components/marketing/ServicePage.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/ServicePage.jsx#getProject",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/projects.js",
+      "to": "page:/",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/projects.js#PROJECTS",
+      "notes": "via components/sections/Motion.jsx"
+    },
+    {
+      "from": "lib:lib/reviews.js",
+      "to": "page:/reviews",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/reviews/page.jsx#REVIEWS",
+      "notes": "page copy and Review JSON-LD"
+    },
+    {
+      "from": "lib:lib/reviews.js",
+      "to": "page:/about",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/about/page.jsx#REVIEW_STATS",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/reviews.js",
+      "to": "page:/contact",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/contact/page.jsx#REVIEW_STATS",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/reviews.js",
+      "to": "page:/",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/reviews.js#REVIEWS",
+      "notes": "via components/sections/Stories.jsx"
+    },
+    {
+      "from": "lib:lib/services.mjs",
+      "to": "lib:lib/servicePages.mjs",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/servicePages.mjs#SERVICES",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/services.mjs",
+      "to": "page:/",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/services.mjs#SERVICES",
+      "notes": "via components/sections/Services.jsx and components/three/ServiceRail.jsx"
+    },
+    {
+      "from": "lib:lib/servicePages.mjs",
+      "to": "page:/services",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/services/page.jsx#SERVICE_PAGES",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/servicePages.mjs",
+      "to": "page:/services/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/services/[slug]/page.jsx#SERVICE_PAGES",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/servicePages.mjs",
+      "to": "page:/work/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/work/[slug]/page.jsx#getServicePageBySlug",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/servicePages.mjs",
+      "to": "page:/sitemap.xml",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "app/sitemap.js#SERVICE_PAGE_SLUGS",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/servicePages.mjs",
+      "to": "component:components/marketing/ServicePage.jsx",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "components/marketing/ServicePage.jsx#getRelatedServices",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/servicePages.mjs",
+      "to": "page:/",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/servicePages.mjs#SERVICE_PAGES",
+      "notes": "via components/sections/Services.jsx"
+    },
+    {
+      "from": "lib:lib/serviceSignals.mjs",
+      "to": "page:/",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/serviceSignals.mjs#SERVICE_SIGNAL_META",
+      "notes": "via components/three/ServiceRail.jsx"
+    },
+    {
+      "from": "lib:lib/serviceSignals.mjs",
+      "to": "page:/services/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/serviceSignals.mjs#SERVICE_SIGNAL_META",
+      "notes": "via components/three/ServiceEmblem3D.jsx (variant 3d hero emblem)"
+    },
+    {
+      "from": "lib:lib/serviceSignalBlurbs.mjs",
+      "to": "page:/services/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/serviceSignalBlurbs.mjs#SIGNAL_BLURB",
+      "notes": "tooltip text on the 3D emblem; differs from page.hero (= SERVICES[].desc) for 6 of 8 signals"
+    },
+    {
+      "from": "lib:lib/serviceSignalGeometry.mjs",
+      "to": "page:/services/[slug]",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/serviceSignalGeometry.mjs#getSignalGeometry",
+      "notes": "via components/three/ServiceEmblem3D.jsx"
+    },
+    {
+      "from": "lib:lib/clientTileImages.mjs",
+      "to": "page:/",
+      "kind": "feeds",
+      "via": "",
+      "when": "",
+      "source": "lib/clientTileImages.mjs#CLIENT_TILE_IMAGES",
+      "notes": "via components/sections/Motion.jsx marquee; third-party screenshots, decorative only"
+    },
+    {
+      "from": "component:components/ConsentBanner.jsx",
+      "to": "storage:local:cws:analytics-consent",
+      "kind": "sets",
+      "via": "browser",
+      "when": "Accept or Decline",
+      "source": "components/ConsentBanner.jsx#setConsent",
+      "notes": ""
+    },
+    {
+      "from": "lib:lib/analytics.mjs",
+      "to": "storage:local:cws:analytics-consent",
+      "kind": "sets",
+      "via": "browser",
+      "when": "",
+      "source": "lib/analytics.mjs#setConsent",
+      "notes": ""
+    },
+    {
+      "from": "storage:local:cws:analytics-consent",
+      "to": "lib:lib/analytics.mjs",
+      "kind": "gets",
+      "via": "browser",
+      "when": "",
+      "source": "lib/analytics.mjs#readStoredConsent",
+      "notes": "replayed as consent update at load"
+    },
+    {
+      "from": "storage:local:cws:analytics-consent",
+      "to": "component:components/ConsentBanner.jsx",
+      "kind": "gets",
+      "via": "browser",
+      "when": "",
+      "source": "components/ConsentBanner.jsx#readStoredConsent",
+      "notes": "banner stays hidden once a choice exists; there is no control to change it"
+    },
+    {
+      "from": "storage:local:cws:analytics-consent",
+      "to": "component:app/layout.jsx",
+      "kind": "gets",
+      "via": "browser",
+      "when": "",
+      "source": "lib/analytics.mjs#gtmHeadSnippet",
+      "notes": "inline head script replays the choice before gtm.js"
+    },
+    {
+      "from": "component:components/Loader.jsx",
+      "to": "storage:session:cws:intro-seen",
+      "kind": "sets",
+      "via": "browser",
+      "when": "intro timeline completes",
+      "source": "components/Loader.jsx#SESSION_KEY",
+      "notes": ""
+    },
+    {
+      "from": "storage:session:cws:intro-seen",
+      "to": "component:components/Loader.jsx",
+      "kind": "gets",
+      "via": "browser",
+      "when": "",
+      "source": "components/Loader.jsx#SESSION_KEY",
+      "notes": ""
+    },
+    {
+      "from": "storage:session:cws:intro-seen",
+      "to": "component:app/layout.jsx",
+      "kind": "gets",
+      "via": "browser",
+      "when": "",
+      "source": "app/layout.jsx#sessionStorage",
+      "notes": "inline head script unlocks scroll before hydration"
+    },
+    {
+      "from": "ext:ga4",
+      "to": "cookie:_ga",
+      "kind": "sets",
+      "via": "browser",
+      "when": "only after analytics_storage granted; vendor behaviour UNVERIFIED",
+      "source": "lib/analytics.mjs#consentPayload",
+      "notes": ""
+    },
+    {
+      "from": "cookie:_ga",
+      "to": "ext:ga4",
+      "kind": "gets",
+      "via": "browser",
+      "when": "",
+      "source": "lib/analytics.mjs#consentPayload",
+      "notes": ""
+    },
+    {
+      "from": "ext:ga4",
+      "to": "cookie:_ga_<stream-id>",
+      "kind": "sets",
+      "via": "browser",
+      "when": "only after analytics_storage granted; vendor behaviour UNVERIFIED",
+      "source": "lib/analytics.mjs#consentPayload",
+      "notes": ""
+    },
+    {
+      "from": "cookie:_ga_<stream-id>",
+      "to": "ext:ga4",
+      "kind": "gets",
+      "via": "browser",
+      "when": "",
+      "source": "lib/analytics.mjs#consentPayload",
+      "notes": ""
+    },
+    {
+      "from": "ext:sentry",
+      "to": "storage:session:sentryReplaySession",
+      "kind": "sets",
+      "via": "browser",
+      "when": "",
+      "source": "instrumentation-client.js#replayIntegration",
+      "notes": "library default, UNVERIFIED"
+    }
+  ]
+}

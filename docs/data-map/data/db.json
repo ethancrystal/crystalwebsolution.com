@@ -1,0 +1,3547 @@
+{
+  "domain": "db",
+  "description": "Database tables and columns (final state through migration 0050), foreign keys with ON DELETE behaviour, triggers, and trigger-to-function links.",
+  "nodes": [
+    {
+      "id": "table:auth.users",
+      "type": "table",
+      "label": "auth.users",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:267",
+      "attrs": {
+        "schema": "auth",
+        "external": true,
+        "purpose": "Supabase Auth account store (GoTrue-owned, not created by this repo). The CRM reads email, password state and sign-up metadata, and a trigger creates the matching profile.",
+        "rls": null,
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "PK; parent of 10 FKs: 3 CASCADE (profiles.id, company_members.user_id, project_briefs.created_by), 6 NO ACTION (companies.created_by, contacts.created_by, deals.owner_id, tasks.assigned_to, tasks.created_by, notes.created_by), 1 SET NULL (blog_posts.author_id)",
+            "primaryKey": true
+          },
+          {
+            "name": "email",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "UNVERIFIED column type; GoTrue enforces uniqueness"
+          },
+          {
+            "name": "encrypted_password",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "'' on older GoTrue schemas and NULL on newer ones both mean no password set"
+          },
+          {
+            "name": "raw_user_meta_data",
+            "type": "jsonb",
+            "nullable": true,
+            "default": null,
+            "check": "keys read by the CRM: full_name, account_type"
+          },
+          {
+            "name": "raw_app_meta_data",
+            "type": "jsonb",
+            "nullable": true,
+            "default": null,
+            "check": "'role' key was synced once by 0005 and is not authoritative since 0008"
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": "read by the notification worker for client context emails"
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": "written by the 0042 email rename"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:storage.objects",
+      "type": "table",
+      "label": "storage.objects",
+      "file": "supabase/migrations/0003_project_delivery.sql",
+      "source": "supabase/migrations/0003_project_delivery.sql:110",
+      "attrs": {
+        "schema": "storage",
+        "external": true,
+        "purpose": "Supabase Storage object index. The CRM stores every attachment and deliverable in the private bucket project-files.",
+        "rls": null,
+        "columns": [
+          {
+            "name": "bucket_id",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "project-files for CRM files (bucket created 0003:106-108, set private 0009:1168-1171)"
+          },
+          {
+            "name": "name",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "object key `{project_id}/{row_id}/{safe_file_name}`; policies require exactly 2 folder segments"
+          },
+          {
+            "name": "owner_id",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "finalize_project_attachment requires owner_id = uploader uuid::text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.profiles",
+      "type": "table",
+      "label": "profiles",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:12",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "One row per auth user: role, display name, company link and the staff-access request flag. The single source of truth for roles since 0008.",
+        "rls": "ENABLE, not FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "PK; FK auth.users(id) ON DELETE CASCADE",
+            "references": {
+              "table": "auth.users",
+              "column": "id",
+              "onDelete": "cascade"
+            },
+            "primaryKey": true
+          },
+          {
+            "name": "role",
+            "type": "public.user_role",
+            "nullable": false,
+            "default": "'client'",
+            "check": "profiles_role_allowed_check: role::text IN (client, project_manager, admin); the enum also contains 'staff' (0001:9), which the check rejects"
+          },
+          {
+            "name": "full_name",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "company_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "no FK (soft reference to companies.id); changes blocked outside validated commands"
+          },
+          {
+            "name": "avatar_url",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": "nullable; changes blocked outside validated commands since 0046"
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": "stamped by on_profile_updated"
+          },
+          {
+            "name": "requested_staff_access",
+            "type": "boolean",
+            "nullable": false,
+            "default": "false",
+            "check": "request flag only; confers no privilege"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.companies",
+      "type": "table",
+      "label": "companies",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:23",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "A client or lead organisation. Created by admins, by client onboarding and by the contact-form lead RPC.",
+        "rls": "ENABLE, not FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "name",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "no unique, no length check"
+          },
+          {
+            "name": "email",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "no unique; a copy of an email at creation time, never re-synced"
+          },
+          {
+            "name": "phone",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "website",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "industry",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "employee_count",
+            "type": "integer",
+            "nullable": true,
+            "default": null,
+            "check": "no bound"
+          },
+          {
+            "name": "created_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK auth.users(id) NO ACTION",
+            "references": {
+              "table": "auth.users",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": "stamped by on_companies_updated"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.contacts",
+      "type": "table",
+      "label": "contacts",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:37",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "A person at a company: sales contacts, website leads and the onboarded client user.",
+        "rls": "ENABLE, not FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "company_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK companies(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.companies",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "first_name",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "last_name",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "'' is written for onboarding and single-word lead names"
+          },
+          {
+            "name": "email",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "nullable since 0008:5-6; UNIQUE on lower(email) WHERE email IS NOT NULL, across all companies (contacts_lower_email_unique_idx)"
+          },
+          {
+            "name": "phone",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "linkedin_url",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "status",
+            "type": "text",
+            "nullable": true,
+            "default": "'lead'",
+            "check": "no check; the admin forms offer lead, prospect, customer, inactive; onboarding writes 'client'"
+          },
+          {
+            "name": "created_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK auth.users(id) NO ACTION",
+            "references": {
+              "table": "auth.users",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": "stamped by on_contacts_updated"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.deals",
+      "type": "table",
+      "label": "deals",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:53",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Sales pipeline record. Created by admins and by the contact-form lead RPC. project_status and the project link are legacy.",
+        "rls": "ENABLE, not FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "company_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK companies(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.companies",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "contact_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK contacts(id) ON DELETE SET NULL",
+            "references": {
+              "table": "public.contacts",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "description",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "value",
+            "type": "numeric(15,2)",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "stage",
+            "type": "text",
+            "nullable": true,
+            "default": "'prospecting'",
+            "check": "no check. App vocabulary: prospecting, qualification, proposal, negotiation, closed_won, closed_lost"
+          },
+          {
+            "name": "probability",
+            "type": "integer",
+            "nullable": true,
+            "default": "0",
+            "check": "no 0-100 bound"
+          },
+          {
+            "name": "expected_close_date",
+            "type": "date",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "owner_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK auth.users(id) NO ACTION",
+            "references": {
+              "table": "auth.users",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": "stamped by on_deals_updated"
+          },
+          {
+            "name": "project_status",
+            "type": "text",
+            "nullable": false,
+            "default": "'brief_submitted'",
+            "check": "deals_project_status_check IN (brief_submitted, in_progress, in_review, delivered). LEGACY: nothing writes or reads it after 0003"
+          },
+          {
+            "name": "project_type",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "deals_project_type_check IN (logo, web, seo, smm, ai_automation, google_ads, branding); NULL passes"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.tasks",
+      "type": "table",
+      "label": "tasks",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:69",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Legacy CRM to-do list attached to a company, deal or contact. Separate from project_tasks.",
+        "rls": "ENABLE, not FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "company_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK companies(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.companies",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "deal_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK deals(id) ON DELETE SET NULL",
+            "references": {
+              "table": "public.deals",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "contact_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK contacts(id) ON DELETE SET NULL",
+            "references": {
+              "table": "public.contacts",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "description",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "status",
+            "type": "text",
+            "nullable": true,
+            "default": "'open'",
+            "check": "no check. Forms offer todo, in_progress, review, done, blocked; legacy rows hold open and completed"
+          },
+          {
+            "name": "priority",
+            "type": "text",
+            "nullable": true,
+            "default": "'medium'",
+            "check": "no check; forms offer low, medium, high"
+          },
+          {
+            "name": "assigned_to",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK auth.users(id) NO ACTION; the admin form always sets the creator",
+            "references": {
+              "table": "auth.users",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "due_date",
+            "type": "date",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "created_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK auth.users(id) NO ACTION",
+            "references": {
+              "table": "auth.users",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": "stamped by on_tasks_updated"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.notes",
+      "type": "table",
+      "label": "notes",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:86",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Free-text CRM notes on a company or contact. Immutable through the API (no UPDATE policy).",
+        "rls": "ENABLE, not FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "company_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK companies(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.companies",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "contact_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK contacts(id) ON DELETE SET NULL",
+            "references": {
+              "table": "public.contacts",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "deal_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK deals(id) ON DELETE SET NULL",
+            "references": {
+              "table": "public.deals",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "content",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "no length bound"
+          },
+          {
+            "name": "created_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK auth.users(id) NO ACTION",
+            "references": {
+              "table": "auth.users",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": "stamped by on_notes_updated (no UPDATE policy, so only privileged writers reach it)"
+          },
+          {
+            "name": "visibility",
+            "type": "text",
+            "nullable": false,
+            "default": "'internal'",
+            "check": "notes_visibility_check IN ('internal', 'client'); differs from the project tables' 'shared'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.company_members",
+      "type": "table",
+      "label": "company_members",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:98",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Second company-membership list, used only by the legacy CRM policies (is_company_member). Written only by client onboarding.",
+        "rls": "ENABLE, not FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "company_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK companies(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.companies",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "user_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK auth.users(id) ON DELETE CASCADE",
+            "references": {
+              "table": "auth.users",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "role",
+            "type": "text",
+            "nullable": true,
+            "default": "'member'",
+            "check": "no check; 'owner' is written by onboarding"
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": "now()",
+            "check": "no updated_at and no trigger on this table"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.projects",
+      "type": "table",
+      "label": "projects",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:43",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "The project aggregate: one row per client project, with a nine-state status machine driven only by transition_project_status.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "company_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK companies(id) NO ACTION",
+            "references": {
+              "table": "public.companies",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "source_deal_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "UNIQUE; FK deals(id) NO ACTION",
+            "references": {
+              "table": "public.deals",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "category",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "projects_category_check IN (web_design, logo_creation, branding, marketing, ai_automation)"
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "projects_title_check: char_length(btrim(title)) 3..120"
+          },
+          {
+            "name": "brief",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "projects_brief_check: char_length(btrim(brief)) 1..10000 (app caps createProject at 5000)"
+          },
+          {
+            "name": "status",
+            "type": "text",
+            "nullable": false,
+            "default": "'brief_submitted'",
+            "check": "projects_status_check: brief_submitted, planned, in_progress, client_review, changes_requested, approved, delivered, on_hold, cancelled"
+          },
+          {
+            "name": "target_date",
+            "type": "date",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "created_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK profiles(id) NO ACTION",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": "no trigger; only transition_project_status bumps it"
+          },
+          {
+            "name": "budget_amount",
+            "type": "numeric(15,2)",
+            "nullable": true,
+            "default": null,
+            "check": "projects_budget_amount_check: NULL or >= 0"
+          },
+          {
+            "name": "currency",
+            "type": "text",
+            "nullable": false,
+            "default": "'USD'",
+            "check": "projects_currency_check: char_length(btrim(currency)) 0..8, so '' is allowed"
+          },
+          {
+            "name": "client_generated_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "idempotency key; equals project_briefs.id for brief-created projects"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.project_threads",
+      "type": "table",
+      "label": "project_threads",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:75",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "The single conversation container of a project. Exists so messages hang off a thread id instead of the project id.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "project_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "UNIQUE; FK projects(id) ON DELETE CASCADE (1:1)",
+            "references": {
+              "table": "public.projects",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.project_assignments",
+      "type": "table",
+      "label": "project_assignments",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:81",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Which staff are assigned to which project. Drives staff access, the lead project manager and notification recipients.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "project_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK projects(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.projects",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "user_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK profiles(id) NO ACTION; role checked only when assigned (project_manager or admin)",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "assigned_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK profiles(id) NO ACTION; overwritten on re-assignment",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": "the earliest created_at per project defines the lead; kept on re-assignment"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.project_messages",
+      "type": "table",
+      "label": "project_messages",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:90",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Chat messages in a project thread, with shared or internal visibility. Edits are in place; there is no delete.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "thread_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK project_threads(id) ON DELETE CASCADE. There is no project_id column: the project is reached through the thread",
+            "references": {
+              "table": "public.project_threads",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "sender_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK profiles(id) NO ACTION",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "visibility",
+            "type": "text",
+            "nullable": false,
+            "default": "'shared'",
+            "check": "project_messages_visibility_check IN ('shared', 'internal'); immutable (no RPC changes it)"
+          },
+          {
+            "name": "body",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "project_messages_body_check: char_length(btrim(body)) 1..10000"
+          },
+          {
+            "name": "client_generated_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "idempotency key, unique per sender"
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "edited_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "edited_by",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK profiles(id) NO ACTION (no index)",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.project_attachments",
+      "type": "table",
+      "label": "project_attachments",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:107",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Files attached to chat messages, reserved first, uploaded to storage, then finalized and linked to a message.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "project_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK projects(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.projects",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "message_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK project_messages(id) ON DELETE CASCADE; NULL until the message is posted",
+            "references": {
+              "table": "public.project_messages",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "uploaded_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK profiles(id) NO ACTION",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "visibility",
+            "type": "text",
+            "nullable": false,
+            "default": "'shared'",
+            "check": "IN ('shared', 'internal'); must equal the message's visibility when linked"
+          },
+          {
+            "name": "file_name",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "char_length(btrim) 1..255"
+          },
+          {
+            "name": "storage_path",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "UNIQUE; length 1..1024; format `{project_id}/{attachment_id}/{safe_name}` (0009:908)"
+          },
+          {
+            "name": "mime_type",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "char_length(btrim) 1..255; free text claimed by the uploader"
+          },
+          {
+            "name": "size_bytes",
+            "type": "bigint",
+            "nullable": false,
+            "default": null,
+            "check": "size_bytes > 0 and <= 52428800 (50 MiB); the app caps uploads at 10 MiB"
+          },
+          {
+            "name": "status",
+            "type": "text",
+            "nullable": false,
+            "default": "'pending'",
+            "check": "IN ('pending', 'ready')"
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": "drives the 24 h stale-upload cleanup"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.project_status_history",
+      "type": "table",
+      "label": "project_status_history",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:139",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Status timeline of a project. Also stores free-standing project notes, as rows whose from_status equals to_status.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "project_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK projects(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.projects",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "from_status",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "NULL or one of the nine project statuses; NULL on the first row; equals to_status on a note row"
+          },
+          {
+            "name": "to_status",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "one of the nine project statuses"
+          },
+          {
+            "name": "note",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "NULL or <= 2000 characters"
+          },
+          {
+            "name": "visibility",
+            "type": "text",
+            "nullable": false,
+            "default": "'shared'",
+            "check": "IN ('shared', 'internal')"
+          },
+          {
+            "name": "changed_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK profiles(id) NO ACTION",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.audit_events",
+      "type": "table",
+      "label": "audit_events",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:183",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Append-only log of project actions written by the RPCs. No screen reads it.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "actor_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK profiles(id) NO ACTION; NOT NULL, so service-role flows (leads, onboarding, cleanup) write no audit row",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "project_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK projects(id) ON DELETE SET NULL",
+            "references": {
+              "table": "public.projects",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "company_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK companies(id) ON DELETE SET NULL; filled only by some RPCs",
+            "references": {
+              "table": "public.companies",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "event_type",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "audit_events_event_type_check: 17 values (section 5); last widened in 0043"
+          },
+          {
+            "name": "metadata",
+            "type": "jsonb",
+            "nullable": false,
+            "default": "'{}'::jsonb",
+            "check": "audit_events_metadata_object_check: jsonb_typeof = 'object'"
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.project_tasks",
+      "type": "table",
+      "label": "project_tasks",
+      "file": "supabase/migrations/0010_project_workspace.sql",
+      "source": "supabase/migrations/0010_project_workspace.sql:4",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Per-project task list worked by staff, optionally visible to the client.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "project_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK projects(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.projects",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "char_length(btrim) 1..255"
+          },
+          {
+            "name": "description",
+            "type": "text",
+            "nullable": false,
+            "default": "''",
+            "check": "char_length <= 10000"
+          },
+          {
+            "name": "status",
+            "type": "text",
+            "nullable": false,
+            "default": "'todo'",
+            "check": "project_tasks_status_check IN (todo, in_progress, review, done, blocked)"
+          },
+          {
+            "name": "assignee_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK profiles(id) ON DELETE SET NULL; not validated as a project participant",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "created_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK profiles(id) NO ACTION",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "due_date",
+            "type": "date",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": "no trigger; set by the RPCs"
+          },
+          {
+            "name": "priority",
+            "type": "text",
+            "nullable": false,
+            "default": "'medium'",
+            "check": "project_tasks_priority_check IN (low, medium, high); 'urgent' was removed in 0022"
+          },
+          {
+            "name": "client_visible",
+            "type": "boolean",
+            "nullable": false,
+            "default": "false",
+            "check": "rows that existed in 0019 were backfilled to true; no RPC changes it after creation"
+          },
+          {
+            "name": "completed_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": "NOT maintained: the final update_project_task (0012) omits it, so it is always NULL"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.project_deliverables",
+      "type": "table",
+      "label": "project_deliverables",
+      "file": "supabase/migrations/0010_project_workspace.sql",
+      "source": "supabase/migrations/0010_project_workspace.sql:22",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Files the studio delivers to the client: reserved as draft, uploaded, then published as submitted.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "project_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK projects(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.projects",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "char_length(btrim) 1..255"
+          },
+          {
+            "name": "description",
+            "type": "text",
+            "nullable": false,
+            "default": "''",
+            "check": "no column check; the create RPC limits it to 10000"
+          },
+          {
+            "name": "file_name",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "char_length(btrim) 1..255"
+          },
+          {
+            "name": "storage_path",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "UNIQUE; length 1..1024; format `{project_id}/{deliverable_id}/{safe_name}` (0047:219)"
+          },
+          {
+            "name": "mime_type",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "char_length(btrim) 1..255"
+          },
+          {
+            "name": "size_bytes",
+            "type": "bigint",
+            "nullable": false,
+            "default": null,
+            "check": "size_bytes > 0 and <= 52428800"
+          },
+          {
+            "name": "status",
+            "type": "text",
+            "nullable": false,
+            "default": "'draft'",
+            "check": "IN (draft, submitted, approved, rejected)"
+          },
+          {
+            "name": "visibility",
+            "type": "text",
+            "nullable": false,
+            "default": "'shared'",
+            "check": "IN ('shared', 'internal')"
+          },
+          {
+            "name": "created_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK profiles(id) NO ACTION; only the creator may publish",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": "there is no updated_at column"
+          },
+          {
+            "name": "version",
+            "type": "text",
+            "nullable": false,
+            "default": "'1'",
+            "check": "char_length(btrim) 1..32"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.project_approvals",
+      "type": "table",
+      "label": "project_approvals",
+      "file": "supabase/migrations/0010_project_workspace.sql",
+      "source": "supabase/migrations/0010_project_workspace.sql:48",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Approval requests on a project or one of its deliverables, decided once by staff.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "project_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK projects(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.projects",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "deliverable_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK project_deliverables(id) ON DELETE SET NULL; NULL means project-level (and is client-visible)",
+            "references": {
+              "table": "public.project_deliverables",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "status",
+            "type": "text",
+            "nullable": false,
+            "default": "'pending'",
+            "check": "IN (pending, approved, rejected)"
+          },
+          {
+            "name": "requested_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK profiles(id) NO ACTION",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "no action"
+            }
+          },
+          {
+            "name": "reviewed_by",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK profiles(id) ON DELETE SET NULL",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "note",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "NULL or <= 2000; the RPCs write '' instead of NULL"
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": "no trigger; set by update_project_approval"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.notifications_outbox",
+      "type": "table",
+      "label": "notifications_outbox",
+      "file": "supabase/migrations/0010_project_workspace.sql",
+      "source": "supabase/migrations/0010_project_workspace.sql:64",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Queue of email and in-app notifications. SQL RPCs insert rows; the cron route drains email rows; the dashboards list in-app rows.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "project_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK projects(id) ON DELETE CASCADE; NULL for lead.created and client.onboarded",
+            "references": {
+              "table": "public.projects",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "user_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK profiles(id) ON DELETE SET NULL (recipient)",
+            "references": {
+              "table": "public.profiles",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "channel",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "IN ('email', 'in_app', 'realtime')"
+          },
+          {
+            "name": "event_type",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "free text, char_length(btrim) 1..120 (not an enum)"
+          },
+          {
+            "name": "payload",
+            "type": "jsonb",
+            "nullable": false,
+            "default": "'{}'::jsonb",
+            "check": "jsonb_typeof = 'object'; keys per event_type in section 3.3"
+          },
+          {
+            "name": "sent_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": "set by mark_notification_email_sent"
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "status",
+            "type": "text",
+            "nullable": false,
+            "default": "'pending'",
+            "check": "IN ('pending', 'sent', 'failed'); only email rows ever leave pending"
+          },
+          {
+            "name": "attempts",
+            "type": "integer",
+            "nullable": false,
+            "default": "0",
+            "check": "attempts >= 0 and <= 25; each claim adds 1"
+          },
+          {
+            "name": "available_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": "earliest time a claim may take the row"
+          },
+          {
+            "name": "last_error",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "no column bound; the RPCs truncate to 500"
+          },
+          {
+            "name": "read_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": "in-app read state"
+          },
+          {
+            "name": "lease_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "notifications_outbox_lease_window_check: lease_id, lease_acquired_at, lease_expires_at all NULL or all set with expires >= acquired"
+          },
+          {
+            "name": "lease_acquired_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": "part of lease_window_check"
+          },
+          {
+            "name": "lease_expires_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": "part of lease_window_check"
+          },
+          {
+            "name": "last_attempt_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "failure_code",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "notifications_outbox_failure_code_check IN (missing_recipient, missing_template, provider_retryable, provider_terminal, lease_conflict, unknown)"
+          },
+          {
+            "name": "failed_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.blog_posts",
+      "type": "table",
+      "label": "blog_posts",
+      "file": "supabase/migrations/0035_blog_posts.sql",
+      "source": "supabase/migrations/0035_blog_posts.sql:50",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Blog content for /blog, authored in /admin/blog or upserted as drafts from docs/seo/drafts/blog by a CI script.",
+        "rls": "ENABLE, not FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "uuid_generate_v4()",
+            "check": "PK",
+            "primaryKey": true
+          },
+          {
+            "name": "slug",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "blog_posts_slug_format_check: ^[a-z0-9]+(-[a-z0-9]+)*$ and length 1..80; UNIQUE index"
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "char_length(btrim) 1..200"
+          },
+          {
+            "name": "excerpt",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "NULL or <= 320"
+          },
+          {
+            "name": "body",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "char_length(btrim) 1..100000"
+          },
+          {
+            "name": "cover_image_url",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "no check in SQL; the app validator requires https"
+          },
+          {
+            "name": "seo_title",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "NULL or <= 70"
+          },
+          {
+            "name": "seo_description",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "NULL or <= 200"
+          },
+          {
+            "name": "status",
+            "type": "text",
+            "nullable": false,
+            "default": "'draft'",
+            "check": "IN ('draft', 'published')"
+          },
+          {
+            "name": "published_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": "published_at_consistency_check: published <=> NOT NULL, draft <=> NULL; a future value is a scheduled post"
+          },
+          {
+            "name": "author_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK auth.users(id) ON DELETE SET NULL",
+            "references": {
+              "table": "auth.users",
+              "column": "id",
+              "onDelete": "set null"
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": "set by blog_posts_maintain_timestamps_trigger"
+          },
+          {
+            "name": "category",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "slug format, length 1..40; no writer in the repo"
+          },
+          {
+            "name": "tags",
+            "type": "text[]",
+            "nullable": false,
+            "default": "'{}'::text[]",
+            "check": "blog_tags_are_valid(tags): <= 8, unique, slug format, <= 40 chars each; no code sets it, so only the default is ever stored"
+          },
+          {
+            "name": "author_name",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "NULL or btrim length 1..80; denormalised display name; no writer in the repo"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.project_briefs",
+      "type": "table",
+      "label": "project_briefs",
+      "file": "supabase/migrations/0043_project_briefs.sql",
+      "source": "supabase/migrations/0043_project_briefs.sql:42",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Structured client briefs (logo, website, SEO, PPC): a private draft with autosave, then submitted into a new or existing project.",
+        "rls": "ENABLE + FORCE",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "nullable": false,
+            "default": "gen_random_uuid()",
+            "check": "PK; immutable (trigger); doubles as projects.client_generated_id",
+            "primaryKey": true
+          },
+          {
+            "name": "company_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK companies(id) ON DELETE CASCADE",
+            "references": {
+              "table": "public.companies",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "project_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "FK projects(id) ON DELETE CASCADE; NULL on drafts not yet pointed at a project",
+            "references": {
+              "table": "public.projects",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "created_by",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "FK auth.users(id) ON DELETE CASCADE (other project tables reference profiles)",
+            "references": {
+              "table": "auth.users",
+              "column": "id",
+              "onDelete": "cascade"
+            }
+          },
+          {
+            "name": "brief_type",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "project_briefs_type_check IN ('logo', 'website', 'seo', 'ppc')"
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "nullable": false,
+            "default": "''",
+            "check": "char_length(title) <= 120 (no minimum)"
+          },
+          {
+            "name": "answers",
+            "type": "jsonb",
+            "nullable": false,
+            "default": "'{}'::jsonb",
+            "check": "jsonb_typeof = 'object' and octet_length(answers::text) <= 60000 (the app caps its JSON at 56000 bytes)"
+          },
+          {
+            "name": "status",
+            "type": "text",
+            "nullable": false,
+            "default": "'draft'",
+            "check": "IN ('draft', 'submitted')"
+          },
+          {
+            "name": "template_version",
+            "type": "integer",
+            "nullable": false,
+            "default": "1",
+            "check": "between 1 and 1000"
+          },
+          {
+            "name": "submitted_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": "project_briefs_submission_state_check: submitted needs submitted_at and project_id; draft needs submitted_at NULL"
+          },
+          {
+            "name": "created_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": "pinned by project_briefs_touch"
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": "set by project_briefs_touch"
+          }
+        ]
+      }
+    },
+    {
+      "id": "table:public.project_attachment_cleanup",
+      "type": "table",
+      "label": "project_attachment_cleanup",
+      "file": "supabase/migrations/0048_durable_attachment_cleanup.sql",
+      "source": "supabase/migrations/0048_durable_attachment_cleanup.sql:36",
+      "attrs": {
+        "schema": "public",
+        "external": false,
+        "purpose": "Durable queue of storage objects whose attachment rows were removed as stale uploads and still need deleting from storage.",
+        "rls": "ENABLE, not FORCE, no policies",
+        "columns": [
+          {
+            "name": "storage_path",
+            "type": "text",
+            "nullable": false,
+            "default": null,
+            "check": "PK: the queue dedupe key",
+            "primaryKey": true
+          },
+          {
+            "name": "attachment_id",
+            "type": "uuid",
+            "nullable": false,
+            "default": null,
+            "check": "no FK: points at an attachment row that was deleted on purpose"
+          },
+          {
+            "name": "project_id",
+            "type": "uuid",
+            "nullable": true,
+            "default": null,
+            "check": "no FK"
+          },
+          {
+            "name": "queued_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": null
+          },
+          {
+            "name": "attempts",
+            "type": "integer",
+            "nullable": false,
+            "default": "0",
+            "check": "attempts >= 0"
+          },
+          {
+            "name": "last_attempt_at",
+            "type": "timestamptz",
+            "nullable": true,
+            "default": null,
+            "check": null
+          },
+          {
+            "name": "last_error",
+            "type": "text",
+            "nullable": true,
+            "default": null,
+            "check": "NULL or <= 500 characters"
+          },
+          {
+            "name": "next_attempt_at",
+            "type": "timestamptz",
+            "nullable": false,
+            "default": "now()",
+            "check": "lease and backoff: claim pushes it forward by the lease; failure by 2^attempts minutes capped at 24 h"
+          }
+        ]
+      }
+    },
+    {
+      "id": "trigger:auth.users.on_auth_user_created",
+      "type": "trigger",
+      "label": "on_auth_user_created",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:267",
+      "attrs": {
+        "table": "auth.users",
+        "timing": "AFTER",
+        "events": "INSERT",
+        "level": "row",
+        "function": "public.handle_new_user",
+        "effect": "INSERTs profiles(id, role = 'client', full_name = raw_user_meta_data->>full_name, requested_staff_access = lower(raw_user_meta_data->>account_type) = 'employee'). The profile insert fires enforce_pinned_admin_trigger, which returns at once for a client.",
+        "kind": "writes"
+      }
+    },
+    {
+      "id": "trigger:public.profiles.enforce_pinned_admin_trigger",
+      "type": "trigger",
+      "label": "enforce_pinned_admin_trigger",
+      "file": "supabase/migrations/0014_signup_account_type_and_single_admin.sql",
+      "source": "supabase/migrations/0014_signup_account_type_and_single_admin.sql:77",
+      "attrs": {
+        "table": "public.profiles",
+        "timing": "BEFORE",
+        "events": "INSERT OR UPDATE OF role",
+        "level": "row",
+        "function": "public.enforce_pinned_admin",
+        "effect": "BLOCKS (42501) when NEW.role = 'admin' and lower(auth.users.email) differs from lower(pinned_admin_email()). Reads auth.users. Does not run when only the auth email changes.",
+        "kind": "blocks"
+      }
+    },
+    {
+      "id": "trigger:public.profiles.on_profile_role_change_guard",
+      "type": "trigger",
+      "label": "on_profile_role_change_guard",
+      "file": "supabase/migrations/0008_auth_rbac_repair.sql",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:346",
+      "attrs": {
+        "table": "public.profiles",
+        "timing": "BEFORE",
+        "events": "UPDATE",
+        "level": "row",
+        "function": "public.prevent_unauthorized_profile_changes",
+        "effect": "BLOCKS (42501) any change to role, company_id, requested_staff_access or created_at unless current_user is the owner of admin_set_user_role(uuid,text). SECURITY INVOKER, so a SECURITY DEFINER function owned by that role passes; PostgREST sessions (authenticated, service_role) do not.",
+        "kind": "blocks"
+      }
+    },
+    {
+      "id": "trigger:public.profiles.on_profile_updated",
+      "type": "trigger",
+      "label": "on_profile_updated",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:271",
+      "attrs": {
+        "table": "public.profiles",
+        "timing": "BEFORE",
+        "events": "UPDATE",
+        "level": "row",
+        "function": "public.handle_profile_updated",
+        "effect": "Sets NEW.updated_at = now().",
+        "kind": "stamps"
+      }
+    },
+    {
+      "id": "trigger:public.companies.on_companies_updated",
+      "type": "trigger",
+      "label": "on_companies_updated",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:276",
+      "attrs": {
+        "table": "public.companies",
+        "timing": "BEFORE",
+        "events": "UPDATE",
+        "level": "row",
+        "function": "public.handle_profile_updated",
+        "effect": "Sets NEW.updated_at = now().",
+        "kind": "stamps"
+      }
+    },
+    {
+      "id": "trigger:public.contacts.on_contacts_updated",
+      "type": "trigger",
+      "label": "on_contacts_updated",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:280",
+      "attrs": {
+        "table": "public.contacts",
+        "timing": "BEFORE",
+        "events": "UPDATE",
+        "level": "row",
+        "function": "public.handle_profile_updated",
+        "effect": "Sets NEW.updated_at = now().",
+        "kind": "stamps"
+      }
+    },
+    {
+      "id": "trigger:public.deals.on_deals_updated",
+      "type": "trigger",
+      "label": "on_deals_updated",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:284",
+      "attrs": {
+        "table": "public.deals",
+        "timing": "BEFORE",
+        "events": "UPDATE",
+        "level": "row",
+        "function": "public.handle_profile_updated",
+        "effect": "Sets NEW.updated_at = now().",
+        "kind": "stamps"
+      }
+    },
+    {
+      "id": "trigger:public.tasks.on_tasks_updated",
+      "type": "trigger",
+      "label": "on_tasks_updated",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:288",
+      "attrs": {
+        "table": "public.tasks",
+        "timing": "BEFORE",
+        "events": "UPDATE",
+        "level": "row",
+        "function": "public.handle_profile_updated",
+        "effect": "Sets NEW.updated_at = now().",
+        "kind": "stamps"
+      }
+    },
+    {
+      "id": "trigger:public.notes.on_notes_updated",
+      "type": "trigger",
+      "label": "on_notes_updated",
+      "file": "supabase/migrations/0001_crm_schema.sql",
+      "source": "supabase/migrations/0001_crm_schema.sql:292",
+      "attrs": {
+        "table": "public.notes",
+        "timing": "BEFORE",
+        "events": "UPDATE",
+        "level": "row",
+        "function": "public.handle_profile_updated",
+        "effect": "Sets NEW.updated_at = now(). Notes have no UPDATE policy, so only privileged writers reach it.",
+        "kind": "stamps"
+      }
+    },
+    {
+      "id": "trigger:public.project_messages.broadcast_project_message_created",
+      "type": "trigger",
+      "label": "broadcast_project_message_created",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1251",
+      "attrs": {
+        "table": "public.project_messages",
+        "timing": "AFTER",
+        "events": "INSERT",
+        "level": "row",
+        "function": "private.broadcast_project_message",
+        "effect": "BROADCASTS event project_message_created on private topic project:<project_id>:<message visibility> with ids only (message_id, project_id, visibility, created_at). Skipped when auth.uid() is NULL or differs from sender_id, so service-role inserts do not broadcast.",
+        "kind": "broadcasts"
+      }
+    },
+    {
+      "id": "trigger:public.project_messages.broadcast_project_message_updated",
+      "type": "trigger",
+      "label": "broadcast_project_message_updated",
+      "file": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:49",
+      "attrs": {
+        "table": "public.project_messages",
+        "timing": "AFTER",
+        "events": "UPDATE OF body, edited_at",
+        "level": "row",
+        "function": "private.broadcast_project_message_updated",
+        "effect": "BROADCASTS project_message_updated on project:<project_id>:<message visibility> (message_id, project_id, visibility, edited_at), with the same auth.uid() skip rule.",
+        "kind": "broadcasts"
+      }
+    },
+    {
+      "id": "trigger:public.blog_posts.blog_posts_maintain_timestamps_trigger",
+      "type": "trigger",
+      "label": "blog_posts_maintain_timestamps_trigger",
+      "file": "supabase/migrations/0035_blog_posts.sql",
+      "source": "supabase/migrations/0035_blog_posts.sql:140",
+      "attrs": {
+        "table": "public.blog_posts",
+        "timing": "BEFORE",
+        "events": "INSERT OR UPDATE",
+        "level": "row",
+        "function": "public.blog_posts_maintain_timestamps",
+        "effect": "Sets updated_at = now(); sets published_at = now() when status is published and it is NULL; CLEARS published_at whenever status is draft.",
+        "kind": "stamps"
+      }
+    },
+    {
+      "id": "trigger:public.project_briefs.project_briefs_touch",
+      "type": "trigger",
+      "label": "project_briefs_touch",
+      "file": "supabase/migrations/0043_project_briefs.sql",
+      "source": "supabase/migrations/0043_project_briefs.sql:104",
+      "attrs": {
+        "table": "public.project_briefs",
+        "timing": "BEFORE",
+        "events": "UPDATE",
+        "level": "row",
+        "function": "private.touch_project_brief",
+        "effect": "Forces NEW.id = OLD.id and NEW.created_at = OLD.created_at (the id is the project idempotency key) and sets updated_at = now().",
+        "kind": "stamps"
+      }
+    },
+    {
+      "id": "trigger:public.projects.broadcast_project_status_changed",
+      "type": "trigger",
+      "label": "broadcast_project_status_changed",
+      "file": "supabase/migrations/0050_realtime_project_updates_and_presence.sql",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:191",
+      "attrs": {
+        "table": "public.projects",
+        "timing": "AFTER",
+        "events": "UPDATE OF status",
+        "level": "row",
+        "function": "private.broadcast_project_status_change",
+        "effect": "When NEW.status differs from OLD.status, BROADCASTS project_status_changed ({project_id}) to BOTH project:<id>:shared and project:<id>:internal. No auth.uid() guard: service-role updates broadcast too. Fires for transitions with internal visibility as well, so clients see the new status while the note stays staff-only. Returns NULL.",
+        "kind": "broadcasts"
+      }
+    },
+    {
+      "id": "trigger:public.project_tasks.broadcast_project_task_changed",
+      "type": "trigger",
+      "label": "broadcast_project_task_changed",
+      "file": "supabase/migrations/0050_realtime_project_updates_and_presence.sql",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:196",
+      "attrs": {
+        "table": "public.project_tasks",
+        "timing": "AFTER",
+        "events": "INSERT OR DELETE OR UPDATE",
+        "level": "row",
+        "function": "private.broadcast_project_task_change",
+        "effect": "BROADCASTS project_task_changed ({project_id, task_id}) to project:<id>:internal always, and to project:<id>:shared only when the task is client_visible (OLD or NEW on update, OLD on delete, NEW on insert). Fires on every UPDATE of any column. No auth.uid() guard.",
+        "kind": "broadcasts"
+      }
+    },
+    {
+      "id": "trigger:public.project_approvals.broadcast_project_approval_changed",
+      "type": "trigger",
+      "label": "broadcast_project_approval_changed",
+      "file": "supabase/migrations/0050_realtime_project_updates_and_presence.sql",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:201",
+      "attrs": {
+        "table": "public.project_approvals",
+        "timing": "AFTER",
+        "events": "INSERT OR DELETE OR UPDATE",
+        "level": "row",
+        "function": "private.broadcast_project_approval_change",
+        "effect": "BROADCASTS project_approval_changed ({project_id, approval_id}) to project:<id>:internal always, and to :shared only when the approval is project-level (deliverable_id NULL) or its deliverable is shared (checked for OLD and NEW). Reads project_deliverables. An UPDATE of an approval that was client-visible sends the shared event twice (the first block because OLD was visible, then the same-project branch again; 0050:145-152 and 0050:171-180). No auth.uid() guard.",
+        "kind": "broadcasts"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "table:auth.users",
+      "to": "table:public.profiles",
+      "kind": "fk",
+      "fields": [
+        "id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:13",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:auth.users",
+      "to": "table:public.companies",
+      "kind": "fk",
+      "fields": [
+        "created_by"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:31",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "created_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.companies",
+      "to": "table:public.contacts",
+      "kind": "fk",
+      "fields": [
+        "company_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:39",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "company_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:auth.users",
+      "to": "table:public.contacts",
+      "kind": "fk",
+      "fields": [
+        "created_by"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:47",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "created_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.companies",
+      "to": "table:public.deals",
+      "kind": "fk",
+      "fields": [
+        "company_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:55",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "company_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "table:public.deals",
+      "kind": "fk",
+      "fields": [
+        "contact_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:56",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "contact_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:auth.users",
+      "to": "table:public.deals",
+      "kind": "fk",
+      "fields": [
+        "owner_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:63",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "owner_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.companies",
+      "to": "table:public.tasks",
+      "kind": "fk",
+      "fields": [
+        "company_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:71",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "company_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.deals",
+      "to": "table:public.tasks",
+      "kind": "fk",
+      "fields": [
+        "deal_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:72",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "deal_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "table:public.tasks",
+      "kind": "fk",
+      "fields": [
+        "contact_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:73",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "contact_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:auth.users",
+      "to": "table:public.tasks",
+      "kind": "fk",
+      "fields": [
+        "assigned_to"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:78",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "assigned_to",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:auth.users",
+      "to": "table:public.tasks",
+      "kind": "fk",
+      "fields": [
+        "created_by"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:80",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "created_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.companies",
+      "to": "table:public.notes",
+      "kind": "fk",
+      "fields": [
+        "company_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:88",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "company_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "table:public.notes",
+      "kind": "fk",
+      "fields": [
+        "contact_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:89",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "contact_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.deals",
+      "to": "table:public.notes",
+      "kind": "fk",
+      "fields": [
+        "deal_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:90",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "deal_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:auth.users",
+      "to": "table:public.notes",
+      "kind": "fk",
+      "fields": [
+        "created_by"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:92",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "created_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.companies",
+      "to": "table:public.company_members",
+      "kind": "fk",
+      "fields": [
+        "company_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:100",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "company_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:auth.users",
+      "to": "table:public.company_members",
+      "kind": "fk",
+      "fields": [
+        "user_id"
+      ],
+      "source": "supabase/migrations/0001_crm_schema.sql:101",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "user_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.companies",
+      "to": "table:public.projects",
+      "kind": "fk",
+      "fields": [
+        "company_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:45",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "company_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.deals",
+      "to": "table:public.projects",
+      "kind": "fk",
+      "fields": [
+        "source_deal_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:46",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "source_deal_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": true
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.projects",
+      "kind": "fk",
+      "fields": [
+        "created_by"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:52",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "created_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.projects",
+      "to": "table:public.project_threads",
+      "kind": "fk",
+      "fields": [
+        "project_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:77",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "project_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": true
+      }
+    },
+    {
+      "from": "table:public.projects",
+      "to": "table:public.project_assignments",
+      "kind": "fk",
+      "fields": [
+        "project_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:83",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "project_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.project_assignments",
+      "kind": "fk",
+      "fields": [
+        "user_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:84",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "user_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.project_assignments",
+      "kind": "fk",
+      "fields": [
+        "assigned_by"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:85",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "assigned_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "table:public.project_messages",
+      "kind": "fk",
+      "fields": [
+        "thread_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:92",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "thread_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.project_messages",
+      "kind": "fk",
+      "fields": [
+        "sender_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:93",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "sender_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.project_messages",
+      "kind": "fk",
+      "fields": [
+        "edited_by"
+      ],
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:223",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "edited_by",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.projects",
+      "to": "table:public.project_attachments",
+      "kind": "fk",
+      "fields": [
+        "project_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:109",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "project_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.project_messages",
+      "to": "table:public.project_attachments",
+      "kind": "fk",
+      "fields": [
+        "message_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:110",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "message_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.project_attachments",
+      "kind": "fk",
+      "fields": [
+        "uploaded_by"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:111",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "uploaded_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.projects",
+      "to": "table:public.project_status_history",
+      "kind": "fk",
+      "fields": [
+        "project_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:141",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "project_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.project_status_history",
+      "kind": "fk",
+      "fields": [
+        "changed_by"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:146",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "changed_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.audit_events",
+      "kind": "fk",
+      "fields": [
+        "actor_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:185",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "actor_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.projects",
+      "to": "table:public.audit_events",
+      "kind": "fk",
+      "fields": [
+        "project_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:186",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "project_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.companies",
+      "to": "table:public.audit_events",
+      "kind": "fk",
+      "fields": [
+        "company_id"
+      ],
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:187",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "company_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.projects",
+      "to": "table:public.project_tasks",
+      "kind": "fk",
+      "fields": [
+        "project_id"
+      ],
+      "source": "supabase/migrations/0010_project_workspace.sql:6",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "project_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.project_tasks",
+      "kind": "fk",
+      "fields": [
+        "assignee_id"
+      ],
+      "source": "supabase/migrations/0010_project_workspace.sql:10",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "assignee_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.project_tasks",
+      "kind": "fk",
+      "fields": [
+        "created_by"
+      ],
+      "source": "supabase/migrations/0010_project_workspace.sql:11",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "created_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.projects",
+      "to": "table:public.project_deliverables",
+      "kind": "fk",
+      "fields": [
+        "project_id"
+      ],
+      "source": "supabase/migrations/0010_project_workspace.sql:24",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "project_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.project_deliverables",
+      "kind": "fk",
+      "fields": [
+        "created_by"
+      ],
+      "source": "supabase/migrations/0010_project_workspace.sql:33",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "created_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.projects",
+      "to": "table:public.project_approvals",
+      "kind": "fk",
+      "fields": [
+        "project_id"
+      ],
+      "source": "supabase/migrations/0010_project_workspace.sql:50",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "project_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.project_deliverables",
+      "to": "table:public.project_approvals",
+      "kind": "fk",
+      "fields": [
+        "deliverable_id"
+      ],
+      "source": "supabase/migrations/0010_project_workspace.sql:51",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "deliverable_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.project_approvals",
+      "kind": "fk",
+      "fields": [
+        "requested_by"
+      ],
+      "source": "supabase/migrations/0010_project_workspace.sql:53",
+      "attrs": {
+        "onDelete": "no action",
+        "childColumn": "requested_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.project_approvals",
+      "kind": "fk",
+      "fields": [
+        "reviewed_by"
+      ],
+      "source": "supabase/migrations/0010_project_workspace.sql:54",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "reviewed_by",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.projects",
+      "to": "table:public.notifications_outbox",
+      "kind": "fk",
+      "fields": [
+        "project_id"
+      ],
+      "source": "supabase/migrations/0010_project_workspace.sql:66",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "project_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "table:public.notifications_outbox",
+      "kind": "fk",
+      "fields": [
+        "user_id"
+      ],
+      "source": "supabase/migrations/0010_project_workspace.sql:67",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "user_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:auth.users",
+      "to": "table:public.blog_posts",
+      "kind": "fk",
+      "fields": [
+        "author_id"
+      ],
+      "source": "supabase/migrations/0035_blog_posts.sql:63",
+      "attrs": {
+        "onDelete": "set null",
+        "childColumn": "author_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.companies",
+      "to": "table:public.project_briefs",
+      "kind": "fk",
+      "fields": [
+        "company_id"
+      ],
+      "source": "supabase/migrations/0043_project_briefs.sql:44",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "company_id",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:public.projects",
+      "to": "table:public.project_briefs",
+      "kind": "fk",
+      "fields": [
+        "project_id"
+      ],
+      "source": "supabase/migrations/0043_project_briefs.sql:45",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "project_id",
+        "parentColumn": "id",
+        "nullable": true,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:auth.users",
+      "to": "table:public.project_briefs",
+      "kind": "fk",
+      "fields": [
+        "created_by"
+      ],
+      "source": "supabase/migrations/0043_project_briefs.sql:46",
+      "attrs": {
+        "onDelete": "cascade",
+        "childColumn": "created_by",
+        "parentColumn": "id",
+        "nullable": false,
+        "unique": false
+      }
+    },
+    {
+      "from": "table:auth.users",
+      "to": "trigger:auth.users.on_auth_user_created",
+      "kind": "fires",
+      "when": "AFTER INSERT",
+      "source": "supabase/migrations/0001_crm_schema.sql:267",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:auth.users.on_auth_user_created",
+      "to": "fn:public.handle_new_user",
+      "kind": "calls",
+      "source": "supabase/migrations/0001_crm_schema.sql:267",
+      "notes": "INSERTs profiles(id, role = 'client', full_name = raw_user_meta_data->>full_name, requested_staff_access = lower(raw_user_meta_data->>account_type) = 'employee'). The profile insert fires enforce_pinned_admin_trigger, which returns at once for a client."
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "trigger:public.profiles.enforce_pinned_admin_trigger",
+      "kind": "fires",
+      "when": "BEFORE INSERT OR UPDATE OF role",
+      "source": "supabase/migrations/0014_signup_account_type_and_single_admin.sql:77",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.profiles.enforce_pinned_admin_trigger",
+      "to": "fn:public.enforce_pinned_admin",
+      "kind": "calls",
+      "source": "supabase/migrations/0014_signup_account_type_and_single_admin.sql:77",
+      "notes": "BLOCKS (42501) when NEW.role = 'admin' and lower(auth.users.email) differs from lower(pinned_admin_email()). Reads auth.users. Does not run when only the auth email changes."
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "trigger:public.profiles.on_profile_role_change_guard",
+      "kind": "fires",
+      "when": "BEFORE UPDATE",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:346",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.profiles.on_profile_role_change_guard",
+      "to": "fn:public.prevent_unauthorized_profile_changes",
+      "kind": "calls",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:346",
+      "notes": "BLOCKS (42501) any change to role, company_id, requested_staff_access or created_at unless current_user is the owner of admin_set_user_role(uuid,text). SECURITY INVOKER, so a SECURITY DEFINER function owned by that role passes; PostgREST sessions (authenticated, service_role) do not."
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "trigger:public.profiles.on_profile_updated",
+      "kind": "fires",
+      "when": "BEFORE UPDATE",
+      "source": "supabase/migrations/0001_crm_schema.sql:271",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.profiles.on_profile_updated",
+      "to": "fn:public.handle_profile_updated",
+      "kind": "calls",
+      "source": "supabase/migrations/0001_crm_schema.sql:271",
+      "notes": "Sets NEW.updated_at = now()."
+    },
+    {
+      "from": "table:public.companies",
+      "to": "trigger:public.companies.on_companies_updated",
+      "kind": "fires",
+      "when": "BEFORE UPDATE",
+      "source": "supabase/migrations/0001_crm_schema.sql:276",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.companies.on_companies_updated",
+      "to": "fn:public.handle_profile_updated",
+      "kind": "calls",
+      "source": "supabase/migrations/0001_crm_schema.sql:276",
+      "notes": "Sets NEW.updated_at = now()."
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "trigger:public.contacts.on_contacts_updated",
+      "kind": "fires",
+      "when": "BEFORE UPDATE",
+      "source": "supabase/migrations/0001_crm_schema.sql:280",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.contacts.on_contacts_updated",
+      "to": "fn:public.handle_profile_updated",
+      "kind": "calls",
+      "source": "supabase/migrations/0001_crm_schema.sql:280",
+      "notes": "Sets NEW.updated_at = now()."
+    },
+    {
+      "from": "table:public.deals",
+      "to": "trigger:public.deals.on_deals_updated",
+      "kind": "fires",
+      "when": "BEFORE UPDATE",
+      "source": "supabase/migrations/0001_crm_schema.sql:284",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.deals.on_deals_updated",
+      "to": "fn:public.handle_profile_updated",
+      "kind": "calls",
+      "source": "supabase/migrations/0001_crm_schema.sql:284",
+      "notes": "Sets NEW.updated_at = now()."
+    },
+    {
+      "from": "table:public.tasks",
+      "to": "trigger:public.tasks.on_tasks_updated",
+      "kind": "fires",
+      "when": "BEFORE UPDATE",
+      "source": "supabase/migrations/0001_crm_schema.sql:288",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.tasks.on_tasks_updated",
+      "to": "fn:public.handle_profile_updated",
+      "kind": "calls",
+      "source": "supabase/migrations/0001_crm_schema.sql:288",
+      "notes": "Sets NEW.updated_at = now()."
+    },
+    {
+      "from": "table:public.notes",
+      "to": "trigger:public.notes.on_notes_updated",
+      "kind": "fires",
+      "when": "BEFORE UPDATE",
+      "source": "supabase/migrations/0001_crm_schema.sql:292",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.notes.on_notes_updated",
+      "to": "fn:public.handle_profile_updated",
+      "kind": "calls",
+      "source": "supabase/migrations/0001_crm_schema.sql:292",
+      "notes": "Sets NEW.updated_at = now(). Notes have no UPDATE policy, so only privileged writers reach it."
+    },
+    {
+      "from": "table:public.project_messages",
+      "to": "trigger:public.project_messages.broadcast_project_message_created",
+      "kind": "fires",
+      "when": "AFTER INSERT",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1251",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.project_messages.broadcast_project_message_created",
+      "to": "fn:private.broadcast_project_message",
+      "kind": "calls",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1251",
+      "notes": "BROADCASTS event project_message_created on private topic project:<project_id>:<message visibility> with ids only (message_id, project_id, visibility, created_at). Skipped when auth.uid() is NULL or differs from sender_id, so service-role inserts do not broadcast."
+    },
+    {
+      "from": "table:public.project_messages",
+      "to": "trigger:public.project_messages.broadcast_project_message_updated",
+      "kind": "fires",
+      "when": "AFTER UPDATE OF body, edited_at",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:49",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.project_messages.broadcast_project_message_updated",
+      "to": "fn:private.broadcast_project_message_updated",
+      "kind": "calls",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:49",
+      "notes": "BROADCASTS project_message_updated on project:<project_id>:<message visibility> (message_id, project_id, visibility, edited_at), with the same auth.uid() skip rule."
+    },
+    {
+      "from": "table:public.blog_posts",
+      "to": "trigger:public.blog_posts.blog_posts_maintain_timestamps_trigger",
+      "kind": "fires",
+      "when": "BEFORE INSERT OR UPDATE",
+      "source": "supabase/migrations/0035_blog_posts.sql:140",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.blog_posts.blog_posts_maintain_timestamps_trigger",
+      "to": "fn:public.blog_posts_maintain_timestamps",
+      "kind": "calls",
+      "source": "supabase/migrations/0035_blog_posts.sql:140",
+      "notes": "Sets updated_at = now(); sets published_at = now() when status is published and it is NULL; CLEARS published_at whenever status is draft."
+    },
+    {
+      "from": "table:public.project_briefs",
+      "to": "trigger:public.project_briefs.project_briefs_touch",
+      "kind": "fires",
+      "when": "BEFORE UPDATE",
+      "source": "supabase/migrations/0043_project_briefs.sql:104",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.project_briefs.project_briefs_touch",
+      "to": "fn:private.touch_project_brief",
+      "kind": "calls",
+      "source": "supabase/migrations/0043_project_briefs.sql:104",
+      "notes": "Forces NEW.id = OLD.id and NEW.created_at = OLD.created_at (the id is the project idempotency key) and sets updated_at = now()."
+    },
+    {
+      "from": "table:public.projects",
+      "to": "trigger:public.projects.broadcast_project_status_changed",
+      "kind": "fires",
+      "when": "AFTER UPDATE OF status",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:191",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.projects.broadcast_project_status_changed",
+      "to": "fn:private.broadcast_project_status_change",
+      "kind": "calls",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:191",
+      "notes": "When NEW.status differs from OLD.status, BROADCASTS project_status_changed ({project_id}) to BOTH project:<id>:shared and project:<id>:internal. No auth.uid() guard: service-role updates broadcast too. Fires for transitions with internal visibility as well, so clients see the new status while the note stays staff-only. Returns NULL."
+    },
+    {
+      "from": "table:public.project_tasks",
+      "to": "trigger:public.project_tasks.broadcast_project_task_changed",
+      "kind": "fires",
+      "when": "AFTER INSERT OR DELETE OR UPDATE",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:196",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.project_tasks.broadcast_project_task_changed",
+      "to": "fn:private.broadcast_project_task_change",
+      "kind": "calls",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:196",
+      "notes": "BROADCASTS project_task_changed ({project_id, task_id}) to project:<id>:internal always, and to project:<id>:shared only when the task is client_visible (OLD or NEW on update, OLD on delete, NEW on insert). Fires on every UPDATE of any column. No auth.uid() guard."
+    },
+    {
+      "from": "table:public.project_approvals",
+      "to": "trigger:public.project_approvals.broadcast_project_approval_changed",
+      "kind": "fires",
+      "when": "AFTER INSERT OR DELETE OR UPDATE",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:201",
+      "notes": "row-level"
+    },
+    {
+      "from": "trigger:public.project_approvals.broadcast_project_approval_changed",
+      "to": "fn:private.broadcast_project_approval_change",
+      "kind": "calls",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:201",
+      "notes": "BROADCASTS project_approval_changed ({project_id, approval_id}) to project:<id>:internal always, and to :shared only when the approval is project-level (deliverable_id NULL) or its deliverable is shared (checked for OLD and NEW). Reads project_deliverables. An UPDATE of an approval that was client-visible sends the shared event twice (the first block because OLD was visible, then the same-project branch again; 0050:145-152 and 0050:171-180). No auth.uid() guard."
+    }
+  ],
+  "dropped": {
+    "tables": [
+      "public.project_files",
+      "public.legacy_project_messages",
+      "public.legacy_project_files"
+    ],
+    "functions": [],
+    "triggers": []
+  }
+}
