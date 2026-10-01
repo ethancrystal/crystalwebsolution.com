@@ -1,3 +1,19 @@
+## v1.116 — 2026-09-30
+
+A1.2: admin status buttons follow ALLOWED_TRANSITIONS.
+
+- The admin project detail page (`app/admin/projects/[id]/page.jsx`) no
+  longer keeps a hand-rolled status-to-options map; it derives
+  `NEXT_OPTIONS` from `ALLOWED_TRANSITIONS` in
+  `lib/crm/project-contract.mjs`, the same expression the team page uses.
+  The hard-coded map never offered `brief_submitted -> planned` and omitted
+  the `on_hold`/`cancelled` statuses entirely, and it offered an illegal
+  `changes_requested -> client_review` transition.
+- Regression test added in `tests/crm/staff-workspaces.test.mjs`: asserts
+  the contract import, asserts `NEXT_OPTIONS` comes straight from
+  `ALLOWED_TRANSITIONS[project.status]`, and asserts no hand-rolled
+  status-to-array literal map may return.
+- Plan-of-record doc added: `docs/plans/2026-09-28-portal-workings.md`.
 ## v1.115 — 2026-10-01
 
 Docs only: scheduled SEO ledger re-check. No runtime change.
