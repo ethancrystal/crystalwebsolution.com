@@ -864,6 +864,62 @@ export function triggerWhenAllows(when, event, fields = []) {
   return true;
 }
 
+/** Stands for every event type: an enqueue that names none, or `event_type = ... (any value)`. */
+export const ANY_EVENT = '*';
+const EVENT_TYPE_CLAUSE = /\bevent_type\s*=\s*([^;\n]*)/gi;
+const EVENT_TYPE_NAME = /^[a-z][a-z0-9_]*(?:\.[a-z0-9_]+)*$/i;
+
+/**
+ * Event types named by `event_type = a, b` clauses (a clause ends at `;` or the
+ * end of the line) in any of the texts, sorted and de-duplicated. A clause that
+ * says "any value" adds ANY_EVENT. Text naming no event type gives `[]`.
+ */
+export function parseEventTypes(...texts) {
+  const found = new Set();
+  for (const text of texts) {
+    for (const [, clause] of String(text ?? '').matchAll(EVENT_TYPE_CLAUSE)) {
+      if (/\bany value\b/i.test(clause)) found.add(ANY_EVENT);
+      for (const part of clause.split(/,|\s+or\s+/i)) {
+        const name = part.trim().replace(/[.\s]+$/, '');
+        if (EVENT_TYPE_NAME.test(name)) found.add(name);
+      }
+    }
+  }
+  return [...found].sort(cmp);
+}
+
+/**
+ * Does a worker edge (its `when`) handle one of the queued event types? An edge
+ * that names no event type handles none. ANY_EVENT on the queue side matches every
+ * event-typed edge, and on the edge side matches any non-empty queue.
+ */
+export function eventTypesMatch(queued, when) {
+  const handled = parseEventTypes(when);
+  if (handled.length === 0 || queued.length === 0) return false;
+  if (queued.includes(ANY_EVENT) || handled.includes(ANY_EVENT)) return true;
+  return handled.some((type) => queued.includes(type));
+}
+
+// The event types an `enqueues` edge queues; naming none means any.
+function enqueuedTypes(edge) {
+  const types = parseEventTypes(edge.when, edge.notes);
+  return types.length ? types : [ANY_EVENT];
+}
+
+// Fold event types found by one walk into `known` (queue table id -> Set). True if any were new.
+function mergeQueued(known, found) {
+  let grew = false;
+  for (const [table, types] of found) {
+    if (!known.has(table)) known.set(table, new Set());
+    for (const type of types) {
+      if (known.get(table).has(type)) continue;
+      known.get(table).add(type);
+      grew = true;
+    }
+  }
+  return grew;
+}
+
 // Follow one edge from a visited state. Returns { effect, next } or null.
 function step(edge, state) {
   const fields = fieldsOf(edge);
@@ -881,7 +937,46 @@ function step(edge, state) {
   return { effect: edge.kind, next: eventsOf(edge.kind).map((event) => ({ id: edge.to, event, fields })) };
 }
 
-const stateKey = (state) => `${state.id}\u0000${state.event ?? ''}\u0000${state.event === 'update' ? state.fields.join(',') : ''}`;
+// `only` is set on a worker reached through a `drains` edge: the event types its queue was filled with.
+const stateKey = (state) =>
+  `${state.id}\u0000${state.event ?? ''}\u0000${state.event === 'update' ? state.fields.join(',') : ''}\u0000${state.only ? `only:${state.only.join(',')}` : ''}`;
+
+// One breadth-first pass. `queued` maps a queue table to the event types earlier
+// passes saw this entry enqueue into it; `enqueued` is what this pass saw.
+function walk(graph, startId, maxDepth, queued) {
+  const depths = new Map([[startId, 0]]);
+  const followed = new Map();
+  const enqueued = new Map();
+  const start = { id: startId, event: null, fields: [], only: null };
+  const seen = new Set([stateKey(start)]);
+  let frontier = [start];
+  for (let depth = 0; depth < maxDepth && frontier.length > 0; depth += 1) {
+    const next = [];
+    for (const state of frontier) {
+      if (depth > 0 && UI_TYPES.has(graph.typeOf(state.id))) continue;
+      for (const edge of graph.out.get(state.id) ?? []) {
+        if (state.only && !eventTypesMatch(state.only, edge.when)) continue;
+        const taken = step(edge, state);
+        if (!taken) continue;
+        followed.set(edge, taken.effect);
+        if (edge.kind === 'enqueues') mergeQueued(enqueued, [[edge.to, enqueuedTypes(edge)]]);
+        // A drains edge is a hand-off: the worker is reached, but runs only for what was queued.
+        const only = edge.kind === 'drains' ? [...(queued.get(edge.from) ?? [])].sort(cmp) : null;
+        for (const target of taken.next) {
+          if (!depths.has(target.id)) depths.set(target.id, depth + 1);
+          if (only && seen.has(stateKey(target))) continue; // already followed in full
+          const entered = { ...target, only };
+          const key = stateKey(entered);
+          if (seen.has(key)) continue;
+          seen.add(key);
+          next.push(entered);
+        }
+      }
+    }
+    frontier = next;
+  }
+  return { depths, followed, enqueued };
+}
 
 /**
  * Everything reachable forward from `startId`, breadth first, at most
@@ -891,33 +986,23 @@ const stateKey = (state) => `${state.id}\u0000${state.event ?? ''}\u0000${state.
  * keys). Foreign keys are followed only from a node reached by a delete, and
  * only where on delete cascades or resets. A page or component reached partway
  * is a stop, not a pass-through: its own forms are separate entry nodes.
+ *
+ * A `drains` edge is a hand-off, not a pass-through. The worker it reaches
+ * continues only along edges whose `when` names an `event_type` that this
+ * traversal enqueued into the drained table (any `enqueues` edge that names no
+ * type counts as every type). A worker the traversal also reaches by other edges,
+ * or starts from, is followed in full. Because an enqueue found late can widen
+ * what an earlier hand-off follows, the walk repeats until the enqueued types
+ * stop growing.
  */
 export function traverse(graph, startId, { maxDepth = MAX_DEPTH } = {}) {
-  const depths = new Map([[startId, 0]]);
-  const followed = new Map();
-  const start = { id: startId, event: null, fields: [] };
-  const seen = new Set([stateKey(start)]);
-  let frontier = [start];
-  for (let depth = 0; depth < maxDepth && frontier.length > 0; depth += 1) {
-    const next = [];
-    for (const state of frontier) {
-      if (depth > 0 && UI_TYPES.has(graph.typeOf(state.id))) continue;
-      for (const edge of graph.out.get(state.id) ?? []) {
-        const taken = step(edge, state);
-        if (!taken) continue;
-        followed.set(edge, taken.effect);
-        for (const target of taken.next) {
-          if (!depths.has(target.id)) depths.set(target.id, depth + 1);
-          const key = stateKey(target);
-          if (seen.has(key)) continue;
-          seen.add(key);
-          next.push(target);
-        }
-      }
+  const queued = new Map();
+  for (;;) {
+    const { depths, followed, enqueued } = walk(graph, startId, maxDepth, queued);
+    if (!mergeQueued(queued, enqueued)) {
+      return { depths, edges: [...followed].map(([edge, effect]) => ({ edge, effect })) };
     }
-    frontier = next;
   }
-  return { depths, edges: [...followed].map(([edge, effect]) => ({ edge, effect })) };
 }
 
 /** Entry nodes: where data enters. UI nodes only count when they submit or write directly. */
@@ -965,8 +1050,10 @@ function reachOf(graph, entry) {
   return { depths, into };
 }
 
+const reachedByDrain = (reach, id) => (reach.into.get(id) ?? []).some(({ effect }) => effect === 'drains');
+
 function groupReached(graph, entryId, reach) {
-  const groups = { dataPoints: new Map(), screens: [], code: [] };
+  const groups = { dataPoints: new Map(), screens: [], queued: [], code: [] };
   for (const id of [...reach.depths.keys()].sort(cmp)) {
     if (id === entryId) continue;
     const type = graph.typeOf(id);
@@ -974,6 +1061,7 @@ function groupReached(graph, entryId, reach) {
       if (!groups.dataPoints.has(type)) groups.dataPoints.set(type, []);
       groups.dataPoints.get(type).push(id);
     } else if (UI_TYPES.has(type)) groups.screens.push(id);
+    else if (reachedByDrain(reach, id)) groups.queued.push(id);
     else groups.code.push(id);
   }
   return groups;
@@ -993,6 +1081,7 @@ function renderEntry(graph, entry, reach) {
     }
   }
   if (groups.screens.length) sections.push(`- Screens and components reached: ${groups.screens.map(code).join(', ')}`);
+  if (groups.queued.length) sections.push(`- Queued for: ${groups.queued.map(code).join(', ')}`);
   if (groups.code.length) sections.push(`- Code on the way: ${groups.code.map(code).join(', ')}`);
   lines.push(...(sections.length ? sections : ['- Reaches nothing else in the map.']), '');
   return lines;
@@ -1061,6 +1150,8 @@ export function render(map) {
     '- A trigger counts only when its `when` names the kind of write that reached the table (`UPDATE OF col` also needs a written column in common',
     '  when the writer lists its columns). A `when` that names no event always counts.',
     '- A page or component reached partway is shown as a stop and not followed further: its own forms are separate entry nodes.',
+    '- A `drains` edge is a hand-off, not a pass-through: the worker is listed under **Queued for**, and Part 1 follows only the worker edges whose',
+    '  `when` names an `event_type` this entry enqueued (an enqueue that names none counts as every type). A worker or scheduler as the entry node follows all its edges.',
     '- **Part 2** inverts Part 1: for each data point, the entry nodes that reach it and the direct writer. A bracket holds who performs the',
     '  write (`user` is subject to RLS, `service_role` and `definer` are not).',
     '- Reaching a data point means it can be reached, not that every call does: conditions live on the edges in `data-map.json`.',

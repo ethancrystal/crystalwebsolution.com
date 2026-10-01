@@ -15,6 +15,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import {
+  ANY_EVENT,
   EDGE_KINDS,
   EXPECTED_FRAGMENTS,
   JSON_OUTPUT,
@@ -27,11 +28,13 @@ import {
   coverage,
   entryNodes,
   envNamesIn,
+  eventTypesMatch,
   exportedNames,
   fromCalls,
   loadFragments,
   main,
   mergeFragments,
+  parseEventTypes,
   parseSource,
   parseSql,
   render,
@@ -712,6 +715,62 @@ test('triggerWhenAllows matches the write event and, for UPDATE OF, a written co
   assert.equal(triggerWhenAllows('AFTER UPDATE OF status', null), true);
 });
 
+test('parseEventTypes reads one event type from a `when` or from a note', () => {
+  assert.deepEqual(parseEventTypes('event_type = lead.created'), ['lead.created']);
+  assert.deepEqual(parseEventTypes('event_type=lead.created'), ['lead.created']);
+  assert.deepEqual(parseEventTypes('event_type = lead.created; channel = email; user_id = pinned admin; payload = {lead_name, deal_id}'), ['lead.created']);
+  assert.deepEqual(parseEventTypes('event_type = lead.created.'), ['lead.created'], 'a closing full stop is not part of the name');
+  assert.deepEqual(parseEventTypes('channel = email; event_type = other'), ['other'], 'a name with no dot is still a name');
+});
+
+test('parseEventTypes reads lists, repeated clauses and several texts, sorted and de-duplicated', () => {
+  assert.deepEqual(parseEventTypes('event_type = project.task_created, project.task_updated'), ['project.task_created', 'project.task_updated']);
+  assert.deepEqual(parseEventTypes('event_type = b.two or a.one'), ['a.one', 'b.two']);
+  assert.deepEqual(
+    parseEventTypes('event_type = project.brief_submitted; channels in_app + email. A second insert queues event_type = project.brief_received; channels in_app + email'),
+    ['project.brief_received', 'project.brief_submitted'],
+  );
+  assert.deepEqual(parseEventTypes('event_type = a.one', 'event_type = b.two; x', 'event_type = a.one'), ['a.one', 'b.two'], 'when and notes are read together');
+  assert.deepEqual(parseEventTypes('event_type = a.one', undefined, null), ['a.one']);
+});
+
+test('parseEventTypes reports "any value" as ANY_EVENT and names nothing it cannot parse', () => {
+  assert.equal(ANY_EVENT, '*');
+  assert.deepEqual(parseEventTypes('event_type = the caller text (any value); channel = the caller channel; payload = caller jsonb'), [ANY_EVENT]);
+  assert.deepEqual(parseEventTypes('event_type = any value'), [ANY_EVENT]);
+  assert.deepEqual(parseEventTypes('event_type = lead.created, any value'), [ANY_EVENT, 'lead.created']);
+  for (const text of ['', undefined, null, 42, 'ON CONFLICT ON CONSTRAINT pkey DO NOTHING', 'channel = email; user_id = null', 'event_type = the caller text', 'event_type =', 'event_type = ; channel = email']) {
+    assert.deepEqual(parseEventTypes(text), [], String(text));
+  }
+});
+
+test('parseEventTypes keeps names as written and stops a clause at `;` or the end of the line', () => {
+  assert.deepEqual(parseEventTypes('event_type = Lead.Created'), ['Lead.Created']);
+  assert.deepEqual(parseEventTypes('event_type = a.one; other = b.two'), ['a.one']);
+  assert.deepEqual(parseEventTypes('event_type = a.one\nb.two'), ['a.one']);
+});
+
+test('eventTypesMatch: an edge handles a queued type only when its when names it', () => {
+  assert.equal(eventTypesMatch(['lead.created'], 'event_type = lead.created'), true);
+  assert.equal(eventTypesMatch(['lead.created'], 'event_type = other.event'), false);
+  assert.equal(eventTypesMatch(['a.one', 'lead.created'], 'event_type = lead.created'), true);
+  assert.equal(eventTypesMatch(['lead.created'], 'event_type = project.approval_updated, lead.created'), true);
+  assert.equal(eventTypesMatch(['lead.created'], 'event_type = project.approval_updated, project.approval_requested'), false);
+  assert.equal(eventTypesMatch([], 'event_type = lead.created'), false, 'nothing queued, nothing handled');
+});
+
+test('eventTypesMatch: an edge that names no event type is never handled, and ANY_EVENT matches every event-typed edge', () => {
+  for (const when of ['', undefined, null, 'after the Resend call succeeds', 'the claim returned at least one path']) {
+    assert.equal(eventTypesMatch(['lead.created'], when), false, String(when));
+    assert.equal(eventTypesMatch([ANY_EVENT], when), false, `any value still needs an event-typed edge: ${when}`);
+  }
+  assert.equal(eventTypesMatch([ANY_EVENT], 'event_type = lead.created'), true);
+  assert.equal(eventTypesMatch([ANY_EVENT], 'event_type = other.event'), true);
+  assert.equal(eventTypesMatch([ANY_EVENT, 'a.one'], 'event_type = other.event'), true);
+  assert.equal(eventTypesMatch(['lead.created'], 'event_type = any value'), true, 'an edge for any value handles whatever was queued');
+  assert.equal(eventTypesMatch([], 'event_type = any value'), false);
+});
+
 test('traverse follows a fires edge only when its when matches the write that reached the table', () => {
   const onUpdate = edge('table:public.t', 'trigger:public.t.on_update', 'fires', { when: 'AFTER UPDATE OF status' });
   const onInsert = edge('table:public.t', 'trigger:public.t.on_insert', 'fires', { when: 'AFTER INSERT' });
@@ -722,6 +781,93 @@ test('traverse follows a fires edge only when its when matches the write that re
   assert.deepEqual(reachedIds(withWriter('updates', ['title']), 'action:src/a.js#go').filter((id) => id.startsWith('trigger')), ['trigger:public.t.always']);
   assert.equal(reachedIds(withWriter('upserts', ['status']), 'action:src/a.js#go').filter((id) => id.startsWith('trigger')).length, 3, 'an upsert is an insert and an update');
   assert.deepEqual(reachedIds(withWriter('deletes', []), 'action:src/a.js#go').filter((id) => id.startsWith('trigger')), ['trigger:public.t.always']);
+});
+
+// A queue table drained by a worker, as the CRM outbox is. The worker's edges say which event type they
+// handle (emailA, emailB), or nothing (the cleanup table). `enqueue` is what the entry's function writes.
+const ENTRY = 'route:POST /api/contact';
+const WORKER = 'route:POST /api/worker';
+const EMAIL_A = 'email:src/mail.js#emailA';
+const EMAIL_B = 'email:src/mail.js#emailB';
+const CLEANUP = 'table:public.cleanup';
+
+function handoffMap({ enqueue = { notes: 'event_type = lead.created; channel = email' }, extra = [] } = {}) {
+  return mapOf([
+    edge(ENTRY, 'fn:public.create_lead', 'calls'),
+    edge('fn:public.create_lead', 'table:public.queue', 'enqueues', enqueue),
+    edge('table:public.queue', WORKER, 'drains'),
+    edge(WORKER, EMAIL_A, 'sends', { when: 'event_type = lead.created' }),
+    edge(EMAIL_A, 'ext:extX', 'sends'),
+    edge(WORKER, EMAIL_B, 'sends', { when: 'event_type = other.event' }),
+    edge(WORKER, CLEANUP, 'deletes'),
+    ...extra,
+  ]);
+}
+
+test('traverse hands a drains edge off: the worker is reached, but only the edges for the enqueued event types follow', () => {
+  const map = handoffMap();
+  assert.deepEqual(reachedIds(map, ENTRY), [EMAIL_A, 'ext:extX', 'fn:public.create_lead', 'table:public.queue', WORKER].sort());
+  const { edges } = traverse(buildGraph(map), ENTRY);
+  assert.ok(edges.some(({ edge: { from, to }, effect }) => from === 'table:public.queue' && to === WORKER && effect === 'drains'), 'the drains edge is recorded');
+  assert.ok(!edges.some(({ edge: { to } }) => to === EMAIL_B || to === CLEANUP));
+});
+
+test('traverse treats an enqueue that says "any value" or names no event type as every event type, but not the edges that name none', () => {
+  for (const enqueue of [{ notes: 'event_type = the caller text (any value); channel = the caller channel' }, { notes: 'ON CONFLICT DO NOTHING' }, {}]) {
+    const reached = reachedIds(handoffMap({ enqueue }), ENTRY);
+    assert.ok(reached.includes(WORKER) && reached.includes(EMAIL_A) && reached.includes(EMAIL_B) && reached.includes('ext:extX'), JSON.stringify(enqueue));
+    assert.ok(!reached.includes(CLEANUP), `the cleanup edge names no event type: ${JSON.stringify(enqueue)}`);
+  }
+});
+
+test('traverse reads the enqueued event type from `when` as well as `notes`', () => {
+  const reached = reachedIds(handoffMap({ enqueue: { when: 'event_type = other.event' } }), ENTRY);
+  assert.ok(reached.includes(EMAIL_B) && !reached.includes(EMAIL_A) && !reached.includes('ext:extX'));
+});
+
+test('traverse follows everything when the worker is the entry, or its scheduler, or is also called directly', () => {
+  const all = [CLEANUP, EMAIL_A, EMAIL_B, 'ext:extX'].sort();
+  const withScheduler = handoffMap({ extra: [edge('cron:vercel.drain', WORKER, 'calls')] });
+  assert.deepEqual(reachedIds(handoffMap(), WORKER).filter((id) => all.includes(id)), all);
+  assert.deepEqual(reachedIds(withScheduler, 'cron:vercel.drain').filter((id) => all.includes(id)), all);
+  const alsoCalled = handoffMap({ extra: [edge(ENTRY, WORKER, 'calls')] });
+  assert.deepEqual(reachedIds(alsoCalled, ENTRY).filter((id) => all.includes(id)), all, 'a worker the entry calls itself runs in full');
+});
+
+test('traverse takes the union of every event type the entry enqueued into that queue, and keeps queues apart', () => {
+  const secondEnqueue = edge('fn:public.create_lead', 'table:public.queue', 'enqueues', { source: 'src/second.js', notes: 'event_type = other.event' });
+  const both = reachedIds(handoffMap({ extra: [secondEnqueue] }), ENTRY);
+  assert.ok(both.includes(EMAIL_A) && both.includes(EMAIL_B) && !both.includes(CLEANUP));
+  // An enqueue into some other table does not widen this queue's worker.
+  const elsewhere = reachedIds(handoffMap({ extra: [edge(ENTRY, 'table:public.elsewhere', 'enqueues', { notes: 'event_type = other.event' })] }), ENTRY);
+  assert.ok(elsewhere.includes(EMAIL_A) && !elsewhere.includes(EMAIL_B));
+});
+
+test('traverse widens a hand-off when a later step enqueues another event type, and still ends on the cycle this makes', () => {
+  const map = handoffMap({
+    extra: [
+      edge(EMAIL_A, 'fn:public.follow_up', 'calls'),
+      edge('fn:public.follow_up', 'table:public.queue', 'enqueues', { notes: 'event_type = other.event' }),
+    ],
+  });
+  const reached = reachedIds(map, ENTRY);
+  assert.ok(reached.includes(EMAIL_B), 'other.event is only enqueued after the worker handled lead.created');
+  assert.ok(reached.includes('fn:public.follow_up') && !reached.includes(CLEANUP));
+});
+
+test('traverse follows no worker edge when the entry only writes the queue table and enqueues nothing into it', () => {
+  const map = mapOf([
+    edge('action:src/a.js#read', 'table:public.queue', 'updates', { fields: ['read_at'] }),
+    edge('table:public.queue', WORKER, 'drains'),
+    edge(WORKER, EMAIL_A, 'sends', { when: 'event_type = lead.created' }),
+  ]);
+  assert.deepEqual(reachedIds(map, 'action:src/a.js#read'), ['table:public.queue', WORKER].sort());
+});
+
+test('traverse keeps its depth cap through a hand-off', () => {
+  const map = handoffMap();
+  assert.deepEqual(reachedIds(map, ENTRY, { maxDepth: 4 }), [EMAIL_A, 'fn:public.create_lead', 'table:public.queue', WORKER].sort());
+  assert.equal(traverse(buildGraph(map), ENTRY).depths.get(EMAIL_A), 4);
 });
 
 test('entryNodes lists action, route, middleware, cron, workflow, script and input nodes, and UI nodes that submit or write', () => {
@@ -778,12 +924,12 @@ function renderFixture() {
     edge('action:app/actions/a.js#createThing', 'fn:public.create_thing', 'calls', { via: 'user' }),
     edge('fn:public.create_thing', 'table:public.things', 'inserts', { fields: ['title', 'status'], via: 'definer' }),
     edge('fn:public.create_thing', 'table:public.things', 'updates', { fields: ['status'], via: 'definer' }),
-    edge('fn:public.create_thing', 'table:public.outbox', 'enqueues', { fields: ['kind'], via: 'definer' }),
+    edge('fn:public.create_thing', 'table:public.outbox', 'enqueues', { fields: ['kind'], via: 'definer', notes: 'event_type = thing.created; channel = email' }),
     edge('table:public.things', 'trigger:public.things.audit_insert', 'fires', { when: 'AFTER INSERT' }),
     edge('trigger:public.things.audit_insert', 'table:public.audit', 'inserts', { fields: ['event_type'] }),
     edge('fn:public.create_thing', 'realtime:thing:{id}', 'broadcasts'),
     edge('table:public.outbox', 'route:POST /api/cron', 'drains'),
-    edge('route:POST /api/cron', 'email:lib/email.js#thingEmail', 'sends', { via: 'service_role' }),
+    edge('route:POST /api/cron', 'email:lib/email.js#thingEmail', 'sends', { via: 'service_role', when: 'event_type = thing.created' }),
     edge('email:lib/email.js#thingEmail', 'ext:resend', 'sends'),
     edge('route:POST /api/cron', 'table:public.outbox', 'updates', { fields: ['status'], via: 'service_role' }),
     edge('table:public.parent', 'table:public.child', 'fk', { attrs: { onDelete: 'cascade' } }),
@@ -818,12 +964,13 @@ test('render explains that it is generated and how to regenerate it', () => {
 test('render Part 1 groups what an entry reaches by type, with columns written', () => {
   const markdown = render(renderFixture());
   const entry = sectionOf(markdown, 'component:components/Form.jsx');
-  assert.match(entry, /- Tables\n {2}- `table:public\.audit`: inserts `event_type`\n {2}- `table:public\.outbox`: updates `status`; enqueues `kind`\n {2}- `table:public\.things`: inserts `status`, `title`; updates `status`/);
+  assert.match(entry, /- Tables\n {2}- `table:public\.audit`: inserts `event_type`\n {2}- `table:public\.outbox`: enqueues `kind`\n {2}- `table:public\.things`: inserts `status`, `title`; updates `status`/);
   assert.match(entry, /- Realtime channels\n {2}- `realtime:thing:\{id\}`: broadcasts/);
   assert.match(entry, /- Emails\n {2}- `email:lib\/email\.js#thingEmail`: sends/);
   assert.match(entry, /- External services\n {2}- `ext:resend`: sends/);
-  assert.match(entry, /- Cookies\n {2}- `cookie:session`: sets/);
-  assert.match(entry, /- Code on the way: .*`action:app\/actions\/a\.js#createThing`.*`fn:public\.create_thing`.*`route:POST \/api\/cron`.*`trigger:public\.things\.audit_insert`/);
+  assert.match(entry, /- Queued for: `route:POST \/api\/cron`\n/);
+  assert.match(entry, /- Code on the way: `action:app\/actions\/a\.js#createThing`, `fn:public\.create_thing`, `trigger:public\.things\.audit_insert`/);
+  assert.ok(!entry.includes('cookie:session'), 'the worker edge that names no event type is not followed from a form');
   assert.ok(!entry.includes('table:public.orphan'), 'unreached tables are not listed');
 });
 
@@ -853,6 +1000,40 @@ test('render Part 2 lists each entry that reaches a data point and its direct wr
   assert.match(outbox, /- `route:POST \/api\/cron`: directly: updates `status` \[service_role\]/);
   assert.match(sectionOf(markdown, 'ext:resend'), /- `route:POST \/api\/cron`: by `email:lib\/email\.js#thingEmail`: sends/);
   assert.match(sectionOf(markdown, 'cookie:session'), /- `route:POST \/api\/cron`: directly: sets/);
+});
+
+test('render Part 1 lists a drained worker under Queued for and follows only the edges for what was queued', () => {
+  const markdown = render(handoffMap());
+  const entry = sectionOf(markdown, ENTRY);
+  assert.match(entry, new RegExp(`- Queued for: \`${WORKER}\`\\n`));
+  assert.match(entry, /- Emails\n {2}- `email:src\/mail\.js#emailA`: sends/);
+  assert.match(entry, /- External services\n {2}- `ext:extX`: sends/);
+  assert.match(entry, /- Tables\n {2}- `table:public\.queue`: enqueues/);
+  assert.ok(!entry.includes('emailB') && !entry.includes('table:public.cleanup'), 'what the worker does for other event types is not listed');
+  assert.ok(!/Code on the way:.*route:POST \/api\/worker/.test(entry), 'a queued worker is not also listed as code on the way');
+  const worker = sectionOf(markdown, WORKER);
+  assert.ok(worker.includes('emailA') && worker.includes('emailB') && worker.includes('table:public.cleanup'), 'the worker as its own entry reaches all of it');
+  assert.ok(!worker.includes('- Queued for'), 'an entry is not queued for itself');
+});
+
+test('render Part 2 follows Part 1: a data point lists only the entries whose queued events reach it', () => {
+  const markdown = render(handoffMap());
+  assert.match(sectionOf(markdown, EMAIL_A), new RegExp(`- \`${ENTRY}\`: by \`${WORKER}\`: sends`));
+  assert.ok(!sectionOf(markdown, EMAIL_B).includes(ENTRY));
+  assert.match(sectionOf(markdown, EMAIL_B), new RegExp(`- \`${WORKER}\`: directly: sends`));
+  assert.ok(!sectionOf(markdown, CLEANUP).includes(ENTRY));
+  assert.match(sectionOf(markdown, CLEANUP), new RegExp(`- \`${WORKER}\`: directly: deletes`));
+  const wildcard = render(handoffMap({ enqueue: { notes: 'event_type = the caller text (any value)' } }));
+  assert.ok(sectionOf(wildcard, EMAIL_B).includes(ENTRY));
+  assert.ok(!sectionOf(wildcard, CLEANUP).includes(ENTRY));
+});
+
+test('render explains the drains hand-off rule in How to read this', () => {
+  const header = render(renderFixture()).split('## Part 1')[0];
+  assert.match(header, /A `drains` edge is a hand-off, not a pass-through/);
+  assert.match(header, /\*\*Queued for\*\*/);
+  assert.match(header, /`event_type` this entry enqueued/);
+  assert.match(header, /worker or scheduler as the entry node follows all its edges/);
 });
 
 test('render Part 2 sorts rows by entry, with the entry\'s own writes before the writes it makes through others', () => {
@@ -1056,6 +1237,19 @@ test('committed data map: validate() reports no problems', () => {
 
 test('committed data map: coverage() finds no code object missing from the map', () => {
   assertNone('Objects in the code with no node in the map', coverage(committedMap(), { root: REPO_ROOT }));
+});
+
+test('committed data map: a contact submission reaches the lead email, not the other CRM notification emails or the cleanup queue', () => {
+  const graph = buildGraph(committedMap());
+  const { depths } = traverse(graph, 'route:POST /api/contact');
+  const lead = 'email:lib/email/templates.js#leadCreatedEmail';
+  const others = ['email:lib/email/templates.js#projectMessageEmail', 'email:lib/email/templates.js#clientOnboardedEmail', 'table:public.project_attachment_cleanup', 'table:public.project_attachments'];
+  for (const id of ['route:POST /api/cron/crm-notifications', lead, ...others]) assert.ok(graph.nodes.has(id), `${id} is in the map`);
+  assert.ok(depths.has('route:POST /api/cron/crm-notifications'), 'the worker is queued for');
+  assert.ok(depths.has(lead));
+  for (const id of others) assert.ok(!depths.has(id), `${id} is not reached by a contact submission`);
+  const worker = traverse(graph, 'route:POST /api/cron/crm-notifications').depths;
+  for (const id of [lead, ...others]) assert.ok(worker.has(id), `${id} is reached by the worker itself`);
 });
 
 test('committed data map: docs/data-map/data-map.json matches a fresh render', () => {

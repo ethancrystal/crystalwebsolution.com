@@ -66,8 +66,8 @@ this input affect?" and backward to answer "where does this value come from?".
 | `reads` | `table -> reader`. `fields` lists the columns selected. |
 | `fires` | `table -> trigger`. `when` names the event, e.g. `AFTER UPDATE OF status`. |
 | `fk` | `parent -> child`. `attrs.onDelete`: `cascade`, `set null`, `restrict` or `no action`. |
-| `enqueues` | A write that queues work (outbox rows, cleanup rows). |
-| `drains` | `queue table -> worker` that consumes it. |
+| `enqueues` | A write that queues work (outbox rows, cleanup rows). Name what it queues as `event_type = <name>` in `notes` or `when` (`any value` for a caller-supplied type). |
+| `drains` | `queue table -> worker` that consumes it. A hand-off, not a pass-through: from an entry that queued rows, `04-externalities.md` follows only the worker edges whose `when` reads `event_type = <name>` for a type that entry queued. |
 | `sends` | `-> email:` or `-> ext:` outbound message or HTTP call. |
 | `broadcasts` | `-> realtime:` channel. |
 | `delivers` | `realtime: -> subscriber`. |
