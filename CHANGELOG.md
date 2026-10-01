@@ -1,3 +1,27 @@
+## v1.117 — 2026-09-30
+
+C1: client arrival tour, needs-action ordering, verify continue.
+
+- New four-step client arrival tour (`components/crm/PortalTour.jsx`) on the
+  dashboard home, with Next/Back/Skip and a "Replay tour" button in the
+  header. Completion is remembered per browser via the
+  `cws.portal.tour.seen.v1` localStorage key (decision D2) — never re-opens
+  automatically; if storage is unavailable (private mode) the tour simply
+  shows every visit.
+- Dashboard home: the v1.109 "Needs your attention" strip already leads the
+  page and the section order runs projects → drafts → start for returning
+  clients; this PR carries the tour mount and "Replay tour" header action on
+  top of that reworked home (the earlier C1 section reorder was superseded by
+  v1.109's richer attention strip during the v1.111/v1.112 integration).
+- The verify-email confirmation page (`app/auth/confirm/page.jsx`) now
+  offers a "continue to dashboard" primary action alongside Back to Login,
+  so a client who has just verified isn't dumped back at the login form.
+- Build-only fix: the `/admin`, `/dashboard` and `/team` layouts export
+  `dynamic = 'force-dynamic'` so `next build` skips prerendering layouts
+  that call `requireRole` (reads cookies) while Supabase env vars are
+  placeholders in CI. No SQL, no new dependencies, no new notification
+  events.
+
 ## v1.116 — 2026-09-30
 
 A1.2: admin status buttons follow ALLOWED_TRANSITIONS.

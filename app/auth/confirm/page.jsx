@@ -61,9 +61,14 @@ function ConfirmContent() {
           </p>
         )}
 
-        <Link href="/login" className="crm-button">
-          Back to Login
-        </Link>
+        <div className="crm-confirm-actions">
+          <Link href="/dashboard" className="crm-button">
+            I&apos;ve verified my email — continue to dashboard
+          </Link>
+          <Link href="/login" className="crm-button">
+            Back to Login
+          </Link>
+        </div>
       </div>
 
       <style jsx>{`
@@ -118,6 +123,12 @@ function ConfirmContent() {
         .crm-resend-btn:disabled {
           opacity: 0.6;
           cursor: not-allowed;
+        }
+
+        .crm-confirm-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
         }
 
         .crm-button {
