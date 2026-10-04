@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import { useUserRole } from '@/lib/useUserRole';
+import { ROLE_LOAD_ERROR, useUserRole } from '@/lib/useUserRole';
 import {
   TASK_PRIORITIES,
   TASK_STATUSES,
@@ -16,7 +16,7 @@ const PRIORITY_OPTIONS = TASK_PRIORITIES;
 
 export default function NewTaskPage() {
   const router = useRouter();
-  const { isAdmin, isLoading: isRoleLoading } = useUserRole();
+  const { isAdmin, isLoading: isRoleLoading, error: roleError } = useUserRole();
   const [companies, setCompanies] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [deals, setDeals] = useState([]);
@@ -30,7 +30,8 @@ export default function NewTaskPage() {
     contact_id: '',
     title: '',
     description: '',
-    status: 'open',
+    // First real option; 'open' is not offered by the select below.
+    status: STATUS_OPTIONS[0],
     priority: 'medium',
     due_date: '',
   });
@@ -61,10 +62,11 @@ export default function NewTaskPage() {
     // "Admin can create tasks" WITH CHECK is_admin()) - a PM landing here would
     // just hit an RLS rejection on submit. Same guard as the other three
     // /admin/<entity>/new pages.
-    if (!isRoleLoading && !isAdmin) {
+    // A failed role read is not "not an admin": don't redirect on it.
+    if (!isRoleLoading && !roleError && !isAdmin) {
       router.replace('/admin/tasks');
     }
-  }, [isRoleLoading, isAdmin, router]);
+  }, [isRoleLoading, roleError, isAdmin, router]);
 
   useEffect(() => {
     async function loadRelated() {
@@ -153,7 +155,8 @@ export default function NewTaskPage() {
       backHref="/admin/tasks"
       backLabel="Back to Tasks"
       error={error}
-      loading={isLoadingCompanies || isRoleLoading || !isAdmin}
+      loading={isLoadingCompanies || isRoleLoading || (!isAdmin && !roleError)}
+      fatalError={roleError ? ROLE_LOAD_ERROR : null}
       skeletonFields={8}
     >
       {!error && companies.length === 0 ? (

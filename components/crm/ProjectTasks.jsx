@@ -1,6 +1,7 @@
 'use client';
 
 import { taskStatusLabel } from '@/lib/crm/labels.mjs';
+import { formatDateOnly } from './taskUtils.mjs';
 
 export default function ProjectTasks({ tasks = [], readOnly = false }) {
   return (
@@ -23,7 +24,7 @@ export default function ProjectTasks({ tasks = [], readOnly = false }) {
               <div className="crm-task-meta">
                 <span>Assignee: {task.assignee?.full_name || 'Unassigned'}</span>
                 <span>Created by: {task.createdBy?.full_name || 'Unknown'}</span>
-                <span>Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : '-'}</span>
+                <span>Due: {formatDateOnly(task.due_date)}</span>
               </div>
             </li>
           ))}

@@ -9,6 +9,7 @@ import {
   TASK_STATUSES,
 } from '@/lib/crm/project-contract.mjs';
 import AdminFormShell from '@/components/crm/AdminFormShell';
+import { normalizeTaskStatus } from '@/components/crm/taskUtils.mjs';
 
 const STATUS_OPTIONS = TASK_STATUSES;
 const PRIORITY_OPTIONS = TASK_PRIORITIES;
@@ -30,7 +31,7 @@ export default function EditTaskPage() {
     contact_id: '',
     title: '',
     description: '',
-    status: 'open',
+    status: STATUS_OPTIONS[0],
     priority: 'medium',
     due_date: '',
   });
@@ -57,7 +58,8 @@ export default function EditTaskPage() {
           contact_id: task.contact_id || '',
           title: task.title || '',
           description: task.description || '',
-          status: task.status || 'open',
+          // Legacy rows hold 'open'/'completed', which the select does not offer.
+          status: normalizeTaskStatus(task.status, STATUS_OPTIONS[0]),
           priority: task.priority || 'medium',
           due_date: task.due_date || '',
         });

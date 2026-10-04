@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import { useUserRole } from '@/lib/useUserRole';
+import { ROLE_LOAD_ERROR, useUserRole } from '@/lib/useUserRole';
 import AdminFormShell from '@/components/crm/AdminFormShell';
 
 const STATUS_OPTIONS = ['lead', 'prospect', 'customer', 'inactive'];
 
 export default function NewContactPage() {
   const router = useRouter();
-  const { isAdmin, isLoading: isRoleLoading } = useUserRole();
+  const { isAdmin, isLoading: isRoleLoading, error: roleError } = useUserRole();
   const [companies, setCompanies] = useState([]);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,10 +52,11 @@ export default function NewContactPage() {
   useEffect(() => {
     // Contact creation is admin-only (0006_admin_only_company_contact_creation.sql)
     // - a PM landing here would just hit an RLS rejection on submit.
-    if (!isRoleLoading && !isAdmin) {
+    // A failed role read is not "not an admin": don't redirect on it.
+    if (!isRoleLoading && !roleError && !isAdmin) {
       router.replace('/admin/contacts');
     }
-  }, [isRoleLoading, isAdmin, router]);
+  }, [isRoleLoading, roleError, isAdmin, router]);
 
   function handleChange(field) {
     return (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -106,7 +107,8 @@ export default function NewContactPage() {
       backHref="/admin/contacts"
       backLabel="Back to Contacts"
       error={error}
-      loading={isLoadingCompanies || isRoleLoading || !isAdmin}
+      loading={isLoadingCompanies || isRoleLoading || (!isAdmin && !roleError)}
+      fatalError={roleError ? ROLE_LOAD_ERROR : null}
       skeletonFields={8}
     >
       {!error && companies.length === 0 ? (

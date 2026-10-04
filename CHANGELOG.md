@@ -1,3 +1,58 @@
+## v1.119 — 2026-10-04
+
+Data map, six access fixes (migration 0051), fail-closed auth links, CRM and
+homepage fixes.
+
+- **Data map** (`docs/data-map/`): every table, function, action, route,
+  screen, env var and per-frame singleton, with where each value originates,
+  what writes and reads it, what it triggers and where it ends up, plus the
+  state machines and an edge-case register (`06-edge-cases.md`) with severity,
+  status and an owner checklist. `scripts/data-map.mjs` merges the JSON
+  fragments under `docs/data-map/data/`, checks coverage against the code and
+  renders `04-externalities.md`; `tests/data-map.test.mjs` runs in `pnpm test`
+  and fails when an action, route, page, table, SQL function, trigger or env
+  var has no node in the map, or when the generated files are stale.
+- **Auth links fail closed** (`lib/appUrl.mjs`): sign-up, invite, password
+  reset and CRM notification links take their origin from `getAppUrl()`,
+  which refuses an unset value in production, anything that is not a plain
+  `https` origin on Vercel Production, and the retired domains
+  (`crystalwebsolution.com`, `cdsportswearusa.com`). Each call site resolves
+  it before its first write; the cron drain returns 503 before claiming any
+  outbox row. Production `NEXT_PUBLIC_APP_URL` must be
+  `https://app.cdsportswearinc.com` (the portal host).
+- **Migration `0051_data_map_access_fixes.sql`**: clients are no longer
+  notified about approvals on internal deliverables, and the note sent is the
+  decision note; notification recipients are current staff and, for the
+  company fan-out, clients only; clients can update only client-visible tasks
+  and cannot reassign them, a new assignee must be the admin or an assigned
+  project manager, and `completed_at` is maintained again; a contact-form lead
+  is never attached to a company that has client accounts; onboarding skips
+  the duplicate contact instead of failing with 23505; approving a staff
+  request never changes an admin's role. **Merging does not apply it:** the
+  owner applies `0046` to `0051` to the live project after review (the live
+  ledger ends at `0045`).
+- **CRM fixes**: the admin deal conversation now gets the admin profile; new
+  CRM tasks default to a status the form offers and `done` tasks are not
+  overdue; date-only due dates no longer show a day early; a failed status
+  change or task action shows inline instead of replacing the workspace,
+  transition buttons disable while pending and Cancelled asks to confirm;
+  a failed or pending thread attachment shows its reason, can be removed and
+  explains a disabled Send; admin counts show "Unavailable" instead of 0 and a
+  failed role read no longer redirects an admin; creating a blog post opens
+  its edit page; resend-confirmation and mark-read failures are shown;
+  onboarding copy names CD Sportswear INC; the project overview back link
+  goes to the viewer's role home.
+- **Homepage fixes**: no crystal burst on returning from a subpage; the
+  camera look target resets on mount; touch parallax re-centres on lift-off;
+  camera parallax and the backdrop's spin follow `motionScale`, so
+  reduced-motion visitors get a still camera and a non-spinning backdrop
+  (hue and depth still follow scroll, so nothing changes for other devices);
+  opening an Approach step refreshes ScrollTrigger once the height settles.
+- `scripts/provision-crm-test-users.mjs` no longer creates accounts on a
+  retired domain (default `cdsportswearinc.com`, overridable with
+  `CRM_TEST_EMPLOYEE_EMAIL` / `CRM_TEST_CLIENT_EMAIL`).
+- No new dependencies.
+
 ## v1.117 — 2026-09-30
 
 C1: client arrival tour, needs-action ordering, verify continue.

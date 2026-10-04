@@ -10,14 +10,27 @@ import { LoadingState } from '@/components/crm/Spinner';
 
 const CLOSED_PROJECT_STATUSES = new Set(TERMINAL_PROJECT_STATUSES);
 
+// A count whose query failed is null, never 0: a dash (with a screen-reader
+// "Unavailable") rather than a false zero.
+function countDisplay(value) {
+  if (value !== null) return value;
+  return (
+    <>
+      <span aria-hidden="true">—</span>
+      <span className="crm-visually-hidden">Unavailable</span>
+    </>
+  );
+}
+
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
+  // null = that count could not be read (see countDisplay).
   const [stats, setStats] = useState({
-    companies: 0,
-    contacts: 0,
-    deals: 0,
-    tasks: 0,
+    companies: null,
+    contacts: null,
+    deals: null,
+    tasks: null,
   });
   // null until loaded, so a failed read shows a dash rather than a false 0.
   const [projectStats, setProjectStats] = useState(null);
@@ -67,11 +80,13 @@ export default function AdminDashboard() {
           supabase.from('tasks').select('id', { count: 'exact', head: true }),
         ]);
 
+        // supabase-js reports a failed query as `.error`, not a throw.
+        const countOf = (result) => (result.error || result.count == null ? null : result.count);
         setStats({
-          companies: companiesRes.count || 0,
-          contacts: contactsRes.count || 0,
-          deals: dealsRes.count || 0,
-          tasks: tasksRes.count || 0,
+          companies: countOf(companiesRes),
+          contacts: countOf(contactsRes),
+          deals: countOf(dealsRes),
+          tasks: countOf(tasksRes),
         });
       } catch (error) {
         console.error('Failed to load stats:', error);
@@ -119,6 +134,11 @@ export default function AdminDashboard() {
       </header>
 
       <div className="crm-admin-content">
+        {Object.values(stats).some((value) => value === null) && (
+          <p className="crm-form-error" role="alert">
+            Some counts are unavailable right now. Reload to try again.
+          </p>
+        )}
         <div className="crm-stats-grid">
           {isAdmin && (
             <div className={`crm-stat-card${projectStats?.needsManager ? ' crm-stat-card-alert' : ''}`}>
@@ -138,25 +158,25 @@ export default function AdminDashboard() {
 
           <div className="crm-stat-card">
             <h3>Companies</h3>
-            <div className="crm-stat-number">{stats.companies}</div>
+            <div className="crm-stat-number">{countDisplay(stats.companies)}</div>
             <Link href="/admin/companies">Manage</Link>
           </div>
 
           <div className="crm-stat-card">
             <h3>Contacts</h3>
-            <div className="crm-stat-number">{stats.contacts}</div>
+            <div className="crm-stat-number">{countDisplay(stats.contacts)}</div>
             <Link href="/admin/contacts">Manage</Link>
           </div>
 
           <div className="crm-stat-card">
             <h3>{isPm ? 'My Assigned Projects' : 'Deals'}</h3>
-            <div className="crm-stat-number">{stats.deals}</div>
+            <div className="crm-stat-number">{countDisplay(stats.deals)}</div>
             <Link href="/admin/deals">Manage</Link>
           </div>
 
           <div className="crm-stat-card">
             <h3>{isPm ? 'My Tasks' : 'Tasks'}</h3>
-            <div className="crm-stat-number">{stats.tasks}</div>
+            <div className="crm-stat-number">{countDisplay(stats.tasks)}</div>
             <Link href="/admin/tasks">Manage</Link>
           </div>
         </div>

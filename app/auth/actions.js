@@ -17,10 +17,9 @@ import {
   SIGNUP_ACCOUNT_TYPES,
 } from '@/lib/auth/roles.mjs';
 import { checkAuthRateLimit } from '@/lib/rateLimit.mjs';
+import { getAppUrl } from '@/lib/appUrl.mjs';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 
 export async function signUp(formData) {
   const email = formData.get('email');
@@ -67,13 +66,24 @@ export async function signUp(formData) {
     return { error: 'Signup is temporarily unavailable. Please try again later.' };
   }
 
+  // The confirmation link carries a one-time sign-in token, so the origin must
+  // be resolved - and validated - before generateLink() creates the account.
+  // See lib/appUrl.mjs.
+  let appUrl;
+  try {
+    appUrl = getAppUrl();
+  } catch (configError) {
+    console.error('Signup unavailable - app URL misconfigured:', configError.message);
+    return { error: 'Signup is temporarily unavailable. Please try again later.' };
+  }
+
   const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'signup',
     email,
     password,
     options: {
       data: { full_name: fullName, account_type: accountType },
-      redirectTo: `${APP_URL}/auth/callback?next=/dashboard`,
+      redirectTo: `${appUrl}/auth/callback?next=/dashboard`,
     },
   });
 
@@ -82,7 +92,7 @@ export async function signUp(formData) {
   }
 
   const { subject, html } = confirmSignupEmail({
-    confirmUrl: buildVerifyUrl({ properties: data.properties, next: '/dashboard' }),
+    confirmUrl: buildVerifyUrl({ properties: data.properties, next: '/dashboard', appUrl }),
     fullName,
   });
 
@@ -194,17 +204,27 @@ export async function resendConfirmationEmail(formData) {
     return { success: true };
   }
 
+  // Resolve the link origin before generateLink() issues a token (lib/appUrl.mjs).
+  // Same generic success as every other outcome here.
+  let appUrl;
+  try {
+    appUrl = getAppUrl();
+  } catch (configError) {
+    console.error('Resend confirmation unavailable - app URL misconfigured:', configError.message);
+    return { success: true };
+  }
+
   const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'signup',
     email,
     options: {
-      redirectTo: `${APP_URL}/auth/callback?next=/dashboard`,
+      redirectTo: `${appUrl}/auth/callback?next=/dashboard`,
     },
   });
 
   if (!error) {
     const { subject, html } = confirmSignupEmail({
-      confirmUrl: buildVerifyUrl({ properties: data.properties, next: '/dashboard' }),
+      confirmUrl: buildVerifyUrl({ properties: data.properties, next: '/dashboard', appUrl }),
       fullName: data.user?.user_metadata?.full_name,
     });
 
@@ -252,17 +272,27 @@ export async function requestPasswordReset(formData) {
     return { success: true };
   }
 
+  // Resolve the link origin before generateLink() issues a recovery token
+  // (lib/appUrl.mjs). Same unconditional success, for the same reason.
+  let appUrl;
+  try {
+    appUrl = getAppUrl();
+  } catch (configError) {
+    console.error('Password reset unavailable - app URL misconfigured:', configError.message);
+    return { success: true };
+  }
+
   const { data, error } = await adminClient.auth.admin.generateLink({
     type: 'recovery',
     email,
     options: {
-      redirectTo: `${APP_URL}/auth/callback?next=/auth/reset-password`,
+      redirectTo: `${appUrl}/auth/callback?next=/auth/reset-password`,
     },
   });
 
   if (!error) {
     const { subject, html } = resetPasswordEmail({
-      resetUrl: buildVerifyUrl({ properties: data.properties, next: '/auth/reset-password' }),
+      resetUrl: buildVerifyUrl({ properties: data.properties, next: '/auth/reset-password', appUrl }),
     });
 
     try {

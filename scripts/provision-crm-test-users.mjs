@@ -5,8 +5,19 @@ import { sendInviteEmail } from '../lib/email/resend.js';
 // owner's real account, so its name is never overwritten: fullName is left
 // out and setProfileRole only writes the fields it is given.
 const ADMIN_EMAIL = 'moizj00@gmail.com';
-const EMPLOYEE_EMAIL = 'ethan+employee@crystalwebsolution.com';
-const CLIENT_EMAIL = 'ethan+client@crystalwebsolution.com';
+
+// Test accounts are created already confirmed, so whoever receives mail for
+// their domain can take them over with "forgot password". They must live on a
+// domain the business controls, never on a retired one: crystalwebsolution.com
+// is now served by a third party (CLAUDE.md, Environments and deployment).
+const RETIRED_DOMAINS = Object.freeze(['crystalwebsolution.com', 'cdsportswearusa.com']);
+const EMPLOYEE_EMAIL = process.env.CRM_TEST_EMPLOYEE_EMAIL || 'ethan+employee@cdsportswearinc.com';
+const CLIENT_EMAIL = process.env.CRM_TEST_CLIENT_EMAIL || 'ethan+client@cdsportswearinc.com';
+
+export function isRetiredDomainEmail(email) {
+  const domain = String(email).trim().toLowerCase().split('@').pop();
+  return RETIRED_DOMAINS.some((retired) => domain === retired || domain.endsWith(`.${retired}`));
+}
 
 const TEST_USERS = Object.freeze([
   { email: ADMIN_EMAIL, role: 'admin' },
@@ -112,6 +123,13 @@ async function provisionUser(supabase, user) {
 async function main() {
   const flags = parseArgs();
 
+  const retired = TEST_USERS.filter((user) => isRetiredDomainEmail(user.email));
+  if (retired.length > 0) {
+    throw new Error(
+      `Refusing to provision accounts on a retired domain: ${retired.map((user) => user.email).join(', ')}.`,
+    );
+  }
+
   if (!flags.execute) {
     console.log('[dry-run] Test users that would be provisioned:');
     for (const user of TEST_USERS) {
@@ -138,7 +156,9 @@ async function main() {
   console.log(`[execute] Provisioned ${results.length} of ${TEST_USERS.length} test users.`);
 }
 
-main().catch((error) => {
-  console.error(error.message);
-  process.exit(1);
-});
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((error) => {
+    console.error(error.message);
+    process.exit(1);
+  });
+}

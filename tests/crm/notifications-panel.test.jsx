@@ -60,4 +60,32 @@ describe('NotificationsPanel', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Mark read' })[0]);
     await waitFor(() => expect(screen.getAllByText('New')).toHaveLength(1));
   });
+
+  // F8: a failed mark-read used to leave no trace at all.
+  it('says so when the server refuses, leaves the items unread, and clears the message on the next attempt', async () => {
+    markNotificationsRead.mockResolvedValueOnce({ ok: false, error: 'Unable to update notifications.' });
+    render(<NotificationsPanel notifications={NOTIFICATIONS} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mark all as read' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Unable to update notifications.');
+    expect(screen.getAllByText('New')).toHaveLength(2);
+    // The controls come back, so it can be retried.
+    expect(screen.getByRole('button', { name: 'Mark all as read' })).not.toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mark all as read' }));
+    await waitFor(() => expect(screen.queryAllByText('New')).toHaveLength(0));
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('says so when the action throws, instead of an unhandled rejection', async () => {
+    markNotificationsRead.mockRejectedValueOnce(new Error('fetch failed'));
+    render(<NotificationsPanel notifications={NOTIFICATIONS} />);
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Mark read' })[0]);
+
+    expect(await screen.findByRole('status')).toHaveTextContent(/Unable to update notifications/);
+    expect(screen.getAllByText('New')).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: 'Mark read' })[0]).not.toBeDisabled();
+  });
 });

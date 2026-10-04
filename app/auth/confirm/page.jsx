@@ -17,6 +17,7 @@ export default function ConfirmPage() {
 function ConfirmContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email') ?? '';
+  // idle | sending | sent | error
   const [resendState, setResendState] = useState('idle');
 
   async function handleResend() {
@@ -25,9 +26,9 @@ function ConfirmContent() {
       const formData = new FormData();
       formData.set('email', email);
       const result = await resendConfirmationEmail(formData);
-      setResendState(result?.error ? 'idle' : 'sent');
+      setResendState(result?.error ? 'error' : 'sent');
     } catch {
-      setResendState('idle');
+      setResendState('error');
     }
   }
 
@@ -42,23 +43,30 @@ function ConfirmContent() {
         </p>
 
         {email && (
-          <p className="crm-resend-row">
-            {resendState === 'sent' ? (
-              'Confirmation email sent again — check your inbox.'
-            ) : (
-              <>
-                Didn't get it?{' '}
-                <button
-                  type="button"
-                  onClick={handleResend}
-                  disabled={resendState === 'sending'}
-                  className="crm-resend-btn"
-                >
-                  {resendState === 'sending' ? 'Sending...' : 'Resend email'}
-                </button>
-              </>
+          <>
+            <p className="crm-resend-row">
+              {resendState === 'sent' ? (
+                'Confirmation email sent again — check your inbox.'
+              ) : (
+                <>
+                  Didn't get it?{' '}
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resendState === 'sending'}
+                    className="crm-resend-btn"
+                  >
+                    {resendState === 'sending' ? 'Sending...' : 'Resend email'}
+                  </button>
+                </>
+              )}
+            </p>
+            {resendState === 'error' && (
+              <p className="crm-resend-error" role="alert">
+                We couldn&apos;t resend the email. Check your connection and try again.
+              </p>
             )}
-          </p>
+          </>
         )}
 
         <div className="crm-confirm-actions">
@@ -108,6 +116,12 @@ function ConfirmContent() {
 
         .crm-resend-row {
           font-size: 0.9rem;
+        }
+
+        .crm-confirm-card p.crm-resend-error {
+          color: #ff9999;
+          font-size: 0.9rem;
+          margin-top: -0.75rem;
         }
 
         .crm-resend-btn {

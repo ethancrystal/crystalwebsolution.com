@@ -63,7 +63,7 @@ test('the notification worker links staff to their own workspace for brief alert
   const source = await readFile('app/api/cron/crm-notifications/route.js', 'utf8');
   assert.match(source, /admin: '\/admin\/projects'/);
   assert.match(source, /project_manager: '\/team\/projects'/);
-  assert.match(source, /staffProjectUrl: staffProjectUrlFor\(row\.project_id, recipient\.role\)/);
+  assert.match(source, /staffProjectUrl: staffProjectUrlFor\(appUrl, row\.project_id, recipient\.role\)/);
   assert.match(source, /\.select\('id, full_name, role'\)/);
 });
 

@@ -4,13 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import { SkeletonTable } from '@/components/crm/Skeleton';
-
-function isOverdue(task) {
-  if (!task.due_date || task.status === 'completed') return false;
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  return task.due_date < today;
-}
+import { isTaskOverdue } from '@/components/crm/taskUtils.mjs';
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
@@ -73,7 +67,7 @@ export default function TasksPage() {
             </thead>
             <tbody>
               {tasks.map((task) => {
-                const overdue = isOverdue(task);
+                const overdue = isTaskOverdue(task);
                 return (
                   <tr key={task.id} className={overdue ? 'crm-row-overdue' : ''}>
                     <td>{task.title}</td>

@@ -5,8 +5,20 @@ import { contactSubmissionEmail, contactAckEmail } from '@/lib/email/templates';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimitStrict, getClientIp } from '@/lib/rateLimit.mjs';
 import { HCAPTCHA_TOKEN_FIELD, verifyHCaptchaToken } from '@/lib/hcaptcha.mjs';
+import { getAppUrl } from '@/lib/appUrl.mjs';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
+// The "View in CRM" link in the operations email. getAppUrl() throws rather
+// than return an unset or retired host (lib/appUrl.mjs); the link is optional,
+// so a bad configuration drops it and the email goes out without it, exactly
+// as when the CRM write fails. Never throws.
+function dealUrlFor(dealId) {
+  try {
+    return `${getAppUrl()}/admin/deals/${dealId}`;
+  } catch (error) {
+    console.error('Contact email sent without a CRM link - app URL misconfigured:', error.message);
+    return undefined;
+  }
+}
 
 // Best-effort CRM write (create_lead_from_contact, migration 0026). Never
 // throws -- a failure here must never change the visitor-facing outcome
@@ -30,7 +42,7 @@ async function createLeadBestEffort(data) {
       return undefined;
     }
 
-    return result?.deal_id && APP_URL ? `${APP_URL}/admin/deals/${result.deal_id}` : undefined;
+    return result?.deal_id ? dealUrlFor(result.deal_id) : undefined;
   } catch (error) {
     console.error('create_lead_from_contact unavailable:', error.message);
     return undefined;

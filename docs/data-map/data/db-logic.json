@@ -1,0 +1,4687 @@
+{
+  "domain": "db-logic",
+  "description": "SQL functions and RPCs (final state through migration 0050), the project-files bucket, Realtime publication and broadcast topics, and the pg_cron drain job, with their reads, writes, side effects and calls.",
+  "nodes": [
+    {
+      "id": "fn:public.handle_new_user",
+      "type": "fn",
+      "label": "public.handle_new_user",
+      "file": "supabase/migrations/0014b_fix_handle_new_user_coalesce.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [],
+        "grantNote": "0014b:40-42 (also 0014:162-164): revoked from PUBLIC, anon, authenticated; only the trigger and owner run it",
+        "lastDefinedIn": "supabase/migrations/0014b_fix_handle_new_user_coalesce.sql:17",
+        "signatures": [
+          "public.handle_new_user() returns trigger"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "identity",
+        "triggers": [
+          "trigger:auth.users.on_auth_user_created"
+        ],
+        "callers": [
+          "trigger on_auth_user_created, AFTER INSERT on auth.users (0001:267), fired by GoTrue signup, admin createUser and generateLink"
+        ],
+        "history": "0014:83 on a database built only from the CLI-visible migrations (identical body); earlier forms 0001:235, 0008:114."
+      }
+    },
+    {
+      "id": "fn:public.handle_profile_updated",
+      "type": "fn",
+      "label": "public.handle_profile_updated",
+      "file": "supabase/migrations/0008_auth_rbac_repair.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [],
+        "grantNote": "0008:587,600,613: revoked from PUBLIC, anon, authenticated",
+        "lastDefinedIn": "supabase/migrations/0008_auth_rbac_repair.sql:127",
+        "signatures": [
+          "public.handle_profile_updated() returns trigger"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "identity",
+        "triggers": [
+          "trigger:public.profiles.on_profile_updated",
+          "trigger:public.companies.on_companies_updated",
+          "trigger:public.contacts.on_contacts_updated",
+          "trigger:public.deals.on_deals_updated",
+          "trigger:public.tasks.on_tasks_updated",
+          "trigger:public.notes.on_notes_updated"
+        ],
+        "callers": [
+          "BEFORE UPDATE triggers on profiles, companies, contacts, deals, tasks, notes (0001:271-294)"
+        ],
+        "history": "first defined 0001:255."
+      }
+    },
+    {
+      "id": "fn:public.prevent_unauthorized_profile_changes",
+      "type": "fn",
+      "label": "public.prevent_unauthorized_profile_changes",
+      "file": "supabase/migrations/0046_client_notifications_and_hardening.sql",
+      "attrs": {
+        "security": "invoker",
+        "grants": [],
+        "grantNote": "0046:413: revoked from PUBLIC, anon, authenticated",
+        "lastDefinedIn": "supabase/migrations/0046_client_notifications_and_hardening.sql:386",
+        "signatures": [
+          "public.prevent_unauthorized_profile_changes() returns trigger"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "identity",
+        "triggers": [
+          "trigger:public.profiles.on_profile_role_change_guard"
+        ],
+        "callers": [
+          "BEFORE UPDATE trigger on_profile_role_change_guard on profiles (0008:345-348)"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Protected profile fields must be changed through a validated command."
+          }
+        ],
+        "history": "earlier forms 0002:19, 0008:319 (role and company_id only)."
+      }
+    },
+    {
+      "id": "fn:public.enforce_pinned_admin",
+      "type": "fn",
+      "label": "public.enforce_pinned_admin",
+      "file": "supabase/migrations/0014_signup_account_type_and_single_admin.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [],
+        "grantNote": "0014:158-160: revoked from PUBLIC, anon, authenticated",
+        "lastDefinedIn": "supabase/migrations/0014_signup_account_type_and_single_admin.sql:50",
+        "signatures": [
+          "public.enforce_pinned_admin() returns trigger"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "identity",
+        "triggers": [
+          "trigger:public.profiles.enforce_pinned_admin_trigger"
+        ],
+        "callers": [
+          "BEFORE INSERT OR UPDATE OF role trigger enforce_pinned_admin_trigger on profiles (0014:76-78)"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Only % may hold the admin role."
+          }
+        ]
+      }
+    },
+    {
+      "id": "fn:public.pinned_admin_email",
+      "type": "fn",
+      "label": "public.pinned_admin_email",
+      "file": "supabase/migrations/0044_pin_admin_to_moiz.sql",
+      "attrs": {
+        "security": "invoker",
+        "grants": [],
+        "grantNote": "0044:27 (also 0027:77, 0042:70): revoked from PUBLIC, anon, authenticated. Callable by the owner and by definer functions; service_role execution comes from Supabase default privileges (UNVERIFIED).",
+        "lastDefinedIn": "supabase/migrations/0044_pin_admin_to_moiz.sql:14",
+        "signatures": [
+          "public.pinned_admin_email() returns text"
+        ],
+        "searchPath": "'' (empty)",
+        "language": "sql",
+        "domain": "identity",
+        "volatility": "immutable",
+        "callers": [
+          "public.enforce_pinned_admin",
+          "public.create_lead_from_contact",
+          "pgTAP fixtures (supabase/tests/*.test.sql)"
+        ],
+        "history": "history: ethan@crystalwebsolution.com (0014:33, search_path pinned 0015:59), ethan@cdsportswearinc.com (0042:55), moizj00@gmail.com (0044:14)."
+      }
+    },
+    {
+      "id": "fn:public.admin_set_user_role",
+      "type": "fn",
+      "label": "public.admin_set_user_role",
+      "file": "supabase/migrations/0008_auth_rbac_repair.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0008:620 (PUBLIC and anon revoked 0008:582,595)",
+        "lastDefinedIn": "supabase/migrations/0008_auth_rbac_repair.sql:143",
+        "signatures": [
+          "public.admin_set_user_role(p_user_id uuid, p_role text) returns public.profiles"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "identity",
+        "callers": [
+          "app/admin/users/actions.js#changeUserRole",
+          "app/admin/users/actions.js#inviteUser (promotes the invitee before the email goes out)"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Admin access required."
+          },
+          {
+            "code": "22023",
+            "message": "Invalid role."
+          },
+          {
+            "code": "P0002",
+            "message": "Profile not found."
+          },
+          {
+            "code": "42501",
+            "message": "Admins cannot change their own role."
+          },
+          {
+            "code": "23514",
+            "message": "The last admin cannot be demoted."
+          }
+        ]
+      }
+    },
+    {
+      "id": "fn:public.admin_resolve_staff_request",
+      "type": "fn",
+      "label": "public.admin_resolve_staff_request",
+      "file": "supabase/migrations/0014_signup_account_type_and_single_admin.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0014:156 (PUBLIC and anon revoked 0014:154-155)",
+        "lastDefinedIn": "supabase/migrations/0014_signup_account_type_and_single_admin.sql:112",
+        "signatures": [
+          "public.admin_resolve_staff_request(p_user_id uuid, p_approve boolean) returns public.profiles"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "identity",
+        "callers": [
+          "app/admin/users/actions.js#resolveStaffRequest"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Admin access required."
+          },
+          {
+            "code": "22023",
+            "message": "An approve or decline decision is required."
+          },
+          {
+            "code": "P0002",
+            "message": "No pending staff request for this account."
+          }
+        ]
+      }
+    },
+    {
+      "id": "fn:public.current_user_must_set_password",
+      "type": "fn",
+      "label": "public.current_user_must_set_password",
+      "file": "supabase/migrations/0039_must_set_password_gate.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0039:41 (PUBLIC and anon revoked 0039:39-40)",
+        "lastDefinedIn": "supabase/migrations/0039_must_set_password_gate.sql:19",
+        "signatures": [
+          "public.current_user_must_set_password() returns boolean"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "sql",
+        "domain": "identity",
+        "volatility": "stable",
+        "callers": [
+          "middleware.js#middleware (portal paths only, after getUser and the role check)"
+        ]
+      }
+    },
+    {
+      "id": "fn:public.create_lead_from_contact",
+      "type": "fn",
+      "label": "public.create_lead_from_contact",
+      "file": "supabase/migrations/0029_lead_capture_review_followups.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "service_role"
+        ],
+        "grantNote": "0029:250-252 revokes PUBLIC, anon, authenticated; no explicit GRANT to service_role exists in the repo, so service-role access relies on Supabase default privileges (UNVERIFIED on a fresh local stack; no pgTAP covers this function)",
+        "lastDefinedIn": "supabase/migrations/0029_lead_capture_review_followups.sql:46",
+        "signatures": [
+          "public.create_lead_from_contact(p_name text, p_email text, p_company text default null, p_brief text default null, p_budget text default null, p_source text default 'website_contact_form') returns jsonb"
+        ],
+        "searchPath": "pg_catalog, public, extensions",
+        "language": "plpgsql",
+        "domain": "leads",
+        "callers": [
+          "app/api/contact/route.js#createLeadBestEffort (service-role client, best effort; a failure never changes the visitor response)"
+        ],
+        "raises": [
+          {
+            "code": "22023",
+            "message": "Invalid lead name."
+          },
+          {
+            "code": "22023",
+            "message": "Invalid lead email."
+          },
+          {
+            "code": "P0002",
+            "message": "No admin profile found for lead attribution."
+          }
+        ],
+        "history": "first defined 0026:24; 0029 added the advisory lock, unique email index and length bounds."
+      }
+    },
+    {
+      "id": "fn:public.onboard_client_company",
+      "type": "fn",
+      "label": "public.onboard_client_company",
+      "file": "supabase/migrations/0046_client_notifications_and_hardening.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "3-arg 0046:380-382; 2-arg 0008:584,597,610 revoke and 0008:622 grant (ACL kept across 0016 replacement)",
+        "lastDefinedIn": "supabase/migrations/0046_client_notifications_and_hardening.sql:276",
+        "signatures": [
+          "public.onboard_client_company(p_company_name text, p_contact_name text, p_phone text default null) returns uuid",
+          "public.onboard_client_company(p_name text, p_email text) returns uuid (compatibility wrapper; p_email is ignored; contact name = profile full_name, else the email local part, else Client; delegates to the 3-arg form with a null phone)"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "leads",
+        "callers": [
+          "app/actions/onboarding-actions.js#onboardClientCompany (3-arg; the 2-arg wrapper has no caller found in app/ lib/ components/)"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "42501",
+            "message": "Client profile required."
+          },
+          {
+            "code": "23505",
+            "message": "You are already linked to a company."
+          },
+          {
+            "code": "22023",
+            "message": "Company name is required."
+          },
+          {
+            "code": "22023",
+            "message": "Contact name is required."
+          },
+          {
+            "code": "23502",
+            "message": "An account email is required for onboarding."
+          }
+        ],
+        "history": "3-arg form first 0008:200, replaced 0046:276; 2-arg compatibility wrapper 0008:289, replaced 0016:174 (bare coalesce fix)."
+      }
+    },
+    {
+      "id": "fn:public.create_project",
+      "type": "fn",
+      "label": "public.create_project",
+      "file": "supabase/migrations/0031_idempotent_client_project_intake.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0031:196-198 (PUBLIC and anon revoked)",
+        "lastDefinedIn": "supabase/migrations/0031_idempotent_client_project_intake.sql:18",
+        "signatures": [
+          "public.create_project(p_company_id uuid, p_category text, p_title text, p_brief text, p_target_date date default null, p_source_deal_id uuid default null, p_client_generated_id uuid default null) returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "projects",
+        "callers": [
+          "app/actions/project-actions.js#createProject (client intake; passes no p_client_generated_id)"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "42501",
+            "message": "Project creation is not allowed."
+          },
+          {
+            "code": "22023",
+            "message": "Invalid project submission key."
+          },
+          {
+            "code": "22023",
+            "message": "Invalid project category."
+          },
+          {
+            "code": "22023",
+            "message": "Project title must be 3 to 120 characters."
+          },
+          {
+            "code": "22023",
+            "message": "Project brief must be 1 to 10000 characters."
+          },
+          {
+            "code": "P0002",
+            "message": "Company not found."
+          },
+          {
+            "code": "23503",
+            "message": "Source deal does not belong to the project company."
+          }
+        ],
+        "history": "replaces the 6-arg form 0009:465 (dropped 0031:16)."
+      }
+    },
+    {
+      "id": "fn:public.assign_project_user",
+      "type": "fn",
+      "label": "public.assign_project_user",
+      "file": "supabase/migrations/0015_project_notifications_and_message_editing.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0009:1154 (PUBLIC and anon revoked 0009:1140-1141; ACL kept by the 0015 replacement)",
+        "lastDefinedIn": "supabase/migrations/0015_project_notifications_and_message_editing.sql:614",
+        "signatures": [
+          "public.assign_project_user(p_project_id uuid, p_user_id uuid) returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "projects",
+        "callers": [
+          "app/actions/project-actions.js#assignProject",
+          "app/actions/assignment-actions.js#setLeadProjectManager (skipped when the person already leads)"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Admin access required."
+          },
+          {
+            "code": "P0002",
+            "message": "Project not found."
+          },
+          {
+            "code": "22023",
+            "message": "Only a project manager or admin may be assigned."
+          }
+        ],
+        "history": "first defined 0009:593 (no notification)."
+      }
+    },
+    {
+      "id": "fn:public.remove_project_assignment",
+      "type": "fn",
+      "label": "public.remove_project_assignment",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0009:1155 (PUBLIC and anon revoked 0009:1142-1143)",
+        "lastDefinedIn": "supabase/migrations/0009_project_realtime_crm.sql:665",
+        "signatures": [
+          "public.remove_project_assignment(p_project_id uuid, p_user_id uuid) returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "projects",
+        "callers": [
+          "app/actions/project-actions.js#removeProjectAssignment",
+          "app/actions/assignment-actions.js#setLeadProjectManager"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Admin access required."
+          },
+          {
+            "code": "P0002",
+            "message": "Project not found."
+          },
+          {
+            "code": "P0002",
+            "message": "Project assignment not found."
+          }
+        ]
+      }
+    },
+    {
+      "id": "fn:public.transition_project_status",
+      "type": "fn",
+      "label": "public.transition_project_status",
+      "file": "supabase/migrations/0030_transition_status_visibility_recipients.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0030:169-170 (PUBLIC and anon revoked)",
+        "lastDefinedIn": "supabase/migrations/0030_transition_status_visibility_recipients.sql:33",
+        "signatures": [
+          "public.transition_project_status(p_project_id uuid, p_to_status text, p_note text default null, p_visibility text default 'shared') returns uuid (the status_history id)"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "projects",
+        "callers": [
+          "app/actions/project-actions.js#transitionProject",
+          "app/actions/assignment-actions.js#setLeadProjectManager (moves brief_submitted to planned)"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "P0002",
+            "message": "Project not found."
+          },
+          {
+            "code": "42501",
+            "message": "Project assignment required."
+          },
+          {
+            "code": "22023",
+            "message": "Invalid visibility."
+          },
+          {
+            "code": "22023",
+            "message": "Status note must be at most 2000 characters."
+          },
+          {
+            "code": "22023",
+            "message": "Invalid project status transition."
+          }
+        ],
+        "history": "history 0009:723, 0011:164, 0015:320, 0020:18 (delivered email), 0030:33 (visibility forwarded)."
+      }
+    },
+    {
+      "id": "fn:public.post_project_note",
+      "type": "fn",
+      "label": "public.post_project_note",
+      "file": "supabase/migrations/0013_project_notes_and_deliverables.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0013:155 (PUBLIC and anon revoked 0013:153-154)",
+        "lastDefinedIn": "supabase/migrations/0013_project_notes_and_deliverables.sql:55",
+        "signatures": [
+          "public.post_project_note(p_project_id uuid, p_note text, p_visibility text default 'shared') returns uuid (the status_history id)"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "projects",
+        "callers": [
+          "app/actions/project-actions.js#postProjectNote"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "42501",
+            "message": "Project access required."
+          },
+          {
+            "code": "42501",
+            "message": "Invalid visibility."
+          },
+          {
+            "code": "22023",
+            "message": "Note must be 1 to 2000 characters."
+          },
+          {
+            "code": "P0002",
+            "message": "Project not found."
+          }
+        ]
+      }
+    },
+    {
+      "id": "fn:public.create_project_task",
+      "type": "fn",
+      "label": "public.create_project_task",
+      "file": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0047:122-124 (PUBLIC revoked again after 0019 recreated it, 0021:22)",
+        "lastDefinedIn": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:37",
+        "signatures": [
+          "public.create_project_task(p_project_id uuid, p_title text, p_description text default '', p_status text default 'todo', p_assignee_id uuid default null, p_due_date date default null, p_priority text default 'medium', p_client_visible boolean default false) returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "projects",
+        "callers": [
+          "app/actions/project-actions.js#createProjectTask"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "42501",
+            "message": "Staff access required."
+          },
+          {
+            "code": "22023",
+            "message": "Task title must be 1 to 255 characters."
+          },
+          {
+            "code": "22023",
+            "message": "Task description must be at most 10000 characters."
+          },
+          {
+            "code": "22023",
+            "message": "Invalid task status."
+          },
+          {
+            "code": "22023",
+            "message": "Invalid task priority."
+          }
+        ],
+        "history": "history 0010:187 (6 args, dropped 0019:28), 0019:30 (8 args), 0047:37 (staff-only)."
+      }
+    },
+    {
+      "id": "fn:public.update_project_task",
+      "type": "fn",
+      "label": "public.update_project_task",
+      "file": "supabase/migrations/0012_project_task_update_fixes.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0012:112 (PUBLIC and anon revoked 0010:636-637)",
+        "lastDefinedIn": "supabase/migrations/0012_project_task_update_fixes.sql:11",
+        "signatures": [
+          "public.update_project_task(p_task_id uuid, p_title text default null, p_description text default null, p_status text default null, p_assignee_id uuid default null, p_due_date date default null) returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "projects",
+        "callers": [
+          "app/actions/project-actions.js#updateProjectTask"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "P0002",
+            "message": "Task not found."
+          },
+          {
+            "code": "42501",
+            "message": "Project access required."
+          },
+          {
+            "code": "42501",
+            "message": "Only the assignee may update this task."
+          },
+          {
+            "code": "22023",
+            "message": "Task title must be 1 to 255 characters."
+          },
+          {
+            "code": "22023",
+            "message": "Task description must be at most 10000 characters."
+          },
+          {
+            "code": "22023",
+            "message": "Invalid task status."
+          }
+        ],
+        "history": "history 0010:261, 0011:65 (maintained completed_at; dropped by 0012)."
+      }
+    },
+    {
+      "id": "fn:public.create_project_approval",
+      "type": "fn",
+      "label": "public.create_project_approval",
+      "file": "supabase/migrations/0010_project_workspace.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0010:649 (PUBLIC and anon revoked 0010:638-639)",
+        "lastDefinedIn": "supabase/migrations/0010_project_workspace.sql:356",
+        "signatures": [
+          "public.create_project_approval(p_project_id uuid, p_deliverable_id uuid default null, p_note text default null) returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "projects",
+        "callers": [
+          "app/actions/project-actions.js#createProjectApproval"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "42501",
+            "message": "Project access required."
+          },
+          {
+            "code": "22023",
+            "message": "Approval note must be at most 2000 characters."
+          },
+          {
+            "code": "P0002",
+            "message": "Deliverable not found for project."
+          }
+        ]
+      }
+    },
+    {
+      "id": "fn:public.update_project_approval",
+      "type": "fn",
+      "label": "public.update_project_approval",
+      "file": "supabase/migrations/0015_project_notifications_and_message_editing.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0010:650 (PUBLIC and anon revoked 0010:640-641)",
+        "lastDefinedIn": "supabase/migrations/0015_project_notifications_and_message_editing.sql:442",
+        "signatures": [
+          "public.update_project_approval(p_approval_id uuid, p_status text, p_note text default null) returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "projects",
+        "callers": [
+          "app/actions/project-actions.js#updateProjectApproval"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "22023",
+            "message": "Approval status must be approved or rejected."
+          },
+          {
+            "code": "P0002",
+            "message": "Approval not found."
+          },
+          {
+            "code": "42501",
+            "message": "Project assignment required."
+          },
+          {
+            "code": "22023",
+            "message": "Approval is no longer pending."
+          },
+          {
+            "code": "22023",
+            "message": "Approval note must be at most 2000 characters."
+          }
+        ],
+        "history": "history 0010:423, 0011:287."
+      }
+    },
+    {
+      "id": "fn:public.create_project_deliverable",
+      "type": "fn",
+      "label": "public.create_project_deliverable",
+      "file": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0047:248-250 (PUBLIC and anon revoked 0047:248-249)",
+        "lastDefinedIn": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:128",
+        "signatures": [
+          "public.create_project_deliverable(p_project_id uuid, p_title text, p_file_name text, p_mime_type text, p_size_bytes bigint, p_description text default '', p_visibility text default 'shared', p_version text default '1') returns public.project_deliverables"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "projects",
+        "callers": [
+          "app/actions/project-actions.js#createProjectDeliverable"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "42501",
+            "message": "Staff access required."
+          },
+          {
+            "code": "42501",
+            "message": "Invalid visibility."
+          },
+          {
+            "code": "22023",
+            "message": "Title must be 1 to 255 characters."
+          },
+          {
+            "code": "22023",
+            "message": "Description must be at most 10000 characters."
+          },
+          {
+            "code": "22023",
+            "message": "File name must be 1 to 255 characters."
+          },
+          {
+            "code": "22023",
+            "message": "MIME type must be 1 to 255 characters."
+          },
+          {
+            "code": "22023",
+            "message": "File size must be between 1 byte and 50 MiB."
+          },
+          {
+            "code": "22023",
+            "message": "Version must be 1 to 32 characters."
+          }
+        ],
+        "history": "first defined 0013:157 (any participant)."
+      }
+    },
+    {
+      "id": "fn:public.publish_project_deliverable",
+      "type": "fn",
+      "label": "public.publish_project_deliverable",
+      "file": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0047:334-336 (PUBLIC and anon revoked 0047:334-335)",
+        "lastDefinedIn": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:254",
+        "signatures": [
+          "public.publish_project_deliverable(p_deliverable_id uuid, p_status text default 'submitted') returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "projects",
+        "callers": [
+          "app/actions/project-actions.js#publishDeliverable"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "22023",
+            "message": "Invalid deliverable status."
+          },
+          {
+            "code": "P0002",
+            "message": "Deliverable not found."
+          },
+          {
+            "code": "42501",
+            "message": "Staff access required."
+          },
+          {
+            "code": "42501",
+            "message": "Only the deliverable owner may publish it."
+          }
+        ],
+        "history": "history 0010:496, 0011:378, 0015:530, 0023:307 (visibility forwarded)."
+      }
+    },
+    {
+      "id": "fn:public.project_manager_names",
+      "type": "fn",
+      "label": "public.project_manager_names",
+      "file": "supabase/migrations/0049_project_manager_names.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0049:42 (PUBLIC and anon revoked 0049:40-41)",
+        "lastDefinedIn": "supabase/migrations/0049_project_manager_names.sql:22",
+        "signatures": [
+          "public.project_manager_names(p_project_ids uuid[]) returns table (project_id uuid, full_name text)"
+        ],
+        "searchPath": "pg_catalog, public, private",
+        "language": "sql",
+        "domain": "projects",
+        "volatility": "stable",
+        "callers": [
+          "lib/crm/projects.js#getProjectManagerNames"
+        ]
+      }
+    },
+    {
+      "id": "fn:public.reserve_project_attachment",
+      "type": "fn",
+      "label": "public.reserve_project_attachment",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0009:1157 (PUBLIC and anon revoked 0009:1146-1147)",
+        "lastDefinedIn": "supabase/migrations/0009_project_realtime_crm.sql:828",
+        "signatures": [
+          "public.reserve_project_attachment(p_project_id uuid, p_visibility text, p_file_name text, p_mime_type text, p_size_bytes bigint) returns public.project_attachments"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "messaging",
+        "callers": [
+          "app/actions/project-actions.js#reserveAttachment",
+          "components/crm/useProjectThread.js#handleFileChange (via the action)"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "42501",
+            "message": "Project access required."
+          },
+          {
+            "code": "42501",
+            "message": "Invalid visibility."
+          },
+          {
+            "code": "22023",
+            "message": "File name must be 1 to 255 characters."
+          },
+          {
+            "code": "22023",
+            "message": "MIME type must be 1 to 255 characters."
+          },
+          {
+            "code": "22023",
+            "message": "File size must be between 1 byte and 50 MiB."
+          }
+        ]
+      }
+    },
+    {
+      "id": "fn:public.finalize_project_attachment",
+      "type": "fn",
+      "label": "public.finalize_project_attachment",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0009:1159 (PUBLIC and anon revoked 0009:1150-1151)",
+        "lastDefinedIn": "supabase/migrations/0009_project_realtime_crm.sql:1066",
+        "signatures": [
+          "public.finalize_project_attachment(p_attachment_id uuid) returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "messaging",
+        "callers": [
+          "app/actions/project-actions.js#finalizeAttachment"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "P0002",
+            "message": "Attachment reservation not found."
+          },
+          {
+            "code": "42501",
+            "message": "Only the reservation owner may finalize a pending attachment."
+          },
+          {
+            "code": "P0002",
+            "message": "Reserved Storage object not found."
+          }
+        ]
+      }
+    },
+    {
+      "id": "fn:public.post_project_message",
+      "type": "fn",
+      "label": "public.post_project_message",
+      "file": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0023:391-392 (PUBLIC and anon revoked; first 0009:1148-1149,1158)",
+        "lastDefinedIn": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:53",
+        "signatures": [
+          "public.post_project_message(p_project_id uuid, p_body text, p_visibility text, p_client_generated_id uuid, p_attachment_ids uuid[] default '{}') returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "messaging",
+        "callers": [
+          "app/actions/project-actions.js#postProjectMessage"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "42501",
+            "message": "Project access required."
+          },
+          {
+            "code": "42501",
+            "message": "Invalid visibility."
+          },
+          {
+            "code": "22023",
+            "message": "Message body must be 1 to 10000 characters."
+          },
+          {
+            "code": "22023",
+            "message": "Client-generated message id is required."
+          },
+          {
+            "code": "22023",
+            "message": "Attachment ids must be unique."
+          },
+          {
+            "code": "P0002",
+            "message": "Project thread not found."
+          },
+          {
+            "code": "42501",
+            "message": "Message attempt belongs to another project."
+          },
+          {
+            "code": "42501",
+            "message": "Attachments must be ready reservations owned by the caller for this project and visibility."
+          }
+        ],
+        "history": "history 0009:938, 0015:72, 0016:30 (coalesce fix), 0023:61 (visibility forwarded)."
+      }
+    },
+    {
+      "id": "fn:public.update_project_message",
+      "type": "fn",
+      "label": "public.update_project_message",
+      "file": "supabase/migrations/0023_visibility_aware_notification_recipients.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0023:394-395 (PUBLIC and anon revoked)",
+        "lastDefinedIn": "supabase/migrations/0023_visibility_aware_notification_recipients.sql:211",
+        "signatures": [
+          "public.update_project_message(p_message_id uuid, p_body text) returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "messaging",
+        "callers": [
+          "app/actions/project-actions.js#editProjectMessage"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "22023",
+            "message": "Message body must be 1 to 10000 characters."
+          },
+          {
+            "code": "P0002",
+            "message": "Message not found."
+          },
+          {
+            "code": "42501",
+            "message": "Only the message author may edit it."
+          },
+          {
+            "code": "P0002",
+            "message": "Project thread not found."
+          },
+          {
+            "code": "42501",
+            "message": "Project access required."
+          }
+        ],
+        "history": "first defined 0015:225."
+      }
+    },
+    {
+      "id": "fn:public.submit_project_brief",
+      "type": "fn",
+      "label": "public.submit_project_brief",
+      "file": "supabase/migrations/0046_client_notifications_and_hardening.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0046:270-272 (PUBLIC and anon revoked)",
+        "lastDefinedIn": "supabase/migrations/0046_client_notifications_and_hardening.sql:87",
+        "signatures": [
+          "public.submit_project_brief(p_brief_id uuid, p_summary text, p_project_id uuid default null, p_project_title text default null, p_target_date date default null) returns uuid (the project id)"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "briefs",
+        "callers": [
+          "app/actions/brief-actions.js#submitBrief"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "42501",
+            "message": "Brief submission is not allowed."
+          },
+          {
+            "code": "P0002",
+            "message": "Brief not found."
+          },
+          {
+            "code": "42501",
+            "message": "Brief submission is not allowed."
+          },
+          {
+            "code": "22023",
+            "message": "Brief summary must be 1 to 10000 characters."
+          },
+          {
+            "code": "22023",
+            "message": "Answer the brief before submitting it."
+          },
+          {
+            "code": "22023",
+            "message": "This brief cannot be submitted."
+          },
+          {
+            "code": "P0002",
+            "message": "Project not found."
+          },
+          {
+            "code": "22023",
+            "message": "Briefs cannot be added to a cancelled project."
+          }
+        ],
+        "history": "first defined 0043:208 (no acknowledgement to the client)."
+      }
+    },
+    {
+      "id": "fn:private.touch_project_brief",
+      "type": "fn",
+      "label": "private.touch_project_brief",
+      "file": "supabase/migrations/0043_project_briefs.sql",
+      "attrs": {
+        "security": "invoker",
+        "grants": [],
+        "grantNote": "0043:101: revoked from PUBLIC, anon, authenticated",
+        "lastDefinedIn": "supabase/migrations/0043_project_briefs.sql:88",
+        "signatures": [
+          "private.touch_project_brief() returns trigger"
+        ],
+        "searchPath": "pg_catalog, public, private",
+        "language": "plpgsql",
+        "domain": "briefs",
+        "triggers": [
+          "trigger:public.project_briefs.project_briefs_touch"
+        ],
+        "callers": [
+          "BEFORE UPDATE trigger project_briefs_touch on project_briefs (0043:104-106)"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.project_notification_recipients",
+      "type": "fn",
+      "label": "private.project_notification_recipients",
+      "file": "supabase/migrations/0046_client_notifications_and_hardening.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [],
+        "grantNote": "0046:82 (also 0027:73): revoked from PUBLIC, anon, authenticated; callable only by definer functions",
+        "lastDefinedIn": "supabase/migrations/0046_client_notifications_and_hardening.sql:48",
+        "signatures": [
+          "private.project_notification_recipients(p_project_id uuid, p_exclude_user_id uuid, p_visibility text default 'shared') returns table (user_id uuid)"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "sql",
+        "domain": "notifications",
+        "callers": [
+          "public.transition_project_status",
+          "public.post_project_message",
+          "public.update_project_message",
+          "public.update_project_approval",
+          "public.publish_project_deliverable"
+        ],
+        "history": "history 0015:33 (2 args, dropped 0023:32), 0023:34 (visibility argument)."
+      }
+    },
+    {
+      "id": "fn:public.enqueue_project_notification",
+      "type": "fn",
+      "label": "public.enqueue_project_notification",
+      "file": "supabase/migrations/0046_client_notifications_and_hardening.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0046:512-514 (PUBLIC and anon revoked)",
+        "lastDefinedIn": "supabase/migrations/0046_client_notifications_and_hardening.sql:417",
+        "signatures": [
+          "public.enqueue_project_notification(p_project_id uuid, p_channel text, p_event_type text, p_payload jsonb default '{}', p_user_id uuid default null) returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "notifications",
+        "callers": [
+          "app/actions/project-actions.js#enqueueNotification (staff only in the action)"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "42501",
+            "message": "Staff access required."
+          },
+          {
+            "code": "22023",
+            "message": "Invalid notification channel."
+          },
+          {
+            "code": "22023",
+            "message": "Event type must be 1 to 120 characters."
+          },
+          {
+            "code": "P0002",
+            "message": "Notification recipient not found."
+          },
+          {
+            "code": "42501",
+            "message": "Notification recipient is not on this project."
+          }
+        ],
+        "history": "first defined 0010:560 (any participant, any recipient)."
+      }
+    },
+    {
+      "id": "fn:public.mark_notifications_read",
+      "type": "fn",
+      "label": "public.mark_notifications_read",
+      "file": "supabase/migrations/0027_security_and_notification_hardening.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0028:4-6 (PUBLIC, anon, authenticated revoked then authenticated granted; 0027:67-68)",
+        "lastDefinedIn": "supabase/migrations/0027_security_and_notification_hardening.sql:32",
+        "signatures": [
+          "public.mark_notifications_read(p_notification_ids uuid[]) returns integer"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "notifications",
+        "callers": [
+          "app/actions/project-actions.js#markNotificationsRead"
+        ],
+        "raises": [
+          {
+            "code": "42501",
+            "message": "Authentication required."
+          },
+          {
+            "code": "22023",
+            "message": "Notification ids must be a non-empty unique list."
+          }
+        ]
+      }
+    },
+    {
+      "id": "fn:public.claim_notification_email_batch",
+      "type": "fn",
+      "label": "public.claim_notification_email_batch",
+      "file": "supabase/migrations/0033_notification_claim_leases.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "service_role"
+        ],
+        "grantNote": "0033:217-218 revokes PUBLIC, anon, authenticated; 0033:224-225 grants service_role",
+        "lastDefinedIn": "supabase/migrations/0033_notification_claim_leases.sql:64",
+        "signatures": [
+          "public.claim_notification_email_batch(p_limit integer default 25, p_lease_seconds integer default 300) returns table (id uuid, project_id uuid, user_id uuid, event_type text, payload jsonb, attempts integer, lease_id uuid)"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "notifications",
+        "callers": [
+          "app/api/cron/crm-notifications/route.js#drain (BATCH_SIZE 25, LEASE_SECONDS 300)"
+        ],
+        "raises": [
+          {
+            "code": "22023",
+            "message": "Claim limit must be between 1 and 25."
+          },
+          {
+            "code": "22023",
+            "message": "Lease duration must be between 60 and 1800 seconds."
+          }
+        ]
+      }
+    },
+    {
+      "id": "fn:public.mark_notification_email_sent",
+      "type": "fn",
+      "label": "public.mark_notification_email_sent",
+      "file": "supabase/migrations/0045_fix_outbox_mark_coalesce.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "service_role"
+        ],
+        "grantNote": "0045:124,129 (PUBLIC, anon, authenticated revoked; service_role granted)",
+        "lastDefinedIn": "supabase/migrations/0045_fix_outbox_mark_coalesce.sql:35",
+        "signatures": [
+          "public.mark_notification_email_sent(p_notification_id uuid, p_lease_id uuid) returns integer"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "notifications",
+        "callers": [
+          "app/api/cron/crm-notifications/route.js#drain"
+        ],
+        "history": "first defined 0033:128 (broken: schema-qualified coalesce, fixed here)."
+      }
+    },
+    {
+      "id": "fn:public.mark_notification_email_failed",
+      "type": "fn",
+      "label": "public.mark_notification_email_failed",
+      "file": "supabase/migrations/0045_fix_outbox_mark_coalesce.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "service_role"
+        ],
+        "grantNote": "0045:126,131 (PUBLIC, anon, authenticated revoked; service_role granted)",
+        "lastDefinedIn": "supabase/migrations/0045_fix_outbox_mark_coalesce.sql:66",
+        "signatures": [
+          "public.mark_notification_email_failed(p_notification_id uuid, p_lease_id uuid, p_retryable boolean, p_failure_code text, p_error text default null, p_available_at timestamptz default null) returns integer"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "notifications",
+        "callers": [
+          "app/api/cron/crm-notifications/route.js#markLeaseFailed"
+        ],
+        "raises": [
+          {
+            "code": "22023",
+            "message": "Invalid notification failure code."
+          }
+        ],
+        "history": "first defined 0033:159 (broken coalesce, fixed here)."
+      }
+    },
+    {
+      "id": "fn:public.cleanup_stale_project_attachments",
+      "type": "fn",
+      "label": "public.cleanup_stale_project_attachments",
+      "file": "supabase/migrations/0038_cron_attachment_cleanup_storage_api.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "service_role",
+          "postgres"
+        ],
+        "grantNote": "0038:49-52",
+        "lastDefinedIn": "supabase/migrations/0038_cron_attachment_cleanup_storage_api.sql:16",
+        "signatures": [
+          "public.cleanup_stale_project_attachments(p_before timestamptz default now() - interval '24 hours') returns table (storage_path text)"
+        ],
+        "searchPath": "pg_catalog, public, private",
+        "language": "plpgsql",
+        "domain": "cleanup",
+        "callers": [
+          "app/api/cron/crm-notifications/route.js#legacyCleanupStaleAttachments (fallback only when claim_attachment_cleanup is missing, error code PGRST202 or 42883)"
+        ],
+        "history": "history 0032:214, 0034:6 (both deleted storage.objects directly, which Supabase blocks); 0038 drops and recreates it with a table return."
+      }
+    },
+    {
+      "id": "fn:public.claim_attachment_cleanup",
+      "type": "fn",
+      "label": "public.claim_attachment_cleanup",
+      "file": "supabase/migrations/0048_durable_attachment_cleanup.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "service_role"
+        ],
+        "grantNote": "0048:141,144",
+        "lastDefinedIn": "supabase/migrations/0048_durable_attachment_cleanup.sql:54",
+        "signatures": [
+          "public.claim_attachment_cleanup(p_before timestamptz default (now() - interval '24 hours'), p_limit integer default 50, p_lease_seconds integer default 600) returns table (storage_path text, attempts integer)"
+        ],
+        "searchPath": "pg_catalog, public, private",
+        "language": "plpgsql",
+        "domain": "cleanup",
+        "callers": [
+          "app/api/cron/crm-notifications/route.js#cleanupStaleAttachments (cutoff 24 h, limit 50, lease 600 s)"
+        ]
+      }
+    },
+    {
+      "id": "fn:public.complete_attachment_cleanup",
+      "type": "fn",
+      "label": "public.complete_attachment_cleanup",
+      "file": "supabase/migrations/0048_durable_attachment_cleanup.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "service_role"
+        ],
+        "grantNote": "0048:142,145",
+        "lastDefinedIn": "supabase/migrations/0048_durable_attachment_cleanup.sql:108",
+        "signatures": [
+          "public.complete_attachment_cleanup(p_storage_paths text[]) returns integer"
+        ],
+        "searchPath": "pg_catalog, public, private",
+        "language": "sql",
+        "domain": "cleanup",
+        "callers": [
+          "app/api/cron/crm-notifications/route.js#cleanupStaleAttachments (after a successful Storage remove)"
+        ]
+      }
+    },
+    {
+      "id": "fn:public.fail_attachment_cleanup",
+      "type": "fn",
+      "label": "public.fail_attachment_cleanup",
+      "file": "supabase/migrations/0048_durable_attachment_cleanup.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "service_role"
+        ],
+        "grantNote": "0048:143,146",
+        "lastDefinedIn": "supabase/migrations/0048_durable_attachment_cleanup.sql:122",
+        "signatures": [
+          "public.fail_attachment_cleanup(p_storage_paths text[], p_error text default null) returns integer"
+        ],
+        "searchPath": "pg_catalog, public, private",
+        "language": "sql",
+        "domain": "cleanup",
+        "callers": [
+          "app/api/cron/crm-notifications/route.js#cleanupStaleAttachments (after a failed Storage remove)"
+        ]
+      }
+    },
+    {
+      "id": "fn:public.blog_posts_maintain_timestamps",
+      "type": "fn",
+      "label": "public.blog_posts_maintain_timestamps",
+      "file": "supabase/migrations/0035_blog_posts.sql",
+      "attrs": {
+        "security": "invoker",
+        "grants": [],
+        "grantNote": "0035:144-146: revoked from PUBLIC, anon, authenticated",
+        "lastDefinedIn": "supabase/migrations/0035_blog_posts.sql:120",
+        "signatures": [
+          "public.blog_posts_maintain_timestamps() returns trigger"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "plpgsql",
+        "domain": "blog",
+        "triggers": [
+          "trigger:public.blog_posts.blog_posts_maintain_timestamps_trigger"
+        ],
+        "callers": [
+          "BEFORE INSERT OR UPDATE trigger blog_posts_maintain_timestamps_trigger on blog_posts (0035:140)"
+        ]
+      }
+    },
+    {
+      "id": "fn:public.blog_tags_are_valid",
+      "type": "fn",
+      "label": "public.blog_tags_are_valid",
+      "file": "supabase/migrations/0036_blog_taxonomy.sql",
+      "attrs": {
+        "security": "invoker",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0036:37 (PUBLIC revoked 0036:36; anon revoked again 0037:13)",
+        "lastDefinedIn": "supabase/migrations/0036_blog_taxonomy.sql:16",
+        "signatures": [
+          "public.blog_tags_are_valid(tags text[]) returns boolean"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "sql",
+        "domain": "blog",
+        "volatility": "immutable",
+        "callers": [
+          "CHECK constraint blog_posts_tags_check on blog_posts (0036:80)"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.broadcast_project_message",
+      "type": "fn",
+      "label": "private.broadcast_project_message",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [],
+        "grantNote": "0009:1249: revoked from PUBLIC, anon, authenticated",
+        "lastDefinedIn": "supabase/migrations/0009_project_realtime_crm.sql:1214",
+        "signatures": [
+          "private.broadcast_project_message() returns trigger"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "realtime",
+        "triggers": [
+          "trigger:public.project_messages.broadcast_project_message_created"
+        ],
+        "callers": [
+          "AFTER INSERT trigger broadcast_project_message_created on project_messages (0009:1251)"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.broadcast_project_message_updated",
+      "type": "fn",
+      "label": "private.broadcast_project_message_updated",
+      "file": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [],
+        "grantNote": "0032:46-47: revoked from PUBLIC, anon, authenticated",
+        "lastDefinedIn": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:7",
+        "signatures": [
+          "private.broadcast_project_message_updated() returns trigger"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "realtime",
+        "triggers": [
+          "trigger:public.project_messages.broadcast_project_message_updated"
+        ],
+        "callers": [
+          "AFTER UPDATE OF body, edited_at trigger broadcast_project_message_updated on project_messages (0032:49)"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.broadcast_project_status_change",
+      "type": "fn",
+      "label": "private.broadcast_project_status_change",
+      "file": "supabase/migrations/0050_realtime_project_updates_and_presence.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [],
+        "grantNote": "0050:186: revoked from PUBLIC, anon, authenticated (the live copy still had the default PUBLIC grant, 0050 header)",
+        "lastDefinedIn": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:32",
+        "signatures": [
+          "private.broadcast_project_status_change() returns trigger"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "realtime",
+        "triggers": [
+          "trigger:public.projects.broadcast_project_status_changed"
+        ],
+        "callers": [
+          "AFTER UPDATE OF status trigger broadcast_project_status_changed on projects (0050:191)"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.broadcast_project_task_change",
+      "type": "fn",
+      "label": "private.broadcast_project_task_change",
+      "file": "supabase/migrations/0050_realtime_project_updates_and_presence.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [],
+        "grantNote": "0050:187: revoked from PUBLIC, anon, authenticated",
+        "lastDefinedIn": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:57",
+        "signatures": [
+          "private.broadcast_project_task_change() returns trigger"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "realtime",
+        "triggers": [
+          "trigger:public.project_tasks.broadcast_project_task_changed"
+        ],
+        "callers": [
+          "AFTER INSERT OR DELETE OR UPDATE trigger broadcast_project_task_changed on project_tasks (0050:196)"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.broadcast_project_approval_change",
+      "type": "fn",
+      "label": "private.broadcast_project_approval_change",
+      "file": "supabase/migrations/0050_realtime_project_updates_and_presence.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [],
+        "grantNote": "0050:188: revoked from PUBLIC, anon, authenticated",
+        "lastDefinedIn": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:102",
+        "signatures": [
+          "private.broadcast_project_approval_change() returns trigger"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "realtime",
+        "triggers": [
+          "trigger:public.project_approvals.broadcast_project_approval_changed"
+        ],
+        "callers": [
+          "AFTER INSERT OR DELETE OR UPDATE trigger broadcast_project_approval_changed on project_approvals (0050:201)"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.current_profile_role",
+      "type": "fn",
+      "label": "private.current_profile_role",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0009:344 (PUBLIC and anon revoked 0009:340)",
+        "lastDefinedIn": "supabase/migrations/0009_project_realtime_crm.sql:257",
+        "signatures": [
+          "private.current_profile_role() returns text"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "sql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "private.can_access_project",
+          "private.can_view_internal",
+          "public.assign_project_user",
+          "RLS: audit_events, project_briefs"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.can_access_project",
+      "type": "fn",
+      "label": "private.can_access_project",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0009:345 (PUBLIC and anon revoked 0009:341)",
+        "lastDefinedIn": "supabase/migrations/0009_project_realtime_crm.sql:269",
+        "signatures": [
+          "private.can_access_project(p_project_id uuid) returns boolean"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "sql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "RLS: projects, project_threads, project_messages, project_attachments, project_status_history, project_tasks, project_deliverables, project_approvals, project_briefs, storage.objects",
+          "most project RPCs (see their cards)"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.can_view_internal",
+      "type": "fn",
+      "label": "private.can_view_internal",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0009:346 (PUBLIC and anon revoked 0009:342)",
+        "lastDefinedIn": "supabase/migrations/0009_project_realtime_crm.sql:296",
+        "signatures": [
+          "private.can_view_internal(p_project_id uuid) returns boolean"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "sql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "RLS: project_assignments, internal rows of project_messages, project_attachments, project_status_history, project_deliverables, project_tasks, project_approvals, storage.objects",
+          "staff-only RPCs (see their cards)"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.can_subscribe_project_topic",
+      "type": "fn",
+      "label": "private.can_subscribe_project_topic",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0009:347 (PUBLIC and anon revoked 0009:343)",
+        "lastDefinedIn": "supabase/migrations/0009_project_realtime_crm.sql:315",
+        "signatures": [
+          "private.can_subscribe_project_topic(p_topic text) returns boolean"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "plpgsql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "RLS: realtime.messages (receive 0050:209, track presence 0050:224)"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.shares_project_with",
+      "type": "fn",
+      "label": "private.shares_project_with",
+      "file": "supabase/migrations/0018_profiles_shared_project_visibility.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0040:38 (revoked from all by 0027:75, restored by 0040:37-38)",
+        "lastDefinedIn": "supabase/migrations/0018_profiles_shared_project_visibility.sql:33",
+        "signatures": [
+          "private.shares_project_with(p_target_id uuid) returns boolean"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "sql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "RLS: profiles \"Project participants can view co-participant profiles\" (0018:61)"
+        ]
+      }
+    },
+    {
+      "id": "fn:private.current_profile_company_id",
+      "type": "fn",
+      "label": "private.current_profile_company_id",
+      "file": "supabase/migrations/0043_project_briefs.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0043:38 (PUBLIC and anon revoked 0043:37)",
+        "lastDefinedIn": "supabase/migrations/0043_project_briefs.sql:25",
+        "signatures": [
+          "private.current_profile_company_id() returns uuid"
+        ],
+        "searchPath": "pg_catalog, public, private, storage",
+        "language": "sql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "RLS: project_briefs insert and update checks (0043:130, 0043:145)"
+        ]
+      }
+    },
+    {
+      "id": "fn:public.current_profile_role",
+      "type": "fn",
+      "label": "public.current_profile_role",
+      "file": "supabase/migrations/0008_auth_rbac_repair.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0008:615 (PUBLIC and anon revoked 0008:576,589)",
+        "lastDefinedIn": "supabase/migrations/0008_auth_rbac_repair.sql:35",
+        "signatures": [
+          "public.current_profile_role() returns text"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "sql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "public.is_admin",
+          "public.is_pm",
+          "public.is_staff",
+          "public.is_company_member",
+          "RLS: notes"
+        ]
+      }
+    },
+    {
+      "id": "fn:public.is_admin",
+      "type": "fn",
+      "label": "public.is_admin",
+      "file": "supabase/migrations/0008_auth_rbac_repair.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0008:616 (PUBLIC and anon revoked 0008:577,590)",
+        "lastDefinedIn": "supabase/migrations/0008_auth_rbac_repair.sql:47",
+        "signatures": [
+          "public.is_admin() returns boolean"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "sql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "RLS: legacy CRM tables, blog_posts",
+          "public.can_access_deal",
+          "public.admin_set_user_role",
+          "public.admin_resolve_staff_request"
+        ]
+      }
+    },
+    {
+      "id": "fn:public.is_pm",
+      "type": "fn",
+      "label": "public.is_pm",
+      "file": "supabase/migrations/0008_auth_rbac_repair.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0008:617 (PUBLIC and anon revoked 0008:578,591)",
+        "lastDefinedIn": "supabase/migrations/0008_auth_rbac_repair.sql:57",
+        "signatures": [
+          "public.is_pm() returns boolean"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "sql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "RLS: deals, companies, contacts, tasks, notes, blog_posts",
+          "public.can_access_deal"
+        ]
+      }
+    },
+    {
+      "id": "fn:public.is_staff",
+      "type": "fn",
+      "label": "public.is_staff",
+      "file": "supabase/migrations/0008_auth_rbac_repair.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [],
+        "grantNote": "0008:579,592,605: revoked from PUBLIC, anon, authenticated and never granted back",
+        "lastDefinedIn": "supabase/migrations/0008_auth_rbac_repair.sql:67",
+        "signatures": [
+          "public.is_staff() returns boolean"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "sql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "none (no policy or function may call it)"
+        ],
+        "history": "earlier 0001:137, 0005:35."
+      }
+    },
+    {
+      "id": "fn:public.is_company_member",
+      "type": "fn",
+      "label": "public.is_company_member",
+      "file": "supabase/migrations/0008_auth_rbac_repair.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0008:618 (PUBLIC and anon revoked 0008:580,593)",
+        "lastDefinedIn": "supabase/migrations/0008_auth_rbac_repair.sql:77",
+        "signatures": [
+          "public.is_company_member(company_id uuid) returns boolean"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "sql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "RLS: companies, contacts, tasks, notes, company_members",
+          "public.can_access_deal"
+        ],
+        "history": "earlier 0001:142, 0005:49."
+      }
+    },
+    {
+      "id": "fn:public.can_access_deal",
+      "type": "fn",
+      "label": "public.can_access_deal",
+      "file": "supabase/migrations/0008_auth_rbac_repair.sql",
+      "attrs": {
+        "security": "definer",
+        "grants": [
+          "authenticated"
+        ],
+        "grantNote": "0008:619 (PUBLIC and anon revoked 0008:581,594)",
+        "lastDefinedIn": "supabase/migrations/0008_auth_rbac_repair.sql:93",
+        "signatures": [
+          "public.can_access_deal(p_deal_id uuid) returns boolean"
+        ],
+        "searchPath": "pg_catalog, public",
+        "language": "sql",
+        "domain": "helpers",
+        "volatility": "stable",
+        "callers": [
+          "RLS: profiles \"Deal participants can view assigned owner profile\" (0008:372)"
+        ],
+        "history": "earlier 0003:47, 0005:88."
+      }
+    },
+    {
+      "id": "bucket:project-files",
+      "type": "bucket",
+      "label": "project-files",
+      "file": "supabase/migrations/0009_project_realtime_crm.sql",
+      "attrs": {
+        "public": false,
+        "createdIn": "supabase/migrations/0003_project_delivery.sql:106",
+        "madePrivateIn": "supabase/migrations/0009_project_realtime_crm.sql:1168",
+        "fileSizeLimit": "none in migrations; platform limit applies (local config.toml:118 = 50MiB; hosted UNVERIFIED)",
+        "allowedMimeTypes": "none",
+        "pathConvention": [
+          "{project_id}/{attachment_id}/{safe_filename}",
+          "{project_id}/{deliverable_id}/{safe_filename}"
+        ],
+        "policies": [
+          "Project participants can read ready reserved files (SELECT) 0009:1173",
+          "Reservation owners can upload pending project files (INSERT) 0009:1195",
+          "Project participants can read published deliverables (SELECT) 0013:285",
+          "Deliverable owners can upload draft deliverables (INSERT) 0013:307"
+        ],
+        "update_delete_policies": "none; only service_role removes objects (Storage API)",
+        "flow": "reserve (fn:public.reserve_project_attachment or fn:public.create_project_deliverable) -> browser upload -> fn:public.finalize_project_attachment or fn:public.publish_project_deliverable",
+        "cleanup": "fn:public.claim_attachment_cleanup queue -> route removes objects -> fn:public.complete_attachment_cleanup",
+        "uploaders": [
+          "components/crm/useProjectThread.js#handleFileChange",
+          "components/crm/ProjectFiles.jsx#handleUpload"
+        ],
+        "signedUrl": "app/actions/project-actions.js#createAttachmentDownloadUrl (60 s, user session)"
+      }
+    },
+    {
+      "id": "realtime:publication.project_messages",
+      "type": "realtime",
+      "label": "supabase_realtime publication: project_messages",
+      "file": "supabase/migrations/0015_project_notifications_and_message_editing.sql",
+      "attrs": {
+        "publication": "supabase_realtime",
+        "table": "public.project_messages",
+        "addedIn": "supabase/migrations/0015_project_notifications_and_message_editing.sql:700",
+        "replicaIdentity": "default (primary key)",
+        "consumers": "none found in app/, lib/, components/ (no postgres_changes subscription)"
+      }
+    },
+    {
+      "id": "realtime:project:{id}:shared",
+      "type": "realtime",
+      "label": "project:{id}:shared",
+      "file": "supabase/migrations/0050_realtime_project_updates_and_presence.sql",
+      "attrs": {
+        "topic": "project:{project_id}:shared",
+        "private": true,
+        "events": [
+          "project_message_created",
+          "project_message_updated",
+          "project_status_changed",
+          "project_task_changed (client-visible tasks)",
+          "project_approval_changed (project-level or shared-deliverable approvals)"
+        ],
+        "authorization": "realtime.messages policies call private.can_subscribe_project_topic(realtime.topic())",
+        "receivePolicy": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:209",
+        "presencePolicy": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:224",
+        "mayJoin": "any project participant (admin, client of the project company, assigned PM)",
+        "presence": "tracked as {userId, name} by components/crm/useProjectLive.js#useProjectLive",
+        "subscribers": [
+          "lib/crm/projectRealtime.js#subscribeProjectTopics",
+          "components/crm/useProjectLive.js#useProjectLive",
+          "components/crm/useProjectThread.js"
+        ]
+      }
+    },
+    {
+      "id": "realtime:project:{id}:internal",
+      "type": "realtime",
+      "label": "project:{id}:internal",
+      "file": "supabase/migrations/0050_realtime_project_updates_and_presence.sql",
+      "attrs": {
+        "topic": "project:{project_id}:internal",
+        "private": true,
+        "events": [
+          "project_message_created",
+          "project_message_updated",
+          "project_status_changed",
+          "project_task_changed",
+          "project_approval_changed"
+        ],
+        "authorization": "realtime.messages policies call private.can_subscribe_project_topic(realtime.topic())",
+        "receivePolicy": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:209",
+        "presencePolicy": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:224",
+        "mayJoin": "staff only (admin, assigned PM)",
+        "presence": "allowed by policy; not used by the client",
+        "subscribers": [
+          "lib/crm/projectRealtime.js#subscribeProjectTopics",
+          "components/crm/useProjectLive.js#useProjectLive",
+          "components/crm/useProjectThread.js"
+        ]
+      }
+    },
+    {
+      "id": "cron:pg_cron.drain-crm-outbox",
+      "type": "cron",
+      "label": "pg_cron drain-crm-outbox",
+      "file": "supabase/migrations/0042_repoint_cron_and_pinned_admin.sql",
+      "attrs": {
+        "schedule": "*/5 * * * *",
+        "defined": "supabase/migrations/0042_repoint_cron_and_pinned_admin.sql:37",
+        "replaces": "supabase/migrations/0025_schedule_notification_drain.sql:50 (retired host www.crystalwebsolution.com)",
+        "url": "https://www.cdsportswearinc.com/api/cron/crm-notifications",
+        "method": "POST via net.http_post",
+        "body": "{}",
+        "headers": {
+          "Content-Type": "application/json",
+          "x-cron-secret": "vault.decrypted_secrets where name = 'crm_cron_secret'"
+        },
+        "vaultSecret": {
+          "name": "crm_cron_secret",
+          "created": "supabase/migrations/0025_schedule_notification_drain.sql:29-42",
+          "mustMatch": "Vercel CRM_CRON_SECRET or CRON_SECRET (manual sync)"
+        },
+        "timeoutMs": 8000,
+        "backstop": "cron:vercel.crm-notifications (vercel.json, 0 13 * * *)",
+        "responses": "net._http_response; nothing in the repo reads it"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "table:auth.users",
+      "to": "fn:public.handle_new_user",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "raw_user_meta_data"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0014b_fix_handle_new_user_coalesce.sql:26",
+      "notes": "reads the NEW row of the auth.users insert (account_type, full_name)"
+    },
+    {
+      "from": "fn:public.handle_new_user",
+      "to": "table:public.profiles",
+      "kind": "inserts",
+      "fields": [
+        "id",
+        "role",
+        "full_name",
+        "requested_staff_access"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0014b_fix_handle_new_user_coalesce.sql:29",
+      "notes": "role is the literal 'client'"
+    },
+    {
+      "from": "table:auth.users",
+      "to": "fn:public.enforce_pinned_admin",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "email"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0014_signup_account_type_and_single_admin.sql:64",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.enforce_pinned_admin",
+      "to": "fn:public.pinned_admin_email",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0014_signup_account_type_and_single_admin.sql:67",
+      "notes": ""
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:public.admin_set_user_role",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "role"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:168",
+      "notes": "SELECT * ... FOR UPDATE of the target row, then count(*) of admins"
+    },
+    {
+      "from": "fn:public.admin_set_user_role",
+      "to": "table:public.profiles",
+      "kind": "updates",
+      "fields": [
+        "role"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:191",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.admin_set_user_role",
+      "to": "fn:public.is_admin",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:158",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.admin_resolve_staff_request",
+      "to": "table:public.profiles",
+      "kind": "updates",
+      "fields": [
+        "role",
+        "requested_staff_access"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0014_signup_account_type_and_single_admin.sql:135",
+      "notes": "role becomes project_manager only when p_approve is true"
+    },
+    {
+      "from": "fn:public.admin_resolve_staff_request",
+      "to": "fn:public.is_admin",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0014_signup_account_type_and_single_admin.sql:124",
+      "notes": ""
+    },
+    {
+      "from": "table:auth.users",
+      "to": "fn:public.current_user_must_set_password",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "encrypted_password"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0039_must_set_password_gate.sql:29",
+      "notes": ""
+    },
+    {
+      "from": "table:auth.users",
+      "to": "fn:public.create_lead_from_contact",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "email"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0029_lead_capture_review_followups.sql:109",
+      "notes": "resolves the pinned admin id by lower(email)"
+    },
+    {
+      "from": "fn:public.create_lead_from_contact",
+      "to": "fn:public.pinned_admin_email",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0029_lead_capture_review_followups.sql:110",
+      "notes": ""
+    },
+    {
+      "from": "table:public.contacts",
+      "to": "fn:public.create_lead_from_contact",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "email"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0029_lead_capture_review_followups.sql:133",
+      "notes": "match by lower(email)"
+    },
+    {
+      "from": "table:public.companies",
+      "to": "fn:public.create_lead_from_contact",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "name",
+        "email"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0029_lead_capture_review_followups.sql:141",
+      "notes": "match by lower(name) when a company was typed, else by email domain (non free-mail); a later lookup reads the attached company name for the deal title and payload"
+    },
+    {
+      "from": "table:public.deals",
+      "to": "fn:public.create_lead_from_contact",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "contact_id",
+        "stage",
+        "created_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0029_lead_capture_review_followups.sql:189",
+      "notes": "newest open deal (stage not closed_won or closed_lost) of the contact"
+    },
+    {
+      "from": "fn:public.create_lead_from_contact",
+      "to": "table:public.companies",
+      "kind": "inserts",
+      "fields": [
+        "name",
+        "email",
+        "created_by"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0029_lead_capture_review_followups.sql:146",
+      "notes": "only for a new contact; named by typed company, else the email domain, else the person"
+    },
+    {
+      "from": "fn:public.create_lead_from_contact",
+      "to": "table:public.contacts",
+      "kind": "inserts",
+      "fields": [
+        "company_id",
+        "first_name",
+        "last_name",
+        "email",
+        "created_by"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0029_lead_capture_review_followups.sql:170",
+      "notes": "only when no contact has this email"
+    },
+    {
+      "from": "fn:public.create_lead_from_contact",
+      "to": "table:public.notes",
+      "kind": "inserts",
+      "fields": [
+        "company_id",
+        "contact_id",
+        "deal_id",
+        "content",
+        "created_by",
+        "visibility"
+      ],
+      "via": "definer",
+      "when": "an open deal exists",
+      "source": "supabase/migrations/0029_lead_capture_review_followups.sql:202",
+      "notes": "visibility = 'internal'; content = New website inquiry ({source}): {budget, then brief}"
+    },
+    {
+      "from": "fn:public.create_lead_from_contact",
+      "to": "table:public.deals",
+      "kind": "inserts",
+      "fields": [
+        "company_id",
+        "contact_id",
+        "title",
+        "description",
+        "owner_id",
+        "stage"
+      ],
+      "via": "definer",
+      "when": "no open deal exists",
+      "source": "supabase/migrations/0029_lead_capture_review_followups.sql:215",
+      "notes": "stage = prospecting; title = Website inquiry - <company or name>; owner_id = pinned admin"
+    },
+    {
+      "from": "fn:public.create_lead_from_contact",
+      "to": "table:public.notifications_outbox",
+      "kind": "enqueues",
+      "fields": [
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0029_lead_capture_review_followups.sql:225",
+      "notes": "event_type = lead.created; channel = email; user_id = pinned admin; project_id = null; payload = {lead_name, lead_email, lead_company, deal_id, note_appended}"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:public.onboard_client_company",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "role",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:299",
+      "notes": "SELECT * ... FOR UPDATE of the caller row"
+    },
+    {
+      "from": "table:auth.users",
+      "to": "fn:public.onboard_client_company",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "email"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:321",
+      "notes": "company, contact and notification email all come from the auth account email, not from input"
+    },
+    {
+      "from": "fn:public.onboard_client_company",
+      "to": "table:public.companies",
+      "kind": "inserts",
+      "fields": [
+        "name",
+        "email",
+        "phone",
+        "created_by"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:328",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.onboard_client_company",
+      "to": "table:public.contacts",
+      "kind": "inserts",
+      "fields": [
+        "company_id",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "status",
+        "created_by"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:332",
+      "notes": "status = 'client'; last_name = ''"
+    },
+    {
+      "from": "fn:public.onboard_client_company",
+      "to": "table:public.company_members",
+      "kind": "inserts",
+      "fields": [
+        "company_id",
+        "user_id",
+        "role"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:351",
+      "notes": "role = 'owner'"
+    },
+    {
+      "from": "fn:public.onboard_client_company",
+      "to": "table:public.profiles",
+      "kind": "updates",
+      "fields": [
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:354",
+      "notes": "allowed past the profile guard because the definer owner runs it"
+    },
+    {
+      "from": "fn:public.onboard_client_company",
+      "to": "table:public.notifications_outbox",
+      "kind": "enqueues",
+      "fields": [
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:360",
+      "notes": "event_type = client.onboarded; channel = email; user_id = every profile with role admin; project_id = null; payload = {company_id, company_name, contact_name, client_email, phone}"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:public.create_project",
+      "kind": "reads",
+      "fields": [
+        "role",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0031_idempotent_client_project_intake.sql:46",
+      "notes": ""
+    },
+    {
+      "from": "table:public.companies",
+      "to": "fn:public.create_project",
+      "kind": "reads",
+      "fields": [
+        "id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0031_idempotent_client_project_intake.sql:83",
+      "notes": ""
+    },
+    {
+      "from": "table:public.deals",
+      "to": "fn:public.create_project",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0031_idempotent_client_project_intake.sql:91",
+      "notes": ""
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:public.create_project",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "created_by",
+        "client_generated_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0031_idempotent_client_project_intake.sql:101",
+      "notes": "idempotency lookup, FOR UPDATE"
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "fn:public.create_project",
+      "kind": "reads",
+      "fields": [
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0031_idempotent_client_project_intake.sql:149",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.create_project",
+      "to": "table:public.projects",
+      "kind": "inserts",
+      "fields": [
+        "company_id",
+        "source_deal_id",
+        "category",
+        "title",
+        "brief",
+        "target_date",
+        "created_by",
+        "client_generated_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0031_idempotent_client_project_intake.sql:111",
+      "notes": "status takes its default brief_submitted"
+    },
+    {
+      "from": "fn:public.create_project",
+      "to": "table:public.project_threads",
+      "kind": "inserts",
+      "fields": [
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0031_idempotent_client_project_intake.sql:155",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.create_project",
+      "to": "table:public.project_status_history",
+      "kind": "inserts",
+      "fields": [
+        "project_id",
+        "from_status",
+        "to_status",
+        "visibility",
+        "changed_by"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0031_idempotent_client_project_intake.sql:158",
+      "notes": "from_status null, to_status brief_submitted, visibility shared"
+    },
+    {
+      "from": "fn:public.create_project",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "company_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0031_idempotent_client_project_intake.sql:173",
+      "notes": "event_type = project.created"
+    },
+    {
+      "from": "fn:public.assign_project_user",
+      "to": "fn:private.current_profile_role",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:629",
+      "notes": ""
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:public.assign_project_user",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:635",
+      "notes": ""
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:public.assign_project_user",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "role"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:644",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.assign_project_user",
+      "to": "table:public.project_assignments",
+      "kind": "upserts",
+      "fields": [
+        "project_id",
+        "user_id",
+        "assigned_by"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:652",
+      "notes": "ON CONFLICT (project_id, user_id) DO UPDATE SET assigned_by"
+    },
+    {
+      "from": "fn:public.assign_project_user",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "company_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:666",
+      "notes": "event_type = project.user_assigned"
+    },
+    {
+      "from": "fn:public.assign_project_user",
+      "to": "table:public.notifications_outbox",
+      "kind": "enqueues",
+      "fields": [
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:684",
+      "notes": "event_type = project.user_assigned; channels in_app + email; user_id = the assignee; payload = {role}"
+    },
+    {
+      "from": "fn:public.remove_project_assignment",
+      "to": "fn:private.current_profile_role",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:679",
+      "notes": ""
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:public.remove_project_assignment",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:685",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.remove_project_assignment",
+      "to": "table:public.project_assignments",
+      "kind": "deletes",
+      "fields": [
+        "project_id",
+        "user_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:692",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.remove_project_assignment",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "company_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:701",
+      "notes": "event_type = project.assignment_removed"
+    },
+    {
+      "from": "fn:public.transition_project_status",
+      "to": "fn:private.can_view_internal",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0030_transition_status_visibility_recipients.sql:65",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.transition_project_status",
+      "to": "fn:private.project_notification_recipients",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0030_transition_status_visibility_recipients.sql:144",
+      "notes": ""
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:public.transition_project_status",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "status",
+        "company_id",
+        "title"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0030_transition_status_visibility_recipients.sql:57",
+      "notes": "SELECT * ... FOR UPDATE"
+    },
+    {
+      "from": "fn:public.transition_project_status",
+      "to": "table:public.projects",
+      "kind": "updates",
+      "fields": [
+        "status",
+        "updated_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0030_transition_status_visibility_recipients.sql:94",
+      "notes": "fires trigger broadcast_project_status_changed (0050:191)"
+    },
+    {
+      "from": "fn:public.transition_project_status",
+      "to": "table:public.project_status_history",
+      "kind": "inserts",
+      "fields": [
+        "project_id",
+        "from_status",
+        "to_status",
+        "note",
+        "visibility",
+        "changed_by"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0030_transition_status_visibility_recipients.sql:99",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.transition_project_status",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "company_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0030_transition_status_visibility_recipients.sql:117",
+      "notes": "event_type = project.status_transitioned"
+    },
+    {
+      "from": "fn:public.transition_project_status",
+      "to": "table:public.notifications_outbox",
+      "kind": "enqueues",
+      "fields": [
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0030_transition_status_visibility_recipients.sql:137",
+      "notes": "event_type = project.status_transitioned; channels in_app + email; recipients = private.project_notification_recipients(project, actor, p_visibility); payload = {from_status, to_status}. When the new status is delivered a second insert (0030:148) queues event_type = project.delivered; channel email; user_id = every profile whose company_id equals the project company; payload = {project_name}"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:public.transition_project_status",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "p_to_status = delivered",
+      "source": "supabase/migrations/0030_transition_status_visibility_recipients.sql:155",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.post_project_note",
+      "to": "fn:private.can_access_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0013_project_notes_and_deliverables.sql:75",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.post_project_note",
+      "to": "fn:private.can_view_internal",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0013_project_notes_and_deliverables.sql:81",
+      "notes": ""
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:public.post_project_note",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "status",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0013_project_notes_and_deliverables.sql:91",
+      "notes": "FOR UPDATE"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "fn:public.post_project_note",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0013_project_notes_and_deliverables.sql:145",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.post_project_note",
+      "to": "table:public.project_status_history",
+      "kind": "inserts",
+      "fields": [
+        "project_id",
+        "from_status",
+        "to_status",
+        "note",
+        "visibility",
+        "changed_by"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0013_project_notes_and_deliverables.sql:99",
+      "notes": "from_status = to_status = current status"
+    },
+    {
+      "from": "fn:public.post_project_note",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "company_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0013_project_notes_and_deliverables.sql:117",
+      "notes": "event_type = project.note_posted"
+    },
+    {
+      "from": "fn:public.post_project_note",
+      "to": "table:public.notifications_outbox",
+      "kind": "enqueues",
+      "fields": [
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0013_project_notes_and_deliverables.sql:132",
+      "notes": "event_type = project.note_posted; channel in_app only; recipients = every project_assignments row except the caller (no client, no admin fallback); payload = {history_id}"
+    },
+    {
+      "from": "fn:public.create_project_task",
+      "to": "fn:private.can_view_internal",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:61",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.create_project_task",
+      "to": "table:public.project_tasks",
+      "kind": "inserts",
+      "fields": [
+        "project_id",
+        "title",
+        "description",
+        "status",
+        "assignee_id",
+        "created_by",
+        "due_date",
+        "priority",
+        "client_visible"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:81",
+      "notes": "fires trigger broadcast_project_task_changed (0050:196)"
+    },
+    {
+      "from": "fn:public.create_project_task",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:105",
+      "notes": "event_type = project.task_created"
+    },
+    {
+      "from": "fn:public.update_project_task",
+      "to": "fn:private.can_access_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0012_project_task_update_fixes.sql:42",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_tasks",
+      "to": "fn:public.update_project_task",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "description",
+        "status",
+        "assignee_id",
+        "due_date"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0012_project_task_update_fixes.sql:34",
+      "notes": "SELECT * ... FOR UPDATE"
+    },
+    {
+      "from": "fn:public.update_project_task",
+      "to": "table:public.project_tasks",
+      "kind": "updates",
+      "fields": [
+        "title",
+        "description",
+        "status",
+        "assignee_id",
+        "due_date",
+        "updated_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0012_project_task_update_fixes.sql:85",
+      "notes": "fires trigger broadcast_project_task_changed (0050:196)"
+    },
+    {
+      "from": "fn:public.update_project_task",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0012_project_task_update_fixes.sql:95",
+      "notes": "event_type = project.task_updated"
+    },
+    {
+      "from": "fn:public.create_project_approval",
+      "to": "fn:private.can_access_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0010_project_workspace.sql:374",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_deliverables",
+      "to": "fn:public.create_project_approval",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0010_project_workspace.sql:385",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.create_project_approval",
+      "to": "table:public.project_approvals",
+      "kind": "inserts",
+      "fields": [
+        "project_id",
+        "deliverable_id",
+        "requested_by",
+        "note"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0010_project_workspace.sql:392",
+      "notes": "fires trigger broadcast_project_approval_changed (0050:201); note is stored as btrim(coalesce(note, '')), so null becomes an empty string"
+    },
+    {
+      "from": "fn:public.create_project_approval",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0010_project_workspace.sql:406",
+      "notes": "event_type = project.approval_requested"
+    },
+    {
+      "from": "fn:public.update_project_approval",
+      "to": "fn:private.can_view_internal",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:474",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.update_project_approval",
+      "to": "fn:private.project_notification_recipients",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:516",
+      "notes": "called with the default visibility shared"
+    },
+    {
+      "from": "table:public.project_approvals",
+      "to": "fn:public.update_project_approval",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "status",
+        "note"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:466",
+      "notes": "SELECT * ... FOR UPDATE"
+    },
+    {
+      "from": "fn:public.update_project_approval",
+      "to": "table:public.project_approvals",
+      "kind": "updates",
+      "fields": [
+        "status",
+        "reviewed_by",
+        "note",
+        "updated_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:488",
+      "notes": "fires trigger broadcast_project_approval_changed (0050:201); the reviewer note overwrites the requester note"
+    },
+    {
+      "from": "fn:public.update_project_approval",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:496",
+      "notes": "event_type = project.approval_updated"
+    },
+    {
+      "from": "fn:public.update_project_approval",
+      "to": "table:public.notifications_outbox",
+      "kind": "enqueues",
+      "fields": [
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:509",
+      "notes": "event_type = project.approval_updated; channels in_app + email; recipients = project_notification_recipients(project, actor) with the default shared visibility; payload = {approval_id, status, note = the requester note read before the update}"
+    },
+    {
+      "from": "fn:public.create_project_deliverable",
+      "to": "fn:private.can_view_internal",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:155",
+      "notes": ""
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:public.create_project_deliverable",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:196",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.create_project_deliverable",
+      "to": "table:public.project_deliverables",
+      "kind": "inserts",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "description",
+        "file_name",
+        "storage_path",
+        "mime_type",
+        "size_bytes",
+        "status",
+        "visibility",
+        "version",
+        "created_by"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:199",
+      "notes": "status = 'draft'"
+    },
+    {
+      "from": "fn:public.create_project_deliverable",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "company_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:229",
+      "notes": "event_type = project.deliverable_created"
+    },
+    {
+      "from": "fn:public.publish_project_deliverable",
+      "to": "fn:private.can_view_internal",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:288",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.publish_project_deliverable",
+      "to": "fn:private.project_notification_recipients",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:327",
+      "notes": "called with the deliverable's own visibility"
+    },
+    {
+      "from": "table:public.project_deliverables",
+      "to": "fn:public.publish_project_deliverable",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "title",
+        "version",
+        "visibility",
+        "created_by",
+        "status"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:277",
+      "notes": "SELECT * ... FOR UPDATE"
+    },
+    {
+      "from": "fn:public.publish_project_deliverable",
+      "to": "table:public.project_deliverables",
+      "kind": "updates",
+      "fields": [
+        "status"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:298",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.publish_project_deliverable",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:302",
+      "notes": "event_type = project.deliverable_published"
+    },
+    {
+      "from": "fn:public.publish_project_deliverable",
+      "to": "table:public.notifications_outbox",
+      "kind": "enqueues",
+      "fields": [
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0047_staff_only_task_and_deliverable_rpcs.sql:315",
+      "notes": "event_type = project.deliverable_published; channels in_app + email; recipients = project_notification_recipients(project, actor, deliverable visibility); payload = {deliverable_id, status, deliverable_name, version}"
+    },
+    {
+      "from": "fn:public.project_manager_names",
+      "to": "fn:private.can_access_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0049_project_manager_names.sql:36",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "fn:public.project_manager_names",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id",
+        "created_at",
+        "id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0049_project_manager_names.sql:32",
+      "notes": ""
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:public.project_manager_names",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name",
+        "role"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0049_project_manager_names.sql:33",
+      "notes": "only role = 'project_manager'"
+    },
+    {
+      "from": "fn:public.reserve_project_attachment",
+      "to": "fn:private.can_access_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:851",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.reserve_project_attachment",
+      "to": "fn:private.can_view_internal",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:857",
+      "notes": ""
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:public.reserve_project_attachment",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:888",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.reserve_project_attachment",
+      "to": "table:public.project_attachments",
+      "kind": "inserts",
+      "fields": [
+        "id",
+        "project_id",
+        "uploaded_by",
+        "visibility",
+        "file_name",
+        "storage_path",
+        "mime_type",
+        "size_bytes",
+        "status"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:891",
+      "notes": "status = 'pending'"
+    },
+    {
+      "from": "fn:public.reserve_project_attachment",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "company_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:915",
+      "notes": "event_type = project.attachment_reserved"
+    },
+    {
+      "from": "fn:public.finalize_project_attachment",
+      "to": "fn:private.can_access_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1095",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_attachments",
+      "to": "fn:public.finalize_project_attachment",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "uploaded_by",
+        "status",
+        "storage_path"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1085",
+      "notes": "SELECT * ... FOR UPDATE"
+    },
+    {
+      "from": "table:storage.objects",
+      "to": "fn:public.finalize_project_attachment",
+      "kind": "reads",
+      "fields": [
+        "bucket_id",
+        "name",
+        "owner_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1102",
+      "notes": "bucket_id = 'project-files' and owner_id = the caller"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:public.finalize_project_attachment",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1116",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.finalize_project_attachment",
+      "to": "table:public.project_attachments",
+      "kind": "updates",
+      "fields": [
+        "status"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1110",
+      "notes": "status = 'ready'"
+    },
+    {
+      "from": "fn:public.finalize_project_attachment",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "company_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1119",
+      "notes": "event_type = project.attachment_finalized"
+    },
+    {
+      "from": "fn:public.post_project_message",
+      "to": "fn:private.can_access_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:79",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.post_project_message",
+      "to": "fn:private.can_view_internal",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:85",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.post_project_message",
+      "to": "fn:private.project_notification_recipients",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:207",
+      "notes": "called with p_visibility"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:public.post_project_message",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:107",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "fn:public.post_project_message",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:108",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_messages",
+      "to": "fn:public.post_project_message",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "sender_id",
+        "client_generated_id",
+        "thread_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:135",
+      "notes": "retry lookup after a conflict"
+    },
+    {
+      "from": "table:public.project_attachments",
+      "to": "fn:public.post_project_message",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "status",
+        "uploaded_by",
+        "project_id",
+        "message_id",
+        "visibility"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:149",
+      "notes": "FOR UPDATE; validation count"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:public.post_project_message",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:195",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.post_project_message",
+      "to": "table:public.project_messages",
+      "kind": "inserts",
+      "fields": [
+        "thread_id",
+        "sender_id",
+        "visibility",
+        "body",
+        "client_generated_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:115",
+      "notes": "fires trigger broadcast_project_message_created (0009:1251)"
+    },
+    {
+      "from": "fn:public.post_project_message",
+      "to": "table:public.project_attachments",
+      "kind": "updates",
+      "fields": [
+        "message_id"
+      ],
+      "via": "definer",
+      "when": "p_attachment_ids is not empty",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:171",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.post_project_message",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "company_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:176",
+      "notes": "event_type = project.message_posted"
+    },
+    {
+      "from": "fn:public.post_project_message",
+      "to": "table:public.notifications_outbox",
+      "kind": "enqueues",
+      "fields": [
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:197",
+      "notes": "event_type = project.message_posted; channels in_app + email; recipients = project_notification_recipients(project, author, p_visibility); payload = {author_name, excerpt = first 200 chars of the body}"
+    },
+    {
+      "from": "fn:public.update_project_message",
+      "to": "fn:private.can_access_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0023_visibility_aware_notification_recipients.sql:260",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.update_project_message",
+      "to": "fn:private.project_notification_recipients",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0023_visibility_aware_notification_recipients.sql:295",
+      "notes": "called with the message's own visibility"
+    },
+    {
+      "from": "table:public.project_messages",
+      "to": "fn:public.update_project_message",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "sender_id",
+        "thread_id",
+        "visibility"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0023_visibility_aware_notification_recipients.sql:237",
+      "notes": "SELECT ... FOR UPDATE"
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "fn:public.update_project_message",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0023_visibility_aware_notification_recipients.sql:251",
+      "notes": ""
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:public.update_project_message",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "full_name"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0023_visibility_aware_notification_recipients.sql:283",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.update_project_message",
+      "to": "table:public.project_messages",
+      "kind": "updates",
+      "fields": [
+        "body",
+        "edited_at",
+        "edited_by"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0023_visibility_aware_notification_recipients.sql:264",
+      "notes": "fires trigger broadcast_project_message_updated (0032:49)"
+    },
+    {
+      "from": "fn:public.update_project_message",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0023_visibility_aware_notification_recipients.sql:270",
+      "notes": "event_type = project.message_edited"
+    },
+    {
+      "from": "fn:public.update_project_message",
+      "to": "table:public.notifications_outbox",
+      "kind": "enqueues",
+      "fields": [
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0023_visibility_aware_notification_recipients.sql:285",
+      "notes": "event_type = project.message_edited; channels in_app + email; recipients = project_notification_recipients(project, author, message visibility); payload = {author_name, excerpt}"
+    },
+    {
+      "from": "fn:public.submit_project_brief",
+      "to": "fn:public.create_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:174",
+      "notes": "brief id passed as p_client_generated_id; category map: logo to logo_creation, website to web_design, seo and ppc to marketing"
+    },
+    {
+      "from": "fn:public.submit_project_brief",
+      "to": "fn:private.can_access_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:191",
+      "notes": ""
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:public.submit_project_brief",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "role",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:116",
+      "notes": "caller role and company; second read (admin ids) for the studio alert"
+    },
+    {
+      "from": "table:public.project_briefs",
+      "to": "fn:public.submit_project_brief",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "created_by",
+        "company_id",
+        "status",
+        "answers",
+        "brief_type",
+        "title",
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:125",
+      "notes": "SELECT ... FOR UPDATE"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:public.submit_project_brief",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "status",
+        "company_id",
+        "created_by",
+        "client_generated_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:167",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "fn:public.submit_project_brief",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:244",
+      "notes": "assigned staff for the studio alert"
+    },
+    {
+      "from": "fn:public.submit_project_brief",
+      "to": "table:public.project_briefs",
+      "kind": "updates",
+      "fields": [
+        "status",
+        "submitted_at",
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:200",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.submit_project_brief",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "company_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:206",
+      "notes": "event_type = project.brief_submitted"
+    },
+    {
+      "from": "fn:public.submit_project_brief",
+      "to": "table:public.notifications_outbox",
+      "kind": "enqueues",
+      "fields": [
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:226",
+      "notes": "event_type = project.brief_submitted; channels in_app + email; recipients = every admin profile plus staff assigned to the project, excluding the submitter; payload = {brief_id, brief_type, brief_title, created_project}. A second insert (0046:252) queues event_type = project.brief_received; channels in_app + email; user_id = the submitter; same payload"
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "fn:private.project_notification_recipients",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:59",
+      "notes": "every row, whatever the user current role is"
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:private.project_notification_recipients",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:64",
+      "notes": ""
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:private.project_notification_recipients",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id",
+        "role"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:65",
+      "notes": "company branch (every profile with the project company_id) and the admin fallback"
+    },
+    {
+      "from": "fn:public.enqueue_project_notification",
+      "to": "fn:private.can_view_internal",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:437",
+      "notes": ""
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:public.enqueue_project_notification",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "role",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:452",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "fn:public.enqueue_project_notification",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:461",
+      "notes": ""
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:public.enqueue_project_notification",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:466",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.enqueue_project_notification",
+      "to": "table:public.notifications_outbox",
+      "kind": "enqueues",
+      "fields": [
+        "project_id",
+        "user_id",
+        "channel",
+        "event_type",
+        "payload"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:479",
+      "notes": "event_type = the caller text (any value); channel = the caller channel; user_id may be null; payload = caller jsonb, unbounded"
+    },
+    {
+      "from": "fn:public.enqueue_project_notification",
+      "to": "table:public.audit_events",
+      "kind": "inserts",
+      "fields": [
+        "actor_id",
+        "project_id",
+        "event_type",
+        "metadata"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0046_client_notifications_and_hardening.sql:495",
+      "notes": "event_type = project.notification_enqueued"
+    },
+    {
+      "from": "fn:public.mark_notifications_read",
+      "to": "table:public.notifications_outbox",
+      "kind": "updates",
+      "fields": [
+        "read_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0027_security_and_notification_hardening.sql:56",
+      "notes": ""
+    },
+    {
+      "from": "table:public.notifications_outbox",
+      "to": "fn:public.claim_notification_email_batch",
+      "kind": "drains",
+      "fields": [
+        "channel",
+        "status",
+        "available_at",
+        "attempts",
+        "lease_id",
+        "lease_expires_at",
+        "created_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0033_notification_claim_leases.sql:93",
+      "notes": "email rows only"
+    },
+    {
+      "from": "fn:public.claim_notification_email_batch",
+      "to": "table:public.notifications_outbox",
+      "kind": "updates",
+      "fields": [
+        "lease_id",
+        "lease_acquired_at",
+        "lease_expires_at",
+        "last_attempt_at",
+        "failure_code",
+        "failed_at",
+        "last_error",
+        "attempts"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0033_notification_claim_leases.sql:106",
+      "notes": "attempts = attempts + 1; failure fields cleared"
+    },
+    {
+      "from": "fn:public.mark_notification_email_sent",
+      "to": "table:public.notifications_outbox",
+      "kind": "updates",
+      "fields": [
+        "status",
+        "sent_at",
+        "last_error",
+        "failure_code",
+        "failed_at",
+        "lease_id",
+        "lease_acquired_at",
+        "lease_expires_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0045_fix_outbox_mark_coalesce.sql:47",
+      "notes": "status = 'sent'; lease cleared"
+    },
+    {
+      "from": "fn:public.mark_notification_email_failed",
+      "to": "table:public.notifications_outbox",
+      "kind": "updates",
+      "fields": [
+        "status",
+        "available_at",
+        "last_error",
+        "failure_code",
+        "failed_at",
+        "lease_id",
+        "lease_acquired_at",
+        "lease_expires_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0045_fix_outbox_mark_coalesce.sql:95",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_attachments",
+      "to": "fn:public.cleanup_stale_project_attachments",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "storage_path",
+        "status",
+        "message_id",
+        "created_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0038_cron_attachment_cleanup_storage_api.sql:30",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.cleanup_stale_project_attachments",
+      "to": "table:public.project_attachments",
+      "kind": "deletes",
+      "fields": [
+        "id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0038_cron_attachment_cleanup_storage_api.sql:36",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_attachments",
+      "to": "fn:public.claim_attachment_cleanup",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id",
+        "storage_path",
+        "status",
+        "message_id",
+        "created_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0048_durable_attachment_cleanup.sql:72",
+      "notes": "status = 'pending', message_id null, created_at < p_before; FOR UPDATE SKIP LOCKED"
+    },
+    {
+      "from": "fn:public.claim_attachment_cleanup",
+      "to": "table:public.project_attachment_cleanup",
+      "kind": "enqueues",
+      "fields": [
+        "storage_path",
+        "attachment_id",
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0048_durable_attachment_cleanup.sql:78",
+      "notes": "ON CONFLICT ON CONSTRAINT project_attachment_cleanup_pkey DO NOTHING"
+    },
+    {
+      "from": "fn:public.claim_attachment_cleanup",
+      "to": "table:public.project_attachments",
+      "kind": "deletes",
+      "fields": [
+        "id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0048_durable_attachment_cleanup.sql:84",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_attachment_cleanup",
+      "to": "fn:public.claim_attachment_cleanup",
+      "kind": "drains",
+      "fields": [
+        "storage_path",
+        "attempts",
+        "next_attempt_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0048_durable_attachment_cleanup.sql:94",
+      "notes": "due entries, ordered by next_attempt_at"
+    },
+    {
+      "from": "fn:public.claim_attachment_cleanup",
+      "to": "table:public.project_attachment_cleanup",
+      "kind": "updates",
+      "fields": [
+        "next_attempt_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0048_durable_attachment_cleanup.sql:100",
+      "notes": "lease: next_attempt_at = now() + p_lease_seconds"
+    },
+    {
+      "from": "fn:public.complete_attachment_cleanup",
+      "to": "table:public.project_attachment_cleanup",
+      "kind": "deletes",
+      "fields": [
+        "storage_path"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0048_durable_attachment_cleanup.sql:115",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.fail_attachment_cleanup",
+      "to": "table:public.project_attachment_cleanup",
+      "kind": "updates",
+      "fields": [
+        "attempts",
+        "last_attempt_at",
+        "last_error",
+        "next_attempt_at"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0048_durable_attachment_cleanup.sql:129",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "fn:private.broadcast_project_message",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1230",
+      "notes": ""
+    },
+    {
+      "from": "fn:private.broadcast_project_message",
+      "to": "realtime:project:{id}:shared",
+      "kind": "broadcasts",
+      "fields": [
+        "message_id",
+        "project_id",
+        "visibility",
+        "created_at"
+      ],
+      "via": "definer",
+      "when": "new.visibility = 'shared'",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1233",
+      "notes": "event project_message_created"
+    },
+    {
+      "from": "fn:private.broadcast_project_message",
+      "to": "realtime:project:{id}:internal",
+      "kind": "broadcasts",
+      "fields": [
+        "message_id",
+        "project_id",
+        "visibility",
+        "created_at"
+      ],
+      "via": "definer",
+      "when": "new.visibility = 'internal'",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:1233",
+      "notes": "event project_message_created"
+    },
+    {
+      "from": "table:public.project_threads",
+      "to": "fn:private.broadcast_project_message_updated",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:23",
+      "notes": ""
+    },
+    {
+      "from": "fn:private.broadcast_project_message_updated",
+      "to": "realtime:project:{id}:shared",
+      "kind": "broadcasts",
+      "fields": [
+        "message_id",
+        "project_id",
+        "visibility",
+        "edited_at"
+      ],
+      "via": "definer",
+      "when": "new.visibility = 'shared'",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:30",
+      "notes": "event project_message_updated"
+    },
+    {
+      "from": "fn:private.broadcast_project_message_updated",
+      "to": "realtime:project:{id}:internal",
+      "kind": "broadcasts",
+      "fields": [
+        "message_id",
+        "project_id",
+        "visibility",
+        "edited_at"
+      ],
+      "via": "definer",
+      "when": "new.visibility = 'internal'",
+      "source": "supabase/migrations/0032_project_asset_lifecycle_hardening.sql:30",
+      "notes": "event project_message_updated"
+    },
+    {
+      "from": "fn:private.broadcast_project_status_change",
+      "to": "realtime:project:{id}:shared",
+      "kind": "broadcasts",
+      "fields": [
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:40",
+      "notes": "event project_status_changed"
+    },
+    {
+      "from": "fn:private.broadcast_project_status_change",
+      "to": "realtime:project:{id}:internal",
+      "kind": "broadcasts",
+      "fields": [
+        "project_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:46",
+      "notes": "event project_status_changed"
+    },
+    {
+      "from": "fn:private.broadcast_project_task_change",
+      "to": "realtime:project:{id}:internal",
+      "kind": "broadcasts",
+      "fields": [
+        "project_id",
+        "task_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:82",
+      "notes": "event project_task_changed; always"
+    },
+    {
+      "from": "fn:private.broadcast_project_task_change",
+      "to": "realtime:project:{id}:shared",
+      "kind": "broadcasts",
+      "fields": [
+        "project_id",
+        "task_id"
+      ],
+      "via": "definer",
+      "when": "the task is or was client_visible",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:90",
+      "notes": "event project_task_changed"
+    },
+    {
+      "from": "table:public.project_deliverables",
+      "to": "fn:private.broadcast_project_approval_change",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "visibility"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:121",
+      "notes": ""
+    },
+    {
+      "from": "fn:private.broadcast_project_approval_change",
+      "to": "realtime:project:{id}:internal",
+      "kind": "broadcasts",
+      "fields": [
+        "project_id",
+        "approval_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:139",
+      "notes": "event project_approval_changed; always"
+    },
+    {
+      "from": "fn:private.broadcast_project_approval_change",
+      "to": "realtime:project:{id}:shared",
+      "kind": "broadcasts",
+      "fields": [
+        "project_id",
+        "approval_id"
+      ],
+      "via": "definer",
+      "when": "the approval is or was client-visible",
+      "source": "supabase/migrations/0050_realtime_project_updates_and_presence.sql:146",
+      "notes": "event project_approval_changed"
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:private.current_profile_role",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "role"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:265",
+      "notes": ""
+    },
+    {
+      "from": "fn:private.can_access_project",
+      "to": "fn:private.current_profile_role",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:276",
+      "notes": ""
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:private.can_access_project",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:280",
+      "notes": ""
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:private.can_access_project",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:281",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "fn:private.can_access_project",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:288",
+      "notes": ""
+    },
+    {
+      "from": "fn:private.can_view_internal",
+      "to": "fn:private.current_profile_role",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:303",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "fn:private.can_view_internal",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:308",
+      "notes": ""
+    },
+    {
+      "from": "fn:private.can_subscribe_project_topic",
+      "to": "fn:private.can_access_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:335",
+      "notes": ""
+    },
+    {
+      "from": "fn:private.can_subscribe_project_topic",
+      "to": "fn:private.can_view_internal",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0009_project_realtime_crm.sql:336",
+      "notes": ""
+    },
+    {
+      "from": "fn:private.shares_project_with",
+      "to": "fn:private.can_access_project",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0018_profiles_shared_project_visibility.sql:43",
+      "notes": ""
+    },
+    {
+      "from": "table:public.projects",
+      "to": "fn:private.shares_project_with",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0018_profiles_shared_project_visibility.sql:42",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_assignments",
+      "to": "fn:private.shares_project_with",
+      "kind": "reads",
+      "fields": [
+        "project_id",
+        "user_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0018_profiles_shared_project_visibility.sql:47",
+      "notes": ""
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:private.shares_project_with",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0018_profiles_shared_project_visibility.sql:53",
+      "notes": ""
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:private.current_profile_company_id",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0043_project_briefs.sql:33",
+      "notes": ""
+    },
+    {
+      "from": "table:public.profiles",
+      "to": "fn:public.current_profile_role",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "role"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:43",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.is_admin",
+      "to": "fn:public.current_profile_role",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:54",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.is_pm",
+      "to": "fn:public.current_profile_role",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:64",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.is_staff",
+      "to": "fn:public.current_profile_role",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:74",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.is_company_member",
+      "to": "fn:public.current_profile_role",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:84",
+      "notes": ""
+    },
+    {
+      "from": "table:public.company_members",
+      "to": "fn:public.is_company_member",
+      "kind": "reads",
+      "fields": [
+        "company_id",
+        "user_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:87",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.can_access_deal",
+      "to": "fn:public.is_admin",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:100",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.can_access_deal",
+      "to": "fn:public.is_pm",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:106",
+      "notes": ""
+    },
+    {
+      "from": "fn:public.can_access_deal",
+      "to": "fn:public.is_company_member",
+      "kind": "calls",
+      "fields": [],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:107",
+      "notes": ""
+    },
+    {
+      "from": "table:public.deals",
+      "to": "fn:public.can_access_deal",
+      "kind": "reads",
+      "fields": [
+        "id",
+        "owner_id",
+        "company_id"
+      ],
+      "via": "definer",
+      "when": "",
+      "source": "supabase/migrations/0008_auth_rbac_repair.sql:103",
+      "notes": ""
+    },
+    {
+      "from": "table:public.project_messages",
+      "to": "realtime:publication.project_messages",
+      "kind": "broadcasts",
+      "fields": [],
+      "via": "",
+      "when": "",
+      "source": "supabase/migrations/0015_project_notifications_and_message_editing.sql:700",
+      "notes": "alter publication supabase_realtime add table; postgres_changes rows (full row, RLS-filtered); no consumer found"
+    },
+    {
+      "from": "cron:pg_cron.drain-crm-outbox",
+      "to": "route:POST /api/cron/crm-notifications",
+      "kind": "calls",
+      "fields": [
+        "x-cron-secret",
+        "Content-Type"
+      ],
+      "via": "service_role",
+      "when": "every 5 minutes",
+      "source": "supabase/migrations/0042_repoint_cron_and_pinned_admin.sql:37",
+      "notes": "pg_net HTTP POST, 8 s timeout; the job runs in the database (not as service_role): the HTTP call is authenticated only by the shared secret header; the route then uses the service-role client"
+    }
+  ]
+}

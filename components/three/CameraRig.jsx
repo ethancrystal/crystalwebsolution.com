@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useLayoutEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { scrollState } from '../../lib/scrollState';
@@ -28,14 +28,36 @@ const MOTION_INDEX = BEAT_IDS.indexOf('motion');
 export default function CameraRig() {
   const fov = useRef(FOV_BASE);
 
+  // curLook is a module-level pre-allocated vector, so it outlives this
+  // component. The Canvas (and its camera) is rebuilt on every return to '/',
+  // so start the look target from the same origin a first visit does instead
+  // of from wherever the previous visit left it. A layout effect lands before
+  // the first frame; no allocation, the vector is reused.
+  useLayoutEffect(() => {
+    curLook.set(0, 0, 0);
+  }, []);
+
   useEffect(() => {
     const onMove = (e) => {
       pointerState.x = (e.clientX / window.innerWidth) * 2 - 1;
       pointerState.y = (e.clientY / window.innerHeight) * 2 - 1;
     };
+    // A finger or pen has no hover, so its last pointermove is the last
+    // position ever written: without this the camera would keep that offset
+    // after lift-off (or after the browser takes the drag over for scrolling,
+    // which arrives as pointercancel). A mouse keeps its cursor position.
+    const onRelease = (e) => {
+      if (e.pointerType === 'mouse') return;
+      pointerState.x = 0;
+      pointerState.y = 0;
+    };
     window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onRelease);
+    window.addEventListener('pointercancel', onRelease);
     return () => {
       window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onRelease);
+      window.removeEventListener('pointercancel', onRelease);
       pointerState.x = 0;
       pointerState.y = 0;
     };
@@ -71,10 +93,12 @@ export default function CameraRig() {
 
     // The Motion stage uses a locked camera; its depth comes
     // entirely from the cards' elliptical path. Other beats keep the site's
-    // established pointer parallax.
+    // established pointer parallax, scaled by motionScale so a
+    // reduced-motion visitor gets a static camera offset (0) instead of a
+    // camera that follows the cursor. Read live, like the roll and FOV below.
     if (!motionLocked) {
-      tmpPos.x += pointerState.x * 0.55;
-      tmpPos.y += -pointerState.y * 0.35;
+      tmpPos.x += pointerState.x * 0.55 * motionScale.value;
+      tmpPos.y += -pointerState.y * 0.35 * motionScale.value;
     }
 
     // Frame-rate-independent damping toward the goal.

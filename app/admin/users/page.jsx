@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
-import { useUserRole } from '@/lib/useUserRole';
+import { ROLE_LOAD_ERROR, useUserRole } from '@/lib/useUserRole';
 import { changeUserRole, resolveStaffRequest } from './actions';
 import { SkeletonTable } from '@/components/crm/Skeleton';
 
@@ -20,7 +20,7 @@ const ASSIGNABLE_ROLES = ['project_manager', 'client'];
 
 export default function UsersPage() {
   const router = useRouter();
-  const { isAdmin, isLoading: isRoleLoading } = useUserRole();
+  const { isAdmin, isLoading: isRoleLoading, error: roleError } = useUserRole();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,10 +29,11 @@ export default function UsersPage() {
   useEffect(() => {
     // Middleware already gates /admin/users at the route level - this is a
     // second, page-level check (defense in depth, not the primary guard).
-    if (!isRoleLoading && !isAdmin) {
+    // A failed role read is not "not an admin": don't redirect on it.
+    if (!isRoleLoading && !roleError && !isAdmin) {
       router.replace('/admin');
     }
-  }, [isRoleLoading, isAdmin, router]);
+  }, [isRoleLoading, roleError, isAdmin, router]);
 
   useEffect(() => {
     async function loadUsers() {
@@ -110,6 +111,14 @@ export default function UsersPage() {
   }
 
   const pendingRequests = users.filter((u) => u.requested_staff_access);
+
+  if (roleError) {
+    return (
+      <div className="crm-admin-page">
+        <p className="crm-form-error" role="alert">{ROLE_LOAD_ERROR}</p>
+      </div>
+    );
+  }
 
   if (isRoleLoading || !isAdmin || isLoading) {
     return (

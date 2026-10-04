@@ -23,19 +23,26 @@ function formatWhen(value) {
 export default function NotificationsPanel({ notifications = [] }) {
   const [readLocally, setReadLocally] = useState(() => new Set());
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
   const isUnread = (notification) => !notification.read_at && !readLocally.has(notification.id);
   const unreadIds = notifications.filter(isUnread).map((notification) => notification.id);
 
   async function markRead(ids) {
     if (ids.length === 0 || busy) return;
     setBusy(true);
+    setError(null);
     try {
       const formData = new FormData();
       for (const id of ids) formData.append('notificationId', id);
       const result = await markNotificationsRead(formData);
       if (result?.ok) {
         setReadLocally((previous) => new Set([...previous, ...ids]));
+      } else {
+        // Nothing was marked locally, so the items simply stay unread.
+        setError(result?.error || 'Unable to update notifications.');
       }
+    } catch {
+      setError('Unable to update notifications. Check your connection and try again.');
     } finally {
       setBusy(false);
     }
@@ -51,6 +58,11 @@ export default function NotificationsPanel({ notifications = [] }) {
           </button>
         )}
       </div>
+      {error && (
+        <p className="crm-notifications-error" role="status">
+          {error}
+        </p>
+      )}
       {notifications.length === 0 ? (
         <p className="crm-empty-state">No notifications yet.</p>
       ) : (
@@ -109,6 +121,12 @@ export default function NotificationsPanel({ notifications = [] }) {
           margin: 0;
           font-size: 1.15rem;
           color: #64c8ff;
+        }
+
+        .crm-notifications-error {
+          margin: 0;
+          color: #ff9999;
+          font-size: 0.85rem;
         }
 
         .crm-notification-list {

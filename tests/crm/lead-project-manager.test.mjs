@@ -257,7 +257,7 @@ test('a project manager only gets emails about projects they are still assigned 
 test('the drain links every recipient to their own workspace and names clients to staff only', async () => {
   const source = await readFile(DRAIN, 'utf8');
 
-  assert.match(source, /projectUrl: staffProjectUrlFor\(row\.project_id, recipient\.role\)/);
+  assert.match(source, /projectUrl: staffProjectUrlFor\(appUrl, row\.project_id, recipient\.role\)/);
   assert.match(source, /recipientRole: recipient\.role/);
   assert.match(source, /const clientContext = staffRecipient \? client : null;/);
   assert.match(source, /CLIENT_CONTEXT_EVENTS = new Set\(\['project\.brief_submitted', 'project\.user_assigned'\]\)/);

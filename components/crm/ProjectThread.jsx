@@ -37,6 +37,7 @@ export default function ProjectThread({ projectId, profile }) {
     isSending,
     isUploading,
     stagedAttachments,
+    sendBlockedReason,
     nextCursor,
     isLoadingOlder,
     editingId,
@@ -51,6 +52,7 @@ export default function ProjectThread({ projectId, profile }) {
     handleSend,
     handleFileChange,
     retryStagedAttachment,
+    removeStagedAttachment,
     loadOlderMessages,
     handleDownload,
   } = useProjectThread({ projectId, profile });
@@ -127,11 +129,31 @@ export default function ProjectThread({ projectId, profile }) {
           {stagedAttachments.map((attachment) => (
             <li key={attachment.attachmentId}>
               <span>{attachment.fileName}</span>
-              <span>{attachment.status === 'ready' ? 'Ready to attach' : attachment.status}</span>
+              <span>
+                {attachment.status === 'ready'
+                  ? 'Ready to attach'
+                  : attachment.status === 'failed'
+                    ? 'Upload failed'
+                    : 'Uploading...'}
+              </span>
               {attachment.status === 'failed' && (
-                <button type="button" onClick={() => retryStagedAttachment(attachment)} disabled={isUploading}>
-                  Retry upload
-                </button>
+                <>
+                  <button type="button" onClick={() => retryStagedAttachment(attachment)} disabled={isUploading}>
+                    Retry upload
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeStagedAttachment(attachment)}
+                    aria-label={`Remove ${attachment.fileName}`}
+                  >
+                    Remove
+                  </button>
+                </>
+              )}
+              {attachment.status === 'failed' && attachment.error && (
+                <span className="thread-staged-error" role="alert">
+                  {attachment.error}
+                </span>
               )}
             </li>
           ))}
@@ -211,10 +233,20 @@ export default function ProjectThread({ projectId, profile }) {
           aria-label="Write a message"
           rows={2}
         />
-        <button type="submit" className="thread-send-button" disabled={isSending || !body.trim()}>
+        <button
+          type="submit"
+          className="thread-send-button"
+          disabled={isSending || !body.trim() || Boolean(sendBlockedReason)}
+          aria-describedby={sendBlockedReason ? 'thread-send-hint' : undefined}
+        >
           {isSending ? 'Sending...' : 'Send'}
         </button>
       </form>
+      {sendBlockedReason && (
+        <p id="thread-send-hint" className="thread-send-hint" role="status">
+          {sendBlockedReason}
+        </p>
+      )}
 
       <style jsx>{`
         .thread-card {
@@ -339,6 +371,21 @@ export default function ProjectThread({ projectId, profile }) {
           padding: 0.4rem 0.7rem;
           cursor: pointer;
           font-family: inherit;
+        }
+
+        .thread-staged-files li {
+          flex-wrap: wrap;
+        }
+
+        .thread-staged-error {
+          flex-basis: 100%;
+          color: #ff9999;
+        }
+
+        .thread-send-hint {
+          margin: 0.6rem 0 0;
+          color: #999;
+          font-size: 0.82rem;
         }
 
         .thread-staged-files button:disabled,

@@ -1,12 +1,16 @@
 'use client';
 
 import Link from 'next/link';
+import { homeForRole } from '@/lib/auth/roles.mjs';
 import { projectCategoryLabel, projectStatusBadgeClass, projectStatusLabel } from '@/lib/crm/labels.mjs';
 
 // showBrief / showBackLink default to the staff pages' behaviour. The client
 // page turns both off: the brief has its own tab (structured, not this
 // plain-text copy) and the portal frame already links back.
-export default function ProjectOverview({ project, showBrief = true, showBackLink = true }) {
+//
+// `role` is the viewer's role; the back link goes to that role's portal home
+// (/team for employees, /admin for admins), not the client-only /dashboard.
+export default function ProjectOverview({ project, role = 'client', showBrief = true, showBackLink = true }) {
   if (!project) {
     return (
       <div className="crm-project-overview">
@@ -23,7 +27,7 @@ export default function ProjectOverview({ project, showBrief = true, showBackLin
           <span className={projectStatusBadgeClass(project.status)}>{projectStatusLabel(project.status)}</span>
         </div>
         {showBackLink && (
-          <Link href="/dashboard" className="crm-link-secondary">
+          <Link href={homeForRole(role) ?? '/dashboard'} className="crm-link-secondary">
             Back to Dashboard
           </Link>
         )}

@@ -5,9 +5,8 @@ import { createAdminClient, buildVerifyUrl } from '@/lib/supabase/admin';
 import { sendTemplate } from '@/lib/email/resend';
 import { inviteUserEmail } from '@/lib/email/templates';
 import { requireRole } from '@/lib/auth/require-role';
+import { getAppUrl } from '@/lib/appUrl.mjs';
 import { redirect } from 'next/navigation';
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 
 // 'admin' is deliberately absent. Migration 0014 pins the admin role to a
 // single address and caps the table at one admin row, so offering it here
@@ -61,6 +60,17 @@ export async function inviteUser(formData) {
     return { error: 'Invites are temporarily unavailable. Please try again later.' };
   }
 
+  // The invite link carries a one-time sign-in token. Resolve and validate its
+  // origin before generateLink() creates the account (lib/appUrl.mjs), so a bad
+  // NEXT_PUBLIC_APP_URL cannot leave a half-invited user behind.
+  let appUrl;
+  try {
+    appUrl = getAppUrl();
+  } catch (configError) {
+    console.error('Invite unavailable - app URL misconfigured:', configError.message);
+    return { error: 'Invites are temporarily unavailable. Please try again later.' };
+  }
+
   // The invite email promises "Set your password to activate your account",
   // and an invited account has no password until the invitee chooses one.
   // /auth/verify signs them in from the one-time token, so the only correct
@@ -73,7 +83,7 @@ export async function inviteUser(formData) {
     email,
     options: {
       data: { full_name: fullName },
-      redirectTo: `${APP_URL}/auth/callback?next=${encodeURIComponent(INVITE_NEXT)}`,
+      redirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent(INVITE_NEXT)}`,
     },
   });
 
@@ -97,7 +107,7 @@ export async function inviteUser(formData) {
   }
 
   const { subject, html } = inviteUserEmail({
-    inviteUrl: buildVerifyUrl({ properties: data.properties, next: INVITE_NEXT }),
+    inviteUrl: buildVerifyUrl({ properties: data.properties, next: INVITE_NEXT, appUrl }),
     fullName,
     role,
   });
