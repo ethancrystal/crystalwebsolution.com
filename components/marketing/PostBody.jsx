@@ -78,24 +78,58 @@ export default function PostBody({ body, title }) {
             const Tag = block.level === 2 ? 'h2' : 'h3';
             return <Tag key={key}>{renderInline(block.children, key)}</Tag>;
           }
-          case 'list':
-            return block.ordered ? (
-              <ol key={key}>
-                {block.items.map((item, itemIndex) => (
-                  <li key={`${key}-${itemIndex}`}>
-                    {renderInline(item, `${key}-${itemIndex}`)}
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <ul key={key}>
-                {block.items.map((item, itemIndex) => (
-                  <li key={`${key}-${itemIndex}`}>
-                    {renderInline(item, `${key}-${itemIndex}`)}
-                  </li>
-                ))}
-              </ul>
+          case 'list': {
+            const ListTag = block.ordered ? 'ol' : 'ul';
+            return (
+              <ListTag key={key}>
+                {block.items.map((item, itemIndex) => {
+                  const itemKey = `${key}-${itemIndex}`;
+                  const checked = block.tasks ? block.tasks[itemIndex] : null;
+                  if (checked === null || checked === undefined) {
+                    return <li key={itemKey}>{renderInline(item, itemKey)}</li>;
+                  }
+                  return (
+                    <li key={itemKey} className="post-task-item">
+                      <input
+                        type="checkbox"
+                        className="post-task-check"
+                        checked={checked}
+                        disabled
+                        readOnly
+                      />
+                      <span>{renderInline(item, itemKey)}</span>
+                    </li>
+                  );
+                })}
+              </ListTag>
             );
+          }
+          case 'table': {
+            return (
+              <div key={key} className="post-table-wrap">
+                <table className="post-table">
+                  <thead>
+                    <tr>
+                      {block.header.map((cell, cellIndex) => {
+                        const cellKey = `${key}-h-${cellIndex}`;
+                        return <th key={cellKey}>{renderInline(cell, cellKey)}</th>;
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {block.rows.map((row, rowIndex) => (
+                      <tr key={`${key}-r-${rowIndex}`}>
+                        {row.map((cell, cellIndex) => {
+                          const cellKey = `${key}-r-${rowIndex}-${cellIndex}`;
+                          return <td key={cellKey}>{renderInline(cell, cellKey)}</td>;
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          }
           case 'blockquote':
             return <blockquote key={key}>{renderInline(block.children, key)}</blockquote>;
           case 'code':
