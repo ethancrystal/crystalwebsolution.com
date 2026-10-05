@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { unstable_rethrow } from 'next/navigation';
 import { onboardClientCompany } from '@/app/actions/onboarding-actions';
 
 const WORKSPACE_FEATURES = [
@@ -34,7 +35,7 @@ export default function ClientOnboardingForm() {
       const result = await onboardClientCompany(formData);
       if (result?.error) setError(result.error);
     } catch (err) {
-      if (err?.digest?.startsWith('NEXT_REDIRECT')) throw err;
+      unstable_rethrow(err);
       setError('Unable to complete onboarding. Please try again.');
     } finally {
       setIsLoading(false);

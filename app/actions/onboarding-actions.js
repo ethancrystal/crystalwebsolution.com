@@ -59,7 +59,17 @@ export async function onboardClientCompany(formData) {
   });
 
   if (error) {
-    console.error('Client onboarding failed:', error?.code ?? 'unknown');
+    console.error('Client onboarding failed:', error?.code ?? 'unknown', error?.message ?? '');
+    const message = String(error?.message || '');
+    if (/already linked to a company/i.test(message)) {
+      redirect('/dashboard');
+    }
+    if (/Company name is required|Contact name is required|account email is required/i.test(message)) {
+      return { ok: false, error: message.replace(/^.*?:\s*/, '') || message };
+    }
+    if (/Client profile required|Authentication required|Admin access/i.test(message)) {
+      return { ok: false, error: 'You are not authorized to complete onboarding.' };
+    }
     return { ok: false, error: 'Unable to complete onboarding. Please try again.' };
   }
 
