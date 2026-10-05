@@ -1,4 +1,4 @@
-## v1.118 — 2026-10-05
+## v1.121 — 2026-10-05
 
 Blog readability and schema fix: markdown tables, task lists, FAQPage
 schema, and cover-image alt text.
@@ -15,16 +15,20 @@ schema, and cover-image alt text.
   disabled checkboxes.
 - `app/blog/[slug]/page.jsx`: post bodies with Q&A headings now emit
   FAQPage JSON-LD alongside the existing BlogPosting schema.
-- `blog_posts.cover_image_alt`: migration `0051_blog_post_cover_image_alt.sql`
+- `blog_posts.cover_image_alt`: migration `0052_blog_post_cover_image_alt.sql`
   adds the nullable column; contract validation, the read path, the server
   action, and the admin PostForm field wire it end to end; OG/Twitter image
   metadata carries the alt text.
 - Tests: 733 pass, including new parser coverage (tables, inline-in-cells,
   task lists, FAQ extraction); production build verified.
 
-Note for merge: apply `supabase/migrations/0051_blog_post_cover_image_alt.sql`
+Note for merge: apply `supabase/migrations/0052_blog_post_cover_image_alt.sql`
 to the production database (Supabase dashboard SQL editor or an
 authenticated CLI/MCP session) once this PR merges.
+
+Renumbered from v1.118 to v1.121 (v1.118–v1.120 are claimed by open PRs
+#280–#282) and the migration from 0044 to 0052 (0044–0050 are taken on
+main; 0051 is claimed by the data-map access-fixes migration in PR #281).
 
 ## v1.117 — 2026-09-30
 
