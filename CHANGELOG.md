@@ -1,3 +1,31 @@
+## v1.118 — 2026-10-05
+
+Blog readability and schema fix: markdown tables, task lists, FAQPage
+schema, and cover-image alt text.
+
+- `lib/blogMarkdown.mjs`: pipe tables parse into a `table` block (inline
+  formatting is preserved inside cells; a stray `|` in prose or a `---` rule
+  line never becomes a table), `- [ ]` / `- [x]` list items parse as task
+  lists, and a new `extractFaqs()` collects `### …?` question headings with
+  paragraph answers. Merged on top of main's image support and
+  title-restatement demotion — both feature sets coexist.
+- `components/marketing/PostBody.jsx` + `app/styles/case-study.css`: tables
+  render as real `<table>` elements (live posts whose pipe tables rendered
+  as raw `| ... |` text now display properly) and task-list items render as
+  disabled checkboxes.
+- `app/blog/[slug]/page.jsx`: post bodies with Q&A headings now emit
+  FAQPage JSON-LD alongside the existing BlogPosting schema.
+- `blog_posts.cover_image_alt`: migration `0051_blog_post_cover_image_alt.sql`
+  adds the nullable column; contract validation, the read path, the server
+  action, and the admin PostForm field wire it end to end; OG/Twitter image
+  metadata carries the alt text.
+- Tests: 733 pass, including new parser coverage (tables, inline-in-cells,
+  task lists, FAQ extraction); production build verified.
+
+Note for merge: apply `supabase/migrations/0051_blog_post_cover_image_alt.sql`
+to the production database (Supabase dashboard SQL editor or an
+authenticated CLI/MCP session) once this PR merges.
+
 ## v1.117 — 2026-09-30
 
 C1: client arrival tour, needs-action ordering, verify continue.
