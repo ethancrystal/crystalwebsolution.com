@@ -1,3 +1,7 @@
+## v1.120 — 2026-10-05
+
+Docs only: weekly SEO goal-monger run note (GSC connector unavailable), goals ledger update. No site changes.
+
 ## v1.117 — 2026-09-30
 
 C1: client arrival tour, needs-action ordering, verify continue.
