@@ -19,7 +19,8 @@ A **qualified organic inquiry** is:
   digital-marketing, animation, ai-automation, workflow-automation, seo) **or**
   `/services/seo` once it ships
 - Not a quote request for a service the studio does not currently offer
-  (e.g. Shopify, which is parked in KEYWORD-REGISTRY.md)
+  (e.g. Shopify, which remains parked in `KEYWORD-REGISTRY.md`; its legacy
+  direct-response route is noindex and excluded from the sitemap)
 
 **Not the goal (leading indicators only, never substituted):**
 
