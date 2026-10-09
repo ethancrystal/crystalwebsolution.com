@@ -1,3 +1,7 @@
+## v1.122 — 2026-10-05
+
+Docs only: weekly SEO goal-monger run note (GSC connector unavailable), goals ledger update. No site changes.
+
 ## v1.121 — 2026-10-05
 
 Blog readability and schema fix: markdown tables, task lists, FAQPage
