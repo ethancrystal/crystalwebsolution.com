@@ -6,6 +6,7 @@ import { readingTimeMinutes } from '../../../lib/crm/blog-contract.mjs';
 import { SITE } from '../../../lib/site';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../../lib/seo.mjs';
 import { safeJsonLd } from '../../../lib/jsonLd.mjs';
+import { extractFaqs } from '../../../lib/blogMarkdown.mjs';
 import MarketingShell from '../../../components/marketing/MarketingShell';
 import SectionReveal from '../../../components/SectionReveal';
 import BreadcrumbSchema from '../../../components/marketing/BreadcrumbSchema';
@@ -132,6 +133,7 @@ export async function generateMetadata({ params }) {
   const description = post.seo_description || post.excerpt || undefined;
   const canonical = `/blog/${post.slug}`;
   const image = post.cover_image_url || SOCIAL_IMAGE_PATH;
+  const coverAlt = post.cover_image_alt || undefined;
 
   return {
     title,
@@ -142,7 +144,7 @@ export async function generateMetadata({ params }) {
       url: absoluteUrl(canonical),
       title: `${title} | ${SITE.name}`,
       description,
-      images: [{ url: image }],
+      images: [{ url: image, alt: coverAlt }],
       publishedTime: isoDate(post.published_at),
       modifiedTime: isoDate(post.updated_at),
     },
@@ -150,7 +152,7 @@ export async function generateMetadata({ params }) {
       card: 'summary_large_image',
       title: `${title} | ${SITE.name}`,
       description,
-      images: [{ url: image }],
+      images: [{ url: image, alt: coverAlt }],
     },
   };
 }
@@ -164,6 +166,7 @@ export default async function BlogPostPage({ params }) {
 
   const readingTime = readingTimeMinutes(post.body);
   const relatedLinks = RELATED_BY_SLUG[post.slug] || DEFAULT_RELATED;
+  const faqs = extractFaqs(post.body);
   const otherPosts = (await listPublishedPosts())
     .filter((entry) => entry.slug !== post.slug)
     .slice(0, 3);
@@ -184,6 +187,22 @@ export default async function BlogPostPage({ params }) {
     wordCount: post.body.trim().split(/\s+/).filter(Boolean).length,
   };
 
+  // Every question/answer pair comes from the rendered body itself, so the
+  // markup can never describe content the reader cannot see.
+  const faqSchema =
+    faqs.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          '@id': `${absoluteUrl(`/blog/${post.slug}`)}#faq`,
+          mainEntity: faqs.map((faq) => ({
+            '@type': 'Question',
+            name: faq.question,
+            acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+          })),
+        }
+      : null;
+
   return (
     <MarketingShell>
       <main className="blog-post mkt-inner">
@@ -197,6 +216,12 @@ export default async function BlogPostPage({ params }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: safeJsonLd(articleSchema) }}
         />
+        {faqSchema ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
+          />
+        ) : null}
 
         <article className="blog-article">
           <header className="blog-article-header">
