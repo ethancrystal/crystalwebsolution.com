@@ -4,6 +4,12 @@ One keyword → exactly one URL. This is what prevents two pages competing for
 the same term. Read it before proposing any new target; update it when a draft
 is approved or a page ships.
 
+If competition, missing evidence, page overlap or serviceability blocks a
+proposed mapping, use the **constraint-aware opportunity discovery** procedure
+in `OPERATIONS-MANUAL.md` §5.1. Classify alternatives as validated, conditional
+or hypotheses; preserve exact-phrase metrics and approval gates; do not create
+a target URL simply to work around a blocked term.
+
 Figures are Ubersuggest `keyword_overview` estimates, US (locId 2840), English.
 `Pulled` is the date of the figures shown. Re-validate on the Keywords lane.
 
@@ -15,6 +21,19 @@ serves 404 (WebFetch on apex and `www`, 2026-09-10) — Operations Manual §12.
 `109eb16879ab6b871522949b04ab791df52a888ebbab4b2037450214d037b7cf`
 (`cdsportswearinc.com`, en/2840, weekly, **54/125 keywords**). Its predecessor
 `5dfd943c…` returns `HTTP 404 Project not found` (2026-09-10).
+
+## 2026-10-10 Keywords Lane Validation
+
+**Ubersuggest MCP tools unavailable this run** (`mcp__Ubersuggest__auth_status`, `mcp__Ubersuggest__get_project`, `mcp__Ubersuggest__keyword_overview` not accessible in this environment). Web search backend also returned 403 (Firecrawl). No fresh Ubersuggest pulls possible; all figures below remain as-last-pulled. This run validates registry integrity against known live pages and flags decisions blocked on MJ.
+
+Changes this validation:
+- Confirmed 10 live blog posts (2026-09-26 audit) still missing mapped rows — mapping each needs a Keywords-lane Ubersuggest pull first (registry § "Live posts missing from this registry").
+- `website redesign services` conflict persists: tracked in Web design/redesign cluster (would map to `/services/web-design`) but live post `/blog/website-redesign-services` (2026-09-25) targets the same phrase. MJ ruling required (OPERATIONS-MANUAL §11 item 14) before pillar links to post.
+- Shopify pair remains **Parked**: `/hire/shopify-developer` is live and in sitemap (PR #208) but STRATEGY.md §2 says Shopify not a sold service. MJ to rule: confirm Shopify as sold offer (move pair to Mapped, link from `/services/web-development`) or retire URL with redirect (registry § "State conflict, 2026-09-26").
+- 41 tracked-but-unmapped terms still awaiting MJ ruling on §3 strategy split (OPERATIONS-MANUAL §11 item 6, now resolved by STRATEGY.md §3 — broad head terms via pillar+cluster). Recommend untracking 8 Logo/brand synonyms and 3 Conversion terms to free project slots — needs MJ yes (§4).
+- `ai automation agency` difficulty 40 (trending up from 35→40 since 2026-09-02); remains Monitor. Re-pull next Keywords lane.
+- `web design manassas va` mapped but not tracked in project (local-ladder superseded). If MJ wants it tracked, adding needs explicit yes (§4).
+- Two draft rows (`web design rfp`, `how to write a web design rfp`) show "unavailable" volumes — need Ubersuggest pull when tools restore.
 
 ## Mapped — one keyword, one URL
 
