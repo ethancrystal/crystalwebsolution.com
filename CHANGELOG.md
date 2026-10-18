@@ -57,14 +57,15 @@ handoff) instead of the digital studio, which moves lower down.
 - Codex review on the PR, three fixes: the compare slider announces the range
   it can actually reach (`aria-valuemin`/`max` 2 and 98, not 0 and 100); the
   homepage menu no longer hands focus back to the burger after an in-page hash
-  link (SmoothScroll had just focused the destination, so Tab restarted in the
-  header); the thread follows `prefers-reduced-motion` changes made while the
+  link, and focuses the destination itself when SmoothScroll's native
+  (reduced-motion) mode has not, so Tab continues from where the visitor
+  landed in both modes; the thread follows `prefers-reduced-motion` changes made while the
   page is open instead of only reading it at mount. The fourth finding, that
   the new product photos break the procedural-visuals rule in AGENTS.md, is
   deliberate and disclosed in the PR: the design requires real production
   evidence, so it needs the owner's sign-off rather than a code change.
 - Tests: 752 Node tests pass (new `tests/heritage.test.mjs`); component suite
-  (188) adds `compareSlider.test.jsx` and `menuFocus.test.jsx`; `journeyNav`
+  (189) adds `compareSlider.test.jsx` and `menuFocus.test.jsx`; `journeyNav`
   tests follow the new hero and "Production" label; production build verified.
 
 ## v1.121 — 2026-10-05

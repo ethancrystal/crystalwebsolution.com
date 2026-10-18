@@ -178,11 +178,17 @@ test('the thread follows the reduced-motion preference live, not just at mount',
   assert.match(thread, /reduced = motion\.matches;\s*measure\(\);/);
 });
 
-test('the menu does not pull focus back to the burger after an in-page hash link', () => {
+test('the menu follows the destination after an in-page hash link, in both scroll modes', () => {
   const menu = stripComments(read('components/Menu.jsx'));
-  assert.match(menu, /skipFocusRestore/);
-  assert.match(menu, /startsWith\('#'\) \|\| href\.startsWith\('\/#'\)/);
-  assert.match(menu, /!skipFocusRestore\.current && lastFocused\.current instanceof HTMLElement/);
+  // Remembers the hash it was closed through and focuses that section itself
+  // when SmoothScroll has not (its native, reduced-motion mode installs no click
+  // handler), instead of handing focus back to the burger.
+  assert.match(menu, /pendingHash/);
+  assert.match(menu, /href\.startsWith\('\/#'\) \? href\.slice\(1\)/);
+  assert.match(menu, /document\.getElementById\(pendingHash\.current\.slice\(1\)\)/);
+  assert.match(menu, /document\.activeElement !== destination/);
+  assert.match(menu, /destination\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(menu, /else if \(lastFocused\.current instanceof HTMLElement\)/);
   // The production-first list's links all go through it.
   assert.equal((menu.match(/onClick=\{closeFromLink\}/g) ?? []).length, 2);
 });

@@ -69,6 +69,14 @@ describe('Menu focus on close', () => {
     }
   });
 
+  it('moves focus to the destination itself when nothing else does (reduced-motion native scroll)', () => {
+    // No SmoothScroll stand-in here: in its native mode SmoothScroll installs no
+    // click handler and never focuses the target, so the menu has to.
+    openMenu();
+    fireEvent.click(screen.getByText('What We Make'));
+    expect(document.activeElement).toBe(screen.getByTestId('make'));
+  });
+
   it('still returns focus to the burger after a link that leaves the page', () => {
     const uninstall = installSmoothScrollStandIn();
     try {

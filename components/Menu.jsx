@@ -16,14 +16,17 @@ import { EASE_SETTLE } from '../lib/easing';
 export default function Menu({ open, onClose, links = SITE.nav, pageLinks = null }) {
   const root = useRef(null);
   const lastFocused = useRef(null);
-  // Set when the menu is closed by an in-page hash link. SmoothScroll then moves
-  // focus to the destination section; handing focus back to the burger on close
-  // would drag a keyboard user's Tab position away from where they just landed.
-  const skipFocusRestore = useRef(false);
+  // The in-page hash ('#make') the menu was closed through, or '' for any other
+  // close. On a hash link, focus belongs on the destination section, not back on
+  // the burger, which would drag a keyboard user's Tab position away from where
+  // they just landed. SmoothScroll focuses the destination itself in its Lenis
+  // mode but not in its native (reduced-motion) mode, so the menu does it too
+  // when it is not already focused; that makes both modes land the same way.
+  const pendingHash = useRef('');
 
   const closeFromLink = (event) => {
     const href = event.currentTarget.getAttribute('href') || '';
-    if (href.startsWith('#') || href.startsWith('/#')) skipFocusRestore.current = true;
+    pendingHash.current = href.startsWith('/#') ? href.slice(1) : href.startsWith('#') ? href : '';
     onClose();
   };
 
@@ -40,7 +43,7 @@ export default function Menu({ open, onClose, links = SITE.nav, pageLinks = null
     let onKeyDown;
     if (open) {
       lastFocused.current = document.activeElement;
-      skipFocusRestore.current = false;
+      pendingHash.current = '';
       previousOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       el.style.pointerEvents = 'auto';
@@ -90,7 +93,17 @@ export default function Menu({ open, onClose, links = SITE.nav, pageLinks = null
       if (focusFrame) cancelAnimationFrame(focusFrame);
       if (onKeyDown) document.removeEventListener('keydown', onKeyDown);
       if (previousOverflow !== undefined) document.body.style.overflow = previousOverflow;
-      if (open && !skipFocusRestore.current && lastFocused.current instanceof HTMLElement) {
+      if (!open) return;
+      // Closed through an in-page hash link: follow the destination.
+      const destination = pendingHash.current
+        ? document.getElementById(pendingHash.current.slice(1))
+        : null;
+      if (destination instanceof HTMLElement) {
+        if (document.activeElement !== destination) {
+          if (!destination.hasAttribute('tabindex')) destination.setAttribute('tabindex', '-1');
+          destination.focus({ preventScroll: true });
+        }
+      } else if (lastFocused.current instanceof HTMLElement) {
         lastFocused.current.focus();
       }
     };
