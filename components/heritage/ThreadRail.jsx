@@ -328,7 +328,10 @@ export default function ThreadRail() {
     const measure = () => {
       if (!wide.matches) {
         // Below the breakpoint the canvas is hidden by CSS. Drop the route and
-        // shrink the bitmap so no stale frame or memory is left behind.
+        // shrink the bitmap so no stale frame or memory is left behind. Unlight
+        // the beads first: `.is-passed` outranks the narrow-screen bullet style,
+        // so a bead lit before the window was narrowed would keep its glow.
+        for (const mark of marks) mark.el.classList.remove('is-passed');
         samples = [];
         marks = [];
         fitW = 0;

@@ -35,9 +35,14 @@ export default function CompareSlider({ before, after, beforeLabel, afterLabel }
     const frame = frameRef.current;
     if (!frame) return;
     const handle = event.currentTarget;
+    // preventDefault above also cancels the browser's own focus move, so take
+    // focus here: the slider's keyboard controls and value then follow the drag
+    // (ARIA slider pattern: focus lives on the thumb).
+    handle.focus({ preventScroll: true });
     handle.setPointerCapture?.(event.pointerId);
     const move = (ev) => {
       const box = frame.getBoundingClientRect();
+      if (!box.width) return;
       setSplit(((ev.clientX - box.left) / box.width) * 100);
     };
     const up = () => {

@@ -51,6 +51,21 @@ describe('CompareSlider', () => {
     expect(handle).toHaveAttribute('aria-valuenow', '98');
   });
 
+  it('takes focus when a drag starts, so the keyboard controls follow the pointer', () => {
+    const { handle } = setup();
+    const other = document.createElement('button');
+    document.body.appendChild(other);
+    other.focus();
+    expect(document.activeElement).toBe(other);
+    fireEvent.pointerDown(handle, { clientX: 10, pointerId: 1 });
+    expect(document.activeElement).toBe(handle);
+    // Releasing leaves it there for the arrow keys.
+    fireEvent.pointerUp(handle, { pointerId: 1 });
+    fireEvent.keyDown(handle, { key: 'ArrowRight' });
+    expect(handle).toHaveAttribute('aria-valuenow', '55');
+    other.remove();
+  });
+
   it('ignores unrelated keys', () => {
     const { handle } = setup();
     fireEvent.keyDown(handle, { key: 'a' });

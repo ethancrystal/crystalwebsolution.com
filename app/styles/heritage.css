@@ -1214,9 +1214,14 @@
   .hx-thread-copy {
     display: none;
   }
-  .hx-step-dot {
+  /* `.is-passed` is listed too: it would otherwise outrank this rule, so a bead
+     lit before the window was narrowed (or in the moment before ThreadRail's
+     debounced remeasure unlights it) must still read as a plain bullet. */
+  .hx-step-dot,
+  .hx-step-dot.is-passed {
     background: var(--hx-steel);
     border-color: transparent;
+    box-shadow: none;
   }
 }
 @media (max-width: 639px) {

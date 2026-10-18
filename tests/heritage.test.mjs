@@ -170,6 +170,22 @@ test('the thread repaints after Lenis moves the page, and is sized to the box it
   assert.match(thread, /canvas\.width = 1;/);
 });
 
+test('narrowing the window unlights the thread beads so the plain-bullet style applies', () => {
+  const thread = stripComments(sources['components/heritage/ThreadRail.jsx']);
+  // `.hx-step-dot.is-passed` outranks the narrow-screen `.hx-step-dot` rule, so
+  // the class must be removed before the marks are dropped.
+  assert.match(
+    thread,
+    /for \(const mark of marks\) mark\.el\.classList\.remove\('is-passed'\);\s*samples = \[\];\s*marks = \[\];/,
+  );
+});
+
+test('the compare slider takes focus when a drag starts', () => {
+  const slider = stripComments(sources['components/heritage/CompareSlider.jsx']);
+  assert.match(slider, /handle\.focus\(\{ preventScroll: true \}\)/);
+  assert.ok(slider.indexOf('event.preventDefault()') < slider.indexOf('handle.focus('));
+});
+
 test('the thread follows the reduced-motion preference live, not just at mount', () => {
   const thread = stripComments(sources['components/heritage/ThreadRail.jsx']);
   assert.match(thread, /let reduced = motion\.matches/);
@@ -228,6 +244,8 @@ test('heritage.css is loaded, scoped under .hx, and respects reduced motion', ()
   // that points at the thread goes with it.
   assert.match(css, /@media \(width < 900px\)[\s\S]*?\.hx-thread,[\s\S]*?\.hx-thread-copy/);
   assert.doesNotMatch(css, /max-width: 899px/);
+  // A bead that was lit before narrowing must still read as a plain bullet.
+  assert.match(css, /@media \(width < 900px\)[\s\S]*?\.hx-step-dot,\s*\.hx-step-dot\.is-passed \{[^}]*box-shadow: none/);
   const hero = stripComments(sources['components/sections/Hero.jsx']);
   assert.match(hero, /className="hx-thread-copy">FOLLOW THE THREAD/);
   assert.match(stripComments(sources['components/heritage/Heritage.jsx']), /hx-aside hx-thread-copy/);
