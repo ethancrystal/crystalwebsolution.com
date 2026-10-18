@@ -16,6 +16,16 @@ import { EASE_SETTLE } from '../lib/easing';
 export default function Menu({ open, onClose, links = SITE.nav, pageLinks = null }) {
   const root = useRef(null);
   const lastFocused = useRef(null);
+  // Set when the menu is closed by an in-page hash link. SmoothScroll then moves
+  // focus to the destination section; handing focus back to the burger on close
+  // would drag a keyboard user's Tab position away from where they just landed.
+  const skipFocusRestore = useRef(false);
+
+  const closeFromLink = (event) => {
+    const href = event.currentTarget.getAttribute('href') || '';
+    if (href.startsWith('#') || href.startsWith('/#')) skipFocusRestore.current = true;
+    onClose();
+  };
 
   useEffect(() => {
     const el = root.current;
@@ -30,6 +40,7 @@ export default function Menu({ open, onClose, links = SITE.nav, pageLinks = null
     let onKeyDown;
     if (open) {
       lastFocused.current = document.activeElement;
+      skipFocusRestore.current = false;
       previousOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       el.style.pointerEvents = 'auto';
@@ -79,7 +90,9 @@ export default function Menu({ open, onClose, links = SITE.nav, pageLinks = null
       if (focusFrame) cancelAnimationFrame(focusFrame);
       if (onKeyDown) document.removeEventListener('keydown', onKeyDown);
       if (previousOverflow !== undefined) document.body.style.overflow = previousOverflow;
-      if (open && lastFocused.current instanceof HTMLElement) lastFocused.current.focus();
+      if (open && !skipFocusRestore.current && lastFocused.current instanceof HTMLElement) {
+        lastFocused.current.focus();
+      }
     };
   }, [open, onClose]);
 
@@ -108,13 +121,13 @@ export default function Menu({ open, onClose, links = SITE.nav, pageLinks = null
                   className="menu-link"
                   target="_blank"
                   rel="noopener"
-                  onClick={onClose}
+                  onClick={closeFromLink}
                   tabIndex={open ? 0 : -1}
                 >
                   {content}
                 </a>
               ) : (
-                <Link href={item.href} className="menu-link" onClick={onClose} tabIndex={open ? 0 : -1}>
+                <Link href={item.href} className="menu-link" onClick={closeFromLink} tabIndex={open ? 0 : -1}>
                   {content}
                 </Link>
               )}

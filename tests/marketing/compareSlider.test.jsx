@@ -20,6 +20,9 @@ describe('CompareSlider', () => {
   it('starts at the midpoint and exposes both photos', () => {
     const { handle } = setup();
     expect(handle).toHaveAttribute('aria-valuenow', '50');
+    // The announced range is the range the control can actually reach.
+    expect(handle).toHaveAttribute('aria-valuemin', '2');
+    expect(handle).toHaveAttribute('aria-valuemax', '98');
     expect(screen.getByAltText('Original artwork')).toBeInTheDocument();
     expect(screen.getByAltText('Corrected artwork')).toBeInTheDocument();
   });

@@ -190,7 +190,10 @@ export default function ThreadRail() {
     if (!canvas || !world || !ctx) return undefined;
 
     const wide = window.matchMedia('(min-width: 900px)');
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Live, like SmoothScroll's: a visitor can switch the preference while the
+    // page is open, so `reduced` is re-read from the query on every change.
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let reduced = motion.matches;
 
     let samples = [];
     let marks = [];
@@ -387,9 +390,17 @@ export default function ThreadRail() {
       onUpdate: paintIfMoved,
     });
 
+    // Remeasure straight away (not debounced): measure() snaps the needle to the
+    // end of the route when reduced, or back to the scroll position when not.
+    const onMotionChange = () => {
+      reduced = motion.matches;
+      measure();
+    };
+
     const observer = new ResizeObserver(schedule);
     observer.observe(world);
     wide.addEventListener('change', schedule);
+    motion.addEventListener('change', onMotionChange);
     document.fonts?.ready.then(schedule);
     gsap.ticker.add(tick);
     schedule();
@@ -399,6 +410,7 @@ export default function ThreadRail() {
       trigger.kill();
       observer.disconnect();
       wide.removeEventListener('change', schedule);
+      motion.removeEventListener('change', onMotionChange);
       gsap.ticker.remove(tick);
     };
   }, []);

@@ -170,6 +170,23 @@ test('the thread repaints after Lenis moves the page, and is sized to the box it
   assert.match(thread, /canvas\.width = 1;/);
 });
 
+test('the thread follows the reduced-motion preference live, not just at mount', () => {
+  const thread = stripComments(sources['components/heritage/ThreadRail.jsx']);
+  assert.match(thread, /let reduced = motion\.matches/);
+  assert.match(thread, /motion\.addEventListener\('change', onMotionChange\)/);
+  assert.match(thread, /motion\.removeEventListener\('change', onMotionChange\)/);
+  assert.match(thread, /reduced = motion\.matches;\s*measure\(\);/);
+});
+
+test('the menu does not pull focus back to the burger after an in-page hash link', () => {
+  const menu = stripComments(read('components/Menu.jsx'));
+  assert.match(menu, /skipFocusRestore/);
+  assert.match(menu, /startsWith\('#'\) \|\| href\.startsWith\('\/#'\)/);
+  assert.match(menu, /!skipFocusRestore\.current && lastFocused\.current instanceof HTMLElement/);
+  // The production-first list's links all go through it.
+  assert.equal((menu.match(/onClick=\{closeFromLink\}/g) ?? []).length, 2);
+});
+
 test('the compare slider is keyboard operable and has no animation loop', () => {
   const slider = stripComments(sources['components/heritage/CompareSlider.jsx']);
   assert.match(slider, /role="slider"/);

@@ -76,8 +76,8 @@ export default function CompareSlider({ before, after, beforeLabel, afterLabel }
         tabIndex={0}
         aria-label={`Compare ${beforeLabel} with ${afterLabel}`}
         aria-orientation="horizontal"
-        aria-valuemin={0}
-        aria-valuemax={100}
+        aria-valuemin={MIN}
+        aria-valuemax={MAX}
         aria-valuenow={50}
         onPointerDown={onPointerDown}
         onKeyDown={onKeyDown}
