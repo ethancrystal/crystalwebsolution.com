@@ -7,7 +7,8 @@ import Nav from './Nav';
 import ScrollProgress from './ScrollProgress';
 import JourneyNav from './JourneyNav';
 import FocusVeil from './FocusVeil';
-import Hero from './sections/Hero';
+import HeritageWorld from './heritage/HeritageWorld';
+import StudioBridge from './heritage/StudioBridge';
 import Services from './sections/Services';
 import Approach from './sections/Approach';
 import Stories from './sections/Stories';
@@ -32,7 +33,11 @@ export default function Experience() {
       {/* A div, not <main>: app/layout.jsx already wraps every route in the
           single <main id="main-content"> landmark. */}
       <div className="page">
-        <Hero />
+        {/* Embroidery-first opening: hero + production story on its own ink
+            ground (the "hero" camera beat), then the Digital Studio bridge,
+            then the digital beats below as before. */}
+        <HeritageWorld />
+        <StudioBridge />
         <SectionHandoff from="top" tone="cyan" label="about"><About /></SectionHandoff>
         <SectionHandoff from="left" tone="cyan" label="services"><Services /></SectionHandoff>
         <Approach />

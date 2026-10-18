@@ -29,8 +29,9 @@ describe('JourneyNav', () => {
 
   it('marks the first section as the current location on mount', () => {
     render(<JourneyNav />);
-    const intro = screen.getByRole('link', { name: /Intro/ });
-    expect(intro).toHaveAttribute('aria-current', 'location');
+    // The first beat is the whole embroidery-first opening, labelled "Production".
+    const first = screen.getByRole('link', { name: /Production/ });
+    expect(first).toHaveAttribute('aria-current', 'location');
     expect(screen.getAllByRole('link').filter((link) => link.hasAttribute('aria-current'))).toHaveLength(1);
   });
 
@@ -42,7 +43,7 @@ describe('JourneyNav', () => {
     });
     const contact = screen.getByRole('link', { name: /Contact/ });
     expect(contact).toHaveAttribute('aria-current', 'location');
-    expect(screen.getByRole('link', { name: /Intro/ })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: /Production/ })).not.toHaveAttribute('aria-current');
     expect(screen.getByRole('button', { name: /Sections, now at/ })).toHaveTextContent(/09.*Contact/);
   });
 

@@ -7,8 +7,13 @@ import { SITE } from '../lib/site';
 import { CRM_ENABLED } from '../lib/crmFlag';
 import { EASE_SETTLE } from '../lib/easing';
 
-// Fullscreen overlay menu: big staggered links + contact block.
-export default function Menu({ open, onClose }) {
+// Fullscreen overlay menu: big staggered links + contact block. `links`
+// defaults to the site-wide nav; the homepage passes its own production-first
+// list (lib/heritage.mjs HERITAGE_NAV). An item with `external` opens in a new
+// tab as a plain anchor. `pageLinks` adds a "Site pages" column to the meta
+// block: the homepage passes SITE.nav there, so its production-first list does
+// not cost the page its links to /blog, /process, /about and /contact.
+export default function Menu({ open, onClose, links = SITE.nav, pageLinks = null }) {
   const root = useRef(null);
   const lastFocused = useRef(null);
 
@@ -88,16 +93,46 @@ export default function Menu({ open, onClose }) {
       style={{ clipPath: 'inset(0% 0% 100% 0%)', pointerEvents: 'none' }}
     >
       <div className="menu-links">
-        {SITE.nav.map((item, i) => (
-          <div className="menu-link-mask" key={item.label}>
-            <Link href={item.href} className="menu-link" onClick={onClose} tabIndex={open ? 0 : -1}>
+        {links.map((item, i) => {
+          const content = (
+            <>
               <span className="menu-link-index">0{i + 1}</span>
               {item.label}
-            </Link>
-          </div>
-        ))}
+            </>
+          );
+          return (
+            <div className="menu-link-mask" key={item.label}>
+              {item.external ? (
+                <a
+                  href={item.href}
+                  className="menu-link"
+                  target="_blank"
+                  rel="noopener"
+                  onClick={onClose}
+                  tabIndex={open ? 0 : -1}
+                >
+                  {content}
+                </a>
+              ) : (
+                <Link href={item.href} className="menu-link" onClick={onClose} tabIndex={open ? 0 : -1}>
+                  {content}
+                </Link>
+              )}
+            </div>
+          );
+        })}
       </div>
       <div className="menu-meta">
+        {pageLinks && (
+          <div>
+            <p className="menu-meta-label">Site pages</p>
+            {pageLinks.map((item) => (
+              <Link key={item.href} href={item.href} onClick={onClose} tabIndex={open ? 0 : -1}>
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        )}
         <div>
           <p className="menu-meta-label">Business enquiry</p>
           <a href={`mailto:${SITE.email}`} tabIndex={open ? 0 : -1}>{SITE.email}</a>

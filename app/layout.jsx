@@ -1,5 +1,5 @@
 import './globals.css';
-import { Space_Grotesk, Inter, Space_Mono } from 'next/font/google';
+import { Space_Grotesk, Inter, Space_Mono, Instrument_Serif, IBM_Plex_Mono } from 'next/font/google';
 import { SITE } from '../lib/site';
 import { SITE_ORIGIN, SOCIAL_IMAGE_PATH } from '../lib/seo.mjs';
 import Analytics from '../components/Analytics';
@@ -9,6 +9,22 @@ import { GTM_ID, gtmHeadSnippet } from '../lib/analytics.mjs';
 const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 const mono = Space_Mono({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-mono' });
+// Heritage homepage type roles (app/styles/heritage.css): a serif for heritage
+// statements and a technical mono for production labels. Not preloaded, so the
+// CRM and subpages never pay for them; the homepage's CSS pulls them in.
+const serif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
+  preload: false,
+});
+const label = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-label',
+  preload: false,
+});
 
 // Canonical host. The apex domain 308-redirects to www (confirmed via curl),
 // so canonical + metadataBase must use www to avoid "canonicalised /
@@ -141,7 +157,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${grotesk.variable} ${inter.variable} ${mono.variable}`}
+      className={`${grotesk.variable} ${inter.variable} ${mono.variable} ${serif.variable} ${label.variable}`}
       suppressHydrationWarning
     >
       <head>

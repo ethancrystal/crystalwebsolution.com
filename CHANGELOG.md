@@ -1,3 +1,63 @@
+## v1.123 — 2026-10-18
+
+Homepage repositioned around embroidery digitizing, patches and production: the
+page now opens on the owner's "Heritage Homepage" design (Claude Design
+handoff) instead of the digital studio, which moves lower down.
+
+- `components/sections/Hero.jsx`: new hero, "Over 16 Years Of Experience under
+  our belts", with Crystal Digitizing as the primary path and `/#make` as the
+  second. Still `id="hero"`, so it is still the first camera beat.
+- `components/heritage/*`: the production story, in design order. Heritage and
+  the Crystal Digitizing core, What We Make (embroidery, what we digitize,
+  patches, stickers, vector prep), the eight-step Process, Quality Control
+  (drag-to-compare plus an inspection sheet), Machinery, the From the Workbench
+  proof wall, and the $5 patch offer (confirmed details only). `HeritageWorld`
+  sits on its own opaque ink ground, so `lib/journey.js`, `BEAT_IDS` and every
+  camera stop are unchanged; the hero beat simply lasts for the whole story.
+  `StudioBridge` ("Digital work that supports physical production") then hands
+  over to the existing About, Services and later beats.
+- `components/heritage/ThreadRail.jsx`: the Heritage Thread, a multi-strand
+  thread sewn down the story as you scroll. One viewport-sized canvas on
+  `gsap.ticker` (no second animation loop, nothing that scales with page
+  length); a tall SVG version was tried and repainted far too much. Off under
+  900px, fully drawn under reduced motion.
+- `lib/heritage.mjs`: all copy and claims in one place. `HERITAGE_NAV` (Crystal
+  Digitizing first) is passed to `Menu` from `Nav` only; subpages keep
+  `SITE.nav`. `Menu` gains a `pageLinks` prop and the homepage passes
+  `SITE.nav` as a "Site pages" column, so the page still links to /blog,
+  /process, /about and /contact. `lib/journeyNav.mjs` names the first beat
+  "Production".
+- `app/styles/heritage.css` (scoped under `.hx`), Instrument Serif and IBM Plex
+  Mono added in `app/layout.jsx` with `preload: false` so other routes do not
+  pay for them.
+- `public/heritage/`: 21 WebP product-evidence photos (1.3 MB, from about 13 MB
+  of source PNG/JPG). These are proof of the work, not decorative media.
+- Left out on purpose: the design's `[ model to confirm ]` and
+  `[ add verified correction ]` placeholders; the "machine photo" slot (its
+  image was a logo, not a machine); the studio tiles (screenshots of other
+  people's sites, see `public/projects/clients/SOURCES.md`), replaced by a plain
+  capability list. The compare slider shows original versus corrected artwork,
+  not a sew-out pair, and is labelled as such.
+- Not changed, and still describing a digital studio: page `<title>`, OG and
+  JSON-LD descriptions, the footer and Menu copy, and the closing Contact form
+  (web-brief fields). Each needs an owner decision.
+- Reviewed before release by five independent read-only reviewers with
+  three-lens skeptic verification of every finding (15 of 40 candidates
+  confirmed and fixed): thread canvas sized to the scrollbar-excluded viewport
+  and repainted from a ScrollTrigger so it cannot trail the page; needle
+  interpolated between samples; one 900px boundary shared by JS and CSS, with
+  the thread-referencing copy hidden below it; focus ring on the light offer
+  card; forced-colours fallback for the multiplied logo tiles; 2x2 inspection
+  sheet at tablet widths; machinery rule closing only the last row; dead CSS
+  and stale comments and docs corrected.
+- Known asset gap: `stickers.webp`, `emb-eagle.webp`, `emb-ribshack.webp`,
+  `vec-airpark.webp` and `vec-funbunch.webp` come from 240px sources and look
+  soft at the sizes the design shows them; higher-resolution originals are
+  needed.
+- Tests: 750 Node tests pass (new `tests/heritage.test.mjs`); component suite
+  (185) adds `compareSlider.test.jsx`; `journeyNav` tests follow the new hero
+  and "Production" label; production build verified.
+
 ## v1.121 — 2026-10-05
 
 Blog readability and schema fix: markdown tables, task lists, FAQPage
