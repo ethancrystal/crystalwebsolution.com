@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/nextjs';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendTemplate, EmailError, isEmailConfigured } from '@/lib/email/resend';
 import { renderNotificationEmail } from '@/lib/email/templates';
+import { cleanupStaleContactArtwork } from '@/lib/contactArtworkServer';
 
 export const runtime = 'nodejs';
 // Never cached: this endpoint mutates the outbox on every invocation.
@@ -188,6 +189,10 @@ async function drain(request) {
   }
 
   const cleanedAttachments = await cleanupStaleAttachments(supabase);
+  // Production-request artwork reserved but never uploaded (migration 0053).
+  // Best-effort and never throws, so it cannot hold up the outbox drain.
+  const cleanedContactArtwork = await cleanupStaleContactArtwork(supabase);
+  if (cleanedContactArtwork > 0) console.log(`Removed ${cleanedContactArtwork} stale contact artwork reservation(s).`);
 
   if (!isEmailConfigured()) {
     return json({ ok: false, error: 'Email delivery is not configured.' }, 503);

@@ -38,9 +38,55 @@ handoff) instead of the digital studio, which moves lower down.
   people's sites, see `public/projects/clients/SOURCES.md`), replaced by a plain
   capability list. The compare slider shows original versus corrected artwork,
   not a sew-out pair, and is labelled as such.
-- Not changed, and still describing a digital studio: page `<title>`, OG and
-  JSON-LD descriptions, the footer and Menu copy, and the closing Contact form
-  (web-brief fields). Each needs an owner decision.
+- Search and footer copy now lead with embroidery digitizing (bundle B).
+  `lib/seo.mjs` holds the homepage identity strings (`HOME_TITLE_STEM`,
+  `HOME_DESCRIPTION`, `HOME_SOCIAL_DESCRIPTION`, `ORG_DESCRIPTION`,
+  `ORG_KNOWS_ABOUT`) and `app/layout.jsx` reads them, so the default title, OG
+  and Twitter title/description, the Organization and WebSite nodes share one
+  source. Default title: `Embroidery Digitizing & Web Design | CD Sportswear
+  INC` (54 chars; "Web Design" stays in it). `knowsAbout` keeps the six web
+  terms and adds embroidery digitizing, custom patches, sticker production,
+  vector artwork preparation. `SITE.statement` is now "Embroidery digitizing,
+  patches, web and brand, tested before it ships." (share card, every subpage
+  footer, `/about` lede); the Menu note and the Contact "Studio" column say
+  "Embroidery, patches, web and brand"; `public/llms.txt` leads with
+  digitizing, with no new entry under `## Services` (no `/services/embroidery`
+  page). Unchanged on purpose: `SITE.tagline`, `SITE.founded` (2016),
+  `SITE.experience` ("10+ years"), every year figure (the "16 years" claim is
+  unreconciled with "10+ years"), and `/about` title, description and body.
+- `docs/seo/STRATEGY.md`: §1 identity sentence, §2 (production services have no
+  `/services` page; homepage positioning is not a ranking theme) and §8
+  (homepage identity note) amended to match. The file's header says nothing in
+  it changes without MJ in writing: confirm that yes is on record before merge.
+  `tests/home-positioning-copy.test.mjs` (new, 8 tests) pins title length and
+  stem, description lengths, no year figures, `founded`/`experience` untouched,
+  and no production entry under `llms.txt` `## Services`; `tests/site-brand.test.mjs`
+  now requires the title and template to be built from `SITE.name`.
+- Contact section: a "Production request" intake is now the default tab beside
+  the original "Web project brief" (`components/sections/ContactIntake.jsx`,
+  `components/marketing/ProductionRequestForm.jsx`). It posts to `/api/contact`
+  with `kind: 'production'` (`validateProductionRequest` in
+  `lib/contactForm.mjs`: six frozen categories, size and quantity required);
+  rate limit, honeypot, hCaptcha, webhook, the `create_lead_from_contact` RPC
+  (`p_source: 'website_production_request'`) and emails all still apply, and any
+  payload without `kind` takes the unchanged web-brief path. `/#contact-production`
+  and `/#contact-brief` open the matching tab; new deals are titled "Production
+  request — <company or name>". `ContactForm`'s `aria-describedby` now points at
+  the ids it renders.
+- Artwork upload for production requests: up to 3 files, 10 MB each, 25 MB in
+  total (AI, EPS, PDF, PNG, JPG, DST). Files go straight to a private bucket
+  through signed upload URLs; `POST /api/contact/artwork/complete` checks size
+  and file signature, attaches the good files and adds an internal note to the
+  deal. The admin deal page gets an "Artwork" panel whose links redirect through
+  `/api/admin/contact-artwork/[id]` (admin session) to 60-second signed URLs.
+  The daily `crm-notifications` cron deletes reservations never completed after
+  24 hours and removes the files of any deleted deal or company (a trigger queues
+  each deleted row's object path). Migration `0053_contact_artwork.sql` adds the
+  private `contact-artwork` bucket, the `contact_artwork` table (RLS, admin read
+  only), `reserve_contact_artwork` / `attach_contact_artwork` (service role
+  only), the removal queue, and a copy of `create_lead_from_contact` whose only
+  change is the new-deal title prefix; `supabase/tests/0053_contact_artwork.test.sql`
+  covers it.
 - Reviewed before release by five independent read-only reviewers with
   three-lens skeptic verification of every finding (15 of 40 candidates
   confirmed and fixed): thread canvas sized to the scrollbar-excluded viewport
@@ -68,9 +114,27 @@ handoff) instead of the digital studio, which moves lower down.
   the new product photos break the procedural-visuals rule in AGENTS.md, is
   deliberate and disclosed in the PR: the design requires real production
   evidence, so it needs the owner's sign-off rather than a code change.
-- Tests: 754 Node tests pass (new `tests/heritage.test.mjs`); component suite
-  (190) adds `compareSlider.test.jsx` and `menuFocus.test.jsx`; `journeyNav`
-  tests follow the new hero and "Production" label; production build verified.
+- Tests: 814 Node tests pass (new `tests/heritage.test.mjs`,
+  `tests/home-positioning-copy.test.mjs`, `tests/contactProduction.test.mjs`,
+  `tests/contactArtwork.test.mjs`, `tests/crm/migration-0053-contact-artwork.test.mjs`);
+  component suite 35 files / 251 tests (adds `compareSlider`, `menuFocus`,
+  `productionRequestForm`, `artworkPicker`, `contact-artwork-server`,
+  `contact-route-production`, `crm/contact-artwork-panel`); `journeyNav` tests
+  follow the new hero and "Production" label; CI-placeholder production build
+  passes (46 pages). `pnpm test:db` was not run: the 0053 pgTAP file (34
+  assertions) was run in PGlite against a replica of the touched tables, which
+  is a proxy, not the real gate.
+
+Note for merge: apply `supabase/migrations/0053_contact_artwork.sql` (the
+private `contact-artwork` bucket, `contact_artwork`, the reserve/attach RPCs, the
+removal queue and the replaced `create_lead_from_contact`). Either order degrades
+safely: if the app deploys first, uploads answer "unavailable", the request is
+still delivered and the visitor is told to email the files. No new environment
+variables. Before relying on uploads, send one real upload through a preview
+backed by a real Supabase branch: storage calls are only tested against mocks.
+The hCaptcha tick-through on the production-request form has not been run by
+hand. 0053 was checked free on 2026-10-19 (main is at 0052; open PR #281 holds
+0051).
 
 ## v1.121 — 2026-10-05
 
