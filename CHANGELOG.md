@@ -20,8 +20,18 @@ supersedes.
 - `components/Scene.jsx`: `ServiceRail` and `ApproachCompass` are no longer
   mounted (their Services and How we work beats are gone), so the canvas
   draws two fewer actors.
-- `components/sections/Lab.jsx`: the cards and "All services" now link to
-  `/services`, since the in-page `#services` section is gone.
+- Capabilities now lists the production services (owner request
+  2026-10-19): Embroidery Digitizing, Vector Artwork, Embroidered, Chenille,
+  PVC, Woven and Leather Patches, and Stickers. Each card keeps its colour
+  and gets new procedural art (`lib/inMotionCards.mjs`); every tagline
+  restates a claim the homepage already makes. Titles over 18 characters
+  step down to 21px so they fit the card (`.im-card-title--long`).
+- `components/sections/Lab.jsx`: the cards and "All services" now jump to
+  What We Make (`#make`), and the caption describes the in-house file and
+  sew-out process instead of the old "this whole site is the pitch" line.
+- Fixed: on phones and with reduced motion the Capabilities cards lost their
+  coloured art, because the static grid reused the hidden flying stage's
+  gradient ids. Each copy now has its own ids.
 - Tests: `tests/beatProgress.test.mjs`, `tests/sectionArchitecture.test.mjs`,
   `tests/heritage.test.mjs`, `tests/journeyNav.test.mjs` and
   `tests/marketing/journeyNav.test.jsx` follow the new beat list and a
