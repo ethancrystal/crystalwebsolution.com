@@ -5,8 +5,6 @@ import { Canvas } from '@react-three/fiber';
 import CameraRig from './three/CameraRig';
 import FocusDimmer from './three/FocusDimmer';
 import Crystal from './three/Crystal';
-import ServiceRail from './three/ServiceRail';
-import ApproachCompass from './three/ApproachCompass';
 import Particles from './three/Particles';
 import Sparks from './three/Sparks';
 import BackdropMorph from './three/BackdropMorph';
@@ -51,13 +49,6 @@ export default function Scene() {
           {/* Hero beat */}
           <Crystal position={[0, 0, CLUSTERS.crystal]} quality={quality} />
           <Sparks position={[0, 0, CLUSTERS.crystal]} />
-
-          {/* Services beat — eight signal instruments, one per service row, hover-linked
-              to the DOM list (see ServiceRail) */}
-          <ServiceRail position={[0, 0, CLUSTERS.services]} animate={quality.animate} />
-
-          {/* Approach beat — step-markers orbiting a small core */}
-          <ApproachCompass position={[0, 0, CLUSTERS.approach]} animate={quality.animate} />
 
           {/* Tier-driven (lib/renderQuality.mjs): particle density
               and DPR step down on compact, low-memory, save-data and

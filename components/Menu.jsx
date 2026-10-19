@@ -7,10 +7,28 @@ import { SITE } from '../lib/site';
 import { CRM_ENABLED } from '../lib/crmFlag';
 import { EASE_SETTLE } from '../lib/easing';
 
-// Fullscreen overlay menu: big staggered links + contact block.
-export default function Menu({ open, onClose }) {
+// Fullscreen overlay menu: big staggered links + contact block. `links`
+// defaults to the site-wide nav; the homepage passes its own production-first
+// list (lib/heritage.mjs HERITAGE_NAV). An item with `external` opens in a new
+// tab as a plain anchor. `pageLinks` adds a "Site pages" column to the meta
+// block: the homepage passes SITE.nav there, so its production-first list does
+// not cost the page its links to /blog, /process, /about and /contact.
+export default function Menu({ open, onClose, links = SITE.nav, pageLinks = null }) {
   const root = useRef(null);
   const lastFocused = useRef(null);
+  // The in-page hash ('#make') the menu was closed through, or '' for any other
+  // close. On a hash link, focus belongs on the destination section, not back on
+  // the burger, which would drag a keyboard user's Tab position away from where
+  // they just landed. SmoothScroll focuses the destination itself in its Lenis
+  // mode but not in its native (reduced-motion) mode, so the menu does it too
+  // when it is not already focused; that makes both modes land the same way.
+  const pendingHash = useRef('');
+
+  const closeFromLink = (event) => {
+    const href = event.currentTarget.getAttribute('href') || '';
+    pendingHash.current = href.startsWith('/#') ? href.slice(1) : href.startsWith('#') ? href : '';
+    onClose();
+  };
 
   useEffect(() => {
     const el = root.current;
@@ -25,6 +43,7 @@ export default function Menu({ open, onClose }) {
     let onKeyDown;
     if (open) {
       lastFocused.current = document.activeElement;
+      pendingHash.current = '';
       previousOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       el.style.pointerEvents = 'auto';
@@ -74,7 +93,19 @@ export default function Menu({ open, onClose }) {
       if (focusFrame) cancelAnimationFrame(focusFrame);
       if (onKeyDown) document.removeEventListener('keydown', onKeyDown);
       if (previousOverflow !== undefined) document.body.style.overflow = previousOverflow;
-      if (open && lastFocused.current instanceof HTMLElement) lastFocused.current.focus();
+      if (!open) return;
+      // Closed through an in-page hash link: follow the destination.
+      const destination = pendingHash.current
+        ? document.getElementById(pendingHash.current.slice(1))
+        : null;
+      if (destination instanceof HTMLElement) {
+        if (document.activeElement !== destination) {
+          if (!destination.hasAttribute('tabindex')) destination.setAttribute('tabindex', '-1');
+          destination.focus({ preventScroll: true });
+        }
+      } else if (lastFocused.current instanceof HTMLElement) {
+        lastFocused.current.focus();
+      }
     };
   }, [open, onClose]);
 
@@ -88,16 +119,46 @@ export default function Menu({ open, onClose }) {
       style={{ clipPath: 'inset(0% 0% 100% 0%)', pointerEvents: 'none' }}
     >
       <div className="menu-links">
-        {SITE.nav.map((item, i) => (
-          <div className="menu-link-mask" key={item.label}>
-            <Link href={item.href} className="menu-link" onClick={onClose} tabIndex={open ? 0 : -1}>
+        {links.map((item, i) => {
+          const content = (
+            <>
               <span className="menu-link-index">0{i + 1}</span>
               {item.label}
-            </Link>
-          </div>
-        ))}
+            </>
+          );
+          return (
+            <div className="menu-link-mask" key={item.label}>
+              {item.external ? (
+                <a
+                  href={item.href}
+                  className="menu-link"
+                  target="_blank"
+                  rel="noopener"
+                  onClick={closeFromLink}
+                  tabIndex={open ? 0 : -1}
+                >
+                  {content}
+                </a>
+              ) : (
+                <Link href={item.href} className="menu-link" onClick={closeFromLink} tabIndex={open ? 0 : -1}>
+                  {content}
+                </Link>
+              )}
+            </div>
+          );
+        })}
       </div>
       <div className="menu-meta">
+        {pageLinks && (
+          <div>
+            <p className="menu-meta-label">Site pages</p>
+            {pageLinks.map((item) => (
+              <Link key={item.href} href={item.href} onClick={onClose} tabIndex={open ? 0 : -1}>
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        )}
         <div>
           <p className="menu-meta-label">Business enquiry</p>
           <a href={`mailto:${SITE.email}`} tabIndex={open ? 0 : -1}>{SITE.email}</a>
@@ -115,7 +176,7 @@ export default function Menu({ open, onClose }) {
         )}
         <div>
           <p className="menu-meta-label">{SITE.name}</p>
-          <p className="menu-meta-note">Web, brand, motion<br />and automation.</p>
+          <p className="menu-meta-note">Embroidery, patches,<br />web and brand.</p>
         </div>
         {CRM_ENABLED && (
           <div>

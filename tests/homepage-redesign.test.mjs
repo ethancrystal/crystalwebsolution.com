@@ -45,6 +45,30 @@ test('Lab keeps the eight procedural service cards (no bitmap project images)', 
   assert.doesNotMatch(labSource, /\/projects\//);
 });
 
+test('Capabilities cards name the production services and link to What we make', () => {
+  assert.deepEqual(IN_MOTION_CARDS.map((card) => card.title), [
+    'EMBROIDERY DIGITIZING',
+    'VECTOR ARTWORK',
+    'EMBROIDERED PATCHES',
+    'CHENILLE PATCHES',
+    'PVC PATCHES',
+    'WOVEN PATCHES',
+    'LEATHER PATCHES',
+    'STICKERS',
+  ]);
+  assert.equal(new Set(IN_MOTION_CARDS.map((card) => card.id)).size, IN_MOTION_CARDS.length);
+  // Taglines stay short enough to clear the ghost card number.
+  for (const card of IN_MOTION_CARDS) assert.ok(card.sub.length <= 24, `${card.id} tagline fits`);
+  assert.doesNotMatch(labSource, /href="\/services"|href="#services"/);
+  assert.match(labSource, /href="#make"/);
+});
+
+test('Capabilities stage and grid copies use distinct gradient ids', () => {
+  assert.match(labSource, /im-grad-\$\{variant\}-\$\{card\.id\}/);
+  assert.match(labSource, /<CardArt card=\{card\} index=\{index\} variant="stage" \/>/);
+  assert.match(labSource, /<CardArt card=\{card\} index=\{index\} variant="grid" \/>/);
+});
+
 test('Motion marquee uses supplied public project images, not procedural art', () => {
   assert.match(motionSource, /CLIENT_TILE_IMAGES/);
   assert.ok(CLIENT_TILE_IMAGES.length >= 6);

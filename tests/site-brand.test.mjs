@@ -51,7 +51,12 @@ test('the app icon and root metadata use the new brand asset and name', () => {
   const layout = read('app/layout.jsx');
   assert.doesNotMatch(layout, new RegExp(['Crystal', 'Web', 'Solution'].join('\\s+')));
   assert.match(layout, /SITE\.logoPath/);
-  assert.match(layout, /CD Sportswear INC/);
+  // The brand reaches the root metadata through SITE.name (asserted above to be
+  // "CD Sportswear INC"). The homepage copy moved to lib/seo.mjs in v1.123, so
+  // the literal no longer appears in layout.jsx; require the title to be built
+  // from SITE.name instead, which is the property this test exists to protect.
+  assert.match(layout, /\$\{HOME_TITLE_STEM\} \| \$\{SITE\.name\}/);
+  assert.match(layout, /template: `%s \| \$\{SITE\.name\}`/);
 });
 
 test('public page and shared chrome sources contain no old visible brand name', () => {

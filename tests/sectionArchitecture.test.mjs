@@ -41,7 +41,7 @@ test('homepage keeps one selected-work beat and one merged trust beat', () => {
   assert.doesNotMatch(lightsSource, /CLUSTERS\.showcase/);
   assert.doesNotMatch(lightsSource, /CLUSTERS\.recognition/);
   assert.equal(BEAT_IDS.includes('work'), false);
-  assert.deepEqual(BEAT_IDS, ['hero', 'about', 'services', 'approach', 'stories', 'mark', 'lab', 'motion', 'contact']);
+  assert.deepEqual(BEAT_IDS, ['hero', 'lab', 'motion', 'contact']);
   assert.equal(Object.hasOwn(CLUSTERS, 'showcase'), false);
   assert.equal(Object.hasOwn(CLUSTERS, 'facts'), false);
   assert.equal(Object.hasOwn(CLUSTERS, 'recognition'), false);
@@ -51,7 +51,10 @@ test('homepage keeps one selected-work beat and one merged trust beat', () => {
 test('the flight windows end when their sticky stages finish travelling', () => {
   const originalWindow = globalThis.window;
   const originalDocument = globalThis.document;
-  const tops = new Map(BEAT_IDS.map((id, index) => [id, index * 1000]));
+  // Homepage-shaped 10000px document: the production story (hero beat) runs
+  // 6000px, then lab, motion (2800px, so real sticky travel) and contact.
+  const BEAT_TOPS = { hero: 0, lab: 6000, motion: 7000, contact: 9000 };
+  const tops = new Map(BEAT_IDS.map((id) => [id, BEAT_TOPS[id]]));
 
   globalThis.window = { scrollY: 0, innerHeight: 1000 };
   globalThis.document = {

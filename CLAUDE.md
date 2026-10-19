@@ -26,9 +26,10 @@ CD Sportswear INC is a Next.js 16 / React 19 application containing a dark,
 cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
 The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM
 scrolls over it while a virtual camera flies through one continuous 3D space
-past a refracting crystal, service-signal instruments, an approach compass,
-procedural particles, and a morphing backdrop. Lab and Motion add DOM/CSS-3D
-card experiences over the same canvas. Marketing scene and project visuals
+past a refracting crystal, procedural particles, and a morphing backdrop. The
+page opens on the embroidery-first production story (`components/heritage/`)
+and then runs Capabilities (Lab), Selected work (Motion) and Contact; Lab and
+Motion add DOM/CSS-3D card experiences over the same canvas. Marketing scene and project visuals
 are procedural; tracked static files are limited to served brand/application
 assets and compatibility URLs. CRM routes live under `/login`, `/dashboard`,
 `/team`, and `/admin` and use Supabase Auth/Postgres/Storage/RLS.
@@ -192,9 +193,10 @@ animation:
   subpages mount it without JourneyNav, because the homepage ids don't resolve
   there.
 - `Scene.jsx` mounts one Canvas with `CameraRig`, `Lights`, `Effects`,
-  `FocusDimmer`, `Crystal`, `Sparks`, `ServiceRail`, `ApproachCompass`,
-  `Particles`, and `BackdropMorph`. Lab and Motion do not mount separate scene
-  actors.
+  `FocusDimmer`, `Crystal`, `Sparks`, `Particles`, and `BackdropMorph`. Lab
+  and Motion do not mount separate scene actors. (`ServiceRail` and
+  `ApproachCompass` left the canvas with their beats in v1.126; their files
+  are kept pending an owner decision on deletion.)
 - Inner marketing pages do **not** use `Scene.jsx`. They render through
   `MarketingShell` -> `SubpageExperience`, which passes a stage name (or
   `null`) down via `StageContext`; `HeroStage` inside `PageHero` mounts the
