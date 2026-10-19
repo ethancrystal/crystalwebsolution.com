@@ -1,7 +1,15 @@
 import './globals.css';
 import { Space_Grotesk, Inter, Space_Mono, Instrument_Serif, IBM_Plex_Mono } from 'next/font/google';
 import { SITE } from '../lib/site';
-import { SITE_ORIGIN, SOCIAL_IMAGE_PATH } from '../lib/seo.mjs';
+import {
+  SITE_ORIGIN,
+  SOCIAL_IMAGE_PATH,
+  HOME_TITLE_STEM,
+  HOME_DESCRIPTION,
+  HOME_SOCIAL_DESCRIPTION,
+  ORG_DESCRIPTION,
+  ORG_KNOWS_ABOUT,
+} from '../lib/seo.mjs';
 import Analytics from '../components/Analytics';
 import PageTransition from '../components/PageTransition';
 import { GTM_ID, gtmHeadSnippet } from '../lib/analytics.mjs';
@@ -35,11 +43,10 @@ const SITE_URL = SITE_ORIGIN;
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `Custom Web Design & AI Automation | ${SITE.name}`,
+    default: `${HOME_TITLE_STEM} | ${SITE.name}`,
     template: `%s | ${SITE.name}`,
   },
-  description:
-    'CD Sportswear INC designs and builds distinctive websites, brand systems, motion experiences, and AI automations for businesses ready to stand apart.',
+  description: HOME_DESCRIPTION,
   // No `alternates.canonical` here: a layout canonical is inherited by every
   // route that forgets its own, which silently canonicalises that route to
   // the homepage (404s did exactly that). The homepage sets '/' in app/page.jsx.
@@ -47,16 +54,14 @@ export const metadata = {
     type: 'website',
     url: SITE_URL,
     siteName: SITE.name,
-    title: `Custom Web Design & AI Automation | ${SITE.name}`,
-    description:
-      'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',
+    title: `${HOME_TITLE_STEM} | ${SITE.name}`,
+    description: HOME_SOCIAL_DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: `Custom Web Design & AI Automation | ${SITE.name}`,
-    description:
-      'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',
+    title: `${HOME_TITLE_STEM} | ${SITE.name}`,
+    description: HOME_SOCIAL_DESCRIPTION,
     images: [{ url: SOCIAL_IMAGE_PATH }],
   },
   icons: {
@@ -92,8 +97,7 @@ const JSON_LD = {
       email: SITE.email,
       telephone: SITE.phone,
       foundingDate: String(SITE.founded),
-      description:
-        'Digital studio designing distinctive websites, brand systems, motion experiences, and AI automation.',
+      description: ORG_DESCRIPTION,
       slogan: SITE.tagline,
       logo: {
         '@type': 'ImageObject',
@@ -103,14 +107,7 @@ const JSON_LD = {
         caption: SITE.name,
       },
       image: { '@id': `${SITE_URL}/#logo` },
-      knowsAbout: [
-        'web design',
-        'web development',
-        'branding',
-        'logo design',
-        'AI automation',
-        'motion design',
-      ],
+      knowsAbout: [...ORG_KNOWS_ABOUT],
       // National, remote service-area business (docs/seo/STRATEGY.md §2).
       areaServed: { '@type': 'Country', name: 'United States' },
       // The one physical address (lib/site.js). No opening hours or geo: the
@@ -141,8 +138,7 @@ const JSON_LD = {
       url: `${SITE_URL}/`,
       name: SITE.name,
       alternateName: ['CD Sportswear', 'CD Sportswear Inc'],
-      description:
-        'Websites, brands, motion, and AI workflows—designed with clarity and built to move.',
+      description: HOME_SOCIAL_DESCRIPTION,
       publisher: { '@id': ORG_ID },
       inLanguage: 'en',
     },

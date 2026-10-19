@@ -176,7 +176,7 @@ export default function Menu({ open, onClose, links = SITE.nav, pageLinks = null
         )}
         <div>
           <p className="menu-meta-label">{SITE.name}</p>
-          <p className="menu-meta-note">Web, brand, motion<br />and automation.</p>
+          <p className="menu-meta-note">Embroidery, patches,<br />web and brand.</p>
         </div>
         {CRM_ENABLED && (
           <div>

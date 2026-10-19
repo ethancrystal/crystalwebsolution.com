@@ -16,8 +16,9 @@ the Manassas local ladder, the "specific low-difficulty terms" rule of
 
 ## 1. What we are trying to do
 
-Rank **`https://www.cdsportswearinc.com`** (brand: **CD Sportswear INC**, a
-national, fully-remote web design and digital agency) for the **broad head
+Rank **`https://www.cdsportswearinc.com`** (brand: **CD Sportswear INC**:
+embroidery digitizing and patch production, plus a national, fully-remote web
+design and digital agency) for the **broad head
 terms** that buyers of web design, digital marketing, logo/branding and SEO
 services type into Google in the United States. Success is measured as
 *qualified impressions → qualified clicks → engaged visits → inquiries →
@@ -63,6 +64,15 @@ question. Every run log opens with progress against this criterion.
 - Services sold are the eight live `/services/*` pages plus SEO once §3 row 4
   ships. Do **not** build pages for services the site does not sell
   (Shopify, native mobile, and anything else absent from `lib/servicePages.mjs`).
+  Production services (digitizing, patches, stickers, vector prep) are offered
+  from the homepage and have no `/services/*` page.
+- The homepage leads with embroidery digitizing and patch production (v1.123,
+  owner decision 2026-10-18). That is positioning, not a ranking theme. No
+  embroidery term is a §3 target, no page is built for one, and `/` stays
+  mapped to the brand term only. A production theme becomes a target only when
+  MJ adds it to the §3 table. The homepage title keeps "Web Design" in it and
+  no homepage copy states a number of years (`SITE.founded` and
+  `SITE.experience` are unresolved against the design's "16 years").
 - Brand name is exactly **CD Sportswear INC**. Do not write "Crystal Web
   Solution" or "CD Sportswear USA" on any new page.
 
@@ -181,6 +191,14 @@ the business can serve that searcher · merging anything · guessing a number.
   in schema and on Contact as a service-area business (no hours, no walk-ins);
   mailing address `P.O. Box #41424, Arlington, VA 22204` is shown on Contact,
   Privacy and Terms and is never schema `address`. "Sharjah, DXB" was removed.
+- Homepage identity (owner decision 2026-10-18, v1.123): the default title
+  (`Embroidery Digitizing & Web Design | CD Sportswear INC`), the meta and
+  social descriptions and the Organization description lead with embroidery
+  digitizing and keep web design named. Copy lives in `lib/seo.mjs`
+  (`HOME_*`, `ORG_*`) and is length-pinned by
+  `tests/home-positioning-copy.test.mjs`. First-party evidence for `/` was
+  unavailable when this was decided (Search Console returned 403); read the
+  `/` queries in GSC at the next checkpoint before judging the change.
 - Daily operator: **Hermes Agent** on MJ's desktop (`CDS-SEO daily` Mon–Fri,
   `CDS-SEO weekly audit` Sun, `CDS-SEO watchdog`). Claude/Cowork sessions
   advise and may open PRs, but must check open PRs and today's run log first

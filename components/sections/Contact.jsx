@@ -55,7 +55,7 @@ export default function Contact() {
         <div className="footer-col">
           <p className="footer-label">Studio</p>
           <p>Location in {SITE.city}</p>
-          <p>Web, brand &amp; automation</p>
+          <p>Embroidery, patches, web &amp; brand</p>
         </div>
         <div className="footer-col footer-reviews">
           <p className="footer-label">Reviews</p>
