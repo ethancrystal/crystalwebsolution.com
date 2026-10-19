@@ -1,3 +1,16 @@
+## v1.124 — 2026-10-19
+
+Weekly SEO goal-monger run for the `rfp web development` goal. Search
+Console is reachable again: the exact query/page pair still has 0
+impressions (final data, 2026-09-19 → 2026-10-16), and the guide page has
+9 impressions for anonymized queries. The blog post
+`/blog/soft-navigations-core-web-vitals-spa-websites`, which Google
+indexes, now has its own related links: the web-development pillar, the
+custom React/Next.js post and the RFP guide. Before this it used the
+generic defaults. This gives the guide an inbound link from a page
+Google crawls. Ledger and run note in `docs/seo/goals.md` and
+`docs/seo/runs/2026-10-19-goal-monger.md`.
+
 ## v1.121 — 2026-10-05
 
 Blog readability and schema fix: markdown tables, task lists, FAQPage
