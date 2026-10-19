@@ -49,6 +49,12 @@ const RAD_TO_DEG = 180 / Math.PI;
 // The 26px mono title fits 18 characters across the card; longer service
 // names ("EMBROIDERY DIGITIZING") step down to .im-card-title--long.
 const LONG_TITLE_CHARS = 18;
+// A photo card's patch sits where the procedural icons do: the right side of
+// the art region, over the thread's end (lib/inMotionCards.mjs `photo`).
+const PHOTO_X = 168;
+const PHOTO_Y = 31;
+const PHOTO_W = 138;
+const PHOTO_H = 128;
 
 function clamp01(value) {
   return Math.min(1, Math.max(0, value));
@@ -104,6 +110,7 @@ function CardArt({ card, index, variant }) {
   const num = String(index + 1).padStart(2, '0');
   const gradId = `im-grad-${variant}-${card.id}`;
   const sheenId = `im-sheen-${variant}-${card.id}`;
+  const shadowId = `im-shadow-${variant}-${card.id}`;
 
   return (
     <svg viewBox={`0 0 ${CARD_DOM_WIDTH} ${CARD_DOM_HEIGHT}`} className="im-card-art" aria-hidden="true">
@@ -116,6 +123,11 @@ function CardArt({ card, index, variant }) {
           <stop offset="0" stopColor="#ffffff" stopOpacity="0.35" />
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
+        {card.photo && (
+          <filter id={shadowId} x="-15%" y="-15%" width="130%" height="140%">
+            <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#0b0d0b" floodOpacity="0.4" />
+          </filter>
+        )}
       </defs>
       <rect x="0.75" y="0.75" width={CARD_DOM_WIDTH - 1.5} height={CARD_DOM_HEIGHT - 1.5} rx="8" fill="#f4f3ef" stroke="#11130f" strokeWidth="1.5" />
       <text x="12" y="17" className="im-card-kicker">{SITE.name.toUpperCase()} / SERVICE</text>
@@ -133,7 +145,19 @@ function CardArt({ card, index, variant }) {
       <svg x={ART_X} y={ART_Y} width={ART_W} height={ART_H} viewBox="0 0 296 132" preserveAspectRatio="none">
         <path d={inMotionCurve(index)} fill="none" stroke="#0b0d0b" strokeWidth="5" strokeLinecap="round" />
       </svg>
-      {card.shapes.map((shape, shapeIndex) => <CardShape key={shapeIndex} shape={shape} />)}
+      {card.photo ? (
+        <image
+          href={card.photo.src}
+          x={PHOTO_X}
+          y={PHOTO_Y}
+          width={PHOTO_W}
+          height={PHOTO_H}
+          preserveAspectRatio="xMidYMid meet"
+          filter={`url(#${shadowId})`}
+        />
+      ) : (
+        card.shapes.map((shape, shapeIndex) => <CardShape key={shapeIndex} shape={shape} />)
+      )}
       <text x="12" y="196" className={card.title.length > LONG_TITLE_CHARS ? 'im-card-title im-card-title--long' : 'im-card-title'}>{card.title}</text>
       <text x="12" y="212" className="im-card-sub">{card.sub}</text>
       <text x={CARD_DOM_WIDTH - 12} y="216" textAnchor="end" className="im-card-num-ghost">{num}</text>
