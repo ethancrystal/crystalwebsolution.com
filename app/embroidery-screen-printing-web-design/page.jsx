@@ -132,6 +132,12 @@ export default function EmbroideryScreenPrintingWebDesign() {
             capabilities to the parts that matter here: structured catalogs, account access,
             order history, and repeat-order workflows.
           </p>
+          <p>
+            This page is about your shop&rsquo;s website. If you need the embroidery itself, we do
+            that too: <Link href="/services/embroidery-digitizing">embroidery digitizing services</Link> that
+            turn artwork into stitch files tested on the machine, and{' '}
+            <Link href="/services/custom-patches">custom patches with no minimum order</Link>.
+          </p>
 
           <h2>What we actually build</h2>
           <p>

@@ -40,6 +40,26 @@ serves 404 (WebFetch on apex and `www`, 2026-09-10) — Operations Manual §12.
 | product page design | 260 | 39 | $5.11 | informational | /blog/product-page-design | draft 2026-09-23 | Next | no | 2026-09-23 |
 | sportswear marketing strategy | 390 | 27 | $6.34 | informational | /blog/sportswear-marketing-strategy | draft 2026-09-23 (KAN-11) | Next | no | 2026-09-23 |
 | sportswear marketing plan | 50 | 24 | $0.00 | informational | /blog/sportswear-marketing-strategy | draft 2026-09-23 (KAN-11) | Next | no | 2026-09-23 |
+| embroidery digitizing services | unavailable | unavailable | unavailable | commercial | /services/embroidery-digitizing | **built 2026-10-19** — pillar, theme P1 (STRATEGY.md §3). Title "Embroidery Digitizing Services", H1 "Embroidery digitizing services" | Now | no — needs MJ's yes (§4) | — |
+| embroidery digitizing | unavailable | unavailable | unavailable | commercial + info | /services/embroidery-digitizing | secondary on the P1 pillar | Now | no | — |
+| logo digitizing for embroidery | unavailable | unavailable | unavailable | commercial | /services/embroidery-digitizing | secondary on the P1 pillar | Now | no | — |
+| custom patches | unavailable | unavailable | unavailable | commercial | /services/custom-patches | **built 2026-10-19** — pillar, theme P2 (STRATEGY.md §3). Title "Custom Patches with No Minimum Order", H1 "Custom patches with no minimum order" | Now | no — needs MJ's yes (§4) | — |
+| custom embroidered patches | unavailable | unavailable | unavailable | commercial | /services/custom-patches | secondary on the P2 pillar | Now | no | — |
+| custom patches no minimum | unavailable | unavailable | unavailable | commercial | /services/custom-patches | secondary on the P2 pillar | Now | no | — |
+
+**P1/P2 rows (added 2026-10-19).** Every figure is "unavailable": no keyword
+tool was reachable that day (Ahrefs plan insufficient, Ubersuggest not
+connected), and STRATEGY.md §5 forbids estimating around the gap. Pull them on
+the next Keywords lane before choosing supporting pages. Planned supporting
+pages, **not built and not reserved** until figures exist: `cap digitizing`,
+`hat digitizing`, `towel digitizing` and `sleeve digitizing` under P1 (the
+applications the business already lists); one page
+per patch material (`custom pvc patches`, `custom chenille patches`,
+`custom woven patches`, `custom leather patches`, `custom printed patches`)
+under P2, each folding back in as a secondary until it earns its own URL.
+`/embroidery-screen-printing-web-design` is **web design for embroidery and
+screen-printing shops**, not embroidery itself: never point an embroidery,
+digitizing or patch term at it (it now links to both pillars instead).
 
 Five of the six mapped rows are tracked in the project. `web design manassas va` is not:
 it was parked on 2026-09-02 as part of the superseded local-first ladder, and

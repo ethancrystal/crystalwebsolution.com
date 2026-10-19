@@ -1,3 +1,44 @@
+## v1.125 — 2026-10-19
+
+SEO redo with embroidery digitizing and custom patches at the centre. Stacked
+on v1.123 (PR #286): this PR's base is that branch until it merges, then it
+retargets `main` and the number must be re-checked against open PRs (v1.124 is
+held by #287). Audit: `docs/seo/runs/2026-10-19-code-seo-audit.md`.
+
+- Two production pillars, rendered by the existing `/services/[slug]`
+  template: `/services/embroidery-digitizing` ("Embroidery Digitizing
+  Services", theme P1) and `/services/custom-patches` ("Custom Patches with No
+  Minimum Order", theme P2). Every claim comes from `lib/heritage.mjs` or the
+  owner's design brief; no year figure, no turnaround, and the only price is
+  the current $5 offer, stated as the current offer. Each ends with the
+  production request form, its category preselected, and points its proof at
+  the homepage workbench and quality sections rather than /work.
+- `lib/servicePages.mjs`: standalone pages carry a `group`;
+  `PRODUCTION_SERVICE_PAGES` and `STUDIO_SERVICE_PAGES` split them. Neither new
+  page joins `SERVICES`, the homepage rail or the camera beats. New signal
+  geometry (`needle`, `patch`), blurbs and SVG glyphs for the two signals.
+- `/services` leads with production, then the digital studio; new title
+  "Services: Digitizing, Patches & Web — CD Sportswear INC", which takes no
+  pillar's head term. The ItemList lists production first. No service count
+  anywhere.
+- Homepage production story: the Embroidery and Patches outputs and the What
+  We Make blocks now link the two pillars (Crystal Digitizing and the patch
+  offer stay as second links). `/embroidery-screen-printing-web-design`, which
+  is web design for shops, links both pillars for buyers who wanted the
+  embroidery itself.
+- `public/llms.txt`: production section first (homepage plus both pillars),
+  then the studio; "Eight disciplines" and the noindex `/hire/shopify-developer`
+  entry removed; the nine published posts it was missing added.
+- `/process` title now carries the full brand: "Our Process: Design & Build
+  That Ships | CD Sportswear INC".
+- `docs/seo/STRATEGY.md` §1-§3 and §8 and `docs/seo/KEYWORD-REGISTRY.md`: P1/P2
+  themes and rows, every keyword figure "unavailable" (no keyword tool
+  reachable). **The strategy amendments need MJ's written yes on this PR**
+  (§4).
+- Tests: `tests/production-pillars.test.mjs` (new); `marketing.test.mjs` and
+  `home-positioning-copy.test.mjs` updated for the pillars and the new
+  llms.txt structure.
+
 ## v1.123 — 2026-10-18
 
 Homepage repositioned around embroidery digitizing, patches and production: the

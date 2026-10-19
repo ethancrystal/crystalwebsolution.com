@@ -99,21 +99,38 @@ test('the Menu note and Contact footer describe production and web', () => {
   assert.match(source('components/sections/Contact.jsx'), /<p>Embroidery, patches, web &amp; brand<\/p>/);
 });
 
-test('llms.txt leads with embroidery digitizing and adds no fake production service entry', () => {
+test('llms.txt leads with embroidery digitizing and patches, then the studio', () => {
   const llms = source('public/llms.txt');
   const blockquote = llms.split('\n').find((line) => line.startsWith('> ')) ?? '';
-  assert.match(blockquote, /embroidery/i);
+  assert.match(blockquote, /^> CD Sportswear INC digitizes embroidery and makes custom patches/);
   assert.match(blockquote, /web design/, 'the blockquote still lists the web services');
 
-  const servicesSection = llms.split('\n## ').find((section) => section.startsWith('Services')) ?? '';
-  const entries = servicesSection.split('\n').filter((line) => line.startsWith('- ['));
-  assert.ok(entries.length > 0, 'found the Services section');
-  const home = entries.filter((line) => line.includes(`](${SITE_ORIGIN})`));
-  assert.equal(home.length, 1, 'exactly one homepage entry under Services');
-  assert.match(home[0], /Embroidery digitizing/);
-  // There is no /services/embroidery page (STRATEGY.md §2, §7): production is
-  // described on the homepage entry, never as its own service listing.
-  for (const line of entries.filter((entry) => !entry.includes(`](${SITE_ORIGIN})`))) {
-    assert.doesNotMatch(line, /digitiz|patch|sticker/i, `no production entry under Services: ${line}`);
+  // Production is the first section, and it holds the homepage and both
+  // production pillars (STRATEGY.md §3, themes P1/P2).
+  const sections = llms.split('\n## ').slice(1);
+  const entriesOf = (section) => section.split('\n').filter((line) => line.startsWith('- ['));
+  assert.equal(sections[0].split('\n')[0], 'Embroidery digitizing and patches');
+  const production = entriesOf(sections[0]);
+  for (const route of ['', '/services/embroidery-digitizing', '/services/custom-patches']) {
+    assert.equal(production.filter((line) => line.includes(`](${SITE_ORIGIN}${route})`)).length, 1, `production lists ${route || '/'}`);
   }
+
+  // The studio section lists the hub and the studio pillars; no production
+  // pillar is listed twice, and only the hub line may mention production.
+  const studio = sections.find((section) => section.startsWith('Digital studio services')) ?? '';
+  const studioEntries = entriesOf(studio);
+  assert.ok(studioEntries.length > 0, 'found the Digital studio section');
+  for (const line of studioEntries.filter((entry) => !entry.includes(`](${SITE_ORIGIN}/services)`))) {
+    assert.doesNotMatch(line, /digitiz|patch|sticker/i, `no production entry under the studio: ${line}`);
+  }
+});
+
+test('llms.txt states no service count and lists no noindex page', () => {
+  const llms = source('public/llms.txt');
+  // A written count drifts every time a pillar ships (the 2026-10-19 audit
+  // found "Eight disciplines" beside ten listed services).
+  assert.doesNotMatch(llms, /\b(?:six|seven|eight|nine|ten|eleven|twelve|\d+)\s+(?:disciplines|services)\b/i);
+  // /hire/shopify-developer is noindex, follow (seo-onpage.test.mjs), so a
+  // guide for crawlers must not send them to it.
+  assert.doesNotMatch(llms, /\/hire\//);
 });

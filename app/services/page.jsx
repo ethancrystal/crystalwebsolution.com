@@ -5,37 +5,40 @@ import ContentSection from '../../components/marketing/ContentSection';
 import ServiceGrid from '../../components/marketing/ServiceGrid';
 import ServiceThreadArc from '../../components/marketing/ServiceThreadArc';
 import FaqSchema from '../../components/marketing/FaqSchema';
-import { SERVICE_PAGES } from '../../lib/servicePages.mjs';
+import { PRODUCTION_SERVICE_PAGES, STUDIO_SERVICE_PAGES } from '../../lib/servicePages.mjs';
 import { SITE } from '../../lib/site';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 
-const TITLE = 'Services';
-// 2026-09-24 (replaces 2026-09-11's "Connected Services"): leads with "Services" so
-// the title matches the /services slug (Ubersuggest URL-keyword check), while still
-// avoiding the pillar head terms ("web design", "branding") so the hub doesn't
-// cannibalize /services/web-design or /services/branding. Wrapped in
+// 2026-10-19: embroidery digitizing and custom patches lead (docs/seo/STRATEGY.md
+// §2-§3, themes P1/P2), the digital studio follows. Still leads with "Services"
+// so the title matches the /services slug, and still avoids every pillar's head
+// term ("embroidery digitizing services", "custom patches", "web design",
+// "branding") so the hub never competes with its own pillars. Wrapped in
 // `absolute` so the root layout's `%s | <brand>` template does not append to it.
-const SEO_TITLE = 'Services: Websites, Brands & Automation — CD Sportswear INC';
+const SEO_TITLE = 'Services: Digitizing, Patches & Web — CD Sportswear INC';
 const DESCRIPTION =
-  'CD Sportswear INC designs and builds websites, brand systems, motion, and AI and workflow automation — focused offers, each owned end to end.';
+  'CD Sportswear INC digitizes embroidery and makes custom patches, and its digital studio designs and builds websites, brand systems, motion and automation.';
 
+// No service count anywhere on this page: "Eight disciplines" survived on
+// llms.txt after a ninth page shipped (2026-10-19 audit). The grids show the
+// count; the copy never states it.
 const SERVICES_FAQ = [
   {
-    q: 'Do I have to commit to more than one service?',
-    a: 'No. Every engagement starts scoped to the problem in front of you — a site, a brand system, an automation. If it later touches a second service, that gets scoped and agreed separately, never assumed upfront.',
+    q: 'Do you make the patches, or only the files?',
+    a: 'Both. We digitize the artwork and make the patches — embroidered, woven, PVC, leather, chenille and printed — and you see a mockup before anything is produced.',
   },
   {
-    q: 'What if my project needs two or three of these at once?',
-    a: 'That is the common case, not the exception — a rebrand that needs a new site, a new site that needs a workflow behind it. One team runs the combination, so nothing gets lost in a handoff between vendors.',
+    q: 'Do I have to commit to more than one service?',
+    a: 'No. Every engagement starts scoped to the problem in front of you — a patch run, a file to digitize, a site, an automation. If it later touches a second service, that gets scoped and agreed separately, never assumed upfront.',
   },
   {
     q: 'I don’t know which service my problem needs. Now what?',
-    a: 'Describe the problem in a brief, not the service you think you need. Matching it to the right offer, or telling you honestly that none of them fit, is our job.',
+    a: 'Describe the problem, not the service you think you need. Matching it to the right offer, or telling you honestly that none of them fit, is our job.',
   },
   {
     q: 'Do you publish pricing per service?',
-    a: 'Not as fixed ranges — scope varies too much for a public number to mean anything. Send your brief through Contact and you get a real quote, not a guess.',
+    a: 'Only the current patch offer, which is on the custom patches page. Everything else varies too much for a public number to mean anything: send the details and you get a real quote, not a guess.',
   },
 ];
 
@@ -63,26 +66,30 @@ export default function ServicesIndex() {
     <MarketingShell sceneVariant="services">
       <PageHero
         eyebrow="What we do"
-        title="Focused offers. Owned end to end."
-        lede="Eight connected services, each run by people who do the work — not a menu of things we resell."
+        title="Embroidery and patches first. The studio alongside."
+        lede="Embroidery digitizing and custom patches are the centre of the business: every product starts as a file we prepare and test on the machine. The digital studio builds the websites, brands and automation around them."
       />
-      <ContentSection eyebrow="Services" title="Pick a thread">
-        <ServiceThreadArc />
-        <ServiceGrid pages={SERVICE_PAGES} />
+      <ContentSection eyebrow="Production" title="Embroidery digitizing and custom patches">
+        <ServiceGrid pages={PRODUCTION_SERVICE_PAGES} />
       </ContentSection>
-      <ContentSection eyebrow="Choosing" title="One service or all eight" tone="alt">
+      <ContentSection eyebrow="Digital studio" title="Websites, brands and automation" tone="alt">
+        <ServiceThreadArc />
+        <ServiceGrid pages={STUDIO_SERVICE_PAGES} />
+      </ContentSection>
+      <ContentSection eyebrow="Choosing" title="One service or several">
         <p className="mkt-prose">
-          Most engagements start with a single thread — a site that needs rebuilding, a brand system
-          that needs order, a workflow eating hours every week. The eight connect because one team runs
-          all of them: pull on one and the rest are already staffed if the work grows into them. You are
+          Most work starts with a single thread — a file that needs digitizing, a patch run, a site that
+          needs rebuilding, a workflow eating hours every week. They connect because one team runs all of
+          them: the same people who digitize a logo can put it on a patch, a cap and a website. You are
           never sold a bundle to justify a bigger invoice.
         </p>
         <p className="mkt-prose">
-          Not sure which one fits? <Link href="/contact">Send the brief</Link> and describe the problem,
+          Have artwork ready? <Link href="/#contact-production">Send the file, the size and the quantity</Link>.
+          Planning a site or a brand? <Link href="/contact">Send the brief</Link> and describe the problem,
           not the service — matching it to the right offer is our job, not yours.
         </p>
       </ContentSection>
-      <ContentSection eyebrow="FAQ" title="Common questions">
+      <ContentSection eyebrow="FAQ" title="Common questions" tone="alt">
         <dl className="mkt-faq">
           {SERVICES_FAQ.map((item) => (
             <div className="mkt-faq-item" key={item.q}>
@@ -92,17 +99,23 @@ export default function ServicesIndex() {
           ))}
         </dl>
       </ContentSection>
-      <ContentSection eyebrow="More" title="See the standard behind every offer" tone="alt">
+      <ContentSection eyebrow="More" title="See the standard behind every offer">
         <ul className="mkt-related">
           <li>
+            <Link href="/#quality" className="mkt-related-link">
+              <span className="mkt-related-title">Quality control — how a file is sewn out, inspected and corrected before production.</span>
+              <span className="mkt-related-arrow" aria-hidden="true">→</span>
+            </Link>
+          </li>
+          <li>
             <Link href="/process" className="mkt-related-link">
-              <span className="mkt-related-title">Process — the six stages every one of these services runs through.</span>
+              <span className="mkt-related-title">Process — the six stages every studio project runs through.</span>
               <span className="mkt-related-arrow" aria-hidden="true">→</span>
             </Link>
           </li>
           <li>
             <Link href="/work" className="mkt-related-link">
-              <span className="mkt-related-title">Selected work — see the services above applied to real briefs.</span>
+              <span className="mkt-related-title">Selected work — the studio’s services applied to real briefs.</span>
               <span className="mkt-related-arrow" aria-hidden="true">→</span>
             </Link>
           </li>
@@ -123,7 +136,7 @@ export default function ServicesIndex() {
             '@context': 'https://schema.org',
             '@type': 'ItemList',
             name: `${SITE.name} services`,
-            itemListElement: SERVICE_PAGES.map((page, index) => ({
+            itemListElement: [...PRODUCTION_SERVICE_PAGES, ...STUDIO_SERVICE_PAGES].map((page, index) => ({
               '@type': 'ListItem',
               position: index + 1,
               name: page.title,

@@ -217,6 +217,38 @@ export const GLYPHS = {
       </circle>
     </>
   ),
+
+  // P1 — Embroidery digitizing. A needle, threaded, that dips and lays down a
+  // run of stitches: the file becoming thread. Standalone pillar page only.
+  digitizing: (
+    <>
+      <g>
+        <line x1="16" y1="10" x2="40" y2="34" className="em-stroke" />
+        <ellipse cx="18.5" cy="12.5" rx="2.4" ry="1.2" transform="rotate(45 18.5 12.5)" className="em-stroke em-faint" />
+        <animateTransform attributeName="transform" type="translate" dur="1.6s" repeatCount="indefinite"
+          values="0 0;3 3;0 0" />
+      </g>
+      <path d="M18.5 12.5 C 8 22, 10 40, 12 48" className="em-stroke em-faint" fill="none" />
+      {/* the stitches it lays down */}
+      <line x1="10" y1="50" x2="54" y2="50" className="em-stroke em-accent" strokeDasharray="5 4">
+        <animate attributeName="x2" dur="5s" repeatCount="indefinite"
+          values="10;54;54;10" keyTimes="0;0.7;0.9;1" />
+      </line>
+      <circle cx="42" cy="36" r="1.8" className="em-dot" />
+    </>
+  ),
+
+  // P2 — Custom patches. A round patch whose merrowed border is being sewn
+  // around it, with a simple mark in the middle. Standalone pillar page only.
+  patches: (
+    <>
+      <circle cx="32" cy="32" r="19" className="em-stroke em-faint" />
+      <circle cx="32" cy="32" r="22.5" className="em-stroke em-accent" strokeDasharray="3 2.5" fill="none">
+        <animate attributeName="stroke-dashoffset" dur="4s" repeatCount="indefinite" values="0;-22" />
+      </circle>
+      <path d="M32 21 L35 29 L43.5 29 L36.5 34 L39 42.5 L32 37.5 L25 42.5 L27.5 34 L20.5 29 L29 29 Z" className="em-stroke" fill="none" />
+    </>
+  ),
 };
 
 function stripAnimations(children) {

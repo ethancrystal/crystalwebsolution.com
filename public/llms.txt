@@ -1,11 +1,16 @@
 # CD Sportswear INC
 
-> CD Sportswear INC digitizes embroidery and makes custom patches, stickers and vector artwork, and runs a digital studio for businesses that need a site, brand or 3D experience that gets remembered instead of scrolled past: web design, development, branding, logo, digital marketing, animation, AI automation and workflow automation.
+> CD Sportswear INC digitizes embroidery and makes custom patches — embroidered, woven, PVC, leather, chenille and printed — plus stickers and vector artwork, each from a file prepared for the material and tested on the machine before production. Its digital studio designs and builds what supports them: web design, development, branding, logo, digital marketing, animation, AI automation, workflow automation and SEO.
 
-## Services
+## Embroidery digitizing and patches
 
 - [CD Sportswear INC — Embroidery digitizing, patches and digital studio](https://www.cdsportswearinc.com): Embroidery digitizing and patch production, plus an independent studio building brands and interactive 3D web experiences.
-- [Services — Eight disciplines, one team](https://www.cdsportswearinc.com/services): Web design, development, branding, logo, digital marketing, animation, AI automation and workflow automation.
+- [Embroidery Digitizing Services](https://www.cdsportswearinc.com/services/embroidery-digitizing): Artwork turned into stitch files planned for the fabric, backing and real size, then sewn out and inspected before production — caps, hats, sleeves, towels, gloves and monograms.
+- [Custom Patches with No Minimum Order](https://www.cdsportswearinc.com/services/custom-patches): Embroidered, woven, PVC, leather, chenille and printed patches, with no minimum order, free digitizing and a free mockup before production.
+
+## Digital studio services
+
+- [Services — Production and digital studio](https://www.cdsportswearinc.com/services): Embroidery digitizing and custom patches first, then web design, development, branding, logo, digital marketing, animation, AI automation, workflow automation and SEO.
 - [Web Design — Interfaces with intent](https://www.cdsportswearinc.com/services/web-design): Brand-aligned visual systems, conversion-aware layout and responsive accessible component patterns that earn the click and the close.
 - [Web Development — Next.js builds that ship](https://www.cdsportswearinc.com/services/web-development): Full-stack web application engineering with React / Next.js front-ends, API layers, data models, auth and role-based access.
 - [Branding — Identity systems](https://www.cdsportswearinc.com/services/branding): Brand strategy and positioning, visual identity systems, and voice, tone and messaging grounded in strategy, not trends.
@@ -15,7 +20,6 @@
 - [AI Automation — Agents that do the work](https://www.cdsportswearinc.com/services/ai-automation): Document and content automation, triage and summarization workflows, and LLM-powered assistants and agents.
 - [Workflow Automation — Connected systems](https://www.cdsportswearinc.com/services/workflow-automation): Tool and system integration, trigger-based automation, and data sync across platforms.
 - [SEO — Search engine optimization that compounds](https://www.cdsportswearinc.com/services/seo): Technical fixes, pillar pages and earned links, measured in inquiries — remote, US-wide.
-- [Hire a Shopify Developer — CD Sportswear INC](https://www.cdsportswearinc.com/hire/shopify-developer): Shopify theme builds, app integrations and store migrations, scoped to what the store actually needs.
 
 ## Work
 
@@ -44,13 +48,23 @@
 - [Website Redesign Services: What You’re Buying — CD Sportswear INC](https://www.cdsportswearinc.com/blog/website-redesign-services): What redesign services include, when you need them, what drives cost, and how to pick a partner.
 - [Website Redesign Cost — CD Sportswear INC](https://www.cdsportswearinc.com/blog/website-redesign-cost): Planning ranges for refresh, full redesign and replatform paths, and the line items most quotes skip.
 - [Wix Harmony vs Framer AI vs Squarespace AI — CD Sportswear INC](https://www.cdsportswearinc.com/blog/wix-harmony-vs-framer-ai-squarespace): Which AI site builder fits a first service-business site, and when DIY stops fitting.
+- [ADA Website Checklist for Small Business — CD Sportswear INC](https://www.cdsportswearinc.com/blog/ada-website-checklist-small-business): Title II vs III, a nine-point WCAG self-check, why scanners and overlays fall short, and when to get a design pass.
+- [Claude Design Send to Wix: What’s Left — CD Sportswear INC](https://www.cdsportswearinc.com/blog/claude-design-wix-send-to-wix-whats-left): What Send to Wix puts live, what you still do yourself, and when to get help.
+- [Core Web Vitals for Small Business Sites — CD Sportswear INC](https://www.cdsportswearinc.com/blog/core-web-vitals-small-business-website): Field data vs Lighthouse, fixing CLS, LCP and INP on Wix, Squarespace and WordPress, and when DIY isn’t enough.
+- [Figma Sites vs Webflow — CD Sportswear INC](https://www.cdsportswearinc.com/blog/figma-sites-vs-webflow): Figma Sites and Webflow compared for DIY landing pages, portfolios and CMS marketing sites, and when to hire a studio.
+- [Figma Weave Tools for Website Imagery — CD Sportswear INC](https://www.cdsportswearinc.com/blog/figma-weave-tools-website-imagery): What Figma Weave speeds up for website imagery and what art direction still decides.
+- [Web Design Trends for Small Business — CD Sportswear INC](https://www.cdsportswearinc.com/blog/web-design-trends-2026-small-business): Which current web design looks to copy, adapt lightly or skip, so a small business site keeps its clarity and speed.
+- [Webflow Agent Instructions: The Gaps — CD Sportswear INC](https://www.cdsportswearinc.com/blog/webflow-agent-instructions-generated-guidelines): What Webflow's generated brand, design system, asset and CMS guides miss, with a handoff checklist.
+- [Webflow MCP Agents vs Hiring a Designer — CD Sportswear INC](https://www.cdsportswearinc.com/blog/webflow-mcp-agents-vs-hiring-designer): What Webflow agents can ship and what still needs a human designer.
+- [WordPress.com AI Theme vs a Designer — CD Sportswear INC](https://www.cdsportswearinc.com/blog/wordpress-com-ai-theme-vs-hiring-designer): What the WordPress.com AI theme ships, what it leaves to you, and when to hire a designer.
 - [About — CD Sportswear INC](https://www.cdsportswearinc.com/about): The studio behind the work.
-- [Process — Six steps, one standard of care](https://www.cdsportswearinc.com/process): Discover, define, design, build, refine, hand off — the same six steps on every project.
+- [Process — Six steps, one standard of care](https://www.cdsportswearinc.com/process): Discover, define, design, build, refine, hand off — the same six steps on every studio project.
 - [Privacy — CD Sportswear INC](https://www.cdsportswearinc.com/privacy): Privacy policy for CD Sportswear INC.
 - [Terms — CD Sportswear INC](https://www.cdsportswearinc.com/terms): Terms and conditions for CD Sportswear INC.
-- [Embroidery and screen printing web design — CD Sportswear INC](https://www.cdsportswearinc.com/embroidery-screen-printing-web-design): Web design for embroidery and screen printing businesses.
+- [Embroidery and screen printing web design — CD Sportswear INC](https://www.cdsportswearinc.com/embroidery-screen-printing-web-design): Web design for embroidery and screen printing businesses — websites for shops, not the embroidery work itself (see Embroidery Digitizing Services above).
 
 ## Contact
 
+- [Request production — artwork, size and quantity](https://www.cdsportswearinc.com/#contact-production): Send artwork for digitizing, patches, stickers or vector work and get a mockup before anything is produced.
 - [Contact — Start a project](https://www.cdsportswearinc.com/contact): Send your brief for a straight read on scope, timeline, cost, and the first move.
 - [Reviews — Real clients, real outcomes](https://www.cdsportswearinc.com/reviews): Unedited client reviews from before, during and after launch.

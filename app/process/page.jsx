@@ -9,9 +9,12 @@ import { absoluteUrl, SOCIAL_IMAGE_PATH } from '../../lib/seo.mjs';
 import BreadcrumbSchema from '../../components/marketing/BreadcrumbSchema';
 
 const TITLE = 'Process';
-// Exact <title> flagged by Ubersuggest and specified by MJ (2026-09-11). Wrapped
-// in `absolute` so the root layout's `%s | <brand>` template does not append to it.
-const SEO_TITLE = 'Our Process: Design & Build That Ships | CD Sportswear';
+// <title> specified by MJ on 2026-09-11, with the brand corrected to the exact
+// "CD Sportswear INC" that docs/seo/STRATEGY.md §2 (ratified 2026-09-19) requires
+// on every page (2026-10-19 SEO audit: this was the one live title without it).
+// Wrapped in `absolute` so the root layout's `%s | <brand>` template does not
+// append to it.
+const SEO_TITLE = 'Our Process: Design & Build That Ships | CD Sportswear INC';
 const DESCRIPTION =
   'How CD Sportswear INC works — a clear path from discovery to a product your team owns, measured against real behavior.';
 

@@ -18,9 +18,11 @@ the Manassas local ladder, the "specific low-difficulty terms" rule of
 
 Rank **`https://www.cdsportswearinc.com`** (brand: **CD Sportswear INC**:
 embroidery digitizing and patch production, plus a national, fully-remote web
-design and digital agency) for the **broad head
-terms** that buyers of web design, digital marketing, logo/branding and SEO
-services type into Google in the United States. Success is measured as
+design and digital agency) for the **broad head terms** that buyers type into
+Google in the United States — **first the embroidery digitizing and custom
+patch terms (themes P1 and P2, §3), the centre of the business since
+2026-10-19**, then the web design, digital marketing, logo/branding and SEO
+terms. Success is measured as
 *qualified impressions → qualified clicks → engaged visits → inquiries →
 qualified opportunities* on those terms — never as "number of keywords
 tracked" and never as traffic that cannot convert.
@@ -35,7 +37,9 @@ whether an approach is wrong.
 inquiries from organic search*, not rankings. A qualified organic inquiry is a
 new contact-form submission or CRM contact/deal whose GA4 session
 source/medium is `google/organic` or `bing/organic`, asking for a service on
-the live `/services/*` list (or `/services/seo` once it ships). Targets,
+the live `/services/*` list — production requests (`kind: 'production'` on
+`/api/contact`: digitizing, patches, stickers, vector artwork) count the same
+as web briefs. Targets,
 clock starting at the 2026-09-03 relaunch:
 
 | Checkpoint | Date | Target |
@@ -61,18 +65,24 @@ question. Every run log opens with progress against this criterion.
   and never one page per service per location — that is the doorway pattern
   §7 rules out. Never write a location page for a place the business cannot
   demonstrably serve, and never fake local proof. (Amended 2026-09-22.)
-- Services sold are the eight live `/services/*` pages plus SEO once §3 row 4
-  ships. Do **not** build pages for services the site does not sell
-  (Shopify, native mobile, and anything else absent from `lib/servicePages.mjs`).
-  Production services (digitizing, patches, stickers, vector prep) are offered
-  from the homepage and have no `/services/*` page.
-- The homepage leads with embroidery digitizing and patch production (v1.123,
-  owner decision 2026-10-18). That is positioning, not a ranking theme. No
-  embroidery term is a §3 target, no page is built for one, and `/` stays
-  mapped to the brand term only. A production theme becomes a target only when
-  MJ adds it to the §3 table. The homepage title keeps "Web Design" in it and
-  no homepage copy states a number of years (`SITE.founded` and
-  `SITE.experience` are unresolved against the design's "16 years").
+- Services sold are the live `/services/*` pages in `lib/servicePages.mjs`:
+  the two production pillars (`/services/embroidery-digitizing`,
+  `/services/custom-patches`) and the nine digital studio pages. Do **not**
+  build pages for services the site does not sell (Shopify, native mobile, and
+  anything else absent from `lib/servicePages.mjs`). Stickers and vector
+  artwork prep are sold through the homepage and the production request form
+  and have no page until a theme is added for them in §3.
+- **Embroidery digitizing and custom patches are the centre of the business
+  and of this programme** (owner instruction in the Claude Code session of
+  2026-10-19: "make sure we do the redo and position embroidery digitizing and
+  patches at the centre of it"; MJ to confirm in writing on the PR that
+  carries this edit, per the header). They are §3 themes P1 and P2, each with
+  its own pillar, worked before the studio themes. `/services` lists them
+  first. The homepage leads with them (v1.123) but stays mapped to the brand
+  term only: one keyword, one URL, and the head terms belong to the pillars.
+  The homepage title keeps "Web Design" in it. No search or share copy states
+  a number of years (`SITE.founded` and `SITE.experience` are unresolved
+  against the design's "16 years").
 - Brand name is exactly **CD Sportswear INC**. Do not write "Crystal Web
   Solution" or "CD Sportswear USA" on any new page.
 
@@ -87,11 +97,14 @@ reachable through a *cluster*, so the method is fixed too:
 > term, and every one links up to its pillar. The head term is the destination;
 > the supporting pages are how we get there.**
 
-The four themes, all **Now** priority, worked in this rotation order (easiest
-head term first, so the programme shows a signal earliest):
+The six themes, all **Now** priority. **P1 and P2 come first** (the centre of
+the business, §2); themes 1–4 follow in their original rotation order
+(easiest head term first, so the programme shows a signal earliest):
 
 | # | Theme | Pillar URL | Primary head term (Ubersuggest US, 2026-09-19) | Status |
 |---|---|---|---|---|
+| P1 | Embroidery digitizing | `/services/embroidery-digitizing` | `embroidery digitizing services` — volume, difficulty and CPC **unavailable** (no keyword tool reachable on 2026-10-19; Ahrefs plan insufficient, Ubersuggest not connected). Secondary on the same page: `embroidery digitizing`, `logo digitizing for embroidery`, `cap digitizing` | **Pillar built 2026-10-19** (v1.125); figures to pull on the next Keywords lane before any supporting page is chosen |
+| P2 | Custom patches | `/services/custom-patches` | `custom patches` — volume, difficulty and CPC **unavailable** (same reason). Secondary on the same page: `custom embroidered patches`, `custom patches no minimum`, and the material phrasings (`custom pvc patches`, `custom chenille patches`, `custom woven patches`, `custom leather patches`) until a supporting page earns one | **Pillar built 2026-10-19** (v1.125); same |
 | 1 | Web design / redesign | `/services/web-design` | `websites designers` — 27,100/mo · diff 33 · $21.50 · commercial | Pillar exists |
 | 2 | Digital marketing | `/services/digital-marketing` | `digital marketing agency` — 49,500/mo · diff 82 · $14.92 · navigational | Pillar exists |
 | 3 | Logo / branding | `/services/logo-design` (logo terms) and `/services/branding` (branding terms) | `logo design` — 40,500/mo · diff 75 · $8.17 · commercial | Pillars exist; the cluster is split across two pillars, never merged |
@@ -123,8 +136,9 @@ Rules that follow from the table:
   supporting pages → internal links wired both ways → then move to the next
   theme. Do not scatter one post per theme.
 - The 25 terms tracked in Ubersuggest project `109eb168…` are **all** in
-  these four themes. Terms outside them are not targets until MJ adds a theme
-  here.
+  themes 1–4. No P1/P2 term is tracked yet: adding them to the project needs
+  MJ's yes (§4). Terms outside the six themes are not targets until MJ adds a
+  theme here.
 
 ## 4. Approval gates — never cross without MJ's explicit written yes
 
@@ -199,6 +213,25 @@ the business can serve that searcher · merging anything · guessing a number.
   `tests/home-positioning-copy.test.mjs`. First-party evidence for `/` was
   unavailable when this was decided (Search Console returned 403); read the
   `/` queries in GSC at the next checkpoint before judging the change.
+- 2026-10-19 (embroidery-first redo, `docs/seo/runs/2026-10-19-code-seo-audit.md`):
+  the GSC connector answers again. Baseline, 2026-07-21 → 2026-10-17: 223
+  impressions, 4 clicks, average position 15.4, and **no embroidery, patch or
+  digitizing query at all**. Index coverage is the bottleneck, not rankings:
+  `/services` and `/process` are "URL is unknown to Google",
+  `/services/web-design` and `/services/digital-marketing` are "Discovered –
+  currently not indexed", while `/`, `/services/seo` and
+  `/embroidery-screen-printing-web-design` are indexed. The sitemap report
+  shows 49 submitted with 1 error. Separately, `www.cdsportswearinc.com` had
+  no DNS record from about 2026-10-16 until 2026-10-19 (records created under
+  `www` for Customer.io and DMARC stopped the zone's wildcard answering for
+  it); an explicit `www` CNAME to `cname.vercel-dns.com` was added on
+  2026-10-19 with the owner's yes. Never create records under `www.` again
+  without keeping that explicit `www` record.
+- Production pillars `/services/embroidery-digitizing` (P1) and
+  `/services/custom-patches` (P2) built 2026-10-19 (v1.125, stacked on
+  v1.123). Next for both: request indexing in GSC once live, pull P1/P2
+  figures on the Keywords lane, then pick 3–5 supporting pages from the
+  "planned" rows in `KEYWORD-REGISTRY.md`.
 - Daily operator: **Hermes Agent** on MJ's desktop (`CDS-SEO daily` Mon–Fri,
   `CDS-SEO weekly audit` Sun, `CDS-SEO watchdog`). Claude/Cowork sessions
   advise and may open PRs, but must check open PRs and today's run log first
