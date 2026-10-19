@@ -182,6 +182,13 @@
   padding: 8px 0;
   border-bottom-color: rgba(232, 242, 250, 0.35);
 }
+/* A primary link to a pillar page beside a quieter secondary one. */
+.hx-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 14px 28px;
+}
 .hx-figcap {
   display: flex;
   justify-content: space-between;

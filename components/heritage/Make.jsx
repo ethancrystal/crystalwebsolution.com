@@ -91,9 +91,14 @@ export default function Make() {
             <ul className="hx-tags">
               {DIGITIZE_TAGS.map((tag) => <li key={tag}>{tag}</li>)}
             </ul>
-            <a className="hx-link" href={CRYSTAL_DIGITIZING_URL} target="_blank" rel="noopener">
-              Explore Crystal Digitizing <span className="hx-arrow" aria-hidden="true">→</span>
-            </a>
+            <div className="hx-links">
+              <a className="hx-link" href="/services/embroidery-digitizing">
+                Embroidery digitizing services <span className="hx-arrow" aria-hidden="true">→</span>
+              </a>
+              <a className="hx-link hx-link--ghost" href={CRYSTAL_DIGITIZING_URL} target="_blank" rel="noopener">
+                Explore Crystal Digitizing <span className="hx-arrow" aria-hidden="true">→</span>
+              </a>
+            </div>
           </div>
         </Reveal>
 
@@ -148,9 +153,14 @@ export default function Make() {
               Embroidered, woven, PVC, leather, chenille and printed. Each material behaves differently on the
               machine and in the hand, so the file and the material are chosen together.
             </p>
-            <a className="hx-link" href="/#offer">
-              See the current patch offer <span className="hx-arrow" aria-hidden="true">→</span>
-            </a>
+            <div className="hx-links">
+              <a className="hx-link" href="/services/custom-patches">
+                Custom patches <span className="hx-arrow" aria-hidden="true">→</span>
+              </a>
+              <a className="hx-link hx-link--ghost" href="/#offer">
+                See the current patch offer <span className="hx-arrow" aria-hidden="true">→</span>
+              </a>
+            </div>
           </div>
           <ul className="hx-tiles">
             {PATCH_TILES.map((tile) => (

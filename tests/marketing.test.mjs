@@ -25,8 +25,9 @@ const EXPECTED_SLUGS = [
 
 // Standalone pillar pages: rendered by the same /services/[slug] template and
 // listed on /services + the sitemap, but NOT in SERVICES (no homepage row, no
-// 3D rail instrument). docs/seo/STRATEGY.md §3 theme 4.
-const STANDALONE_SLUGS = ['seo'];
+// 3D rail instrument). docs/seo/STRATEGY.md §3: theme 4 (SEO) and the two
+// production pillars, P1 (embroidery digitizing) and P2 (custom patches).
+const STANDALONE_SLUGS = ['seo', 'embroidery-digitizing', 'custom-patches'];
 const ALL_SLUGS = [...EXPECTED_SLUGS, ...STANDALONE_SLUGS];
 
 const EXPECTED_SIGNALS = [
@@ -171,6 +172,16 @@ const SEO_SHIP_TABLE = [
     slug: 'seo',
     seoTitle: 'SEO Agency — Search Engine Optimization',
     h1: 'Search engine optimization agency for brands',
+  },
+  {
+    slug: 'embroidery-digitizing',
+    seoTitle: 'Embroidery Digitizing Services',
+    h1: 'Embroidery digitizing services',
+  },
+  {
+    slug: 'custom-patches',
+    seoTitle: 'Custom Patches with No Minimum Order',
+    h1: 'Custom patches with no minimum order',
   },
 ];
 

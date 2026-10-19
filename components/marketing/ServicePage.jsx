@@ -2,17 +2,25 @@ import Link from 'next/link';
 import PageHero from './PageHero';
 import ContentSection from './ContentSection';
 import ContactForm from './ContactForm';
+import ProductionRequestForm from './ProductionRequestForm';
 import ServiceEmblem from './ServiceEmblem';
 import ServiceThreadArc from './ServiceThreadArc';
 import ProjectVisual from '../ProjectVisual';
 import { getRelatedServices } from '../../lib/servicePages.mjs';
+import { createEmptyProductionRequest } from '../../lib/contactForm.mjs';
 import { getProject } from '../../lib/projects';
 import { SITE } from '../../lib/site';
 
 // ServicePage renders one full service record from lib/servicePages.mjs.
 // It uses only server components plus the extracted ContactForm client
 // component. No homepage WebGL runtime is imported.
+//
+// Production pillars (`page.group === 'production'`: embroidery digitizing,
+// custom patches) end on the production request form with their category
+// preselected, and point at the homepage workbench rather than /work, which
+// holds web projects. Every other page is unchanged.
 export default function ServicePage({ page }) {
+  const isProduction = page.group === 'production';
   const related = getRelatedServices(page);
   const relatedWork = (page.relatedWorkSlugs || [])
     .map((slug) => getProject(slug))
@@ -125,6 +133,24 @@ export default function ServicePage({ page }) {
         </ContentSection>
       )}
 
+      {isProduction ? (
+        <ContentSection eyebrow="See the work" title="Proof from the workbench">
+          <ul className="mkt-related">
+            <li>
+              <Link href="/#work" className="mkt-related-link">
+                <span className="mkt-related-title">Finished patches and full batches, photographed as they came off the bench</span>
+                <span className="mkt-related-arrow" aria-hidden="true">→</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/#quality" className="mkt-related-link">
+                <span className="mkt-related-title">How a file is approved: sew-out, inspection, correction, second sew-out</span>
+                <span className="mkt-related-arrow" aria-hidden="true">→</span>
+              </Link>
+            </li>
+          </ul>
+        </ContentSection>
+      ) : (
       <ContentSection eyebrow="See our work" title={relatedWork.length ? 'Related projects' : 'Every project, one standard'}>
         {relatedWork.length > 0 && (
           <ul className="mkt-work-grid">
@@ -156,13 +182,24 @@ export default function ServicePage({ page }) {
           </li>
         </ul>
       </ContentSection>
+      )}
 
       <ServiceThreadArc />
 
-      <ContentSection eyebrow="Start" title="Let’s talk">
+      <ContentSection eyebrow="Start" title={isProduction ? 'Send the artwork' : 'Let’s talk'}>
         <p className="mkt-prose">{page.finalCta}</p>
         <div className="mkt-contact-wrap">
-          <ContactForm variant={`service-${page.slug}`} />
+          {isProduction ? (
+            <ProductionRequestForm
+              variant={`service-${page.slug}`}
+              draft={{
+                values: { ...createEmptyProductionRequest(), category: page.productionCategory },
+                files: [],
+              }}
+            />
+          ) : (
+            <ContactForm variant={`service-${page.slug}`} />
+          )}
         </div>
         <p className="mkt-contact-alt">
           Prefer email? <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
