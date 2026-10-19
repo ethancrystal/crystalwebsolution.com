@@ -33,15 +33,23 @@ const sources = Object.fromEntries([
 // code and rendered copy are asserted on.
 const allSource = [...Object.values(sources), read('lib/heritage.mjs')].map(stripComments).join('\n');
 
-test('the homepage opens on the production story, then the studio bridge, then the digital beats', () => {
+test('the homepage opens on the production story, then the studio bridge, then Capabilities onward', () => {
   const experience = stripComments(read('components/Experience.jsx'));
-  const world = experience.indexOf('<HeritageWorld />');
-  const bridge = experience.indexOf('<StudioBridge />');
-  const about = experience.indexOf('<About />');
-  assert.ok(world > -1 && bridge > world && about > bridge, 'HeritageWorld, StudioBridge, About in that order');
+  const order = ['<HeritageWorld />', '<StudioBridge />', '<Lab />', '<Motion />', '<Contact />'];
+  let at = -1;
+  for (const tag of order) {
+    const next = experience.indexOf(tag);
+    assert.ok(next > at, `${tag} follows the previous section`);
+    at = next;
+  }
   assert.doesNotMatch(experience, /<Hero\s*\/>/, 'Hero now lives inside HeritageWorld');
-  // The story is not a camera beat: the beat list and camera stops are unchanged.
-  assert.deepEqual(BEAT_IDS, ['hero', 'about', 'services', 'approach', 'stories', 'mark', 'lab', 'motion', 'contact']);
+  // The production story replaces every digital beat above Capabilities
+  // (owner decision 2026-10-19).
+  for (const removed of ['About', 'Services', 'Approach', 'Stories', 'Mark']) {
+    assert.doesNotMatch(experience, new RegExp(`<${removed}\\b`), `${removed} is no longer on the homepage`);
+  }
+  // The story is one camera beat (hero); Capabilities follows it directly.
+  assert.deepEqual(BEAT_IDS, ['hero', 'lab', 'motion', 'contact']);
 });
 
 test('the production story keeps the design order', () => {

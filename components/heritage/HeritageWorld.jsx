@@ -11,7 +11,7 @@ import ThreadRail from './ThreadRail';
 // The embroidery-first opening of the homepage: hero, heritage, what we make,
 // process, quality control, machinery, workbench proof and the patch offer,
 // joined by one scroll-drawn thread. It sits on its own opaque ink ground, so
-// the camera beats below (About onward) are untouched; the hero beat simply
+// the camera beats below (Capabilities onward) are untouched; the hero beat simply
 // lasts for the whole story. The Digital Studio bridge follows this block.
 export default function HeritageWorld() {
   return (

@@ -17,15 +17,15 @@ test('journey labels cover every beat, in order, in plain language', () => {
   }
   const labels = Object.fromEntries(JOURNEY_NAV.map((item) => [item.id, item.label]));
   assert.equal(labels.hero, 'Production');
-  assert.equal(labels.approach, 'How we work');
   assert.equal(labels.lab, 'Capabilities');
   assert.equal(labels.motion, 'Selected work');
+  assert.equal(labels.contact, 'Contact');
   assert.ok(Object.isFrozen(JOURNEY_NAV) && Object.isFrozen(JOURNEY_NAV[0]));
 });
 
 test('every journey anchor points at a section id that is actually rendered', () => {
   const sections = [
-    'Hero', 'About', 'Services', 'Approach', 'Stories', 'Mark', 'Lab', 'Motion', 'Contact',
+    'Hero', 'Lab', 'Motion', 'Contact',
   ].map((name) => read(`../components/sections/${name}.jsx`)).join('\n');
   for (const id of BEAT_IDS) {
     assert.match(sections, new RegExp(`id="${id}"`), `#${id} exists`);

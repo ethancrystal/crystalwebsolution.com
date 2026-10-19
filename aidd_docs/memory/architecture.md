@@ -48,7 +48,6 @@ flowchart LR
   subgraph Canvas["R3F canvas"]
     CameraRig["CameraRig"]
     Dimmer["FocusDimmer"]
-    Rail["ServiceRail"]
   end
   Ticker --> Lenis
   Lenis -- "progress, velocity" --> ScrollState
@@ -63,7 +62,6 @@ flowchart LR
   Stops --> CameraRig
   ScrollState -- "focus" --> Dimmer
   MotionScale -.-> CameraRig
-  MotionScale -.-> Rail
 ```
 
 ## Key decisions
@@ -72,7 +70,7 @@ flowchart LR
 - Per-frame values live in module-level singletons (`lib/scrollState.js`, `lib/pulse.js`, `lib/motionScale.js`, `lib/motionFlight.mjs`), never in React state or context.
 - DOM sections talk to the canvas only through those singletons or ScrollTrigger, never through props.
 - Camera segments use measured DOM breakpoints (`lib/beatProgress.js`), not uniform splits.
-- The `hero` beat is the embroidery-first opening, not one screen: `components/heritage/HeritageWorld` (hero, heritage, make, process, quality, machinery, workbench, offer) sits on an opaque ink ground, so the hero camera segment spans all of it and the WebGL stage is only visible again from the Digital Studio bridge (`StudioBridge`) down. Adding a section inside that world needs no `STOPS`/`CLUSTERS`/`BEAT_IDS` change; its anchors do not need to be beats (SmoothScroll scrolls to any `#id`). Its thread (`ThreadRail`) is a viewport canvas redrawn from a ScrollTrigger plus the shared ticker.
+- The `hero` beat is the embroidery-first opening, not one screen: `components/heritage/HeritageWorld` (hero, heritage, make, process, quality, machinery, workbench, offer) sits on an opaque ink ground, so the hero camera segment spans all of it and the WebGL stage is only visible again from the Digital Studio bridge (`StudioBridge`) down. Since v1.126 the bridge hands straight to Capabilities (`lab`): `BEAT_IDS` is `hero, lab, motion, contact`. Adding a section inside that world needs no `STOPS`/`CLUSTERS`/`BEAT_IDS` change; its anchors do not need to be beats (SmoothScroll scrolls to any `#id`). Its thread (`ThreadRail`) is a viewport canvas redrawn from a ScrollTrigger plus the shared ticker.
 - Adding or reordering a beat moves four things together: `STOPS`/`CLUSTERS` in `lib/journey.js`, `BEAT_IDS` in `lib/beatProgress.js`, the section's DOM `id`, and its actor in `components/Scene.jsx`.
 - Marketing visuals are procedural (canvas, SVG, shaders). Do not add decorative binary media.
 - `reactStrictMode: false` is intentional, so the WebGL context is never double-created.

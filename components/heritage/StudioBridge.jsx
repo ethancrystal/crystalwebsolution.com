@@ -2,7 +2,7 @@ import Reveal from '../Reveal';
 import { STUDIO_CAPABILITIES } from '../../lib/heritage.mjs';
 
 // 09 Digital Studio: the hinge between the production story above and the
-// digital beats below (About, Services, ...). The physical work leads; the
+// digital beats below (Capabilities, Selected work, Contact). The physical work leads; the
 // studio is framed as supporting it. Transparent, so the WebGL stage returns
 // from here; the ink ground above fades out through the ::before gradient.
 export default function StudioBridge() {

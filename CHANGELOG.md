@@ -1,4 +1,37 @@
-## v1.123 — 2026-10-18
+## v1.126 — 2026-10-19
+
+The embroidery-first homepage, fitted onto the current one (owner decision
+2026-10-19): the new production story now fills everything above the
+Capabilities section, and from Capabilities down the page continues as before.
+This release also carries all of PR #286 (opened as v1.123, below), which it
+supersedes.
+
+- `components/Experience.jsx`: the page is now HeritageWorld (hero through the
+  $5 patch offer) → Digital Studio bridge → Capabilities (`Lab`) → Selected
+  work (`Motion`) → Contact. About, Services, How we work, Client stories and
+  Brand systems are no longer on the homepage. Their component files stay in
+  the repo until the owner approves deleting them; the inner pages
+  (`/about`, `/services`, `/process`, `/work`) are unchanged.
+- The design's own footer is not used: the story ends at the Digital Studio
+  bridge and hands over to Capabilities, and the site footer in Contact stays.
+- Camera journey: `BEAT_IDS` is now `hero, lab, motion, contact`, with one
+  `STOPS` entry each and the JourneyNav labels Production, Capabilities,
+  Selected work, Contact. `CLUSTERS` and the lights are unchanged.
+- `components/Scene.jsx`: `ServiceRail` and `ApproachCompass` are no longer
+  mounted (their Services and How we work beats are gone), so the canvas
+  draws two fewer actors.
+- `components/sections/Lab.jsx`: the cards and "All services" now link to
+  `/services`, since the in-page `#services` section is gone.
+- Tests: `tests/beatProgress.test.mjs`, `tests/sectionArchitecture.test.mjs`,
+  `tests/heritage.test.mjs`, `tests/journeyNav.test.mjs` and
+  `tests/marketing/journeyNav.test.jsx` follow the new beat list and a
+  homepage-shaped measurement stub.
+- Checked in Chromium at 1440×900 and 390×844 against a production build: the
+  sections render in that order with no horizontal scroll, and the
+  Capabilities flight matches `main` frame for frame at four scroll points
+  (only the side nav changes, from 01–09 to 01–04).
+
+### From PR #286 (v1.123, 2026-10-18)
 
 Homepage repositioned around embroidery digitizing, patches and production: the
 page now opens on the owner's "Heritage Homepage" design (Claude Design

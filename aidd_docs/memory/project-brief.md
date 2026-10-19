@@ -14,7 +14,7 @@
 
 | Term | Meaning |
 | ---- | ------- |
-| beat | One scroll section of the homepage (Hero, About, Services, Approach, Stories, Mark, Lab, Motion, Contact). The Hero beat is the whole embroidery-first production story (see architecture.md) |
+| beat | One camera section of the homepage (Hero, Lab, Motion, Contact). The Hero beat is the whole embroidery-first production story plus the Digital Studio bridge (see architecture.md) |
 | stop / cluster | A camera waypoint per beat, and the z-depth where that beat's 3D actors live (`lib/journey.js`) |
 | stage | The procedural hero background on an inner marketing page (`about`, `services`, `process`, `contact`) |
 | portal | The CRM entry for a role: client, employee (`project_manager`) or admin |

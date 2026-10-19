@@ -44,7 +44,7 @@ describe('JourneyNav', () => {
     const contact = screen.getByRole('link', { name: /Contact/ });
     expect(contact).toHaveAttribute('aria-current', 'location');
     expect(screen.getByRole('link', { name: /Production/ })).not.toHaveAttribute('aria-current');
-    expect(screen.getByRole('button', { name: /Sections, now at/ })).toHaveTextContent(/09.*Contact/);
+    expect(screen.getByRole('button', { name: /Sections, now at/ })).toHaveTextContent(/04.*Contact/);
   });
 
   it('opens and closes the phone list with the toggle and Escape', () => {
@@ -74,7 +74,7 @@ describe('JourneyNav', () => {
     fireEvent.focusOut(links[0], { relatedTarget: links[1] });
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
 
-    fireEvent.focusOut(links[8], { relatedTarget: outside });
+    fireEvent.focusOut(links[links.length - 1], { relatedTarget: outside });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     outside.remove();
   });
@@ -94,7 +94,7 @@ describe('JourneyNav', () => {
     const toggle = screen.getByRole('button', { name: /Sections, now at/ });
 
     fireEvent.click(toggle);
-    fireEvent.click(screen.getByRole('link', { name: /Services/ }));
+    fireEvent.click(screen.getByRole('link', { name: /Capabilities/ }));
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
 
     fireEvent.click(toggle);

@@ -137,9 +137,9 @@ function InMotionCard({ card, index, register }) {
   return (
     <a
       ref={register}
-      href="#services"
+      href="/services"
       className="im-card"
-      aria-label={`${card.title} — jump to services`}
+      aria-label={`${card.title} — see services`}
       tabIndex={-1}
     >
       <CardArt card={card} index={index} />
@@ -294,7 +294,7 @@ export default function Lab() {
           motion, real accessibility, and fallbacks that hold up on any device
           — built by CD Sportswear INC.
         </p>
-        <a href="#services" className="lab-link">All services <span aria-hidden="true">→</span></a>
+        <a href="/services" className="lab-link">All services <span aria-hidden="true">→</span></a>
         <div className="lab-stage" ref={stageRef}>
           {IN_MOTION_CARDS.map((card, index) => (
             <InMotionCard
@@ -307,7 +307,7 @@ export default function Lab() {
         </div>
         <div className="lab-grid">
           {IN_MOTION_CARDS.map((card, index) => (
-            <a key={card.id} href="#services" className="im-card" aria-label={`${card.title} — jump to services`}>
+            <a key={card.id} href="/services" className="im-card" aria-label={`${card.title} — see services`}>
               <CardArt card={card} index={index} />
             </a>
           ))}
