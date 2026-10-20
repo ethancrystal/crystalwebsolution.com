@@ -122,8 +122,11 @@ test('every heritage image exists, and nothing in public/heritage is unused', ()
   for (const file of referenced) {
     assert.ok(existsSync(new URL(`../public/heritage/${file}`, import.meta.url)), `${file} exists`);
   }
-  for (const file of readdirSync(new URL('../public/heritage/', import.meta.url))) {
-    assert.ok(referenced.has(file), `${file} is referenced`);
+  // Files only: public/heritage/patches/ holds the Capabilities cut-outs,
+  // which tests/homepage-redesign.test.mjs checks against the cards.
+  for (const entry of readdirSync(new URL('../public/heritage/', import.meta.url), { withFileTypes: true })) {
+    if (!entry.isFile()) continue;
+    assert.ok(referenced.has(entry.name), `${entry.name} is referenced`);
   }
   assert.equal(WORKBENCH.length, 8);
 });

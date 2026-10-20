@@ -1,3 +1,26 @@
+## v1.127 — 2026-10-19
+
+Real patches on the Capabilities cards (owner-supplied photos, 2026-10-19).
+
+- The Embroidered, PVC, Leather and new Printed Patches cards now show a
+  cut-out of a real patch where the drawn icon sat, with the thread running
+  into it: an embroidered shield, a PVC Thanksgiving turkey, a leather hex
+  and a printed twill oval. File work (Embroidery Digitizing, Vector Artwork)
+  stays drawn, as do Chenille and Stickers, which have no clean photo yet.
+- Woven Patches became Printed Patches: the supplied oval is printed on
+  twill, and printed is already one of the offer's materials. Tagline: "Full
+  colour, fine detail".
+- `public/heritage/patches/` holds the four WebP cut-outs (about 86 KB in
+  total), keyed out of the photo's slate background, with convex patches
+  masked by their hull for clean edges. They take the same product-evidence
+  exception as the rest of `public/heritage/`.
+- `lib/inMotionCards.mjs`: a card carries either `shapes` or `photo`.
+  `components/sections/Lab.jsx` draws the photo with a soft drop shadow in
+  the icon's place.
+- Tests: the Lab card test accepts a photo only from
+  `public/heritage/patches/`, keeps file-work cards drawn and checks every
+  cut-out is used. The heritage asset test now lists files only.
+
 ## v1.126 — 2026-10-19
 
 The embroidery-first homepage, fitted onto the current one (owner decision
