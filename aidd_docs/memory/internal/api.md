@@ -7,7 +7,9 @@
 
 ## Resources
 
-- `POST /api/contact`: rate limit, validate, optional hCaptcha, then create a CRM lead (best-effort) and email operations.
+- `POST /api/contact`: rate limit, validate, optional hCaptcha, then create a CRM lead (best-effort) and email operations. A `kind: 'production'` payload is the homepage production request; with declared artwork files it also returns signed upload slots.
+- `POST /api/contact/artwork/complete`: rate limited. Checks the files the browser uploaded (size, file signature), attaches the good ones to the CRM deal and removes the rest.
+- `GET /api/admin/contact-artwork/[id]`: admin session only (404 otherwise). Redirects to a 60 second signed download URL.
 - `GET|POST /api/cron/crm-notifications`: authenticated with a cron secret. Claims outbox email rows under a lease, sends them, and retries with backoff.
 - `GET /api/health`: dependency-free liveness for the Docker healthcheck.
 - `/api/sentry-verification`: 404 outside a preview with an explicit trigger.

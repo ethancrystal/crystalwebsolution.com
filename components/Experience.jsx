@@ -7,16 +7,11 @@ import Nav from './Nav';
 import ScrollProgress from './ScrollProgress';
 import JourneyNav from './JourneyNav';
 import FocusVeil from './FocusVeil';
-import Hero from './sections/Hero';
-import Services from './sections/Services';
-import Approach from './sections/Approach';
-import Stories from './sections/Stories';
-import Mark from './sections/Mark';
-import About from './sections/About';
+import HeritageWorld from './heritage/HeritageWorld';
+import StudioBridge from './heritage/StudioBridge';
 import Lab from './sections/Lab';
 import Motion from './sections/Motion';
 import Contact from './sections/Contact';
-import SectionHandoff from './SectionHandoff';
 
 // The Scene touches window + ships heavy libs — client-only.
 const Scene = dynamic(() => import('./Scene'), { ssr: false });
@@ -32,20 +27,19 @@ export default function Experience() {
       {/* A div, not <main>: app/layout.jsx already wraps every route in the
           single <main id="main-content"> landmark. */}
       <div className="page">
-        <Hero />
-        <SectionHandoff from="top" tone="cyan" label="about"><About /></SectionHandoff>
-        <SectionHandoff from="left" tone="cyan" label="services"><Services /></SectionHandoff>
-        <Approach />
-        <SectionHandoff from="right" tone="ink" label="stories"><Stories /></SectionHandoff>
-        <Mark />
+        {/* Embroidery-first opening: hero + production story on its own ink
+            ground (the "hero" camera beat), then the Digital Studio bridge,
+            which hands straight over to the Capabilities beat (owner decision
+            2026-10-19: the production story replaces everything above it). */}
+        <HeritageWorld />
+        <StudioBridge />
         <Lab />
         <Motion />
         <Contact />
       </div>
       {/* After the page in DOM order (it is fixed, so it looks the same):
-          keyboard users reach the hero before nine section links. */}
+          keyboard users reach the hero before the section links. */}
       <JourneyNav />
     </SmoothScroll>
   );
 }
-

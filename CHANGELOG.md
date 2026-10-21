@@ -1,4 +1,4 @@
-## v1.124 — 2026-10-19
+## v1.128 — 2026-10-21
 
 Weekly SEO goal-monger run for the `rfp web development` goal. Search
 Console is reachable again: the exact query/page pair still has 0
@@ -10,6 +10,210 @@ custom React/Next.js post and the RFP guide. Before this it used the
 generic defaults. This gives the guide an inbound link from a page
 Google crawls. Ledger and run note in `docs/seo/goals.md` and
 `docs/seo/runs/2026-10-19-goal-monger.md`.
+
+## v1.127 — 2026-10-19
+
+Real patches on the Capabilities cards (owner-supplied photos, 2026-10-19).
+
+- The Embroidered, PVC, Leather and new Printed Patches cards now show a
+  cut-out of a real patch where the drawn icon sat, with the thread running
+  into it: an embroidered shield, a PVC Thanksgiving turkey, a leather hex
+  and a printed twill oval. File work (Embroidery Digitizing, Vector Artwork)
+  stays drawn, as do Chenille and Stickers, which have no clean photo yet.
+- Woven Patches became Printed Patches: the supplied oval is printed on
+  twill, and printed is already one of the offer's materials. Tagline: "Full
+  colour, fine detail".
+- `public/heritage/patches/` holds the four WebP cut-outs (about 86 KB in
+  total), keyed out of the photo's slate background, with convex patches
+  masked by their hull for clean edges. They take the same product-evidence
+  exception as the rest of `public/heritage/`.
+- `lib/inMotionCards.mjs`: a card carries either `shapes` or `photo`.
+  `components/sections/Lab.jsx` draws the photo with a soft drop shadow in
+  the icon's place.
+- Tests: the Lab card test accepts a photo only from
+  `public/heritage/patches/`, keeps file-work cards drawn and checks every
+  cut-out is used. The heritage asset test now lists files only.
+
+## v1.126 — 2026-10-19
+
+The embroidery-first homepage, fitted onto the current one (owner decision
+2026-10-19): the new production story now fills everything above the
+Capabilities section, and from Capabilities down the page continues as before.
+This release also carries all of PR #286 (opened as v1.123, below), which it
+supersedes.
+
+- `components/Experience.jsx`: the page is now HeritageWorld (hero through the
+  $5 patch offer) → Digital Studio bridge → Capabilities (`Lab`) → Selected
+  work (`Motion`) → Contact. About, Services, How we work, Client stories and
+  Brand systems are no longer on the homepage. Their component files stay in
+  the repo until the owner approves deleting them; the inner pages
+  (`/about`, `/services`, `/process`, `/work`) are unchanged.
+- The design's own footer is not used: the story ends at the Digital Studio
+  bridge and hands over to Capabilities, and the site footer in Contact stays.
+- Camera journey: `BEAT_IDS` is now `hero, lab, motion, contact`, with one
+  `STOPS` entry each and the JourneyNav labels Production, Capabilities,
+  Selected work, Contact. `CLUSTERS` and the lights are unchanged.
+- `components/Scene.jsx`: `ServiceRail` and `ApproachCompass` are no longer
+  mounted (their Services and How we work beats are gone), so the canvas
+  draws two fewer actors.
+- Capabilities now lists the production services (owner request
+  2026-10-19): Embroidery Digitizing, Vector Artwork, Embroidered, Chenille,
+  PVC, Woven and Leather Patches, and Stickers. Each card keeps its colour
+  and gets new procedural art (`lib/inMotionCards.mjs`); every tagline
+  restates a claim the homepage already makes. Titles over 18 characters
+  step down to 21px so they fit the card (`.im-card-title--long`).
+- `components/sections/Lab.jsx`: the cards and "All services" now jump to
+  What We Make (`#make`), and the caption describes the in-house file and
+  sew-out process instead of the old "this whole site is the pitch" line.
+- Fixed: on phones and with reduced motion the Capabilities cards lost their
+  coloured art, because the static grid reused the hidden flying stage's
+  gradient ids. Each copy now has its own ids.
+- Tests: `tests/beatProgress.test.mjs`, `tests/sectionArchitecture.test.mjs`,
+  `tests/heritage.test.mjs`, `tests/journeyNav.test.mjs` and
+  `tests/marketing/journeyNav.test.jsx` follow the new beat list and a
+  homepage-shaped measurement stub.
+- Checked in Chromium at 1440×900 and 390×844 against a production build: the
+  sections render in that order with no horizontal scroll, and the
+  Capabilities flight matches `main` frame for frame at four scroll points
+  (only the side nav changes, from 01–09 to 01–04).
+
+### From PR #286 (v1.123, 2026-10-18)
+
+Homepage repositioned around embroidery digitizing, patches and production: the
+page now opens on the owner's "Heritage Homepage" design (Claude Design
+handoff) instead of the digital studio, which moves lower down.
+
+- `components/sections/Hero.jsx`: new hero, "Over 16 Years Of Experience under
+  our belts", with Crystal Digitizing as the primary path and `/#make` as the
+  second. Still `id="hero"`, so it is still the first camera beat.
+- `components/heritage/*`: the production story, in design order. Heritage and
+  the Crystal Digitizing core, What We Make (embroidery, what we digitize,
+  patches, stickers, vector prep), the eight-step Process, Quality Control
+  (drag-to-compare plus an inspection sheet), Machinery, the From the Workbench
+  proof wall, and the $5 patch offer (confirmed details only). `HeritageWorld`
+  sits on its own opaque ink ground, so `lib/journey.js`, `BEAT_IDS` and every
+  camera stop are unchanged; the hero beat simply lasts for the whole story.
+  `StudioBridge` ("Digital work that supports physical production") then hands
+  over to the existing About, Services and later beats.
+- `components/heritage/ThreadRail.jsx`: the Heritage Thread, a multi-strand
+  thread sewn down the story as you scroll. One viewport-sized canvas on
+  `gsap.ticker` (no second animation loop, nothing that scales with page
+  length); a tall SVG version was tried and repainted far too much. Off under
+  900px, fully drawn under reduced motion.
+- `lib/heritage.mjs`: all copy and claims in one place. `HERITAGE_NAV` (Crystal
+  Digitizing first) is passed to `Menu` from `Nav` only; subpages keep
+  `SITE.nav`. `Menu` gains a `pageLinks` prop and the homepage passes
+  `SITE.nav` as a "Site pages" column, so the page still links to /blog,
+  /process, /about and /contact. `lib/journeyNav.mjs` names the first beat
+  "Production".
+- `app/styles/heritage.css` (scoped under `.hx`), Instrument Serif and IBM Plex
+  Mono added in `app/layout.jsx` with `preload: false` so other routes do not
+  pay for them.
+- `public/heritage/`: 21 WebP product-evidence photos (1.3 MB, from about 13 MB
+  of source PNG/JPG). These are proof of the work, not decorative media.
+- Left out on purpose: the design's `[ model to confirm ]` and
+  `[ add verified correction ]` placeholders; the "machine photo" slot (its
+  image was a logo, not a machine); the studio tiles (screenshots of other
+  people's sites, see `public/projects/clients/SOURCES.md`), replaced by a plain
+  capability list. The compare slider shows original versus corrected artwork,
+  not a sew-out pair, and is labelled as such.
+- Search and footer copy now lead with embroidery digitizing (bundle B).
+  `lib/seo.mjs` holds the homepage identity strings (`HOME_TITLE_STEM`,
+  `HOME_DESCRIPTION`, `HOME_SOCIAL_DESCRIPTION`, `ORG_DESCRIPTION`,
+  `ORG_KNOWS_ABOUT`) and `app/layout.jsx` reads them, so the default title, OG
+  and Twitter title/description, the Organization and WebSite nodes share one
+  source. Default title: `Embroidery Digitizing & Web Design | CD Sportswear
+  INC` (54 chars; "Web Design" stays in it). `knowsAbout` keeps the six web
+  terms and adds embroidery digitizing, custom patches, sticker production,
+  vector artwork preparation. `SITE.statement` is now "Embroidery digitizing,
+  patches, web and brand, tested before it ships." (share card, every subpage
+  footer, `/about` lede); the Menu note and the Contact "Studio" column say
+  "Embroidery, patches, web and brand"; `public/llms.txt` leads with
+  digitizing, with no new entry under `## Services` (no `/services/embroidery`
+  page). Unchanged on purpose: `SITE.tagline`, `SITE.founded` (2016),
+  `SITE.experience` ("10+ years"), every year figure (the "16 years" claim is
+  unreconciled with "10+ years"), and `/about` title, description and body.
+- `docs/seo/STRATEGY.md`: §1 identity sentence, §2 (production services have no
+  `/services` page; homepage positioning is not a ranking theme) and §8
+  (homepage identity note) amended to match. The file's header says nothing in
+  it changes without MJ in writing: confirm that yes is on record before merge.
+  `tests/home-positioning-copy.test.mjs` (new, 8 tests) pins title length and
+  stem, description lengths, no year figures, `founded`/`experience` untouched,
+  and no production entry under `llms.txt` `## Services`; `tests/site-brand.test.mjs`
+  now requires the title and template to be built from `SITE.name`.
+- Contact section: a "Production request" intake is now the default tab beside
+  the original "Web project brief" (`components/sections/ContactIntake.jsx`,
+  `components/marketing/ProductionRequestForm.jsx`). It posts to `/api/contact`
+  with `kind: 'production'` (`validateProductionRequest` in
+  `lib/contactForm.mjs`: six frozen categories, size and quantity required);
+  rate limit, honeypot, hCaptcha, webhook, the `create_lead_from_contact` RPC
+  (`p_source: 'website_production_request'`) and emails all still apply, and any
+  payload without `kind` takes the unchanged web-brief path. `/#contact-production`
+  and `/#contact-brief` open the matching tab; new deals are titled "Production
+  request — <company or name>". `ContactForm`'s `aria-describedby` now points at
+  the ids it renders.
+- Artwork upload for production requests: up to 3 files, 10 MB each, 25 MB in
+  total (AI, EPS, PDF, PNG, JPG, DST). Files go straight to a private bucket
+  through signed upload URLs; `POST /api/contact/artwork/complete` checks size
+  and file signature, attaches the good files and adds an internal note to the
+  deal. The admin deal page gets an "Artwork" panel whose links redirect through
+  `/api/admin/contact-artwork/[id]` (admin session) to 60-second signed URLs.
+  The daily `crm-notifications` cron deletes reservations never completed after
+  24 hours and removes the files of any deleted deal or company (a trigger queues
+  each deleted row's object path). Migration `0053_contact_artwork.sql` adds the
+  private `contact-artwork` bucket, the `contact_artwork` table (RLS, admin read
+  only), `reserve_contact_artwork` / `attach_contact_artwork` (service role
+  only), the removal queue, and a copy of `create_lead_from_contact` whose only
+  change is the new-deal title prefix; `supabase/tests/0053_contact_artwork.test.sql`
+  covers it.
+- Reviewed before release by five independent read-only reviewers with
+  three-lens skeptic verification of every finding (15 of 40 candidates
+  confirmed and fixed): thread canvas sized to the scrollbar-excluded viewport
+  and repainted from a ScrollTrigger so it cannot trail the page; needle
+  interpolated between samples; one 900px boundary shared by JS and CSS, with
+  the thread-referencing copy hidden below it; focus ring on the light offer
+  card; forced-colours fallback for the multiplied logo tiles; 2x2 inspection
+  sheet at tablet widths; machinery rule closing only the last row; dead CSS
+  and stale comments and docs corrected.
+- Known asset gap: `stickers.webp`, `emb-eagle.webp`, `emb-ribshack.webp`,
+  `vec-airpark.webp` and `vec-funbunch.webp` come from 240px sources and look
+  soft at the sizes the design shows them; higher-resolution originals are
+  needed.
+- Codex review on the PR, five fixes: the compare slider announces the range
+  it can actually reach (`aria-valuemin`/`max` 2 and 98, not 0 and 100); the
+  homepage menu no longer hands focus back to the burger after an in-page hash
+  link, and focuses the destination itself when SmoothScroll's native
+  (reduced-motion) mode has not, so Tab continues from where the visitor
+  landed in both modes; the thread follows `prefers-reduced-motion` changes
+  made while the page is open instead of only reading it at mount; narrowing
+  the window below 900px unlights the process beads (and the narrow rule now
+  beats `.is-passed`), so they read as plain bullets; and the compare slider
+  takes focus when a drag starts, so its keyboard controls follow the pointer.
+  The remaining finding, that
+  the new product photos break the procedural-visuals rule in AGENTS.md, is
+  deliberate and disclosed in the PR: the design requires real production
+  evidence, so it needs the owner's sign-off rather than a code change.
+- Tests: 814 Node tests pass (new `tests/heritage.test.mjs`,
+  `tests/home-positioning-copy.test.mjs`, `tests/contactProduction.test.mjs`,
+  `tests/contactArtwork.test.mjs`, `tests/crm/migration-0053-contact-artwork.test.mjs`);
+  component suite 35 files / 251 tests (adds `compareSlider`, `menuFocus`,
+  `productionRequestForm`, `artworkPicker`, `contact-artwork-server`,
+  `contact-route-production`, `crm/contact-artwork-panel`); `journeyNav` tests
+  follow the new hero and "Production" label; CI-placeholder production build
+  passes (46 pages). `pnpm test:db` was not run: the 0053 pgTAP file (34
+  assertions) was run in PGlite against a replica of the touched tables, which
+  is a proxy, not the real gate.
+
+Note for merge: apply `supabase/migrations/0053_contact_artwork.sql` (the
+private `contact-artwork` bucket, `contact_artwork`, the reserve/attach RPCs, the
+removal queue and the replaced `create_lead_from_contact`). Either order degrades
+safely: if the app deploys first, uploads answer "unavailable", the request is
+still delivered and the visitor is told to email the files. No new environment
+variables. Before relying on uploads, send one real upload through a preview
+backed by a real Supabase branch: storage calls are only tested against mocks.
+The hCaptcha tick-through on the production-request form has not been run by
+hand. 0053 was checked free on 2026-10-19 (main is at 0052; open PR #281 holds
+0051).
 
 ## v1.121 — 2026-10-05
 

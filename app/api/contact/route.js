@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { validateContactForm } from '../../../lib/contactForm.mjs';
+import { PRODUCTION_REQUEST_KIND, validateContactSubmission } from '../../../lib/contactForm.mjs';
 import { sendTemplate, isEmailConfigured, getOperationsAddress } from '@/lib/email/resend';
 import { contactSubmissionEmail, contactAckEmail } from '@/lib/email/templates';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimitStrict, getClientIp } from '@/lib/rateLimit.mjs';
+import { reserveArtworkSlots } from '@/lib/contactArtworkServer';
 import { HCAPTCHA_TOKEN_FIELD, verifyHCaptchaToken } from '@/lib/hcaptcha.mjs';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
@@ -13,6 +14,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || '';
 // (webhookDelivered/emailDelivered) or block the response. Runs before the
 // operations email so a successful call can include a "View in CRM" link;
 // on any failure the email still sends exactly as it did before this existed.
+// Returns { dealId, dealUrl }; both are undefined when the write did not happen.
 async function createLeadBestEffort(data) {
   try {
     const supabase = createAdminClient();
@@ -21,19 +23,22 @@ async function createLeadBestEffort(data) {
       p_email: data.email,
       p_company: data.company || null,
       p_brief: data.brief,
-      p_budget: data.budget,
-      p_source: 'website_contact_form',
+      p_budget: data.budget || null,
+      p_source: data.kind === PRODUCTION_REQUEST_KIND ? 'website_production_request' : 'website_contact_form',
     });
 
     if (error) {
       console.error('create_lead_from_contact failed:', error.message);
-      return undefined;
+      return {};
     }
 
-    return result?.deal_id && APP_URL ? `${APP_URL}/admin/deals/${result.deal_id}` : undefined;
+    return {
+      dealId: result?.deal_id,
+      dealUrl: result?.deal_id && APP_URL ? `${APP_URL}/admin/deals/${result.deal_id}` : undefined,
+    };
   } catch (error) {
     console.error('create_lead_from_contact unavailable:', error.message);
-    return undefined;
+    return {};
   }
 }
 
@@ -134,7 +139,7 @@ export async function POST(request) {
     }, 400);
   }
 
-  const validation = validateContactForm(body);
+  const validation = validateContactSubmission(body);
 
   if (validation.rejectedAsSpam) {
     return json({
@@ -186,7 +191,8 @@ export async function POST(request) {
 
   // Honeypot-rejected submissions never reach this point (returned above),
   // so the CRM is never written from spam.
-  const dealUrl = await createLeadBestEffort(validation.data);
+  const lead = await createLeadBestEffort(validation.data);
+  const dealUrl = lead.dealUrl;
 
   let emailDelivered = false;
 
@@ -208,7 +214,12 @@ export async function POST(request) {
     // change the outcome the visitor sees.
     if (emailDelivered) {
       try {
-        await sendTemplate(contactAckEmail({ name: validation.data.name }), {
+        await sendTemplate(contactAckEmail({
+          name: validation.data.name,
+          kind: validation.data.kind,
+          artworkLink: validation.data.artworkLink,
+          files: validation.data.files,
+        }), {
           to: validation.data.email,
           tags: ['contact-ack'],
         });
@@ -225,8 +236,19 @@ export async function POST(request) {
     }, 502);
   }
 
+  // Artwork files, if any: the lead above is stored, so reserve upload slots
+  // now. This only happens after every guard has passed (rate limit, honeypot,
+  // validation, hCaptcha). Best-effort: on any failure the visitor is told to
+  // email the files, and the request itself is still delivered.
+  const artwork = validation.data.files?.length
+    ? await reserveArtworkSlots({ dealId: lead.dealId, files: validation.data.files })
+    : undefined;
+
   return json({
     ok: true,
-    message: 'Your project brief was sent. We’ll review it and reply by email.',
+    ...(artwork ? { artwork } : {}),
+    message: validation.data.kind === PRODUCTION_REQUEST_KIND
+      ? 'Your production request was sent. A specialist will review your artwork and reply with a mockup.'
+      : 'Your project brief was sent. We’ll review it and reply by email.',
   }, 202);
 }

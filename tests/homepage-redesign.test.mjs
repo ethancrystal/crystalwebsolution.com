@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 
 import { IN_MOTION_CARDS } from '../lib/inMotionCards.mjs';
 import { CLIENT_TILE_IMAGES } from '../lib/clientTileImages.mjs';
@@ -35,14 +35,53 @@ test('Stories uses review-specific language and a grouped client-proof CTA', () 
   assert.doesNotMatch(storiesSource, /VIEW ALL WORK/);
 });
 
-test('Lab keeps the eight procedural service cards (no bitmap project images)', () => {
+test('Lab cards are drawn, or show an owner-supplied patch cut-out (no project screenshots)', () => {
   assert.equal(IN_MOTION_CARDS.length, 8);
   for (const card of IN_MOTION_CARDS) {
     assert.equal(card.image, undefined);
-    assert.ok(card.shapes.length > 0, `${card.id} should keep procedural shapes`);
+    if (card.photo) {
+      assert.equal(card.shapes, undefined, `${card.id} uses one kind of art`);
+      assert.match(card.photo.src, /^\/heritage\/patches\/[a-z-]+\.webp$/);
+      assert.ok(card.photo.w > 0 && card.photo.h > 0);
+      assert.ok(existsSync(new URL(`../public${card.photo.src}`, import.meta.url)), `${card.photo.src} exists`);
+    } else {
+      assert.ok(card.shapes.length > 0, `${card.id} should keep procedural shapes`);
+    }
+  }
+  // File work stays drawn; only physical patches carry photos.
+  for (const id of ['embroidery-digitizing', 'vector-artwork']) {
+    assert.equal(IN_MOTION_CARDS.find((card) => card.id === id).photo, undefined);
+  }
+  const used = new Set(IN_MOTION_CARDS.filter((card) => card.photo).map((card) => card.photo.src.split('/').pop()));
+  for (const file of readdirSync(new URL('../public/heritage/patches/', import.meta.url))) {
+    assert.ok(used.has(file), `${file} is used by a card`);
   }
   assert.match(labSource, /All services/);
   assert.doesNotMatch(labSource, /\/projects\//);
+});
+
+test('Capabilities cards name the production services and link to What we make', () => {
+  assert.deepEqual(IN_MOTION_CARDS.map((card) => card.title), [
+    'EMBROIDERY DIGITIZING',
+    'VECTOR ARTWORK',
+    'EMBROIDERED PATCHES',
+    'CHENILLE PATCHES',
+    'PVC PATCHES',
+    'PRINTED PATCHES',
+    'LEATHER PATCHES',
+    'STICKERS',
+  ]);
+  assert.equal(new Set(IN_MOTION_CARDS.map((card) => card.id)).size, IN_MOTION_CARDS.length);
+  // Taglines stay short enough to clear the ghost card number.
+  for (const card of IN_MOTION_CARDS) assert.ok(card.sub.length <= 24, `${card.id} tagline fits`);
+  assert.doesNotMatch(labSource, /href="\/services"|href="#services"/);
+  assert.match(labSource, /href="#make"/);
+});
+
+test('Capabilities stage and grid copies use distinct gradient ids', () => {
+  assert.match(labSource, /im-grad-\$\{variant\}-\$\{card\.id\}/);
+  assert.match(labSource, /<CardArt card=\{card\} index=\{index\} variant="stage" \/>/);
+  assert.match(labSource, /<CardArt card=\{card\} index=\{index\} variant="grid" \/>/);
 });
 
 test('Motion marquee uses supplied public project images, not procedural art', () => {

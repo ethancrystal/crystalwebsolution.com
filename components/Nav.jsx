@@ -7,6 +7,7 @@ import Magnetic from './Magnetic';
 import Menu from './Menu';
 import { CRM_ENABLED } from '../lib/crmFlag';
 import { SITE } from '../lib/site';
+import { HERITAGE_NAV } from '../lib/heritage.mjs';
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
@@ -73,7 +74,7 @@ export default function Nav() {
           </Magnetic>
         </div>
       </header>
-      <Menu open={open} onClose={closeMenu} />
+      <Menu open={open} onClose={closeMenu} links={HERITAGE_NAV} pageLinks={SITE.nav} />
     </>
   );
 }
