@@ -1,43 +1,12 @@
 ## v1.128 — 2026-10-21
 
-Merged as PR #230 right after v1.55; its "Update branch" merge dropped this
-entry. Backfilled in v1.59 so the release is recorded.
+SEO audit and security fixes (originally numbered v1.57; renumbered after main moved to v1.127).
 
-Visual experience Phase 0 baseline + Phase 1a defect fixes (owner-supplied
-brief: `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`).
-
-- **Phones no longer scroll sideways.** `.motion-stream-index` (Selected work
-  list) was `width: min(100%, 34rem)` plus a 6vw side margin, so it ran
-  19–23px past the right edge at every phone width and the fixed nav's menu
-  button was clipped. Now `width: auto; max-width: 34rem` (desktop unchanged).
-- **One `<main>` landmark.** `app/layout.jsx` already owns
-  `<main id="main-content">`; the homepage and subpage shells rendered a
-  second, nested `<main>` (axe: 3 landmark violations on every page). They
-  are now `<div>`s with the same classes.
-- **Reduced-motion hydration error fixed.** `SectionSkeleton` branched its
-  markup on `useReducedMotion()` (null on the server, true on the client),
-  throwing React #418 for exactly the visitors reduced motion protects. The
-  sweep element always renders; CSS hides it under reduced motion.
-- **WebGL failure no longer throws.** `Scene` probes WebGL once
-  (`lib/webglSupport.mjs`) and skips the canvas when it is unavailable; the
-  canvas is also wrapped in `CanvasFeatureBoundary`. The CSS backdrop and every
-  DOM section keep working.
-- **Homepage scene follows its quality tier.** `Scene.jsx` hardcoded DPR 1.75,
-  900 particles and full post-processing on every device, ignoring
-  `lib/renderQuality.mjs`. DPR, particle count and idle animation now follow
-  the tier, like `IdleScene` already did. Bloom + vignette stay on every tier
-  (eco includes 4-thread laptops such as the 2019 MacBook Air; owner decision)
-  — only the high tier gets mipmap blur + depth of field.
-- **Global focus ring.** Zero-specificity `:where(...):focus-visible` safety
-  net in `primitives.css` (component styles still win); dark ring on
-  `[data-nav-tone="light"]` surfaces where cyan fails contrast.
-- **Docs.** `CLAUDE-VISUAL-EXPERIENCE-PLAN.md`, `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`
-  and `docs/visual/` (UI/UX review, accessibility audit, accessibility test plan,
-  Phase 0 current-state map and baseline); `CLAUDE.md` points to them.
-- Measured on a production build (software WebGL — relative numbers only):
-  mobile scroll 9 → 30 fps, desktop scroll 4 → 8 fps, axe violations 3 → 0,
-  page errors in reduced-motion and no-WebGL modes → 0.
-- Tests: `tests/visualPhase1a.test.mjs` (7).
+- Business-of-web-design and product-page-design content-lane artifacts, keyword registry and run notes under `docs/seo/`.
+- Latiedo audit metadata corrections for blog, service and terms pages.
+- Flagged homepage client image (`06-tiltoootilt.jpg`) reduced below 200 KB.
+- `/hire/shopify-developer` stays a noindex legacy route; no Shopify service page is created or linked.
+- Transitive `fast-uri` pinned to patched `3.1.6` through the pnpm workspace override.
 
 ## v1.127 — 2026-10-19
 
@@ -1326,6 +1295,47 @@ here.
   ownership, robots groups, sitemap freshness, llms.txt coverage),
   `tests/marketing/postBody.test.jsx`, new parser cases in
   `tests/blogMarkdown.test.mjs`; `content` and `serviceSchema` tests updated.
+
+## v1.57 — 2026-09-26
+
+Merged as PR #230 right after v1.55; its "Update branch" merge dropped this
+entry. Backfilled in v1.59 so the release is recorded.
+
+Visual experience Phase 0 baseline + Phase 1a defect fixes (owner-supplied
+brief: `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`).
+
+- **Phones no longer scroll sideways.** `.motion-stream-index` (Selected work
+  list) was `width: min(100%, 34rem)` plus a 6vw side margin, so it ran
+  19–23px past the right edge at every phone width and the fixed nav's menu
+  button was clipped. Now `width: auto; max-width: 34rem` (desktop unchanged).
+- **One `<main>` landmark.** `app/layout.jsx` already owns
+  `<main id="main-content">`; the homepage and subpage shells rendered a
+  second, nested `<main>` (axe: 3 landmark violations on every page). They
+  are now `<div>`s with the same classes.
+- **Reduced-motion hydration error fixed.** `SectionSkeleton` branched its
+  markup on `useReducedMotion()` (null on the server, true on the client),
+  throwing React #418 for exactly the visitors reduced motion protects. The
+  sweep element always renders; CSS hides it under reduced motion.
+- **WebGL failure no longer throws.** `Scene` probes WebGL once
+  (`lib/webglSupport.mjs`) and skips the canvas when it is unavailable; the
+  canvas is also wrapped in `CanvasFeatureBoundary`. The CSS backdrop and every
+  DOM section keep working.
+- **Homepage scene follows its quality tier.** `Scene.jsx` hardcoded DPR 1.75,
+  900 particles and full post-processing on every device, ignoring
+  `lib/renderQuality.mjs`. DPR, particle count and idle animation now follow
+  the tier, like `IdleScene` already did. Bloom + vignette stay on every tier
+  (eco includes 4-thread laptops such as the 2019 MacBook Air; owner decision)
+  — only the high tier gets mipmap blur + depth of field.
+- **Global focus ring.** Zero-specificity `:where(...):focus-visible` safety
+  net in `primitives.css` (component styles still win); dark ring on
+  `[data-nav-tone="light"]` surfaces where cyan fails contrast.
+- **Docs.** `CLAUDE-VISUAL-EXPERIENCE-PLAN.md`, `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`
+  and `docs/visual/` (UI/UX review, accessibility audit, accessibility test plan,
+  Phase 0 current-state map and baseline); `CLAUDE.md` points to them.
+- Measured on a production build (software WebGL — relative numbers only):
+  mobile scroll 9 → 30 fps, desktop scroll 4 → 8 fps, axe violations 3 → 0,
+  page errors in reduced-motion and no-WebGL modes → 0.
+- Tests: `tests/visualPhase1a.test.mjs` (7).
 
 ## v1.56 — 2026-09-26
 
