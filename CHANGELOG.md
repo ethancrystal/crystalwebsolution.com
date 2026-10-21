@@ -1,4 +1,4 @@
-## v1.128 — 2026-10-21
+## v1.130 — 2026-10-21
 
 SEO audit and security fixes (originally numbered v1.57; renumbered after main moved to v1.127).
 
