@@ -1,3 +1,13 @@
+## v1.130 — 2026-10-21
+
+SEO audit and security fixes (originally numbered v1.57; renumbered after main moved to v1.127).
+
+- Business-of-web-design and product-page-design content-lane artifacts, keyword registry and run notes under `docs/seo/`.
+- Latiedo audit metadata corrections for blog, service and terms pages.
+- Flagged homepage client image (`06-tiltoootilt.jpg`) reduced below 200 KB.
+- `/hire/shopify-developer` stays a noindex legacy route; no Shopify service page is created or linked.
+- Transitive `fast-uri` pinned to patched `3.1.6` through the pnpm workspace override.
+
 ## v1.127 — 2026-10-19
 
 Real patches on the Capabilities cards (owner-supplied photos, 2026-10-19).

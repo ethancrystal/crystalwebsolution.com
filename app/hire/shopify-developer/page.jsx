@@ -33,6 +33,14 @@ export const metadata = {
   title: 'Hire a Shopify Developer',
   description:
     'Hire a Shopify developer for custom theme builds, app integrations, and store migrations — scoped to what your store actually needs. Get a free quote.',
+  robots: {
+    index: false,
+    follow: true,
+    googleBot: {
+      index: false,
+      follow: true,
+    },
+  },
   alternates: { canonical: '/hire/shopify-developer' },
   // Direct-response landing only (ads, outreach, links): Shopify is not an
   // organic target in docs/seo/STRATEGY.md. noindex keeps it out of search;

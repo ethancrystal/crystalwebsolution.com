@@ -75,11 +75,12 @@ What else that test enforces, and what to do when it fails:
 | website development rfp | diff 13 | diff 13 | Unchanged |
 | web development northern virginia | diff 9 | diff 9 | Unchanged |
 
-**Shopify pair parked 2026-09-19** (see Parked). Volume/difficulty still
-favour a page, but Shopify is not in the live eight-service list
-(`lib/servicePages.mjs` / `/sitemap.xml`). Building `/hire/shopify-developer`
-would be a thin commercial URL for a service the studio does not currently
-offer. Do not un-park without MJ confirming Shopify is a sold offer.
+**Shopify pair remains parked 2026-09-19; route state clarified 2026-09-26**
+(see Parked). Volume/difficulty still favour a page, but Shopify is not in the
+live service list (`lib/servicePages.mjs`). The already-merged
+`/hire/shopify-developer` route is a direct-response exception: `noindex`,
+excluded from `/sitemap.xml`, and not an organic target. Do not un-park or add
+internal-link work without MJ confirming Shopify is a sold offer.
 
 `ai automation agency` remains Monitor-only. Recheck both next Keywords lane.
 
