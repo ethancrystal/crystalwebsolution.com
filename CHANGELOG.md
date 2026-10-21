@@ -1,3 +1,7 @@
+## v1.129 — 2026-10-21
+
+Docs only: weekly SEO goal-monger run note (GSC connector unavailable), goals ledger update. No site changes.
+
 ## v1.127 — 2026-10-19
 
 Real patches on the Capabilities cards (owner-supplied photos, 2026-10-19).
