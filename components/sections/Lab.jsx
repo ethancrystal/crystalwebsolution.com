@@ -16,8 +16,9 @@ import { scrollState } from '../../lib/scrollState';
 import { useExperienceFeatures } from '../../lib/useExperienceFeatures';
 import { SITE } from '../../lib/site';
 
-// "CWS in motion" — the services beat. Eight cards fly a full orbital lap
-// over the giant statement, then settle into a real, clickable grid. Unlike
+// "CWS in motion" — the services beat (the production services since
+// v1.126). Eight cards fly a full orbital lap over the giant statement, then
+// settle into a real, clickable grid. Unlike
 // Motion.jsx's Selected Work beat (which drives a WebGL scene + camera lock),
 // this stage is pure DOM/CSS-3D — closer kin to .about-smil than to Motion:
 // a self-contained scene sitting on the fixed Canvas, not a mascot inside it.
@@ -45,6 +46,15 @@ const HEADLINE_DIM_START = 0.12;
 const CAPTION_FADE_START = 0.72;
 const CAPTION_FADE_SPAN = 0.12;
 const RAD_TO_DEG = 180 / Math.PI;
+// The 26px mono title fits 18 characters across the card; longer service
+// names ("EMBROIDERY DIGITIZING") step down to .im-card-title--long.
+const LONG_TITLE_CHARS = 18;
+// A photo card's patch sits where the procedural icons do: the right side of
+// the art region, over the thread's end (lib/inMotionCards.mjs `photo`).
+const PHOTO_X = 168;
+const PHOTO_Y = 31;
+const PHOTO_W = 138;
+const PHOTO_H = 128;
 
 function clamp01(value) {
   return Math.min(1, Math.max(0, value));
@@ -92,10 +102,15 @@ function CardShape({ shape }) {
   );
 }
 
-function CardArt({ card, index }) {
+// Each card is drawn twice (flying stage + static grid). Their gradient ids
+// must differ: url(#id) resolves to the first match in the document, and when
+// the stage is display:none (static layout: phones, reduced motion) a
+// gradient defined inside it paints nothing, leaving the grid's art blank.
+function CardArt({ card, index, variant }) {
   const num = String(index + 1).padStart(2, '0');
-  const gradId = `im-grad-${card.id}`;
-  const sheenId = `im-sheen-${card.id}`;
+  const gradId = `im-grad-${variant}-${card.id}`;
+  const sheenId = `im-sheen-${variant}-${card.id}`;
+  const shadowId = `im-shadow-${variant}-${card.id}`;
 
   return (
     <svg viewBox={`0 0 ${CARD_DOM_WIDTH} ${CARD_DOM_HEIGHT}`} className="im-card-art" aria-hidden="true">
@@ -108,6 +123,11 @@ function CardArt({ card, index }) {
           <stop offset="0" stopColor="#ffffff" stopOpacity="0.35" />
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
+        {card.photo && (
+          <filter id={shadowId} x="-15%" y="-15%" width="130%" height="140%">
+            <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#0b0d0b" floodOpacity="0.4" />
+          </filter>
+        )}
       </defs>
       <rect x="0.75" y="0.75" width={CARD_DOM_WIDTH - 1.5} height={CARD_DOM_HEIGHT - 1.5} rx="8" fill="#f4f3ef" stroke="#11130f" strokeWidth="1.5" />
       <text x="12" y="17" className="im-card-kicker">{SITE.name.toUpperCase()} / SERVICE</text>
@@ -125,8 +145,20 @@ function CardArt({ card, index }) {
       <svg x={ART_X} y={ART_Y} width={ART_W} height={ART_H} viewBox="0 0 296 132" preserveAspectRatio="none">
         <path d={inMotionCurve(index)} fill="none" stroke="#0b0d0b" strokeWidth="5" strokeLinecap="round" />
       </svg>
-      {card.shapes.map((shape, shapeIndex) => <CardShape key={shapeIndex} shape={shape} />)}
-      <text x="12" y="196" className="im-card-title">{card.title}</text>
+      {card.photo ? (
+        <image
+          href={card.photo.src}
+          x={PHOTO_X}
+          y={PHOTO_Y}
+          width={PHOTO_W}
+          height={PHOTO_H}
+          preserveAspectRatio="xMidYMid meet"
+          filter={`url(#${shadowId})`}
+        />
+      ) : (
+        card.shapes.map((shape, shapeIndex) => <CardShape key={shapeIndex} shape={shape} />)
+      )}
+      <text x="12" y="196" className={card.title.length > LONG_TITLE_CHARS ? 'im-card-title im-card-title--long' : 'im-card-title'}>{card.title}</text>
       <text x="12" y="212" className="im-card-sub">{card.sub}</text>
       <text x={CARD_DOM_WIDTH - 12} y="216" textAnchor="end" className="im-card-num-ghost">{num}</text>
     </svg>
@@ -137,12 +169,12 @@ function InMotionCard({ card, index, register }) {
   return (
     <a
       ref={register}
-      href="#services"
+      href="#make"
       className="im-card"
-      aria-label={`${card.title} — jump to services`}
+      aria-label={`${card.title} — see what we make`}
       tabIndex={-1}
     >
-      <CardArt card={card} index={index} />
+      <CardArt card={card} index={index} variant="stage" />
     </a>
   );
 }
@@ -290,11 +322,10 @@ export default function Lab() {
         </div>
         <h2 className="sr-only">{SITE.name} in motion</h2>
         <p className="lab-caption" ref={captionRef}>
-          This whole site is the pitch: one continuous 3D scene, scroll-linked
-          motion, real accessibility, and fallbacks that hold up on any device
-          — built by CD Sportswear INC.
+          Every order starts as a file we build and test in-house — digitized,
+          sewn out and inspected before production, with no minimum order.
         </p>
-        <a href="#services" className="lab-link">All services <span aria-hidden="true">→</span></a>
+        <a href="#make" className="lab-link">All services <span aria-hidden="true">→</span></a>
         <div className="lab-stage" ref={stageRef}>
           {IN_MOTION_CARDS.map((card, index) => (
             <InMotionCard
@@ -307,8 +338,8 @@ export default function Lab() {
         </div>
         <div className="lab-grid">
           {IN_MOTION_CARDS.map((card, index) => (
-            <a key={card.id} href="#services" className="im-card" aria-label={`${card.title} — jump to services`}>
-              <CardArt card={card} index={index} />
+            <a key={card.id} href="#make" className="im-card" aria-label={`${card.title} — see what we make`}>
+              <CardArt card={card} index={index} variant="grid" />
             </a>
           ))}
         </div>

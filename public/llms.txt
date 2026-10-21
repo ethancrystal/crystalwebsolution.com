@@ -1,10 +1,10 @@
 # CD Sportswear INC
 
-> CD Sportswear INC is the independent studio for businesses that need a site, brand or 3D experience that gets remembered instead of scrolled past: distinct strategy, real craft, and work built only for you — web design, development, branding, logo, digital marketing, animation, AI automation and workflow automation that turns the click into the client.
+> CD Sportswear INC digitizes embroidery and makes custom patches, stickers and vector artwork, and runs a digital studio for businesses that need a site, brand or 3D experience that gets remembered instead of scrolled past: web design, development, branding, logo, digital marketing, animation, AI automation and workflow automation.
 
 ## Services
 
-- [CD Sportswear INC — Built to be unforgettable](https://www.cdsportswearinc.com): Independent studio building brands and interactive 3D web experiences that turn clear strategy into brands people remember.
+- [CD Sportswear INC — Embroidery digitizing, patches and digital studio](https://www.cdsportswearinc.com): Embroidery digitizing and patch production, plus an independent studio building brands and interactive 3D web experiences.
 - [Services — Eight disciplines, one team](https://www.cdsportswearinc.com/services): Web design, development, branding, logo, digital marketing, animation, AI automation and workflow automation.
 - [Web Design — Interfaces with intent](https://www.cdsportswearinc.com/services/web-design): Brand-aligned visual systems, conversion-aware layout and responsive accessible component patterns that earn the click and the close.
 - [Web Development — Next.js builds that ship](https://www.cdsportswearinc.com/services/web-development): Full-stack web application engineering with React / Next.js front-ends, API layers, data models, auth and role-based access.

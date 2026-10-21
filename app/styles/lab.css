@@ -110,6 +110,7 @@
 .im-card-kicker { font-family: var(--font-mono); font-size: 14px; font-weight: 700; letter-spacing: 0.08em; fill: #202832; }
 .im-card-num { font-family: var(--font-mono); font-size: 20px; font-weight: 700; fill: #3c6cff; }
 .im-card-title { font-family: var(--font-mono); font-size: 26px; letter-spacing: 0.02em; fill: #11130f; }
+.im-card-title--long { font-size: 21px; }
 .im-card-sub {
   font-family: var(--font-mono);
   font-size: 15px;

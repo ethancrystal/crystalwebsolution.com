@@ -5,14 +5,16 @@ import { readFileSync } from 'node:fs';
 import { BEAT_IDS, beatProgress, currentBeatIndex, measureBeats, sectionTop } from '../lib/beatProgress.js';
 import { MOTION_WINDOW } from '../lib/journey.js';
 
-// Same stub shape as sectionArchitecture's flight-window test: every beat is
-// 1000px tall at 1000px intervals in a 10000px document, so beatProgress lands
-// on tidy tenths — except Motion, which is 2800px and therefore has real
-// sticky travel. That gives MOTION_WINDOW.end = 0.88.
+// A 10000px document shaped like the homepage: the production story (the hero
+// beat) runs 6000px, then Capabilities (lab) at 6000, Motion at 7000 and
+// Contact at 9000, so beatProgress lands on tidy tenths. Motion is 2800px and
+// therefore has real sticky travel. That gives MOTION_WINDOW.end = 0.88.
+const BEAT_TOPS = { hero: 0, lab: 6000, motion: 7000, contact: 9000 };
+
 function withMeasuredBeats(run) {
   const originalWindow = globalThis.window;
   const originalDocument = globalThis.document;
-  const tops = new Map(BEAT_IDS.map((id, index) => [id, index * 1000]));
+  const tops = new Map(BEAT_IDS.map((id) => [id, BEAT_TOPS[id]]));
 
   globalThis.window = { scrollY: 0, innerHeight: 1000 };
   globalThis.document = {
@@ -44,17 +46,18 @@ test('currentBeatIndex maps scroll progress onto the measured beats', () => {
     assert.equal(currentBeatIndex(0.05), 0);
     // A beat becomes current the moment its measured top is reached — the same
     // `p >= beatProgress[id]` threshold CameraRig uses to pick its segment.
-    assert.equal(currentBeatIndex(beatProgress.about), BEAT_IDS.indexOf('about'));
-    assert.equal(currentBeatIndex(0.25), BEAT_IDS.indexOf('services'));
+    assert.equal(currentBeatIndex(0.45), 0);
+    assert.equal(currentBeatIndex(beatProgress.lab), BEAT_IDS.indexOf('lab'));
     assert.equal(currentBeatIndex(0.65), BEAT_IDS.indexOf('lab'));
+    assert.equal(currentBeatIndex(0.72), BEAT_IDS.indexOf('motion'));
   });
 });
 
 test('breakpoints are layout tops: transforms and nesting do not move them', () => {
   withMeasuredBeats(() => {
     // The stub's rects are 16px low; the breakpoints must not be.
-    assert.equal(beatProgress.about, 0.1);
-    assert.equal(beatProgress.services, 0.2);
+    assert.equal(beatProgress.lab, 0.6);
+    assert.equal(beatProgress.motion, 0.7);
   });
   // offsetTop is relative to the offsetParent, so nested offsets add up.
   const parent = { offsetTop: 900, offsetParent: null };
@@ -68,11 +71,11 @@ test('SmoothScroll jumps homepage sections to the same top the beats use', () =>
 
 test('a jump that lands a sub-pixel short of a section still names it', () => {
   withMeasuredBeats(() => {
-    // 10000px page: services starts at 2000px = 0.2.
-    assert.equal(currentBeatIndex((2000 - 0.4) / 10000), BEAT_IDS.indexOf('services'));
-    assert.equal(currentBeatIndex((2000 - 1.9) / 10000), BEAT_IDS.indexOf('services'));
+    // 10000px page: motion starts at 7000px = 0.7.
+    assert.equal(currentBeatIndex((7000 - 0.4) / 10000), BEAT_IDS.indexOf('motion'));
+    assert.equal(currentBeatIndex((7000 - 1.9) / 10000), BEAT_IDS.indexOf('motion'));
     // Beyond the 2px slack it is still the section above.
-    assert.equal(currentBeatIndex((2000 - 3) / 10000), BEAT_IDS.indexOf('about'));
+    assert.equal(currentBeatIndex((7000 - 3) / 10000), BEAT_IDS.indexOf('lab'));
   });
 });
 

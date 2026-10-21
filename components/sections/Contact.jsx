@@ -3,30 +3,21 @@
 import Link from 'next/link';
 import SectionReveal from '../SectionReveal';
 import Magnetic from '../Magnetic';
-import ContactForm from '../marketing/ContactForm';
+import ContactIntake from './ContactIntake';
 import TrustpilotWidget from '../marketing/TrustpilotWidget';
 import SectionSkeleton from '../ui/section-skeleton';
 import { SITE } from '../../lib/site';
 
 // Contact deliberately closes quietly. The hero owns the crystal and its
 // pulse language; this CTA uses a contained CSS sweep instead of replaying
-// that 3D gesture at the end of the page. The form itself is the shared
-// ContactForm component (variant="home" keeps the original field ids).
+// that 3D gesture at the end of the page. The intake (ContactIntake) is a
+// two-tab switcher: the embroidery-first production request (default) and the
+// original web project brief (the shared ContactForm, variant="home").
 export default function Contact() {
   return (
     <section className="section contact contact--quiet" id="contact" data-quiet>
       <SectionSkeleton />
-      <div className="text-plate">
-        <p className="eyebrow"><SectionReveal as="span" direction="left">From idea to outcome</SectionReveal></p>
-        <SectionReveal as="h2" direction="left" className="contact-line">Let&apos;s build</SectionReveal>
-        <SectionReveal as="h2" direction="left" className="contact-line contact-line-accent" delay={0.08}>something worth the scroll.</SectionReveal>
-        <SectionReveal className="contact-sub" direction="up" delay={0.1}>
-          <p>Send your brief and get a straight read — scope, timeline, cost, and the first move — if it&apos;s a fit.</p>
-        </SectionReveal>
-      </div>
-      <SectionReveal className="contact-form-wrap" direction="up" delay={0.1}>
-        <ContactForm variant="home" />
-      </SectionReveal>
+      <ContactIntake />
       <SectionReveal className="contact-cta contact-cta--secondary" direction="up" delay={0.1}>
         <p className="contact-email-label">Prefer email?</p>
         <Magnetic strength={0.45}>
@@ -55,7 +46,7 @@ export default function Contact() {
         <div className="footer-col">
           <p className="footer-label">Studio</p>
           <p>Location in {SITE.city}</p>
-          <p>Web, brand &amp; automation</p>
+          <p>Embroidery, patches, web &amp; brand</p>
         </div>
         <div className="footer-col footer-reviews">
           <p className="footer-label">Reviews</p>
