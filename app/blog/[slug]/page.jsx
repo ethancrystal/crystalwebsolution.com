@@ -91,6 +91,15 @@ const RELATED_BY_SLUG = {
     { href: '/blog/when-to-redesign-vs-refresh-website', title: 'When to redesign vs refresh your website' },
     { href: '/contact', title: 'Send a brief' },
   ],
+  // 2026-10-19: indexed and earning impressions (GSC, 2026-09-19 → 10-16) but
+  // fell back to DEFAULT_RELATED. Google still knows the RFP guide only via
+  // /blog, so this gives it a development-themed inbound link from a page Google
+  // already crawls (docs/seo/runs/2026-10-19-goal-monger.md).
+  'soft-navigations-core-web-vitals-spa-websites': [
+    { href: '/services/web-development', title: 'Custom React & Next.js development' },
+    { href: '/blog/custom-react-nextjs-web-development', title: 'When custom React and Next.js development is worth it' },
+    { href: '/blog/web-development-rfp-guide', title: 'How to write a web development RFP' },
+  ],
   'wix-harmony-vs-framer-ai-squarespace': [
     { href: '/services/web-design', title: 'Custom web design for brands' },
     { href: '/blog/when-page-builders-become-a-trap', title: 'When page builders become a trap' },
