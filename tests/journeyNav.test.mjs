@@ -16,16 +16,16 @@ test('journey labels cover every beat, in order, in plain language', () => {
     assert.ok(item.label && item.label !== item.id, `${item.id} has a human label`);
   }
   const labels = Object.fromEntries(JOURNEY_NAV.map((item) => [item.id, item.label]));
-  assert.equal(labels.hero, 'Intro');
-  assert.equal(labels.approach, 'How we work');
+  assert.equal(labels.hero, 'Production');
   assert.equal(labels.lab, 'Capabilities');
   assert.equal(labels.motion, 'Selected work');
+  assert.equal(labels.contact, 'Contact');
   assert.ok(Object.isFrozen(JOURNEY_NAV) && Object.isFrozen(JOURNEY_NAV[0]));
 });
 
 test('every journey anchor points at a section id that is actually rendered', () => {
   const sections = [
-    'Hero', 'About', 'Services', 'Approach', 'Stories', 'Mark', 'Lab', 'Motion', 'Contact',
+    'Hero', 'Lab', 'Motion', 'Contact',
   ].map((name) => read(`../components/sections/${name}.jsx`)).join('\n');
   for (const id of BEAT_IDS) {
     assert.match(sections, new RegExp(`id="${id}"`), `#${id} exists`);
@@ -59,17 +59,20 @@ test('journey-nav.css is loaded and respects reduced motion and forced colors', 
   assert.match(css, /\.journey-nav-toggle \{[^}]*min-height: 2\.75rem/);
 });
 
-test('the hero says what the studio does and offers a second path', () => {
+test('the hero leads with the production story and offers a second path', () => {
   const hero = stripComments(read('../components/sections/Hero.jsx'));
-  assert.match(hero, /className="hero-kicker"/);
-  assert.match(hero, /Websites · Branding · Motion · Marketing · AI automation/);
-  assert.ok(hero.indexOf('hero-kicker') < hero.indexOf('<h1'), 'descriptor sits above the headline');
-  // Exactly one h1, still the two-line headline.
+  // The homepage opens on embroidery, patches and sixteen years of Crystal
+  // Digitizing; the digital-studio descriptor moved to the bridge section.
+  assert.doesNotMatch(hero, /Websites · Branding · Motion/);
+  assert.match(hero, /className="hx-kicker"/);
+  assert.match(hero, /CD SPORTSWEAR INC \/ BUILT ON DIGITIZING/);
+  assert.ok(hero.indexOf('hx-kicker') < hero.indexOf('<h1'), 'kicker sits above the headline');
+  // Exactly one h1, the two-line headline.
   assert.equal((hero.match(/<h1\b/g) || []).length, 1);
-  assert.match(hero, /href="\/#contact"[\s\S]*?Start a project/);
-  // The work CTA goes to the real project list, never the decorative marquee.
-  assert.match(hero, /href="\/work"[\s\S]*?See selected work/);
-  assert.doesNotMatch(hero, /href="\/#motion"/);
-  // Both CTAs stop the click reaching the hero's blast handler.
-  assert.equal((hero.match(/onClick=\{\(e\) => e\.stopPropagation\(\)\}/g) || []).length, 2);
+  assert.match(hero, /Over 16 Years Of Experience/);
+  assert.match(hero, /under our belts/);
+  // Primary path: Crystal Digitizing, in a new tab without opener access.
+  assert.match(hero, /href=\{CRYSTAL_DIGITIZING_URL\}[^>]*target="_blank"[^>]*rel="noopener"/);
+  // Secondary path: the products, on this page.
+  assert.match(hero, /href="\/#make"[\s\S]*?See what we make/);
 });

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
 import ProjectThread from '@/components/crm/ProjectThread';
 import NotesPanel from '@/components/crm/NotesPanel';
+import ContactArtworkPanel from '@/components/crm/ContactArtworkPanel';
 import { useUserRole } from '@/lib/useUserRole';
 import { projectTypeLabel } from '@/lib/projectTypes';
 import { SkeletonDetail } from '@/components/crm/Skeleton';
@@ -274,6 +275,8 @@ export default function DealDetailPage() {
           )}
         </div>
       </div>
+
+      <ContactArtworkPanel dealId={id} />
 
       {linkedProjectId ? (
         <>

@@ -80,6 +80,14 @@
 .mkt-footer-nav a, .mkt-footer-contact a { color: var(--ink); font-size: 0.92rem; }
 .mkt-footer-nav a:hover, .mkt-footer-contact a:hover { color: var(--cyan); }
 .mkt-footer-city { color: var(--muted); font-size: 0.85rem; }
+/* Trustpilot TrustBox (components/marketing/TrustpilotWidget.jsx). The box
+   reserves the widget's 24px height so the column doesn't jump when the
+   iframe arrives. */
+.mkt-footer-reviews { display: flex; flex-direction: column; gap: 0.45rem; min-width: 220px; }
+.mkt-footer-reviews > a { color: var(--ink); font-size: 0.92rem; }
+.mkt-footer-reviews > a:hover { color: var(--cyan); }
+.mkt-footer-trustbox { min-height: 24px; width: 100%; }
+.mkt-footer-trustbox a { color: var(--muted); font-size: 0.85rem; }
 .mkt-footer-bottom { margin-top: 2.5rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; color: var(--muted); font-size: 0.8rem; }
 .mkt-footer-legal { display: flex; gap: 1.25rem; }
 .mkt-footer-legal a { color: var(--muted); font-size: 0.8rem; }

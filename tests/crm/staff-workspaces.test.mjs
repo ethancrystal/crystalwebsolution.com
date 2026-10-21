@@ -17,3 +17,19 @@ test('admin project list filters through bounded read and detail exposes ops', a
   assert.match(adminDetail, /getProjectWorkspace/);
   assert.match(adminDetail, /transitionProject\(formData\)/);
 });
+
+test('admin project detail derives status options from ALLOWED_TRANSITIONS', async () => {
+  const adminDetail = await readFile('app/admin/projects/[id]/page.jsx', 'utf8');
+
+  // Imports the contract's transition table alongside canTransition.
+  assert.match(
+    adminDetail,
+    /import\s*\{\s*ALLOWED_TRANSITIONS,\s*canTransition\s*\}\s*from\s*'@\/lib\/crm\/project-contract\.mjs';/
+  );
+
+  // Options come straight from the contract (same expression as the team page).
+  assert.match(adminDetail, /NEXT_OPTIONS\s*=\s*ALLOWED_TRANSITIONS\[project\.status\]\s*\|\|\s*\[\]/);
+
+  // No hand-rolled status-to-array literal map may return.
+  assert.doesNotMatch(adminDetail, /NEXT_OPTIONS\s*=\s*\{/);
+});

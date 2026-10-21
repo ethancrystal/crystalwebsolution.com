@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom';
 import Link from 'next/link';
 
 import {
+  COVER_IMAGE_ALT_MAX_LENGTH,
   EXCERPT_MAX_LENGTH,
   SEO_DESCRIPTION_MAX_LENGTH,
   SEO_TITLE_MAX_LENGTH,
@@ -189,6 +190,29 @@ export default function PostForm({ action, post, submitLabel }) {
             Optional. Used as the social share image; falls back to the site card.
           </p>
           <FieldError message={fieldErrors.coverImageUrl} id="post-cover-error" />
+        </div>
+
+        <div className="crm-field">
+          <label htmlFor="post-cover-alt">Cover image alt text</label>
+          <input
+            id="post-cover-alt"
+            name="coverImageAlt"
+            type="text"
+            maxLength={COVER_IMAGE_ALT_MAX_LENGTH}
+            defaultValue={post?.cover_image_alt ?? ''}
+            placeholder="Describe what the image shows"
+            aria-describedby={
+              fieldErrors.coverImageAlt
+                ? 'post-cover-alt-error post-cover-alt-hint'
+                : 'post-cover-alt-hint'
+            }
+            aria-invalid={fieldErrors.coverImageAlt ? 'true' : undefined}
+          />
+          <p className="crm-field-hint" id="post-cover-alt-hint">
+            Optional. Read by screen readers and search engines; describe the image in one plain
+            sentence.
+          </p>
+          <FieldError message={fieldErrors.coverImageAlt} id="post-cover-alt-error" />
         </div>
       </fieldset>
 

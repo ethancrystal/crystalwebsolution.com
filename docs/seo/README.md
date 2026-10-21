@@ -10,6 +10,7 @@ here, so the same reviewed-PR gate that protects the site protects the plan.
 | `STRATEGY.md` | The one-page strategy every agent and human follows. **Authoritative for strategy; read it first.** | MJ ratifies; agents propose edits via PR |
 | `OPERATIONS-MANUAL.md` | Mode logic, approval gates, system IDs, run mechanics. **Authoritative for operations.** | MJ approves; the run proposes edits via PR |
 | `KEYWORD-REGISTRY.md` | One keyword → one URL. The cannibalisation guard. | The run, on approved drafts |
+| `CLUSTER-INTEGRITY.md` | What `tests/seo-cluster-integrity.test.mjs` enforces about the pillar + cluster link graph, and what to do when it fails | The run |
 | `runs/YYYY-MM-DD.md` | Daily run logs, newest at the bottom of the list | The run, every run |
 | `drafts/blog/<slug>.md` | Blog post drafts, front-matter matching `blog_posts` | The run drafts; MJ approves |
 | `drafts/blog/assets/` | Cover images for drafts, uploaded on publish | The run or MJ |

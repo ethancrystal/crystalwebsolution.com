@@ -1,5 +1,7 @@
 'use client';
 
+import { taskStatusLabel } from '@/lib/crm/labels.mjs';
+
 export default function ProjectTasks({ tasks = [], readOnly = false }) {
   return (
     <div className="crm-project-tasks">
@@ -13,7 +15,7 @@ export default function ProjectTasks({ tasks = [], readOnly = false }) {
               <div className="crm-task-main">
                 <span className="crm-task-title">{task.title}</span>
                 <span className={`crm-task-priority ${task.priority}`}>{task.priority}</span>
-                <span className={`crm-task-status ${task.status}`}>{task.status}</span>
+                <span className={`crm-task-status ${task.status}`}>{taskStatusLabel(task.status)}</span>
               </div>
               {task.description ? (
                 <p className="crm-task-description">{task.description}</p>

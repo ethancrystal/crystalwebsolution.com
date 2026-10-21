@@ -21,9 +21,13 @@ const CAPTCHA_REQUIRED_MESSAGE = 'Please complete the security check before send
 // payload, and success/error behavior are preserved exactly. The form posts to
 // /api/contact exactly as the homepage version does. No Supabase table or
 // schema is introduced.
-export default function ContactForm({ variant = 'marketing' }) {
+//
+// `draft` / `onDraftChange` are optional: the homepage intake uses them to keep
+// what the visitor typed when it switches to the other tab. Without them the
+// form behaves exactly as before.
+export default function ContactForm({ variant = 'marketing', draft, onDraftChange }) {
   const requestRef = useRef(null);
-  const [values, setValues] = useState(createEmptyContactForm);
+  const [values, setValues] = useState(() => draft ?? createEmptyContactForm());
   const [errors, setErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: 'idle', message: '' });
   // hCaptcha: the widget hands us a one-shot token; the API verifies it with
@@ -39,6 +43,10 @@ export default function ContactForm({ variant = 'marketing' }) {
   const siteKey = getHCaptchaSiteKey();
 
   useEffect(() => () => requestRef.current?.abort(), []);
+
+  useEffect(() => {
+    onDraftChange?.(values);
+  }, [values, onDraftChange]);
 
   const updateValue = (event) => {
     const { name, value } = event.target;
@@ -152,7 +160,7 @@ export default function ContactForm({ variant = 'marketing' }) {
   };
 
   const describedBy = (field, hintId) =>
-    [hintId, errors[field] ? `contact-${field}-error` : ''].filter(Boolean).join(' ') || undefined;
+    [hintId, errors[field] ? `${variant}-${field}-error` : ''].filter(Boolean).join(' ') || undefined;
 
   const isSubmitting = submitState.status === 'submitting';
 

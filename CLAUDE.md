@@ -26,9 +26,10 @@ CD Sportswear INC is a Next.js 16 / React 19 application containing a dark,
 cinematic, scroll-driven agency homepage and a Supabase-backed three-role CRM.
 The whole viewport is a fixed WebGL stage (`components/Scene.jsx`); the DOM
 scrolls over it while a virtual camera flies through one continuous 3D space
-past a refracting crystal, service-signal instruments, an approach compass,
-procedural particles, and a morphing backdrop. Lab and Motion add DOM/CSS-3D
-card experiences over the same canvas. Marketing scene and project visuals
+past a refracting crystal, procedural particles, and a morphing backdrop. The
+page opens on the embroidery-first production story (`components/heritage/`)
+and then runs Capabilities (Lab), Selected work (Motion) and Contact; Lab and
+Motion add DOM/CSS-3D card experiences over the same canvas. Marketing scene and project visuals
 are procedural; tracked static files are limited to served brand/application
 assets and compatibility URLs. CRM routes live under `/login`, `/dashboard`,
 `/team`, and `/admin` and use Supabase Auth/Postgres/Storage/RLS.
@@ -58,7 +59,15 @@ code change to announce it. **Known related gaps — last confirmed 2026-09-11, 
 - Migration `0042` (`0042_repoint_cron_and_pinned_admin.sql`) was applied to the live database on 2026-09-15 (verified via Supabase MCP `list_migrations` on 2026-09-27). Migration `0044` (v1.63) then moved the single admin pin from `ethan@cdsportswearinc.com` to `moizj00@gmail.com`, demoting Ethan's account to `project_manager` (owner-approved 2026-09-27). Re-check live state with `select public.pinned_admin_email()` rather than trusting this line.
 - Mailbox and Resend domain verification for `cdsportswearinc.com`:
   `SITE.email` and the Resend sender in `lib/email/resend.js` already
-  moved in v1.35; DNS/mailbox/Resend verification is still owner-side.
+  moved in v1.35. **Both now verified (checked 2026-09-28):** Resend lists
+  the domain `verified`, sending enabled, since 2026-09-15; the domain has
+  MX records on `secureserver.net` (GoDaddy), so `sales@` receives mail.
+  **Do not send cold outreach through this Resend account.** Its AUP
+  (`https://resend.com/legal/acceptable-use`) prohibits "unsolicited
+  messages of any kind, including cold outreach", and an account over the
+  complaint/bounce thresholds "may be shut down without warning" — which
+  would take out CRM auth links, invites and password resets. Marketing and
+  outreach go from the real mailbox by hand.
 
 Work on a feature branch and land it in `main` via a reviewed PR — merging
 a PR into `main` IS deploying to production. Every push gets a Vercel
@@ -127,6 +136,11 @@ pnpm in `package.json`; do not switch package managers.
   sessions here do. Prefix the build with `NODE_ENV=production`: that fixed
   it on Linux (2026-09-26), and with it the build passes on Windows too
   (2026-09-27, 60/60 pages).
+- **Windows shells must invoke `pnpm.cmd`, not `pnpm`.** The extensionless
+  npm shim cannot be spawned directly on win32 — node `spawn` fails with
+  ENOENT (`spawn ...\npm\pnpm ENOENT`). Anything that execs pnpm
+  programmatically (workflow `world.run` gates, scripts) needs `pnpm.cmd`
+  in the args; plain `pnpm` works in Git Bash interactively.
 - **`next build` and `next dev` rewrite `tsconfig.json`.** Run
   `git checkout -- tsconfig.json` before committing.
 - Reproduce the CI build (`docker-ci.yml` `test` job) with its placeholders,
@@ -179,9 +193,10 @@ animation:
   subpages mount it without JourneyNav, because the homepage ids don't resolve
   there.
 - `Scene.jsx` mounts one Canvas with `CameraRig`, `Lights`, `Effects`,
-  `FocusDimmer`, `Crystal`, `Sparks`, `ServiceRail`, `ApproachCompass`,
-  `Particles`, and `BackdropMorph`. Lab and Motion do not mount separate scene
-  actors.
+  `FocusDimmer`, `Crystal`, `Sparks`, `Particles`, and `BackdropMorph`. Lab
+  and Motion do not mount separate scene actors. (`ServiceRail` and
+  `ApproachCompass` left the canvas with their beats in v1.126; their files
+  are kept pending an owner decision on deletion.)
 - Inner marketing pages do **not** use `Scene.jsx`. They render through
   `MarketingShell` -> `SubpageExperience`, which passes a stage name (or
   `null`) down via `StageContext`; `HeroStage` inside `PageHero` mounts the
@@ -249,6 +264,26 @@ animation:
   UI that offers `admin` as an assignable role — it can only fail at the
   database.
 
+  **Status domains come from `lib/crm/project-contract.mjs` — never
+  hardcode them.** `PROJECT_STATUSES`, `ALLOWED_TRANSITIONS`,
+  `TASK_STATUSES`, `APPROVAL_DECISION_STATUSES`,
+  `DELIVERABLE_PUBLISH_STATUSES`, `TERMINAL_PROJECT_STATUSES` and the rest
+  are the single source; the database check constraints mirror them and
+  `tests/crm/crm-read-model-hardening.test.mjs` +
+  `tests/crm/contract-drift-hardening.test.mjs` pin both sides. Hand-rolled
+  literal maps have shipped three times (v1.91, briefly again in v1.110,
+  each time needing A1.2/#275 + v1.114 to remove) — a hand-picked map
+  silently strands legal transitions (`on_hold` was unreachable from the
+  admin page for a release cycle).
+
+  **Parallel agent branches editing the same file are the known recurrence
+  mechanism.** A fix on an unmerged side branch does not stop another
+  branch from carrying the old code into `main` (v1.110 re-imported the
+  hand-picked map that A1.2 had already removed on a side branch). When a
+  bug fix exists on an open branch, merge it before — not alongside — other
+  branches that touch the same files, and rely on the source-pin tests
+  above to fail CI on the branch that still carries the drift.
+
 ## Cursor project skills
 
 Reusable agent skills live in `.cursor/skills/` (one folder per skill, each
@@ -272,29 +307,42 @@ features they describe, not as already-built.
 ## Release versioning (mandatory)
 
 Every merge into `main` is a production deploy and must carry a version name
-in the form `v1.01`, `v1.02`, … (zero-padded, sortable). Full rules in
-`VERSIONING.md`. Non-negotiable for every PR targeting `main`:
+in the form `v1.01`, `v1.02`, … `v1.99`, `v1.100` (two-digit minimum,
+compared as numbers). Full rules in `VERSIONING.md`. Non-negotiable for every PR targeting `main`:
 
 1. Bump the `VERSION` file and add the matching entry at the top of
    `CHANGELOG.md` in the same PR.
 2. Title the PR `vX.NN — <summary>`. PRs land as merge commits whose message
    body starts with that title, which is how a deploy traces back to it.
 3. `package.json`'s `version` field is NOT part of this scheme — leave it.
-4. Never skip or reuse numbers; next = top of `CHANGELOG.md` + 0.01.
-5. **Check the merge log, not just the files.** A PR can be *titled* `vX.NN`
-   and deploy under that name while bumping neither file, so `VERSION` can lag
-   what production is actually called. That happened with v1.43 (`f0290ae`),
-   which is why v1.43 has no `CHANGELOG.md` entry and v1.44 follows v1.42.
-   Before picking a number, run `git log --oneline -5 main` and take one above
-   the highest version *named there*, not just the highest in the file.
+4. Never reuse a number. Next = one above the highest `vX.NN` named in
+   `git log --oneline -15 origin/main`, `VERSION`, the top of `CHANGELOG.md`,
+   or an open PR's title (`gh pr list --base main`). `/version-bump` applies
+   this, and the `release-policy` check (`scripts/release-policy.mjs`) fails
+   any PR into main whose number is not above main or is held by another
+   open PR. If a higher number merges first, renumber before merging.
+5. **Check the merge log and open PRs, not just the files.** A PR can be
+   *titled* `vX.NN` and deploy under that name while bumping neither file, so
+   `VERSION` can lag what production is actually called. That happened with
+   v1.43 (`f0290ae`), which is why v1.43 has no `CHANGELOG.md` entry and v1.44
+   follows v1.42. `git fetch` first: a local `main` can be many merges behind
+   `origin/main`.
 6. **GitHub's "Update branch" can silently drop the bump.** When `main` has
    moved its own `VERSION`/`CHANGELOG.md`, that merge can resolve both to
    `main`'s side, and the PR then deploys under its title with no entry.
-   It happened to v1.55, v1.57, v1.60 and v1.63 (backfilled in v1.59, v1.61
-   and v1.80).
+   It happened to v1.55, v1.57, v1.60, v1.63, v1.79 and v1.81 (backfilled in
+   v1.59, v1.61, v1.80 and v1.84).
    After any merge of `main` into a version-bump branch, check that `VERSION`
    and the top `CHANGELOG.md` heading still name this PR's version before it
    merges.
+7. **Renaming a PR title does not re-run `release-policy` — and re-running
+   the failed check replays a stale payload.** The check is
+   `workflow_run`-triggered, so its event payload carries the title from the
+   PR's last push: after a title renumber, the re-run keeps failing with the
+   old version (`The PR title names vX.NN but VERSION says vX.NN`). Push an
+   empty commit to the branch to trigger a fresh payload — that is the only
+   reliable way to re-validate the current title (hit on PR #273, v1.106 →
+   v1.109, 2026-09-30).
 
 ## Visual experience execution brief
 

@@ -7,11 +7,12 @@ something breaks ("v1.07 is broken, v1.06 was fine").
 
 ## Format
 
-Versions look like `v1.01`, `v1.02`, `v1.03`, … `v2.01`, `v2.02`, …
+Versions look like `v1.01`, `v1.02`, … `v1.99`, `v1.100`, `v1.101`, …
 
-- `v<MAJOR>.<NN>` — `NN` is always **zero-padded to two digits**, so plain
-  alphabetical sorting works everywhere: file lists, Vercel's deploy list,
-  GitHub tags, grep output.
+- `v<MAJOR>.<NN>` — `NN` is **zero-padded to two digits** below 10
+  (`v1.09`). After `v1.99` the minor keeps counting: `v1.100`, `v1.101`, with
+  no leading zero. Compare versions as numbers (`v1.100` > `v1.99`), not as
+  strings.
 - **The minor number bumps on every production deploy** (= every merge into
   `main`). No exceptions, including docs-only or one-line changes.
 - **The major number bumps only for a full redesign or replatform**, decided
@@ -21,8 +22,10 @@ Versions look like `v1.01`, `v1.02`, `v1.03`, … `v2.01`, `v2.02`, …
   an open PR's title. A PR can deploy under a `vX.NN` title while bumping
   neither file (v1.43 did), so the files alone can lag production.
   `/version-bump` applies this.
-- If a major line ever reaches `.99`, the next deploy rolls to the next
-  major (`v1.99` → `v2.01`). Don't go to three digits.
+- Reaching `.99` does **not** roll the major. The owner decided on
+  2026-09-29, when nine queued PRs needed numbers past `v1.94`, that `v1.99`
+  is followed by `v1.100`. Only the owner moves the major. The
+  `release-policy` check (`scripts/release-policy.mjs`) enforces both.
 
 ## Source of truth
 

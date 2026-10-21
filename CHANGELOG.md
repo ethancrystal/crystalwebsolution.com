@@ -1,3 +1,871 @@
+## v1.128 — 2026-10-21
+
+Merged as PR #230 right after v1.55; its "Update branch" merge dropped this
+entry. Backfilled in v1.59 so the release is recorded.
+
+Visual experience Phase 0 baseline + Phase 1a defect fixes (owner-supplied
+brief: `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`).
+
+- **Phones no longer scroll sideways.** `.motion-stream-index` (Selected work
+  list) was `width: min(100%, 34rem)` plus a 6vw side margin, so it ran
+  19–23px past the right edge at every phone width and the fixed nav's menu
+  button was clipped. Now `width: auto; max-width: 34rem` (desktop unchanged).
+- **One `<main>` landmark.** `app/layout.jsx` already owns
+  `<main id="main-content">`; the homepage and subpage shells rendered a
+  second, nested `<main>` (axe: 3 landmark violations on every page). They
+  are now `<div>`s with the same classes.
+- **Reduced-motion hydration error fixed.** `SectionSkeleton` branched its
+  markup on `useReducedMotion()` (null on the server, true on the client),
+  throwing React #418 for exactly the visitors reduced motion protects. The
+  sweep element always renders; CSS hides it under reduced motion.
+- **WebGL failure no longer throws.** `Scene` probes WebGL once
+  (`lib/webglSupport.mjs`) and skips the canvas when it is unavailable; the
+  canvas is also wrapped in `CanvasFeatureBoundary`. The CSS backdrop and every
+  DOM section keep working.
+- **Homepage scene follows its quality tier.** `Scene.jsx` hardcoded DPR 1.75,
+  900 particles and full post-processing on every device, ignoring
+  `lib/renderQuality.mjs`. DPR, particle count and idle animation now follow
+  the tier, like `IdleScene` already did. Bloom + vignette stay on every tier
+  (eco includes 4-thread laptops such as the 2019 MacBook Air; owner decision)
+  — only the high tier gets mipmap blur + depth of field.
+- **Global focus ring.** Zero-specificity `:where(...):focus-visible` safety
+  net in `primitives.css` (component styles still win); dark ring on
+  `[data-nav-tone="light"]` surfaces where cyan fails contrast.
+- **Docs.** `CLAUDE-VISUAL-EXPERIENCE-PLAN.md`, `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`
+  and `docs/visual/` (UI/UX review, accessibility audit, accessibility test plan,
+  Phase 0 current-state map and baseline); `CLAUDE.md` points to them.
+- Measured on a production build (software WebGL — relative numbers only):
+  mobile scroll 9 → 30 fps, desktop scroll 4 → 8 fps, axe violations 3 → 0,
+  page errors in reduced-motion and no-WebGL modes → 0.
+- Tests: `tests/visualPhase1a.test.mjs` (7).
+
+## v1.127 — 2026-10-19
+
+Real patches on the Capabilities cards (owner-supplied photos, 2026-10-19).
+
+- The Embroidered, PVC, Leather and new Printed Patches cards now show a
+  cut-out of a real patch where the drawn icon sat, with the thread running
+  into it: an embroidered shield, a PVC Thanksgiving turkey, a leather hex
+  and a printed twill oval. File work (Embroidery Digitizing, Vector Artwork)
+  stays drawn, as do Chenille and Stickers, which have no clean photo yet.
+- Woven Patches became Printed Patches: the supplied oval is printed on
+  twill, and printed is already one of the offer's materials. Tagline: "Full
+  colour, fine detail".
+- `public/heritage/patches/` holds the four WebP cut-outs (about 86 KB in
+  total), keyed out of the photo's slate background, with convex patches
+  masked by their hull for clean edges. They take the same product-evidence
+  exception as the rest of `public/heritage/`.
+- `lib/inMotionCards.mjs`: a card carries either `shapes` or `photo`.
+  `components/sections/Lab.jsx` draws the photo with a soft drop shadow in
+  the icon's place.
+- Tests: the Lab card test accepts a photo only from
+  `public/heritage/patches/`, keeps file-work cards drawn and checks every
+  cut-out is used. The heritage asset test now lists files only.
+
+## v1.126 — 2026-10-19
+
+The embroidery-first homepage, fitted onto the current one (owner decision
+2026-10-19): the new production story now fills everything above the
+Capabilities section, and from Capabilities down the page continues as before.
+This release also carries all of PR #286 (opened as v1.123, below), which it
+supersedes.
+
+- `components/Experience.jsx`: the page is now HeritageWorld (hero through the
+  $5 patch offer) → Digital Studio bridge → Capabilities (`Lab`) → Selected
+  work (`Motion`) → Contact. About, Services, How we work, Client stories and
+  Brand systems are no longer on the homepage. Their component files stay in
+  the repo until the owner approves deleting them; the inner pages
+  (`/about`, `/services`, `/process`, `/work`) are unchanged.
+- The design's own footer is not used: the story ends at the Digital Studio
+  bridge and hands over to Capabilities, and the site footer in Contact stays.
+- Camera journey: `BEAT_IDS` is now `hero, lab, motion, contact`, with one
+  `STOPS` entry each and the JourneyNav labels Production, Capabilities,
+  Selected work, Contact. `CLUSTERS` and the lights are unchanged.
+- `components/Scene.jsx`: `ServiceRail` and `ApproachCompass` are no longer
+  mounted (their Services and How we work beats are gone), so the canvas
+  draws two fewer actors.
+- Capabilities now lists the production services (owner request
+  2026-10-19): Embroidery Digitizing, Vector Artwork, Embroidered, Chenille,
+  PVC, Woven and Leather Patches, and Stickers. Each card keeps its colour
+  and gets new procedural art (`lib/inMotionCards.mjs`); every tagline
+  restates a claim the homepage already makes. Titles over 18 characters
+  step down to 21px so they fit the card (`.im-card-title--long`).
+- `components/sections/Lab.jsx`: the cards and "All services" now jump to
+  What We Make (`#make`), and the caption describes the in-house file and
+  sew-out process instead of the old "this whole site is the pitch" line.
+- Fixed: on phones and with reduced motion the Capabilities cards lost their
+  coloured art, because the static grid reused the hidden flying stage's
+  gradient ids. Each copy now has its own ids.
+- Tests: `tests/beatProgress.test.mjs`, `tests/sectionArchitecture.test.mjs`,
+  `tests/heritage.test.mjs`, `tests/journeyNav.test.mjs` and
+  `tests/marketing/journeyNav.test.jsx` follow the new beat list and a
+  homepage-shaped measurement stub.
+- Checked in Chromium at 1440×900 and 390×844 against a production build: the
+  sections render in that order with no horizontal scroll, and the
+  Capabilities flight matches `main` frame for frame at four scroll points
+  (only the side nav changes, from 01–09 to 01–04).
+
+### From PR #286 (v1.123, 2026-10-18)
+
+Homepage repositioned around embroidery digitizing, patches and production: the
+page now opens on the owner's "Heritage Homepage" design (Claude Design
+handoff) instead of the digital studio, which moves lower down.
+
+- `components/sections/Hero.jsx`: new hero, "Over 16 Years Of Experience under
+  our belts", with Crystal Digitizing as the primary path and `/#make` as the
+  second. Still `id="hero"`, so it is still the first camera beat.
+- `components/heritage/*`: the production story, in design order. Heritage and
+  the Crystal Digitizing core, What We Make (embroidery, what we digitize,
+  patches, stickers, vector prep), the eight-step Process, Quality Control
+  (drag-to-compare plus an inspection sheet), Machinery, the From the Workbench
+  proof wall, and the $5 patch offer (confirmed details only). `HeritageWorld`
+  sits on its own opaque ink ground, so `lib/journey.js`, `BEAT_IDS` and every
+  camera stop are unchanged; the hero beat simply lasts for the whole story.
+  `StudioBridge` ("Digital work that supports physical production") then hands
+  over to the existing About, Services and later beats.
+- `components/heritage/ThreadRail.jsx`: the Heritage Thread, a multi-strand
+  thread sewn down the story as you scroll. One viewport-sized canvas on
+  `gsap.ticker` (no second animation loop, nothing that scales with page
+  length); a tall SVG version was tried and repainted far too much. Off under
+  900px, fully drawn under reduced motion.
+- `lib/heritage.mjs`: all copy and claims in one place. `HERITAGE_NAV` (Crystal
+  Digitizing first) is passed to `Menu` from `Nav` only; subpages keep
+  `SITE.nav`. `Menu` gains a `pageLinks` prop and the homepage passes
+  `SITE.nav` as a "Site pages" column, so the page still links to /blog,
+  /process, /about and /contact. `lib/journeyNav.mjs` names the first beat
+  "Production".
+- `app/styles/heritage.css` (scoped under `.hx`), Instrument Serif and IBM Plex
+  Mono added in `app/layout.jsx` with `preload: false` so other routes do not
+  pay for them.
+- `public/heritage/`: 21 WebP product-evidence photos (1.3 MB, from about 13 MB
+  of source PNG/JPG). These are proof of the work, not decorative media.
+- Left out on purpose: the design's `[ model to confirm ]` and
+  `[ add verified correction ]` placeholders; the "machine photo" slot (its
+  image was a logo, not a machine); the studio tiles (screenshots of other
+  people's sites, see `public/projects/clients/SOURCES.md`), replaced by a plain
+  capability list. The compare slider shows original versus corrected artwork,
+  not a sew-out pair, and is labelled as such.
+- Search and footer copy now lead with embroidery digitizing (bundle B).
+  `lib/seo.mjs` holds the homepage identity strings (`HOME_TITLE_STEM`,
+  `HOME_DESCRIPTION`, `HOME_SOCIAL_DESCRIPTION`, `ORG_DESCRIPTION`,
+  `ORG_KNOWS_ABOUT`) and `app/layout.jsx` reads them, so the default title, OG
+  and Twitter title/description, the Organization and WebSite nodes share one
+  source. Default title: `Embroidery Digitizing & Web Design | CD Sportswear
+  INC` (54 chars; "Web Design" stays in it). `knowsAbout` keeps the six web
+  terms and adds embroidery digitizing, custom patches, sticker production,
+  vector artwork preparation. `SITE.statement` is now "Embroidery digitizing,
+  patches, web and brand, tested before it ships." (share card, every subpage
+  footer, `/about` lede); the Menu note and the Contact "Studio" column say
+  "Embroidery, patches, web and brand"; `public/llms.txt` leads with
+  digitizing, with no new entry under `## Services` (no `/services/embroidery`
+  page). Unchanged on purpose: `SITE.tagline`, `SITE.founded` (2016),
+  `SITE.experience` ("10+ years"), every year figure (the "16 years" claim is
+  unreconciled with "10+ years"), and `/about` title, description and body.
+- `docs/seo/STRATEGY.md`: §1 identity sentence, §2 (production services have no
+  `/services` page; homepage positioning is not a ranking theme) and §8
+  (homepage identity note) amended to match. The file's header says nothing in
+  it changes without MJ in writing: confirm that yes is on record before merge.
+  `tests/home-positioning-copy.test.mjs` (new, 8 tests) pins title length and
+  stem, description lengths, no year figures, `founded`/`experience` untouched,
+  and no production entry under `llms.txt` `## Services`; `tests/site-brand.test.mjs`
+  now requires the title and template to be built from `SITE.name`.
+- Contact section: a "Production request" intake is now the default tab beside
+  the original "Web project brief" (`components/sections/ContactIntake.jsx`,
+  `components/marketing/ProductionRequestForm.jsx`). It posts to `/api/contact`
+  with `kind: 'production'` (`validateProductionRequest` in
+  `lib/contactForm.mjs`: six frozen categories, size and quantity required);
+  rate limit, honeypot, hCaptcha, webhook, the `create_lead_from_contact` RPC
+  (`p_source: 'website_production_request'`) and emails all still apply, and any
+  payload without `kind` takes the unchanged web-brief path. `/#contact-production`
+  and `/#contact-brief` open the matching tab; new deals are titled "Production
+  request — <company or name>". `ContactForm`'s `aria-describedby` now points at
+  the ids it renders.
+- Artwork upload for production requests: up to 3 files, 10 MB each, 25 MB in
+  total (AI, EPS, PDF, PNG, JPG, DST). Files go straight to a private bucket
+  through signed upload URLs; `POST /api/contact/artwork/complete` checks size
+  and file signature, attaches the good files and adds an internal note to the
+  deal. The admin deal page gets an "Artwork" panel whose links redirect through
+  `/api/admin/contact-artwork/[id]` (admin session) to 60-second signed URLs.
+  The daily `crm-notifications` cron deletes reservations never completed after
+  24 hours and removes the files of any deleted deal or company (a trigger queues
+  each deleted row's object path). Migration `0053_contact_artwork.sql` adds the
+  private `contact-artwork` bucket, the `contact_artwork` table (RLS, admin read
+  only), `reserve_contact_artwork` / `attach_contact_artwork` (service role
+  only), the removal queue, and a copy of `create_lead_from_contact` whose only
+  change is the new-deal title prefix; `supabase/tests/0053_contact_artwork.test.sql`
+  covers it.
+- Reviewed before release by five independent read-only reviewers with
+  three-lens skeptic verification of every finding (15 of 40 candidates
+  confirmed and fixed): thread canvas sized to the scrollbar-excluded viewport
+  and repainted from a ScrollTrigger so it cannot trail the page; needle
+  interpolated between samples; one 900px boundary shared by JS and CSS, with
+  the thread-referencing copy hidden below it; focus ring on the light offer
+  card; forced-colours fallback for the multiplied logo tiles; 2x2 inspection
+  sheet at tablet widths; machinery rule closing only the last row; dead CSS
+  and stale comments and docs corrected.
+- Known asset gap: `stickers.webp`, `emb-eagle.webp`, `emb-ribshack.webp`,
+  `vec-airpark.webp` and `vec-funbunch.webp` come from 240px sources and look
+  soft at the sizes the design shows them; higher-resolution originals are
+  needed.
+- Codex review on the PR, five fixes: the compare slider announces the range
+  it can actually reach (`aria-valuemin`/`max` 2 and 98, not 0 and 100); the
+  homepage menu no longer hands focus back to the burger after an in-page hash
+  link, and focuses the destination itself when SmoothScroll's native
+  (reduced-motion) mode has not, so Tab continues from where the visitor
+  landed in both modes; the thread follows `prefers-reduced-motion` changes
+  made while the page is open instead of only reading it at mount; narrowing
+  the window below 900px unlights the process beads (and the narrow rule now
+  beats `.is-passed`), so they read as plain bullets; and the compare slider
+  takes focus when a drag starts, so its keyboard controls follow the pointer.
+  The remaining finding, that
+  the new product photos break the procedural-visuals rule in AGENTS.md, is
+  deliberate and disclosed in the PR: the design requires real production
+  evidence, so it needs the owner's sign-off rather than a code change.
+- Tests: 814 Node tests pass (new `tests/heritage.test.mjs`,
+  `tests/home-positioning-copy.test.mjs`, `tests/contactProduction.test.mjs`,
+  `tests/contactArtwork.test.mjs`, `tests/crm/migration-0053-contact-artwork.test.mjs`);
+  component suite 35 files / 251 tests (adds `compareSlider`, `menuFocus`,
+  `productionRequestForm`, `artworkPicker`, `contact-artwork-server`,
+  `contact-route-production`, `crm/contact-artwork-panel`); `journeyNav` tests
+  follow the new hero and "Production" label; CI-placeholder production build
+  passes (46 pages). `pnpm test:db` was not run: the 0053 pgTAP file (34
+  assertions) was run in PGlite against a replica of the touched tables, which
+  is a proxy, not the real gate.
+
+Note for merge: apply `supabase/migrations/0053_contact_artwork.sql` (the
+private `contact-artwork` bucket, `contact_artwork`, the reserve/attach RPCs, the
+removal queue and the replaced `create_lead_from_contact`). Either order degrades
+safely: if the app deploys first, uploads answer "unavailable", the request is
+still delivered and the visitor is told to email the files. No new environment
+variables. Before relying on uploads, send one real upload through a preview
+backed by a real Supabase branch: storage calls are only tested against mocks.
+The hCaptcha tick-through on the production-request form has not been run by
+hand. 0053 was checked free on 2026-10-19 (main is at 0052; open PR #281 holds
+0051).
+
+## v1.121 — 2026-10-05
+
+Blog readability and schema fix: markdown tables, task lists, FAQPage
+schema, and cover-image alt text.
+
+- `lib/blogMarkdown.mjs`: pipe tables parse into a `table` block (inline
+  formatting is preserved inside cells; a stray `|` in prose or a `---` rule
+  line never becomes a table), `- [ ]` / `- [x]` list items parse as task
+  lists, and a new `extractFaqs()` collects `### …?` question headings with
+  paragraph answers. Merged on top of main's image support and
+  title-restatement demotion — both feature sets coexist.
+- `components/marketing/PostBody.jsx` + `app/styles/case-study.css`: tables
+  render as real `<table>` elements (live posts whose pipe tables rendered
+  as raw `| ... |` text now display properly) and task-list items render as
+  disabled checkboxes.
+- `app/blog/[slug]/page.jsx`: post bodies with Q&A headings now emit
+  FAQPage JSON-LD alongside the existing BlogPosting schema.
+- `blog_posts.cover_image_alt`: migration `0052_blog_post_cover_image_alt.sql`
+  adds the nullable column; contract validation, the read path, the server
+  action, and the admin PostForm field wire it end to end; OG/Twitter image
+  metadata carries the alt text.
+- Tests: 733 pass, including new parser coverage (tables, inline-in-cells,
+  task lists, FAQ extraction); production build verified.
+
+Note for merge: apply `supabase/migrations/0052_blog_post_cover_image_alt.sql`
+to the production database (Supabase dashboard SQL editor or an
+authenticated CLI/MCP session) once this PR merges.
+
+Renumbered from v1.118 to v1.121 (v1.118–v1.120 are claimed by open PRs
+#280–#282) and the migration from 0044 to 0052 (0044–0050 are taken on
+main; 0051 is claimed by the data-map access-fixes migration in PR #281).
+
+## v1.117 — 2026-09-30
+
+C1: client arrival tour, needs-action ordering, verify continue.
+
+- New four-step client arrival tour (`components/crm/PortalTour.jsx`) on the
+  dashboard home, with Next/Back/Skip and a "Replay tour" button in the
+  header. Completion is remembered per browser via the
+  `cws.portal.tour.seen.v1` localStorage key (decision D2) — never re-opens
+  automatically; if storage is unavailable (private mode) the tour simply
+  shows every visit.
+- Dashboard home: the v1.109 "Needs your attention" strip already leads the
+  page and the section order runs projects → drafts → start for returning
+  clients; this PR carries the tour mount and "Replay tour" header action on
+  top of that reworked home (the earlier C1 section reorder was superseded by
+  v1.109's richer attention strip during the v1.111/v1.112 integration).
+- The verify-email confirmation page (`app/auth/confirm/page.jsx`) now
+  offers a "continue to dashboard" primary action alongside Back to Login,
+  so a client who has just verified isn't dumped back at the login form.
+- Build-only fix: the `/admin`, `/dashboard` and `/team` layouts export
+  `dynamic = 'force-dynamic'` so `next build` skips prerendering layouts
+  that call `requireRole` (reads cookies) while Supabase env vars are
+  placeholders in CI. No SQL, no new dependencies, no new notification
+  events.
+
+## v1.116 — 2026-09-30
+
+A1.2: admin status buttons follow ALLOWED_TRANSITIONS.
+
+- The admin project detail page (`app/admin/projects/[id]/page.jsx`) no
+  longer keeps a hand-rolled status-to-options map; it derives
+  `NEXT_OPTIONS` from `ALLOWED_TRANSITIONS` in
+  `lib/crm/project-contract.mjs`, the same expression the team page uses.
+  The hard-coded map never offered `brief_submitted -> planned` and omitted
+  the `on_hold`/`cancelled` statuses entirely, and it offered an illegal
+  `changes_requested -> client_review` transition.
+- Regression test added in `tests/crm/staff-workspaces.test.mjs`: asserts
+  the contract import, asserts `NEXT_OPTIONS` comes straight from
+  `ALLOWED_TRANSITIONS[project.status]`, and asserts no hand-rolled
+  status-to-array literal map may return.
+- Plan-of-record doc added: `docs/plans/2026-09-28-portal-workings.md`.
+## v1.115 — 2026-10-01
+
+Docs only: scheduled SEO ledger re-check. No runtime change.
+
+- `docs/seo/goals.md`: re-confirmed rung 1 (first reportable Search Console
+  impression for the RFP guide) on final data extended through 2026-09-28.
+  2026-09-27 (4 impressions) and 2026-09-28 (2 impressions) are both now
+  final; rung 1 was already marked Done by the prior scheduled check
+  (2026-09-29), and this run adds the extra day of final data plus a fresh
+  milestone-2 (exact query `rfp web development` + page) snapshot, still not
+  met. No site or content change.
+- Renumbered from v1.113 to v1.115: merging `main` (now at v1.114 via #278)
+  into this branch required a fresh bump, per the documented
+  "Update branch can silently drop the bump" hazard.
+
+## v1.114 — 2026-09-30
+
+Contract-drift hardening: every hardcoded status-domain literal in the app
+now derives from `lib/crm/project-contract.mjs`, with source-pin tests so
+the drift class found in v1.91/v1.110 cannot silently return.
+
+- New frozen contract constants: `APPROVAL_DECISION_STATUSES`,
+  `DELIVERABLE_PUBLISH_STATUSES` (verified intentional subsets of their
+  domains, matching the SQL guards in migrations 0011/0023/0047), and
+  `TERMINAL_PROJECT_STATUSES` (derived from `ALLOWED_TRANSITIONS`; a test
+  pins the equivalence).
+- `app/actions/project-actions.js` no longer hardcodes the task-status
+  domain or the approval/deliverable decision lists; the three separate
+  `CLOSED_*` terminal-status copies (`app/admin/page.jsx`,
+  `app/admin/projects/page.jsx`, `app/actions/assignment-actions.js`) all
+  import one constant.
+- The admin project status filter (`app/admin/projects/page.jsx`) derives
+  its options from `PROJECT_STATUSES` with byte-identical rendered text.
+- `tests/crm/contract-drift-hardening.test.mjs` (16 tests) pins migration
+  0047's SQL guard literals and every refactored site to the contract.
+
+## v1.110 — 2026-09-30
+
+Live project pages. Changes on a project now show up on every open project
+page without a refresh, and each page shows who else is looking at it.
+
+**Production drift recorded** (`0050`): the Realtime SQL behind this was run
+directly on the live database through the Supabase dashboard's SQL runner and
+never went through a migration, so the migration chain no longer reproduced
+production. `0050_realtime_project_updates_and_presence.sql` records it
+verbatim (a replay through `0050` matches every live Realtime function,
+trigger and policy hash), idempotent, plus the usual revoke on the three
+trigger functions. It adds `project_status_changed`, `project_task_changed`
+and `project_approval_changed` broadcasts on the existing private project
+topics, and presence on them. Client-facing (`shared`) sends are filtered: an
+internal task, or an approval on an internal deliverable, never reaches the
+client's topic. Payloads are identifiers only; pages re-read through the
+RLS-protected read model. The owner applies `0050` so `schema_migrations`
+matches; applying it changes no live behaviour.
+
+**One channel per project topic** (`lib/crm/projectRealtime.js`): supabase-js
+hands back the same channel for a topic it already has, so two components
+opening their own would collide. A ref-counted registry opens each private
+channel once, authorizes the socket before any join, tells listeners to
+re-read after a reconnect (events sent while offline are lost), and carries
+presence on the shared topic. The message thread moved onto it unchanged.
+
+**Pages**: the client, team and admin project pages re-read the workspace on
+status, task and approval changes (`components/crm/useProjectLive.js`,
+debounced), and show "Also here now: …" with names only
+(`ProjectPresence`). On the client page a new message refreshes only the tab
+badges, and anything arriving on the open Messages or Files tab is marked
+read at once.
+
+Owner: in the Supabase dashboard, Realtime settings, turn off "Allow public
+access" so project channels require authorization.
+
+Not yet broadcast: deliverable publishing (the Files badge updates on the next
+load, not live).
+
+Tests: pgTAP `0050_realtime_project_updates_and_presence.test.sql` (16 checks,
+PGlite: passes with 0050, the 10 positive checks fail without it;
+0009/0041/0046/0047/0048 still pass), the registry and live hook
+(`project-realtime`), the client page's live behaviour, 0050 contracts.
+
+## v1.109 — 2026-09-30
+
+Client portal, phase 1. The first of three portal improvements (then the
+admin and team dashboards, then settings and the customer profile). One
+migration (`0049`) is checked in and applied separately by the owner; until
+it is, the portal simply shows no manager name.
+
+**Client project page in tabs**: Overview, Messages, Files, Tasks &
+approvals, Brief (`components/crm/Tabs.jsx`, WAI-ARIA tabs with arrow/Home/End
+keys). The open tab is kept in `?tab=`, so it survives a reload and can be
+linked to; panels stay mounted, so a half-written message or staged upload
+survives a tab switch. Overview leads with "Needs your attention" (a project
+waiting on the client, new messages, new files), the project manager card,
+the project details and recent activity. Messages and Files show unread
+counts, and opening them marks those notifications read. The brief appears
+once, in its own tab, with the original request shown when there is no
+structured brief. Project Updates stays on Overview, where clients can still
+post an update.
+
+**Project manager by name only** (`0049`): `public.project_manager_names`
+returns the lead project manager's display name for the projects the caller
+can access, and nothing else: no email, no ids. `getProjectManagerNames()`
+reads it and reports "unavailable" when the function is not there yet, so
+the page never guesses.
+
+**Client dashboard**: returning clients see their projects first, new
+clients the service picker first. A "Needs your attention" strip lists
+projects in review and unread updates. Project cards show a status badge,
+what the status means, the project manager's name, the last update and an
+unread count.
+
+**Plain-language labels** (`lib/crm/labels.mjs`): project, task and approval
+statuses and project categories render as words ("Ready for your review")
+instead of raw values (`client_review`) on the client pages, the timeline,
+tasks and approvals. The timeline shows "CD Sportswear team" instead of
+"Unknown" for a staff change the client cannot see the author of.
+
+Tests: pgTAP `0049_project_manager_names.test.sql` (11 checks, PGlite:
+passes with 0049, fails without it; 0041/0046/0047/0048 still pass), labels,
+Tabs, the manager card, the client project page and 0049 contracts.
+
+## v1.108 — 2026-09-29
+
+*Opened as v1.92; renumbered to v1.108; v1.106 and v1.109–v1.111 are held by #273 and its stack.*
+
+Docs only: the design spec for the CRM engagement engine. No runtime change.
+
+- `docs/superpowers/specs/2026-09-29-crm-engagement-engine-design.md` sets
+  out how the portal brings clients back without anyone on the team having to
+  chase them. It records the owner decisions from the 2026-09-29 brainstorm:
+  - rules and schedules only, no AI;
+  - a weekly digest plus instant emails when the client is needed;
+  - a noise budget of 1 automated email a day and 3 a week;
+  - client threads written by the client and the lead project manager, with
+    the admin reading only;
+  - Trustpilot and Google review asks after delivery;
+  - a referral that earns a talking-logo animation, one per client company.
+- The engine design uses database rules with a unique send ledger, feeding
+  the existing notification outbox. It ships switched off, with a dry run.
+- The spec also records the first decision on contextual offers: a
+  live-search domain offer with the second year free, which the team
+  registers. That design is still in progress.
+- Implementation follows as separate versioned PRs after the owner reviews
+  the spec.
+
+Verification: `pnpm test`.
+
+## v1.107 — 2026-09-30
+
+*Opened as v1.90. A later "Update branch" merge (`f553456`) replaced this entry and `VERSION` with main's; restored here and renumbered to v1.107, since v1.106 is held by #273.*
+
+Cluster integrity is now a build gate, and one piece of registry drift is
+corrected.
+
+- `tests/seo-cluster-integrity.test.mjs` (new, 7 assertions) enforces the
+  pillar + cluster rule in `docs/seo/STRATEGY.md` §3 across the three sources
+  that have to agree: `KEYWORD-REGISTRY.md`, `docs/seo/drafts/blog/*.md`, and
+  `GUIDE_LINKS` in `lib/servicePages.mjs`. It checks one keyword → one URL,
+  that a row claiming a draft has that file on disk, that every draft is
+  mapped, that `target_url` matches the filename, that every draft links up to
+  a real pillar with anchor text of 10+ characters, that an **approved** post
+  linking up to a pillar is linked back from it, and that every `guideLinks`
+  href is well formed. Each assertion was mutation-tested to confirm it fires.
+- `docs/seo/KEYWORD-REGISTRY.md`: `/blog/branding-vs-brand-identity` and
+  `/blog/logo-redesign-vs-refresh` were recorded as `draft 2026-09-22` but have
+  never existed as files in any branch (`git log --all --diff-filter=A`
+  returns nothing). Their page state now reads **not drafted**. Keywords,
+  target URLs and every other column are unchanged, so both mappings still
+  reserve their URLs.
+- `docs/seo/CLUSTER-INTEGRITY.md` (new) documents the seven invariants, what to
+  do when each fails, and what the test deliberately cannot see — live post
+  bodies live in Supabase, not the repo.
+
+No production code changed. `pnpm test` passes 625/625.
+
+## v1.105 — 2026-09-30
+
+Security and robustness hardening. Two migrations (`0047`, `0048`) are
+checked in and applied separately by the owner; the app works before and
+after they are applied.
+
+**Contact form fails closed in production** (`VERCEL_ENV=production`):
+- Missing `HCAPTCHA_SECRET` or Upstash Redis configuration, hCaptcha
+  unreachable or non-2xx, hCaptcha rejecting our secret, a rate-limit backend
+  error, or no trusted client IP all return **503 with `Retry-After: 120`**
+  and "temporarily unavailable". Nothing is forwarded, stored or emailed. A
+  rejected captcha token is still a 400 field error. Outside production a
+  missing configuration still lets submissions through.
+- `getClientIp()` trusts only the platform: on Vercel `x-real-ip`, then
+  `x-vercel-forwarded-for`; elsewhere `x-forwarded-for` only under a declared
+  `TRUSTED_PROXY_HOPS` (1-5). A client-sent `x-forwarded-for` is ignored.
+- The webhook is aborted after 5 s (`CONTACT_WEBHOOK_TIMEOUT_MS`, 500-10000)
+  and counted as not delivered; the CRM write and emails go ahead.
+
+**Staff-only tasks and deliverables** (`0047`): `create_project_task`,
+`create_project_deliverable` and `publish_project_deliverable` require
+`private.can_view_internal` before any write (they accepted any project
+participant, clients included). The matching Server Actions
+(`createProjectTask`, `createProjectDeliverable`, `publishDeliverable`,
+`enqueueNotification`) are limited to project managers and admins.
+`enqueue_project_notification` was hardened in `0046`.
+
+**Durable stale-upload cleanup** (`0048`): stale uploads move into a
+service-role-only queue first; the queue entry is removed only after the
+storage delete succeeds, and a failure keeps it with attempts, error and a
+backoff (capped at 24 h). Already-deleted objects count as removed. Before
+`0048` is applied the cron falls back to the old cleanup.
+
+**Brief drafts**: `deleteBriefDraft` checks that a row was actually deleted:
+"already submitted" (a conflict, and the dashboard drops the draft) or
+"Brief not found" instead of a false success.
+
+**Sign-in and portal pending state**: a shared indicator
+(`components/auth/AuthPending.jsx`, built on the CRM spinner) with a visible
+spinner, a polite live status, `aria-busy`, and disabled controls with
+inert secondary links. On the portal chooser, the first click marks the
+chosen card and announces it; further clicks are ignored until navigation
+completes (15 s safety release). Found and fixed on the way: under React 19
+the old "Signing in..." state never showed (state set inside a form action
+waits for the action), a failed sign-in wiped the typed email, and a
+configuration failure showed the raw word "configuration". Both the chooser
+and the sign-in form release their pending state when the Back button
+restores them from the bfcache, so they never stay locked.
+
+Verification: `pnpm test` 677/677, `pnpm test:components` 134/134 (new:
+`contact-route-fail-closed`, `staff-only-actions`, `delete-brief-draft`,
+`attachment-cleanup-drain`, `auth-pending`); pgTAP on PGlite (Postgres 17,
+replaying 0001-0048): 0047 12/12 (negative control without it fails 7),
+0048 16/16, with 0046, 0043, 0041 and 0009 still passing. Sign-in and portal
+selection checked in a real browser at desktop and 375 px with requests
+slowed by 4 s.
+
+## v1.104 — 2026-09-30
+
+Renumbered from v1.101 (opened as v1.88): v1.102 (#263) merged first.
+
+The shared frame for all three portals: step 1 of the portal redesign (owner direction 2026-09-28: "neat and clean, deliberate, not shiny"; dark, flat and quiet; shared frame first). Numbered after v1.83–v1.87 (#256, #257, #259, #260, #261), which are all open; this PR was opened as v1.87 alongside #261 and renumbered.
+
+- **`app/styles/crm.css`** (new, imported last in `app/globals.css`): one token set and one set of primitives for the CRM.
+  - Tokens: solid dark surfaces, 1px borders, one blue accent, status colour pairs.
+  - Primitives: page header, card, button (primary, ghost, danger, small), badge, table, list, form field, fieldset, empty state, form messages.
+  - No gradients, glows, glass blur or hover lifts.
+  - Contrast (measured, WCAG AA): text 15.2:1, muted 8.0:1, subtle 5.1:1, button text 5.4:1, every status pair ≥ 8:1.
+  - One visible 2px focus ring for every interactive element in the portal.
+  - The admin blog pages (and `/team`) already used these class names, which were defined nowhere, so they now render styled instead of as plain HTML.
+- **`WorkspaceShell`**: rebuilt as a flat top bar.
+  - It shows the logo, role-based navigation with the current page marked, the portal name and **Sign out**; the shell had no sign-out before.
+  - Navigation by role:
+    - Admin: Overview, Projects, Pipeline, Deals, Companies, Contacts, Tasks, Users, Blog.
+    - Client: Projects.
+    - Employee: My projects.
+  - The page title and optional subtitle and actions sit in the content column.
+  - On phones the navigation collapses behind a Menu button.
+  - The glass header, gradient background, cyan title and one-link sidebar are gone.
+- **Client dashboard:** the duplicate header (a second title and a second Sign Out) is removed. The shell shows "Projects" and "Welcome, …".
+- **Employee home (`/team`):** now inside the shell, as a clean list of assigned projects with status badges.
+- **Pages not changed in this step:** most admin pages and several project panels still carry their own older scoped styles. They move onto these primitives in the next steps (client pages, then employee, then admin; `docs/plans/2026-09-28-portal-workings.md` §3a).
+- **Tests:** `tests/crm/auth-portals.test.mjs` now checks that the employee home renders the shell and that the shell provides sign-out, instead of looking for `signOut` in the page file.
+- **Verified:**
+  - `pnpm test` and `pnpm test:components`;
+  - the placeholder-env production build;
+  - Chromium screenshots of the frame at 1280px and 390px, for the client and admin roles;
+  - the mobile menu opening and closing, with its `aria-expanded` state and keyboard focus ring.
+
+## v1.103 — 2026-09-30
+
+Renumbered from v1.100 (opened as v1.87): v1.102 (#263) merged first.
+
+Weekly SEO goal-monger run (docs only, no site or code change).
+
+- `docs/seo/runs/2026-09-28-goal-monger.md`: this week's measurement of the
+  `rfp web development` ranking goal. The exact query + page pair still has
+  0 reportable impressions and no position (Search Console, 2026-08-29 →
+  2026-09-25, final data). The guide has had no impression for any query
+  since at least 2026-07-01, and URL Inspection shows Google hasn't seen any
+  of the three internal links to it yet.
+- `docs/seo/goals.md`: status set to Behind, an Open fronts table added, and
+  this week's move recorded. Every front is gated on MJ.
+- `docs/seo/backlinks/outreach-drafts/2026-09-28-rfp-guide.md`: send-ready
+  drafts for the four Tier-1 RFP-guide backlink prospects. **Not sent**; each
+  needs MJ's yes. `docs/seo/backlinks/prospects.md` records the 2026-09-28
+  re-check (all four pages still 200, slots unchanged).
+- `.claude/goal-monger/seo.md`: the project's goal-monger SEO profile. It was
+  committed to PR #240's branch (`686815b`) after that PR merged, so it never
+  reached `main`. It lands here unchanged.
+
+Verification: docs-only, so no tests or build were run.
+
+## v1.102 — 2026-09-30
+
+Renumbered from v1.89: main reached v1.97 first (numbers now continue past .99, owner decision 2026-09-29).
+
+Trustpilot TrustBox in both site footers (owner-supplied widget code).
+
+- `components/marketing/TrustpilotWidget.jsx` (new) renders Trustpilot's
+  "Micro Review Count" TrustBox with the owner's business-unit and template
+  ids, now kept in `SITE.trustpilot` (`lib/site.js`). The bootstrap script
+  loads through `next/script` with `lazyOnload` rather than a raw `<head>`
+  tag: the footer is never above the fold, so first paint doesn't wait on a
+  third-party script. On client-side navigation it calls
+  `Trustpilot.loadFromElement`, because the bootstrap scans the page only
+  once.
+- Two deliberate changes from the embed snippet: `data-theme="dark"` (the
+  light theme renders dark text on the dark footer) and left alignment, to
+  match the footer columns.
+- Both footers (`MarketingFooter` on inner pages, the homepage `Contact`
+  beat) gain a "Reviews" column with the TrustBox and a "Review us on
+  Trustpilot" link to the owner's short link (`https://trstp.lt/_Kyci6Z0BC`).
+- CSP: `https://widget.trustpilot.com` is added to `script-src` and
+  `frame-src` only. It is one exact host, not `*.trustpilot.com`, because the
+  bootstrap and the widget iframe both come from it and everything else runs
+  inside that iframe. `tests/csp-policy.test.mjs` pins the new token, and
+  `tests/trustpilot-widget.test.mjs` checks the ids, the theme, both footers
+  and the CSP scope.
+
+## v1.99 — 2026-09-30
+
+Renumbered from v1.86: main reached v1.97 first (numbers now continue past .99, owner decision 2026-09-29).
+
+Every transactional email gets a clean, professional dark layout that matches the portal (owner request 2026-09-28). The sign-up confirmation email's button was invisible on phones. No behaviour change: same emails, same links, same senders. Numbered after v1.83 (#256), v1.84 (#257) and v1.85 (#259), which are all open.
+
+- **Root cause of the invisible button:** it was painted with a CSS `linear-gradient`. Outlook mobile and several other clients strip gradients, which left dark text on a dark card.
+  - Every background is now a solid colour, set both as a `bgcolor` attribute and as inline CSS, so a client that drops one still renders the other.
+- **Layout** (`lib/email/templates.js` `emailLayout`): flat dark design with no gradients, glass or glows.
+  - a near-black navy page and a slightly lighter card with a thin border;
+  - the logo at the top of the card above a divider;
+  - light 16px body text;
+  - one solid blue button;
+  - the raw link below a divider, under "If the button doesn't work…";
+  - the footer email address is now a mail link.
+  - `color-scheme: dark` is declared.
+- **Contrast** (WCAG AA): body text 11.4:1, muted 6.3:1, links 8.0:1, button text 5.4:1; the button stands out from the card at 3.4:1.
+- **Sign-up confirmation wording** now says what happens next: the client portal, starting a project, sharing a brief and files.
+- **Verified:** `pnpm test`, including `tests/email.test.mjs`. The confirmation and message emails were rendered in Chromium at 390px and 700px.
+
+## v1.98 — 2026-09-28
+
+*Opened as v1.85; renumbered to v1.98 after v1.97 lifted the `.99` pause.*
+
+Docs only, no runtime change. Adds `docs/plans/2026-09-28-portal-workings.md`: how the client, employee and admin portals should work inside, what exists today (from a code read at v1.82), and a phased plan with the client portal first. Numbered after v1.83 (#256) and v1.84 (#257), both open.
+
+- **Client journey (owner, 2026-09-28):** salesperson sends the link → sign up → verify email → dashboard → first-run tutorial (create a project, fill the brief, message the team, upload images) → pick a service type (Website, Logo, Branding, Marketing, Automation) → that service's brief.
+- **Gaps found:**
+  - there is no tutorial;
+  - the briefs cover only logo, website, SEO and PPC, and the database constraint allows only those four;
+  - clients can't approve or request changes;
+  - there is no cross-project notifications inbox;
+  - `/team` is a flat list, without an internal/shared toggle, task editing or approval requests;
+  - the admin home doesn't link to projects, briefs or the pipeline;
+  - admin status transitions disagree with `ALLOWED_TRANSITIONS`.
+- **Phases:** C1 arrival + tutorial, C2 service types + briefs (migration `0046`), C3 client actions + approvals (`0047`), C4 notifications, E1 employee queue, A1 admin control room.
+- **Owner decisions:** D1–D5 cover the service list, how the tutorial remembers it was seen, salesperson attribution, client approvals, and admin-created projects. Recorded on 2026-09-28:
+  - Logo and Branding are one service.
+  - The tutorial shows once per browser.
+  - No salesperson auto-assignment.
+  - Admin can start projects.
+  - Still open: Marketing sub-choices, what Automation covers, and client approvals (D4).
+- **Visual direction:** dark, flat and quiet. The shared frame comes first, then client, employee and admin pages.
+- `docs/plans/README.md` lists the plan as Planned.
+
+## v1.97 — 2026-09-29
+
+CI and docs only, no runtime change. Release numbers continue past `.99` as three-digit minors (owner decision 2026-09-29).
+
+- **Why:** after v1.94 (#269) merged, `release-policy` accepted only v1.95–v1.99: it paused at `.99` and refused a major change. Nine PRs were queued (#259 #260 #261 #262 #263 #265 #266 #267 #268), and the owner chose to keep counting rather than move to v2.
+- **`scripts/release-policy.mjs`:** minors are two digits, or three or more with no leading zero (`v1.99` → `v1.100`). The `.99` pause is removed. A major change still fails and needs the owner. Versions compare as numbers, so v1.100 is above v1.99.
+- **Tests:** `tests/release-policy.test.mjs` adds the three-digit case (v1.100 and v1.101 pass; v1.99 is refused once main is v1.100, including when v1.100 is named only in a merge title; a held v1.100 is refused), and v2.00 still needs the owner.
+- **Docs:** `VERSIONING.md` drops "don't go to three digits"; CLAUDE.md, AGENTS.md and both `/version-bump` copies say `v1.99` → `v1.100`.
+- `VERSION` is v1.97, above v1.95 (#266) and v1.96 (#268).
+
+## v1.96 — 2026-09-29
+
+Opened as v1.93; renumbered to v1.96 after v1.94 (#269) merged first and #266 became v1.95.
+
+Client notifications you can rely on. Stacked on v1.95 (#266). Code ships on merge; migration `0046` is checked in and
+applied separately by the owner. Without it the app behaves as in v1.95.
+
+With `0046_client_notifications_and_hardening.sql` applied:
+
+- **A client's message always reaches someone.** When no project manager is
+  assigned yet, the admin now receives the client's messages, files and
+  status events (`private.project_notification_recipients`). Before, nobody
+  on the studio side was told. Once a manager is assigned the admin drops
+  off again, as before.
+- **"We have your brief."** A client who submits a brief gets an email and an
+  in-app note (`project.brief_received`) explaining what happens next. Only
+  on the first submission; a retry does not send it twice.
+- **"New client: … from …"** The admin gets an email when a client finishes
+  onboarding (`client.onboarded`), with contact, company, sign-in email and
+  phone, linking to the client's company page.
+- **Security:** a signed-in user can no longer set their own
+  `requested_staff_access` (which put them in the admin's pending staff
+  requests) or backdate `created_at`; and `enqueue_project_notification` is
+  now staff-only and can only notify people on the project. Before, any
+  client could queue an email with their own text to any user of the portal.
+
+In the app (no SQL needed):
+
+- **Friendlier client emails:** status emails to clients carry the same
+  light line as the in-app notification ("Sleeves: rolled up.", "Approved!
+  High fives all round."). Bad news stays plain. Copy lives in
+  `lib/crm/notification-copy.mjs`.
+- **Notifications panel:** "Mark all as read", and marking read now updates
+  at once (it used to need a reload).
+- **Watchdog:** each drain run reports `stuckPending`, `oldestStuckMinutes`
+  and `exhausted` in its JSON (stored by pg_cron in `net._http_response`),
+  and logs plus sends a Sentry warning when email is stuck for more than 30
+  minutes or a send fails for good. Counts only, no recipients or payloads.
+
+Verification: `pnpm test` 651/651, `pnpm test:components` 96/96 (new:
+`notifications-panel`), the production build with the CI placeholders
+(60/60 pages). SQL: `migration-0046-*` checks mechanically that
+`submit_project_brief` and the recipients function are 0043 and 0023 plus
+exactly the new blocks; `supabase/tests/0046_*.test.sql` (pgTAP, 21 checks).
+Run for real on PGlite (Postgres 17.5), replaying 0001–0046 with Supabase
+platform stubs copied from the live catalogs, as a stand-in for `pnpm
+test:db` (no Docker here): 0046 passes 21/21; the existing 0043, 0044, 0045
+and 0041 tests still pass at head 0046; with 0046 left out, the new test
+fails exactly the 12 checks that depend on it. The five functions 0046
+replaces matched live byte for byte (bodies, security, search path, grants)
+before the run.
+
+Migration numbering: this takes `0046`. The portal plan in #259 (docs only)
+reserved 0046/0047 for its C2/C3 phases; those move to 0047/0048. The
+engagement-engine spec in #267 picks its numbers at build time, after these.
+
+## v1.95 — 2026-09-29
+
+Opened as v1.91; renumbered to v1.95 after v1.94 (#269) merged first.
+
+Lead project manager assignment, and the emails around it. No database
+change: everything goes through the existing RPCs (`assign_project_user`,
+`remove_project_assignment`, `transition_project_status`).
+
+- **Admin project page:** a new card at the top (`components/crm/LeadManagerCard.jsx`)
+  shows the project's lead project manager, or, when nobody leads it, the
+  project managers to pick from, with how many open projects each has.
+  Managers are shown by name only, never by email address. One click assigns
+  a lead (`app/actions/assignment-actions.js`, admin-only): the chosen
+  manager goes on first, everyone else comes off, and a project still at
+  `brief_submitted` moves to `planned` with a shared status note naming the
+  manager. `assign_project_user` is skipped only for the current lead, so a
+  manager promoted from "also assigned" is still emailed. A failed move to
+  Planned after a successful assignment is reported as a warning. The admin
+  page can now also move a project from `brief_submitted` to `planned` by hand,
+  and no longer offers `changes_requested` → `client_review`, a move the
+  database always rejected (a test now checks every button against
+  `ALLOWED_TRANSITIONS`).
+- **Admin brief email:** for a new project nobody leads, the admin email now
+  reads "Assign a project manager: new Website project from <client>",
+  names the client (name, email, company, account date, first project or
+  not) and links to the admin project page. The client details are looked up
+  when the email is sent, and go to staff only.
+- **Client "project is planned" email:** when a new project moves to
+  Planned, the client's status email introduces their project manager by
+  name, with a light, playful line (the same line appears in the shared
+  status note). Copy lives in `lib/crm/notification-copy.mjs`.
+- **Project manager email:** "You're the project manager for <project>",
+  with the client's name, email and company.
+- **Links:** every project email now links to the recipient's own
+  workspace. Staff emails used to point at `/dashboard/...`, which bounced
+  project managers to `/team` without the project.
+- **Stale assignments:** a project manager only gets email about projects
+  they are still assigned to. Rows queued before a manager was replaced are
+  closed as `missing_recipient` instead of sent. The check fails open.
+- **Login:** a signed-out visitor to a portal page (for example from an
+  email link) is sent to that portal's login with `?next=`, and lands on the
+  page after signing in (`middleware.js`).
+- **Admin home and list:** an "Open projects" card with "N need a project
+  manager", a Projects header link, and a "Needs a project manager" filter
+  on `/admin/projects` (`?pm=none`). The admin header now wraps on phones
+  instead of pushing Sign Out off-screen.
+- **In-app notifications:** the client's notification list shows a sentence
+  per event ("Your project is planned…", "AJ sent a new message.") instead
+  of the raw event code, and a "New" badge instead of a meaningless
+  "pending" label.
+- **Dates:** email timestamps are dated in studio (Eastern) time; date-only
+  values never shift.
+
+Owner follow-ups (not in this PR): Alex and AJ have no accounts yet (invite
+them from Manage Users); Ethan's display name is "Ethan Crystal"; the test
+manager `phase1-pm-test@…` still appears in the picker until removed.
+
+Verification: `pnpm test` 638/638, `pnpm test:components` 93/93 (new:
+`lead-manager-action`, `lead-manager-card`, `middleware-login-next`), and the
+production build with the CI placeholders (60/60 pages).
+
+## v1.94 — 2026-09-29
+
+CI only, no runtime change. The `release-policy` check (added in v1.83)
+required every PR into main to be numbered exactly main + 0.01, which
+contradicts the numbering rule v1.84 restored in CLAUDE.md: take one above
+main *and every open PR*, never reuse a number. With eight PRs queued, it
+failed all but one (#266 and #268 were told to become v1.85, #259's number).
+
+- The rules move to `scripts/release-policy.mjs`, a pure function with unit
+  tests (`tests/release-policy.test.mjs`); the workflow now only gathers the
+  inputs (checkout without credentials, read-only token) and reports.
+- A PR passes when its title and `VERSION` name the same release, that
+  release is above everything already on main (`VERSION`, `CHANGELOG.md`
+  headings, and PR titles in main's merge commits, since a PR can deploy
+  under its title without bumping the files), no other open PR holds it,
+  and `CHANGELOG.md` starts with a dated, non-empty entry for it. Gaps are
+  allowed. If a higher number merges first, the lower PR renumbers.
+- Unchanged: the title format, the `VERSION`/`CHANGELOG.md` requirement, the
+  pause at .99 and major-version changes needing the owner, and the
+  Dependabot auto-merge job still needs this check to pass.
+- CLAUDE.md and AGENTS.md rule 4 note that the check enforces it.
+
+Verification: `pnpm test` (new: `release-policy`, 10 cases, including
+today's queue); the workflow's script compiled and run against a fake
+GitHub client (valid number accepted, number held by another open PR
+refused); the workflow YAML parses.
+
+## v1.84 — 2026-09-28
+
+Docs only, no runtime change. Backfills two releases that deployed without a `CHANGELOG.md` entry, and restores the versioning-rule text that the first of them dropped. Both went through GitHub's "Update branch" merge, which resolved `VERSION` and `CHANGELOG.md` to `main`'s side. Numbered after v1.83, which is claimed by open PR #256. This PR was opened as v1.81.
+
+- **v1.79 (#244)** and **v1.81 (#254)**: entries restored below in deploy order. #244 deployed after v1.80, and #254 deployed after v1.82.
+- **CLAUDE.md and AGENTS.md versioning rules:** the next number is one above the highest `vX.NN` named in `git log origin/main` (fetch first), `VERSION`, the top of `CHANGELOG.md`, or an open PR's title. The "Update branch" rule's list of incidents now includes v1.79 and v1.81.
+- `VERSION` is v1.84.
+
+## v1.83 — 2026-09-28
+
+Dependabot minor and patch updates now wait for release metadata and CI before auto-merge is enabled.
+
+- Add a release-policy check that requires the next `VERSION`, a matching top `CHANGELOG.md` entry, and a versioned PR title.
+- Enable native auto-merge for Dependabot minor/patch PRs only when the release metadata is valid; GitHub still waits for the required `test` and `build` checks.
+- Protect `main` with pull-request-only merge commits and required `test`/`build` status checks.
+
+## v1.81 — 2026-09-28
+
+*Backfilled in v1.84.* PR #254 merged at `5caf5ab` through GitHub's "Update branch" merge (`dff2015`), which kept `main`'s `VERSION` (v1.82) and `CHANGELOG.md`, so this release deployed under its merge title, v1.81, without an entry. It deployed after v1.82 (#255), which is why it sits above it. This is the entry as it stood on the PR's own commit (`498f460`).
+
+Fix: the brand-logo link on every portal auth surface (`/login`, `/signup`,
+`PortalLoginForm`, `WorkspaceShell`) pointed at `href="/"`. On
+`app.cdsportswearinc.com` a relative `"/"` hits the app-host->`/login`
+redirect in `portalHostRedirects()` (`lib/portalHost.mjs`) and bounces
+straight back to the page the visitor is already on — a visible loop for a
+signed-out visitor clicking the logo.
+
+- New `lib/useMarketingHomeHref.js` hook: starts at `"/"` (matches SSR, no
+  hydration mismatch), then swaps to `SITE_ORIGIN` after mount only when
+  `window.location.hostname === APP_HOST`. Preview deployments and localhost
+  never match `APP_HOST`, so they keep using `"/"` as before.
+- Wired into `app/login/page.jsx`, `app/signup/page.jsx`,
+  `components/auth/PortalLoginForm.jsx`, and `components/crm/WorkspaceShell.jsx`.
+- `tests/marketingHomeHref.test.mjs`: asserts the hook's default/swap
+  behavior and that every listed surface uses it instead of a hardcoded
+  `href="/"`.
+
 ## v1.82 — 2026-09-28
 
 Dependency fix and security housekeeping from the 2026-09-28 triage.
@@ -26,6 +894,30 @@ Dependency fix and security housekeeping from the 2026-09-28 triage.
   (owner-side) to `G-YENE9MFT5K` plus a redeploy; not applied here.
 
 Verification: `pnpm test` 618/618.
+
+## v1.79 — 2026-09-28
+
+*Backfilled in v1.84.* PR #244 merged at `45dbc77` through GitHub's "Update branch" merge (`f749634`), which kept `main`'s `VERSION` (v1.80) and `CHANGELOG.md`, so this release deployed under its merge title, v1.79, without an entry. It deployed after v1.80 (#238), which is why it sits above it.
+
+Staleness sweep: removes dead code, stale files and outdated instructions, and closes a sign-in hole left by the retired domains. The site's look and behaviour are unchanged.
+
+- **Security — auth redirect allow-list** (`supabase/config.toml`). Removed `crystalwebsolution.com`, `cdsportswearusa.com` and their `www` hosts. `crystalwebsolution.com` was reported on 2026-09-27 to be serving a third-party spam site from another Vercel account, and an allow-listed host someone else controls can receive sign-in tokens.
+  - **Owner step:** remove the same entries from the live list in the Supabase dashboard (Authentication → URL Configuration → Redirect URLs). This file only configures the local stack.
+- **Deleted unused modules:** `lib/proceduralArt.js`, `components/three/FlyingCarousel.jsx`, `components/marketing/IdleScene.jsx`, `components/GlyphMask.jsx` and `components/BorderGlow.jsx`. The Lab section keeps using `lib/flyingCarouselLayout.mjs`.
+- **Deleted test-only modules**, with their tests and the CSS only they used: `ImageBlock.jsx` and its `.module.css`, `marketing/Layout.jsx`, `MarketingHeader.jsx` and `lib/motionStudies.mjs`.
+- **Deleted stale files:**
+  - `GEMINI.md`, a drifted third copy of the agent instructions;
+  - `docs/PLUGINS-AND-SKILLS.md`, which described integrations that never existed;
+  - `GOAL_CHECKPOINT.md`, `_gsc-crawled-urls-temp.txt`, `test_service_pages.sh`, a stray `.gitconfig` and an unreferenced `.docx`.
+- **Instructions and docs corrected:**
+  - the retired-domain status in `CLAUDE.md`, `lib/seo.mjs` and the SEO operations manual;
+  - the GA4 ID (`G-B42BM1Q95J`) and the GTM container (`GTM-KJZPCQNM`) in `docs/ANALYTICS.md`;
+  - the migration ledger in `docs/CRM-OPERATIONS.md`;
+  - a single version-numbering rule across `CLAUDE.md`, `AGENTS.md`, `VERSIONING.md` and `vcs.md`;
+  - the Windows build note, and the README and architecture drift;
+  - the Codex and Cursor agent definitions.
+- **CHANGELOG:** two misplaced entries (v1.55 and v1.10) are moved into newest-first order.
+- GTM, analytics and the `app` portal redirects are untouched: this release keeps `main`'s v1.75–v1.78 behaviour.
 
 ## v1.80 — 2026-09-28
 
@@ -434,47 +1326,6 @@ here.
   ownership, robots groups, sitemap freshness, llms.txt coverage),
   `tests/marketing/postBody.test.jsx`, new parser cases in
   `tests/blogMarkdown.test.mjs`; `content` and `serviceSchema` tests updated.
-
-## v1.57 — 2026-09-26
-
-Merged as PR #230 right after v1.55; its "Update branch" merge dropped this
-entry. Backfilled in v1.59 so the release is recorded.
-
-Visual experience Phase 0 baseline + Phase 1a defect fixes (owner-supplied
-brief: `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`).
-
-- **Phones no longer scroll sideways.** `.motion-stream-index` (Selected work
-  list) was `width: min(100%, 34rem)` plus a 6vw side margin, so it ran
-  19–23px past the right edge at every phone width and the fixed nav's menu
-  button was clipped. Now `width: auto; max-width: 34rem` (desktop unchanged).
-- **One `<main>` landmark.** `app/layout.jsx` already owns
-  `<main id="main-content">`; the homepage and subpage shells rendered a
-  second, nested `<main>` (axe: 3 landmark violations on every page). They
-  are now `<div>`s with the same classes.
-- **Reduced-motion hydration error fixed.** `SectionSkeleton` branched its
-  markup on `useReducedMotion()` (null on the server, true on the client),
-  throwing React #418 for exactly the visitors reduced motion protects. The
-  sweep element always renders; CSS hides it under reduced motion.
-- **WebGL failure no longer throws.** `Scene` probes WebGL once
-  (`lib/webglSupport.mjs`) and skips the canvas when it is unavailable; the
-  canvas is also wrapped in `CanvasFeatureBoundary`. The CSS backdrop and every
-  DOM section keep working.
-- **Homepage scene follows its quality tier.** `Scene.jsx` hardcoded DPR 1.75,
-  900 particles and full post-processing on every device, ignoring
-  `lib/renderQuality.mjs`. DPR, particle count and idle animation now follow
-  the tier, like `IdleScene` already did. Bloom + vignette stay on every tier
-  (eco includes 4-thread laptops such as the 2019 MacBook Air; owner decision)
-  — only the high tier gets mipmap blur + depth of field.
-- **Global focus ring.** Zero-specificity `:where(...):focus-visible` safety
-  net in `primitives.css` (component styles still win); dark ring on
-  `[data-nav-tone="light"]` surfaces where cyan fails contrast.
-- **Docs.** `CLAUDE-VISUAL-EXPERIENCE-PLAN.md`, `CLAUDE-VISUAL-EXPERIENCE-PROMPT.md`
-  and `docs/visual/` (UI/UX review, accessibility audit, accessibility test plan,
-  Phase 0 current-state map and baseline); `CLAUDE.md` points to them.
-- Measured on a production build (software WebGL — relative numbers only):
-  mobile scroll 9 → 30 fps, desktop scroll 4 → 8 fps, axe violations 3 → 0,
-  page errors in reduced-motion and no-WebGL modes → 0.
-- Tests: `tests/visualPhase1a.test.mjs` (7).
 
 ## v1.56 — 2026-09-26
 

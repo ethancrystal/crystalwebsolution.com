@@ -1,15 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { markNotificationsRead } from '@/app/actions/project-actions';
-
-function humanizeEventType(eventType) {
-  if (!eventType) return 'Notification';
-  return eventType
-    .split(/[._]/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
+import { notificationText } from '@/lib/crm/notification-copy.mjs';
 
 function formatWhen(value) {
   if (!value) return '';
@@ -25,10 +18,39 @@ function formatWhen(value) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+// Read state is kept locally as well as on the server, so a marked item
+// updates at once even though this page loads its data only on mount.
 export default function NotificationsPanel({ notifications = [] }) {
+  const [readLocally, setReadLocally] = useState(() => new Set());
+  const [busy, setBusy] = useState(false);
+  const isUnread = (notification) => !notification.read_at && !readLocally.has(notification.id);
+  const unreadIds = notifications.filter(isUnread).map((notification) => notification.id);
+
+  async function markRead(ids) {
+    if (ids.length === 0 || busy) return;
+    setBusy(true);
+    try {
+      const formData = new FormData();
+      for (const id of ids) formData.append('notificationId', id);
+      const result = await markNotificationsRead(formData);
+      if (result?.ok) {
+        setReadLocally((previous) => new Set([...previous, ...ids]));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="crm-notifications">
-      <h2>Notifications</h2>
+      <div className="crm-notifications-head">
+        <h2>Notifications</h2>
+        {unreadIds.length > 1 && (
+          <button type="button" className="crm-notification-read" onClick={() => markRead(unreadIds)} disabled={busy}>
+            Mark all as read
+          </button>
+        )}
+      </div>
       {notifications.length === 0 ? (
         <p className="crm-empty-state">No notifications yet.</p>
       ) : (
@@ -38,22 +60,26 @@ export default function NotificationsPanel({ notifications = [] }) {
             // migration 0041; email/realtime rows are queue state the worker
             // owns and are no longer visible here (they used to render as a
             // second, un-dismissable copy of each event).
-            const unread = !notification.read_at;
+            const unread = isUnread(notification);
             return (
               <li key={notification.id} className={`crm-notification-item ${unread ? 'unread' : ''}`}>
                 <div className="crm-notification-main">
-                  <span className="crm-notification-title">{humanizeEventType(notification.event_type)}</span>
-                  <span className={`crm-notification-status ${notification.sent_at ? 'sent' : 'pending'}`}>
-                    {notification.sent_at ? 'sent' : 'pending'}
+                  <span className="crm-notification-title">
+                    {notificationText(notification.event_type, notification.payload)}
                   </span>
+                  {unread && <span className="crm-notification-new">New</span>}
                 </div>
                 <div className="crm-notification-meta">
                   <span>{formatWhen(notification.created_at)}</span>
                   {unread ? (
-                    <form action={markNotificationsRead}>
-                      <input type="hidden" name="notificationId" value={notification.id} />
-                      <button type="submit" className="crm-notification-read">Mark read</button>
-                    </form>
+                    <button
+                      type="button"
+                      className="crm-notification-read"
+                      onClick={() => markRead([notification.id])}
+                      disabled={busy}
+                    >
+                      Mark read
+                    </button>
                   ) : (
                     <span>read</span>
                   )}
@@ -69,6 +95,14 @@ export default function NotificationsPanel({ notifications = [] }) {
           display: flex;
           flex-direction: column;
           gap: 1rem;
+        }
+
+        .crm-notifications-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          gap: 1rem;
+          flex-wrap: wrap;
         }
 
         .crm-notifications h2 {
@@ -114,26 +148,14 @@ export default function NotificationsPanel({ notifications = [] }) {
           color: #e0e0e0;
         }
 
-        .crm-notification-status {
+        .crm-notification-new {
           display: inline-block;
-          padding: 0.2rem 0.65rem;
+          padding: 0.15rem 0.6rem;
           border-radius: 999px;
-          font-size: 0.8rem;
-          border: 1px solid rgba(100, 200, 255, 0.25);
-          background: rgba(100, 200, 255, 0.1);
-          color: #64c8ff;
-        }
-
-        .crm-notification-status.sent {
-          background: rgba(100, 255, 150, 0.1);
-          border-color: rgba(100, 255, 150, 0.35);
-          color: #86ffb2;
-        }
-
-        .crm-notification-status.pending {
-          background: rgba(255, 200, 100, 0.1);
-          border-color: rgba(255, 200, 100, 0.35);
-          color: #ffd08a;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #0a0e27;
+          background: #64c8ff;
         }
 
         .crm-notification-meta {
@@ -141,7 +163,6 @@ export default function NotificationsPanel({ notifications = [] }) {
           gap: 1rem;
           color: #999;
           font-size: 0.85rem;
-          text-transform: capitalize;
         }
 
         .crm-notification-read {

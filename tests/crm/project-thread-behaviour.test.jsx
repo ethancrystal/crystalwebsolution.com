@@ -88,6 +88,7 @@ vi.mock('@/app/actions/project-actions', () => ({
 
 import ProjectThread from '@/components/crm/ProjectThread';
 import { __realtime } from '@/lib/supabase/browser';
+import { PROJECT_EVENTS } from '@/lib/crm/projectRealtime';
 import { listProjectMessages } from '@/lib/crm/projects';
 import { postProjectMessage, editProjectMessage } from '@/app/actions/project-actions';
 
@@ -134,7 +135,12 @@ describe('ProjectThread realtime subscription lifecycle', () => {
     expect(__realtime.channels.map((c) => c.name)).toEqual(['project:p1:shared', 'project:p1:internal']);
     for (const channel of __realtime.channels) {
       expect(channel.subscribed).toBe(true);
-      expect(Object.keys(channel.handlers).sort()).toEqual(['project_message_created', 'project_message_updated']);
+      // The shared registry (lib/crm/projectRealtime.js) binds every project
+      // event once per channel; the thread reacts to the message ones.
+      // Presence ('sync') lives on the shared topic only.
+      const broadcastEvents = Object.keys(channel.handlers).filter((key) => key !== 'sync').sort();
+      expect(broadcastEvents).toEqual([...PROJECT_EVENTS].sort());
+      expect('sync' in channel.handlers).toBe(channel.name.endsWith(':shared'));
     }
     expect(__realtime.removed).toHaveLength(0);
   });

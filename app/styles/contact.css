@@ -156,6 +156,9 @@
 .footer-col:not(:first-child) { padding-left: 2rem; border-left: 1px solid var(--line); }
 .footer-col a, .footer-col p { display: block; color: var(--muted); font-size: 0.9rem; line-height: 1.9; }
 .footer-col a:hover { color: var(--cyan); }
+/* Trustpilot TrustBox (components/marketing/TrustpilotWidget.jsx); reserves
+   the widget's 24px height so the column doesn't jump when it loads. */
+.footer-trustbox { min-height: 24px; width: 100%; margin: 0.2rem 0 0.35rem; }
 .footer-email {
   font-family: var(--font-display);
   font-size: 1.15rem;
@@ -193,4 +196,363 @@
 }
 .footer-legal a:hover {
   color: var(--cyan);
+}
+
+/* ---------- contact intake: production request + web brief ----------
+   components/sections/ContactIntake.jsx switches between the embroidery-first
+   production request (default) and the original web project brief. Palette and
+   type follow the Heritage Homepage design; the tokens are redeclared here
+   because Contact sits outside the .hx scope in heritage.css. */
+.contact-intake {
+  --pr-text: #e8f2fa;
+  --pr-dim: rgba(232, 242, 250, 0.74);
+  --pr-faint: rgba(232, 242, 250, 0.62);
+  --pr-rule: rgba(232, 242, 250, 0.28);
+  --pr-steel: #5aa6c8;
+  --pr-steel-hi: #9fc8e0;
+  --pr-glint: #8fd8f0;
+  --pr-azure: #1b56c9;
+  --pr-azure-hi: #2a6ae0;
+  --pr-error: #ff6b6b;
+  --pr-mono: var(--font-label), ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --pr-serif: var(--font-serif), 'Instrument Serif', Georgia, serif;
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+}
+
+.contact-intake-head { position: relative; }
+/* Hash-link targets (#contact-brief, #contact-production). Sitting above the
+   tabs, they leave the switcher clear of the fixed nav after an anchor jump. */
+.contact-intake-anchor {
+  position: absolute;
+  top: -104px;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.contact-intake-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto clamp(28px, 4vw, 52px);
+  border: 1px solid var(--pr-rule);
+}
+.contact-intake-tab {
+  min-height: 44px;
+  padding: 0 20px;
+  background: transparent;
+  color: var(--pr-dim);
+  border: 0;
+  font-family: var(--pr-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.contact-intake-tab + .contact-intake-tab { border-left: 1px solid var(--pr-rule); }
+.contact-intake-tab:hover { color: var(--pr-text); }
+.contact-intake-tab[aria-selected='true'] { background: var(--pr-text); color: #071320; }
+.contact-intake-tab:focus-visible { outline: 2px solid var(--pr-glint); outline-offset: 3px; }
+
+.contact-panel--production {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: clamp(48px, 7vw, 120px);
+  align-items: start;
+  text-align: left;
+}
+.contact-production-kicker {
+  margin: 0 0 26px;
+  font-family: var(--pr-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.24em;
+  color: var(--pr-steel);
+}
+.contact-production-title {
+  margin: 0 0 32px;
+  font-family: var(--pr-serif);
+  font-weight: 400;
+  font-size: clamp(42px, 5.4vw, 80px);
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+  text-shadow: none;
+}
+.contact-production-title em { font-style: italic; color: var(--pr-steel-hi); }
+.contact-production-lede {
+  max-width: 26rem;
+  margin: 0 0 40px;
+  color: var(--pr-dim);
+  line-height: 1.6;
+}
+.contact-production-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--pr-mono);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+.contact-production-lines a { color: var(--pr-text); }
+.contact-production-lines a:hover { color: var(--pr-glint); }
+.contact-production-city { color: var(--pr-faint); text-transform: uppercase; }
+
+.pr-form { display: flex; flex-direction: column; gap: 30px; text-align: left; }
+.pr-label {
+  display: block;
+  margin: 0;
+  padding: 0;
+  font-family: var(--pr-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--pr-faint);
+}
+.pr-note { letter-spacing: 0.08em; text-transform: lowercase; }
+
+.pr-chips { border: 0; margin: 0; padding: 0; min-width: 0; }
+.pr-chips .pr-label { margin-bottom: 14px; }
+.pr-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.pr-chip { position: relative; display: inline-flex; cursor: pointer; }
+.contact-form.pr-form .pr-chip input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  opacity: 0;
+  cursor: pointer;
+}
+.pr-chip-face {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  font-size: 14px;
+  white-space: nowrap;
+  color: var(--pr-text);
+  border: 1px solid var(--pr-rule);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+.pr-chip:hover input:not(:checked) + .pr-chip-face { border-color: var(--pr-steel); }
+.pr-chip input:checked + .pr-chip-face {
+  background: var(--pr-text);
+  color: #071320;
+  border-color: var(--pr-text);
+}
+.pr-chip input:focus-visible + .pr-chip-face { outline: 2px solid var(--pr-glint); outline-offset: 3px; }
+
+.pr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 26px 24px;
+}
+.pr-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.contact-form.pr-form .pr-field input,
+.contact-form.pr-form .pr-field textarea,
+.contact-form.pr-form .pr-artwork input {
+  width: 100%;
+  background: transparent;
+  color: var(--pr-text);
+  border: 0;
+  border-bottom: 1px solid var(--pr-rule);
+  border-radius: 0;
+  padding: 10px 0;
+  font-size: 17px;
+  transition: border-color 0.3s ease;
+}
+.contact-form.pr-form .pr-field textarea { min-height: 5.5rem; resize: vertical; }
+.contact-form.pr-form .pr-field input:focus-visible,
+.contact-form.pr-form .pr-field textarea:focus-visible,
+.contact-form.pr-form .pr-artwork input:focus-visible { border-bottom-color: var(--pr-steel); }
+.contact-form.pr-form input::placeholder,
+.contact-form.pr-form textarea::placeholder { color: var(--pr-faint); opacity: 1; }
+.contact-form.pr-form [aria-invalid='true'] { border-bottom-color: var(--pr-error); }
+
+/* The design's dashed "attach" box. It takes a share link, not a file: there
+   is no upload storage (see the attachment proposal). */
+.pr-artwork {
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px dashed rgba(90, 166, 200, 0.5);
+  transition: border-color 0.3s ease;
+}
+.pr-artwork:hover,
+.pr-artwork:focus-within { border-color: var(--pr-glint); }
+.pr-artwork-title { font-size: 15px; color: var(--pr-text); }
+.pr-artwork-formats {
+  font-family: var(--pr-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--pr-faint);
+}
+.pr-hint { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--pr-faint); }
+.pr-hint a,
+.pr-success-note a { color: var(--pr-steel-hi); text-decoration: underline; text-underline-offset: 3px; }
+.pr-error { margin: 0; font-size: 13px; color: var(--pr-error); }
+
+.pr-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
+.pr-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 54px;
+  padding: 18px 28px;
+  background: var(--pr-azure);
+  color: #eef6ff;
+  border: 0;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.pr-submit:hover { background: var(--pr-azure-hi); }
+.pr-submit[aria-disabled='true'] { opacity: 0.7; cursor: progress; }
+.pr-submit:focus-visible { outline: 2px solid var(--pr-glint); outline-offset: 3px; }
+.pr-submit-arrow { font-family: var(--pr-mono); }
+.pr-privacy { margin: 0; font-size: 13px; color: var(--pr-faint); }
+.pr-status { margin: 0; font-size: 14px; }
+.pr-status--error { color: var(--pr-error); }
+.pr-status--success { color: var(--pr-glint); }
+
+.pr-success {
+  padding: clamp(24px, 4vw, 40px);
+  border: 1px solid rgba(90, 166, 200, 0.4);
+  text-align: left;
+}
+.pr-success:focus { outline: none; }
+.pr-success:focus-visible { outline: 2px solid var(--pr-glint); outline-offset: 3px; }
+.pr-success-kicker {
+  margin: 0 0 16px;
+  font-family: var(--pr-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--pr-steel);
+}
+.pr-success-line {
+  margin: 0;
+  font-family: var(--pr-serif);
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.15;
+}
+.pr-success-note { margin: 20px 0 0; font-size: 15px; line-height: 1.55; color: var(--pr-dim); }
+.pr-again {
+  margin-top: 24px;
+  min-height: 44px;
+  padding: 0 18px;
+  background: transparent;
+  color: var(--pr-text);
+  border: 1px solid var(--pr-rule);
+  font-family: var(--pr-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+.pr-again:hover { border-color: var(--pr-steel); }
+.pr-again:focus-visible { outline: 2px solid var(--pr-glint); outline-offset: 3px; }
+
+@media (max-width: 560px) {
+  .contact-intake-tab { flex: 1 1 auto; padding: 0 12px; font-size: 10.5px; letter-spacing: 0.14em; }
+  .pr-submit { width: 100%; justify-content: space-between; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-intake-tab,
+  .pr-chip-face,
+  .pr-artwork,
+  .pr-submit,
+  .pr-again,
+  .contact-form.pr-form .pr-field input,
+  .contact-form.pr-form .pr-field textarea,
+  .contact-form.pr-form .pr-artwork input { transition: none; }
+}
+
+/* ---------- artwork picker (production request) ---------- */
+.pr-artwork-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+.pr-artwork--drag { border-color: var(--pr-glint); background: rgba(143, 216, 240, 0.06); }
+.pr-attach {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 52px;
+  padding: 10px 16px;
+  margin-top: 4px;
+  border: 1px solid var(--pr-rule);
+  color: var(--pr-text);
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+.pr-attach:hover { border-color: var(--pr-steel); }
+.pr-attach:focus-within { outline: 2px solid var(--pr-glint); outline-offset: 3px; }
+.pr-attach-text { display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
+.pr-attach-sub { font-size: 12.5px; color: var(--pr-faint); }
+.pr-attach-tag {
+  font-family: var(--pr-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--pr-steel);
+}
+/* The real file input stays in the tab order and the accessibility tree; the
+   label above is its visible control. Beats the underline rule for .pr-artwork
+   inputs by specificity. */
+.contact-form.pr-form .pr-artwork .pr-attach-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  opacity: 0;
+}
+.pr-files { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; }
+.pr-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  border-bottom: 1px solid rgba(232, 242, 250, 0.12);
+}
+.pr-file-name { flex: 1 1 auto; min-width: 0; font-size: 15px; overflow-wrap: anywhere; }
+.pr-file-size { flex: none; font-family: var(--pr-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--pr-faint); }
+.pr-file-remove {
+  flex: none;
+  min-height: 44px;
+  padding: 0 4px;
+  background: transparent;
+  border: 0;
+  color: var(--pr-steel-hi);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.pr-file-remove:hover { color: var(--pr-glint); }
+.pr-file-remove:focus-visible { outline: 2px solid var(--pr-glint); outline-offset: 2px; }
+.pr-artwork-link-label { margin-top: 10px; }
+.pr-success-note--warn { color: var(--pr-text); border-left: 2px solid var(--pr-error); padding-left: 12px; }
+@media (prefers-reduced-motion: reduce) {
+  .pr-attach { transition: none; }
 }

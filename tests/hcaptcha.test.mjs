@@ -31,14 +31,14 @@ test('site key falls back to the production key and can be overridden per enviro
   assert.equal(getHCaptchaSiteKey({ NEXT_PUBLIC_HCAPTCHA_SITE_KEY: '  preview-key ' }), 'preview-key');
 });
 
-test('enforcement is keyed on HCAPTCHA_SECRET being set (fail open when unconfigured, like the rate limiter)', async () => {
+test('outside production, an unset HCAPTCHA_SECRET skips verification', async () => {
   assert.equal(isHCaptchaEnforced({}), false);
   assert.equal(isHCaptchaEnforced({ HCAPTCHA_SECRET: '   ' }), false);
   assert.equal(isHCaptchaEnforced({ HCAPTCHA_SECRET: 'x' }), true);
 
   const calls = [];
   const result = await verifyHCaptchaToken('', { env: {}, fetchImpl: fakeFetch({ calls }), logger: silent });
-  assert.deepEqual(result, { ok: true, reason: 'not-enforced' });
+  assert.deepEqual(result, { ok: true, status: 'passed', reason: 'not-enforced' });
   assert.equal(calls.length, 0, 'must not call hCaptcha when not enforced');
 });
 
@@ -57,7 +57,7 @@ test('a missing token is refused without a network call when enforced', async ()
     fetchImpl: fakeFetch({ calls }),
     logger: silent,
   });
-  assert.deepEqual(result, { ok: false, reason: 'missing-token' });
+  assert.deepEqual(result, { ok: false, status: 'rejected', reason: 'missing-token' });
   assert.equal(calls.length, 0);
 });
 
@@ -69,7 +69,7 @@ test('a valid token is verified against siteverify with secret, response, siteke
     fetchImpl: fakeFetch({ calls }),
     logger: silent,
   });
-  assert.deepEqual(result, { ok: true, reason: 'verified' });
+  assert.deepEqual(result, { ok: true, status: 'passed', reason: 'verified' });
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, HCAPTCHA_VERIFY_URL);
   assert.equal(calls[0].init.method, 'POST');
@@ -86,10 +86,10 @@ test('an explicit rejection from hCaptcha refuses the submission and surfaces th
     fetchImpl: fakeFetch({ body: { success: false, 'error-codes': ['invalid-input-response'] } }),
     logger: silent,
   });
-  assert.deepEqual(result, { ok: false, reason: 'rejected', codes: ['invalid-input-response'] });
+  assert.deepEqual(result, { ok: false, status: 'rejected', reason: 'rejected', codes: ['invalid-input-response'] });
 });
 
-test('a bad server secret is logged loudly but still refuses (the widget must not become decorative)', async () => {
+test('a bad server secret is logged loudly and refuses as unavailable (our bug, not the visitor\'s)', async () => {
   const logged = [];
   const result = await verifyHCaptchaToken('tok', {
     env: { HCAPTCHA_SECRET: 'wrong' },
@@ -97,23 +97,41 @@ test('a bad server secret is logged loudly but still refuses (the widget must no
     logger: { error: (message) => logged.push(message) },
   });
   assert.equal(result.ok, false);
+  assert.equal(result.status, 'unavailable');
+  assert.equal(result.reason, 'misconfigured');
   assert.ok(logged.some((message) => /HCAPTCHA_SECRET/.test(message)));
 });
 
-test('a network failure or 5xx from hCaptcha fails open so an outage does not drop leads', async () => {
+test('a network failure or 5xx from hCaptcha fails closed as unavailable (retry later)', async () => {
   const down = await verifyHCaptchaToken('tok', {
     env: { HCAPTCHA_SECRET: 'secret' },
     fetchImpl: fakeFetch({ throws: new Error('ECONNRESET') }),
     logger: silent,
   });
-  assert.deepEqual(down, { ok: true, reason: 'unavailable' });
+  assert.deepEqual(down, { ok: false, status: 'unavailable', reason: 'unavailable' });
 
   const fiveHundred = await verifyHCaptchaToken('tok', {
     env: { HCAPTCHA_SECRET: 'secret' },
     fetchImpl: fakeFetch({ status: 503, body: {} }),
     logger: silent,
   });
-  assert.deepEqual(fiveHundred, { ok: true, reason: 'unavailable' });
+  assert.deepEqual(fiveHundred, { ok: false, status: 'unavailable', reason: 'unavailable' });
+});
+
+test('production requires HCAPTCHA_SECRET: unset means unavailable, never a silent pass', async () => {
+  assert.equal(isHCaptchaEnforced({ VERCEL_ENV: 'production' }), true);
+  assert.equal(isHCaptchaEnforced({ VERCEL_ENV: 'preview' }), false);
+
+  const calls = [];
+  const logged = [];
+  const result = await verifyHCaptchaToken('tok', {
+    env: { VERCEL_ENV: 'production' },
+    fetchImpl: fakeFetch({ calls }),
+    logger: { error: (message) => logged.push(message) },
+  });
+  assert.deepEqual(result, { ok: false, status: 'unavailable', reason: 'misconfigured' });
+  assert.equal(calls.length, 0);
+  assert.ok(logged.some((message) => /HCAPTCHA_SECRET is not set in production/.test(message)));
 });
 
 // Source contracts: the route verifies before anything that costs money or
@@ -127,8 +145,9 @@ test('the contact route verifies hCaptcha after validation and before webhook/CR
   // The route reads the token under the shared constant, never a re-typed string.
   assert.match(route, /body\?\.\[HCAPTCHA_TOKEN_FIELD\]/);
   assert.equal(HCAPTCHA_TOKEN_FIELD, 'hcaptchaToken');
-  // A failed check answers 400 (not 401/403/5xx) so the form treats it as a field error.
-  assert.match(route, /captcha[\s\S]*?\}, 400\)/);
+  // A rejected token answers 400 (a field error); an unavailable check answers 503.
+  assert.match(route, /captcha\.status === 'unavailable'\) \{\s*return temporarilyUnavailable\(\);/);
+  assert.match(route, /captcha\.status !== 'passed'[\s\S]*?\}, 400\)/);
 });
 
 test('the contact form renders the widget, requires a token client-side, and sends it under the shared field name', async () => {

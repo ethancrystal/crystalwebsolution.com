@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { updateProjectApproval } from '@/app/actions/project-actions';
+import { approvalStatusLabel } from '@/lib/crm/labels.mjs';
 
 export default function ProjectApprovals({ approvals = [], canDecide = false, projectId, onChanged }) {
   const [busyId, setBusyId] = useState(null);
@@ -42,7 +43,7 @@ export default function ProjectApprovals({ approvals = [], canDecide = false, pr
               <div className="crm-approval-main">
                 <span className="crm-approval-title">{approval.deliverable_id ? 'Deliverable review' : 'Project approval'}</span>
                 <span className={`crm-approval-decision ${approval.status}`}>
-                  {approval.status}
+                  {approvalStatusLabel(approval.status)}
                 </span>
               </div>
               {approval.note && (

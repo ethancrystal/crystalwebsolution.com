@@ -10,11 +10,23 @@ function redirectWithCookies(url, response) {
   return redirectResponse;
 }
 
-function portalLoginResponse(request, portalName, response, error) {
+function portalLoginResponse(request, portalName, response, error, next) {
   const portal = getPortal(portalName);
   const url = new URL(portal?.login ?? '/login', request.url);
   if (error) url.searchParams.set('error', error);
+  if (next) url.searchParams.set('next', next);
   return redirectWithCookies(url, response);
+}
+
+// The portal page a signed-out visitor asked for (for example the project
+// link in an email), so the login form can send them back to it.
+// PortalLoginForm and signIn re-check it with safeNextForPortal. The RSC
+// cache-busting param is dropped so the target is a plain page URL.
+function requestedPortalPath(request) {
+  const params = new URLSearchParams(request.nextUrl.search);
+  params.delete('_rsc');
+  const search = params.toString();
+  return `${request.nextUrl.pathname}${search ? `?${search}` : ''}`;
 }
 
 export async function middleware(request) {
@@ -67,7 +79,7 @@ export async function middleware(request) {
   } = await supabase.auth.getUser();
 
   if (protectedPortal && (userError || !user)) {
-    return portalLoginResponse(request, protectedPortal, response);
+    return portalLoginResponse(request, protectedPortal, response, null, requestedPortalPath(request));
   }
 
   let profile = null;
@@ -84,7 +96,7 @@ export async function middleware(request) {
   const roleHome = profile ? homeForRole(profile.role) : null;
 
   if (protectedPortal) {
-    if (!profile) return portalLoginResponse(request, protectedPortal, response);
+    if (!profile) return portalLoginResponse(request, protectedPortal, response, null, requestedPortalPath(request));
     if (!isRoleAllowed(protectedPortal, profile.role)) {
       if (roleHome) return redirectWithCookies(new URL(roleHome, request.url), response);
       return portalLoginResponse(request, protectedPortal, response);

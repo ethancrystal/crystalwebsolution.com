@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { SITE } from '../../lib/site';
 import BrandLogo from '../BrandLogo';
+import TrustpilotWidget from './TrustpilotWidget';
 
 // Marketing footer. Reuses brand identity, contact, and city from lib/site.js.
 export default function MarketingFooter() {
@@ -29,6 +30,13 @@ export default function MarketingFooter() {
           <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
           {SITE.phone && <a href={`tel:${SITE.phone.replace(/[^\d+]/g, '')}`}>{SITE.phone}</a>}
           <p className="mkt-footer-city">Location in {SITE.city}</p>
+        </div>
+        <div className="mkt-footer-reviews">
+          <p className="mkt-footer-label">Reviews</p>
+          <TrustpilotWidget className="mkt-footer-trustbox" />
+          <a href={SITE.trustpilot.writeReviewUrl} target="_blank" rel="noopener noreferrer">
+            Review us on Trustpilot
+          </a>
         </div>
       </div>
       <div className="mkt-footer-bottom">

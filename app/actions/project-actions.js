@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 
 import { getAuthenticatedProfile } from '@/lib/auth/require-role';
 import {
+  APPROVAL_DECISION_STATUSES,
+  DELIVERABLE_PUBLISH_STATUSES,
   MESSAGE_VISIBILITIES,
   PROJECT_STATUSES,
   TASK_PRIORITIES,
@@ -547,7 +549,8 @@ export async function createAttachmentDownloadUrl(formData) {
 
 export async function createProjectTask(formData) {
   const requestId = randomUUID();
-  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  // Staff only; the RPC enforces the same (migrations 0046/0047).
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to create tasks.');
 
   const projectId = formString(formData, 'projectId');
@@ -568,7 +571,7 @@ export async function createProjectTask(formData) {
   if (!validBoundedText(description, 0, 10000)) {
     return invalid(requestId, 'Task description must be at most 10000 characters.');
   }
-  if (!['todo', 'in_progress', 'review', 'done', 'blocked'].includes(status)) {
+  if (!TASK_STATUSES.includes(status)) {
     return invalid(requestId, 'Choose a valid task status.');
   }
   if (!TASK_PRIORITIES.includes(priority)) {
@@ -701,7 +704,7 @@ export async function updateProjectApproval(formData) {
   if (!isCanonicalUuid(projectId) || !isCanonicalUuid(approvalId)) {
     return invalid(requestId, 'Choose a valid project approval.');
   }
-  if (!['approved', 'rejected'].includes(status)) {
+  if (!APPROVAL_DECISION_STATUSES.includes(status)) {
     return invalid(requestId, 'Approval status must be approved or rejected.');
   }
   if (note !== null && note.length > 2000) {
@@ -728,7 +731,8 @@ export async function updateProjectApproval(formData) {
 
 export async function publishDeliverable(formData) {
   const requestId = randomUUID();
-  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  // Staff only; the RPC enforces the same (migrations 0046/0047).
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to publish deliverables.');
 
   const projectId = formString(formData, 'projectId');
@@ -738,7 +742,7 @@ export async function publishDeliverable(formData) {
   if (!isCanonicalUuid(projectId) || !isCanonicalUuid(deliverableId)) {
     return invalid(requestId, 'Choose a valid project deliverable.');
   }
-  if (!['submitted', 'approved', 'rejected'].includes(status)) {
+  if (!DELIVERABLE_PUBLISH_STATUSES.includes(status)) {
     return invalid(requestId, 'Choose a valid deliverable status.');
   }
 
@@ -780,7 +784,8 @@ function deliverableData(row) {
 
 export async function createProjectDeliverable(formData) {
   const requestId = randomUUID();
-  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  // Staff only; the RPC enforces the same (migrations 0046/0047).
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to create deliverables.');
 
   const projectId = formString(formData, 'projectId');
@@ -887,7 +892,8 @@ export async function postProjectNote(formData) {
 
 export async function enqueueNotification(formData) {
   const requestId = randomUUID();
-  const profile = await authenticatedProfile(['client', 'project_manager', 'admin']);
+  // Staff only; the RPC enforces the same (migrations 0046/0047).
+  const profile = await authenticatedProfile(['project_manager', 'admin']);
   if (!profile) return invalid(requestId, 'You are not authorized to send notifications.');
 
   const projectId = formString(formData, 'projectId');

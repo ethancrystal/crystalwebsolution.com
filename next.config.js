@@ -59,6 +59,14 @@ const SENTRY_CONNECT_ORIGINS = ['https://*.ingest.us.sentry.io'];
 // the site talks to these hosts.
 const HCAPTCHA_ORIGINS = ['https://hcaptcha.com', 'https://*.hcaptcha.com'];
 
+// Trustpilot TrustBox in both site footers (components/marketing/
+// TrustpilotWidget.jsx). The bootstrap script is served from this one host
+// and renders the widget as an iframe from the same host; everything else the
+// widget loads happens inside that iframe, under Trustpilot's own policy. So
+// script-src and frame-src only, and one exact host rather than
+// *.trustpilot.com.
+const TRUSTPILOT_ORIGIN = 'https://widget.trustpilot.com';
+
 // The dark auth pages used to load an UnicornStudio runtime from jsDelivr's
 // GitHub CDN, which is why script-src once allowed https://cdn.jsdelivr.net.
 // That component was replaced on 2026-08-25 by the procedural canvases in
@@ -82,14 +90,14 @@ const connectSrc = ["'self'", supabaseOrigin, supabaseWs, ...GA_CONNECT_ORIGINS,
 // a narrower one will not do.
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: ${GA_SCRIPT_ORIGIN} ${HCAPTCHA_ORIGINS.join(' ')}`,
+  `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: ${GA_SCRIPT_ORIGIN} ${HCAPTCHA_ORIGINS.join(' ')} ${TRUSTPILOT_ORIGIN}`,
   "worker-src 'self' blob:",
   `style-src 'self' 'unsafe-inline' ${HCAPTCHA_ORIGINS.join(' ')}`,
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   `connect-src ${connectSrc}`,
   "media-src 'self' data: blob:",
-  `frame-src 'self' ${[...GA_FRAME_ORIGINS, ...HCAPTCHA_ORIGINS].join(' ')}`,
+  `frame-src 'self' ${[...GA_FRAME_ORIGINS, ...HCAPTCHA_ORIGINS, TRUSTPILOT_ORIGIN].join(' ')}`,
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",

@@ -3,21 +3,35 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/browser';
+import { PROJECT_STATUSES, TERMINAL_PROJECT_STATUSES } from '@/lib/crm/project-contract.mjs';
 import { listProjectsForViewer } from '@/lib/crm/projects';
 import { SkeletonTable } from '@/components/crm/Skeleton';
 
-const STATUS_FILTERS = [
+// Derived from the contract so a status added to PROJECT_STATUSES can never
+// go missing from the dropdown (or from the table's status column below,
+// which reads the same list). Labels are the mechanical Title Case of each
+// snake_case value, byte-identical to the list this used to hardcode. The
+// client-facing copy in lib/crm/labels.mjs ('Brief received', 'Ready for
+// your review', ...) is a different register and is deliberately not used
+// here -- swapping it would change rendered text.
+const STATUS_FILTERS = Object.freeze([
   { value: '', label: 'All statuses' },
-  { value: 'brief_submitted', label: 'Brief Submitted' },
-  { value: 'planned', label: 'Planned' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'client_review', label: 'Client Review' },
-  { value: 'changes_requested', label: 'Changes Requested' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'delivered', label: 'Delivered' },
-  { value: 'on_hold', label: 'On Hold' },
-  { value: 'cancelled', label: 'Cancelled' },
-];
+  ...PROJECT_STATUSES.map((status) => ({
+    value: status,
+    label: status
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' '),
+  })),
+]);
+
+// A live project with no project manager yet. The admin home links here with
+// ?pm=none, and the "assign a project manager" email lands on one of these.
+const CLOSED_STATUSES = new Set(TERMINAL_PROJECT_STATUSES);
+
+function needsManager(project) {
+  return !project.assignee && !CLOSED_STATUSES.has(project.status);
+}
 
 export default function AdminProjectsPage() {
   const [projects, setProjects] = useState([]);
@@ -25,6 +39,15 @@ export default function AdminProjectsPage() {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [managerFilter, setManagerFilter] = useState('');
+
+  useEffect(() => {
+    // Read once on mount rather than with useSearchParams, which would need a
+    // Suspense boundary for this client page.
+    if (new URLSearchParams(window.location.search).get('pm') === 'none') {
+      setManagerFilter('none');
+    }
+  }, []);
 
   const load = useCallback(async () => {
     const supabase = createClient();
@@ -58,6 +81,7 @@ export default function AdminProjectsPage() {
 
   const filtered = projects.filter((project) => {
     if (statusFilter && project.status !== statusFilter) return false;
+    if (managerFilter === 'none' && !needsManager(project)) return false;
     if (search) {
       const term = search.toLowerCase();
       const matchesTitle = (project.title || '').toLowerCase().includes(term);
@@ -92,6 +116,14 @@ export default function AdminProjectsPage() {
             </option>
           ))}
         </select>
+        <select
+          value={managerFilter}
+          onChange={(e) => setManagerFilter(e.target.value)}
+          aria-label="Filter by project manager"
+        >
+          <option value="">All projects</option>
+          <option value="none">Needs a project manager</option>
+        </select>
       </div>
 
       {isLoading ? (
@@ -122,7 +154,12 @@ export default function AdminProjectsPage() {
                   </td>
                   <td>{project.company?.name || '—'}</td>
                   <td>{STATUS_FILTERS.find((s) => s.value === project.status)?.label || project.status}</td>
-                  <td>{project.assignee?.full_name || '—'}</td>
+                  <td>
+                    {project.assignee?.full_name
+                      || (needsManager(project)
+                        ? <span className="crm-needs-pm">Needs a manager</span>
+                        : '—')}
+                  </td>
                   <td>{project.target_date || '—'}</td>
                 </tr>
               ))}
@@ -203,6 +240,17 @@ export default function AdminProjectsPage() {
         .crm-empty {
           color: #999;
           padding: 1rem 0;
+        }
+
+        .crm-needs-pm {
+          display: inline-block;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #0a0e27;
+          background: #64c8ff;
+          border-radius: 999px;
+          padding: 0.15rem 0.6rem;
+          white-space: nowrap;
         }
 
         .crm-admin-table-wrap {

@@ -11,7 +11,9 @@ import { BRIEF_ICONS } from '@/components/crm/briefIcons';
 
 // Submitted service briefs for one project (0043). Every participant reads
 // the same answers; only clients get the "add another brief" row.
-export default function ProjectBriefs({ projectId, canAddBriefs = false, projectStatus }) {
+// fallbackText: the project's plain-text request, shown only when it has no
+// structured brief (projects started from the free-form form).
+export default function ProjectBriefs({ projectId, canAddBriefs = false, projectStatus, fallbackText }) {
   const router = useRouter();
   const [briefs, setBriefs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -68,6 +70,11 @@ export default function ProjectBriefs({ projectId, canAddBriefs = false, project
 
       {isLoading ? (
         <p className="pb-muted">Loading briefs…</p>
+      ) : briefs.length === 0 && fallbackText ? (
+        <div className="pb-item pb-original">
+          <p className="pb-add-label">Original request</p>
+          <p className="pb-original-text">{fallbackText}</p>
+        </div>
       ) : briefs.length === 0 ? (
         <p className="pb-muted">
           {canAdd
@@ -142,6 +149,16 @@ export default function ProjectBriefs({ projectId, canAddBriefs = false, project
           color: #64c8ff;
           margin-bottom: 1rem;
         }
+        .pb-original {
+          padding: 0.9rem 1rem;
+        }
+
+        .pb-original-text {
+          margin: 0.4rem 0 0;
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+        }
+
         .pb-muted {
           color: #999;
         }

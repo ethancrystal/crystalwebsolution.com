@@ -89,6 +89,7 @@ function readPostForm(formData) {
     seoTitle: formString(formData, 'seoTitle'),
     seoDescription: formString(formData, 'seoDescription'),
     coverImageUrl: formString(formData, 'coverImageUrl'),
+    coverImageAlt: formString(formData, 'coverImageAlt'),
     status: formString(formData, 'status') || 'draft',
   });
 }

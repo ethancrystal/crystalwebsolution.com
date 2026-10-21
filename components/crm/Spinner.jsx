@@ -6,14 +6,19 @@ const SIZES = { sm: 16, md: 24, lg: 40 };
 // button submits, inline actions. For list/table/card content, prefer
 // Skeleton.jsx instead - it communicates what's arriving, not just that
 // something is.
-export default function Spinner({ size = 'md', label = 'Loading', inline = false }) {
+// `decorative` hides it from assistive tech, for when a separate live region
+// already announces the wait (components/auth/AuthPending.jsx).
+// `tone="current"` draws the ring in the surrounding text colour, for use
+// inside filled buttons where the default cyan ring would disappear.
+export default function Spinner({ size = 'md', label = 'Loading', inline = false, decorative = false, tone = 'accent' }) {
   const dimension = SIZES[size] ?? SIZES.md;
+  const a11y = decorative ? { 'aria-hidden': true } : { role: 'status', 'aria-label': label };
 
   return (
     <span
-      className={`crm-spinner${inline ? ' crm-spinner-inline' : ''}`}
-      role="status"
-      aria-label={label}
+      className={`crm-spinner${inline ? ' crm-spinner-inline' : ''}${tone === 'current' ? ' crm-spinner-current' : ''}`}
+      {...a11y}
+      data-spinner=""
       style={{ width: dimension, height: dimension }}
     >
       <span className="crm-spinner-ring" />
@@ -37,6 +42,13 @@ export default function Spinner({ size = 'md', label = 'Loading', inline = false
           border: 2px solid rgba(100, 200, 255, 0.2);
           border-top-color: #64c8ff;
           animation: crm-spin 0.7s linear infinite;
+        }
+
+        .crm-spinner-current .crm-spinner-ring {
+          border-color: currentColor;
+          border-right-color: transparent;
+          border-bottom-color: transparent;
+          opacity: 0.9;
         }
 
         @media (prefers-reduced-motion: reduce) {

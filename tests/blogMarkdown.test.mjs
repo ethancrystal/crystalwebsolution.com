@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { parseInline, parseMarkdown, safeHref, safeImageSrc } from '../lib/blogMarkdown.mjs';
+import {
+  extractFaqs,
+  parseInline,
+  parseMarkdown,
+  safeHref,
+  safeImageSrc,
+} from '../lib/blogMarkdown.mjs';
 import { safeJsonLd } from '../lib/jsonLd.mjs';
 
 test('parseMarkdown maps each block form to its token type', () => {
@@ -264,4 +270,97 @@ test('empty headings, closing hashes and a leading BOM', () => {
 
   const bom = parseMarkdown('﻿# The Title\n\nBody.', { title: 'The Title' });
   assert.deepEqual(bom.map((block) => block.type), ['paragraph']);
+});
+
+test('parseMarkdown renders a pipe table as a table block', () => {
+  const blocks = parseMarkdown(
+    [
+      '| Path | Typical band |',
+      '| --- | --- |',
+      '| Visual refresh | $1k-$3k |',
+      '| Full redesign | $5k+ |',
+      '',
+      'After the table.',
+    ].join('\n'),
+  );
+
+  assert.equal(blocks.length, 2);
+  assert.equal(blocks[0].type, 'table');
+  assert.equal(blocks[0].header.length, 2);
+  assert.deepEqual(
+    blocks[0].header.map((cell) => cell.map((token) => token.value)),
+    [['Path'], ['Typical band']],
+  );
+  assert.equal(blocks[0].rows.length, 2);
+  assert.equal(blocks[0].rows[1][0][0].value, 'Full redesign');
+  assert.equal(blocks[1].type, 'paragraph');
+});
+
+test('parseMarkdown keeps inline formatting inside table cells', () => {
+  const blocks = parseMarkdown(
+    ['| Item | Note |', '| --- | --- |', '| **Bold** | a `code` |'].join('\n'),
+  );
+
+  assert.equal(blocks[0].type, 'table');
+  assert.equal(blocks[0].rows[0][0][0].type, 'strong');
+  assert.equal(blocks[0].rows[0][1][1].type, 'code');
+});
+
+test('a pipe in prose never becomes a table without a delimiter row', () => {
+  const blocks = parseMarkdown(['Either | this or that happens.', '', 'Next.'].join('\n'));
+
+  assert.equal(blocks.length, 2);
+  assert.equal(blocks[0].type, 'paragraph');
+});
+
+test('a rule line is a rule, not a table delimiter', () => {
+  const blocks = parseMarkdown(['Heading text', '---'].join('\n'));
+
+  // "Heading text --- " is a paragraph; a standalone --- would be a rule.
+  assert.ok(blocks.every((block) => block.type === 'paragraph' || block.type === 'rule'));
+  assert.ok(blocks.every((block) => block.type !== 'table'));
+});
+
+test('parseMarkdown flags task list items and keeps plain items null', () => {
+  const blocks = parseMarkdown(['- [ ] todo', '- [x] done', '- plain'].join('\n'));
+
+  assert.equal(blocks[0].type, 'list');
+  assert.deepEqual(blocks[0].tasks, [false, true, null]);
+});
+
+test('an ordinary list carries no tasks field', () => {
+  const blocks = parseMarkdown(['- one', '- two'].join('\n'));
+
+  assert.equal(blocks[0].type, 'list');
+  assert.equal(blocks[0].tasks, null);
+});
+
+test('extractFaqs collects question headings with paragraph answers', () => {
+  const faqs = extractFaqs(
+    [
+      '## Intro',
+      '',
+      'Body text.',
+      '',
+      '### How long does a redesign take?',
+      '',
+      'Most projects run four to eight weeks.',
+      '',
+      '### Not a question',
+      '',
+      'No question mark, so not an FAQ.',
+      '',
+      '### Empty question?',
+      '',
+      '> only a quote, no paragraph',
+    ].join('\n'),
+  );
+
+  assert.deepEqual(faqs, [
+    { question: 'How long does a redesign take?', answer: 'Most projects run four to eight weeks.' },
+  ]);
+});
+
+test('extractFaqs returns an empty list for a body without Q&A', () => {
+  assert.deepEqual(extractFaqs('Just a paragraph.'), []);
 });

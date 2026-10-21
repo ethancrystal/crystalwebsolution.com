@@ -214,13 +214,34 @@ export async function deleteBriefDraft(formData) {
   const client = await actionClient(requestId, 'Unable to delete the draft.');
   if (client.failure) return client.failure;
 
-  const { error } = await client.supabase
+  // RLS and the status filter can each make this delete match nothing, which
+  // PostgREST reports as success. Ask for the deleted row back so "nothing
+  // was deleted" is visible.
+  const { data: deleted, error } = await client.supabase
     .from('project_briefs')
     .delete()
     .eq('id', briefId)
-    .eq('status', 'draft');
+    .eq('status', 'draft')
+    .select('id')
+    .maybeSingle();
 
   if (error) return databaseFailure(error, requestId, 'Unable to delete the draft.');
+
+  if (!deleted) {
+    // The row may have been submitted in between (e.g. from another tab);
+    // that is a conflict the client should hear about. Anything else (no
+    // such brief, or one this client cannot see) is a plain "not found".
+    const { data: current } = await client.supabase
+      .from('project_briefs')
+      .select('status')
+      .eq('id', briefId)
+      .maybeSingle();
+
+    if (current && current.status !== 'draft') {
+      return invalid(requestId, 'This brief has already been submitted, so it can no longer be deleted.', { conflict: true });
+    }
+    return invalid(requestId, 'Brief not found.');
+  }
 
   revalidatePath('/dashboard');
   return success(requestId, { briefId });

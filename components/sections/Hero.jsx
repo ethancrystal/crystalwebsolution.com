@@ -1,18 +1,14 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import Link from 'next/link';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import DecodeText from '../DecodeText';
 import Reveal from '../Reveal';
-import Magnetic from '../Magnetic';
-import { blast } from '../../lib/pulse';
-import { SITE } from '../../lib/site';
+import { Pin } from '../heritage/Pin';
+import { CRYSTAL_DIGITIZING_URL, HERO_FACTS } from '../../lib/heritage.mjs';
 
-gsap.registerPlugin(ScrollTrigger);
-
-// Clicking anywhere in the hero makes the crystal "roar" (blast pulse).
+// The homepage opens on the production story, not the digital studio: sixteen
+// years of Crystal Digitizing, patches, stickers and embroidery. It lives
+// inside HeritageWorld's opaque ink ground, so the WebGL crystal waits behind
+// it until the Digital Studio bridge. The id stays "hero" because it is still
+// the first camera beat (lib/beatProgress.js BEAT_IDS).
 export default function Hero() {
   // The intro loader plays once per session. On a repeat visit it is skipped
   // entirely (cws:intro-seen, stamped pre-hydration in layout.jsx), so the
@@ -21,127 +17,53 @@ export default function Hero() {
   const introSeen = typeof document !== 'undefined'
     && document.documentElement.dataset.cwsIntroSeen === '1';
   const introDelay = introSeen ? 0.15 : 2.6;
-  const heroRef = useRef(null);
-
-  useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return undefined;
-
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const coarse = window.matchMedia('(pointer: coarse)').matches;
-    if (reduced || coarse) {
-      hero.dataset.refractionFallback = 'true';
-      return undefined;
-    }
-
-    let pulsed = false;
-    const tween = gsap.to(hero, {
-      '--refraction-progress': 1,
-      '--refraction-sweep': 1,
-      scrollTrigger: {
-        trigger: hero,
-        start: 'top top',
-        end: 'bottom top',
-        scrub: 0.75,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          hero.dataset.refractionProgress = self.progress.toFixed(3);
-          if (!pulsed && self.progress > 0.52) {
-            pulsed = true;
-            hero.dataset.refractionPulse = 'true';
-          }
-        },
-      },
-      ease: 'none',
-    });
-
-    return () => {
-      tween.scrollTrigger?.kill();
-      tween.kill();
-    };
-  }, []);
-
-  const onBlast = (e) => {
-    blast(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
-  };
 
   return (
-    <section
-      ref={heroRef}
-      className="section hero hero-off-axis hero-refraction"
-      id="hero"
-      onClick={onBlast}
-      data-quiet
-    >
-      <div className="hero-refraction-sweep" aria-hidden="true" />
-      <div className="hero-caustics" aria-hidden="true">
-        <span className="caustic-ray" />
+    <section className="hx-hero" id="hero" aria-labelledby="hx-hero-title">
+      {/* The thread enters from the left edge and crosses the top of the hero
+          before dropping down the right gutter. */}
+      <Pin left="-3%" top="16%" />
+      <Pin left="22%" top="11%" />
+      <Pin left="54%" top="14%" />
+      <Pin left="86%" top="14%" />
+      <Pin lane="r" top="55%" />
+      <Pin lane="r" bottom="24px" />
+      <div className="hx-hero-photo" aria-hidden="true">
+        <img src="/heritage/process.webp" width="1100" height="733" alt="" decoding="async" fetchPriority="low" />
       </div>
-      <div className="text-plate">
-        {/* Plain-language descriptor (visual Phase 1b): the headline sells a
-            feeling, so this line says what the studio actually does before
-            the visitor has to scroll to find out. */}
-        <Reveal className="hero-kicker" delay={introDelay}>
-          <p>Websites · Branding · Motion · Marketing · AI automation</p>
+      <div className="hx-hero-inner">
+        <Reveal className="hx-kicker" delay={introDelay} y={20}>
+          <span>CD SPORTSWEAR INC / BUILT ON DIGITIZING</span>
+          <span className="hx-kicker-rule" aria-hidden="true" />
         </Reveal>
-        <h1 className="hero-title">
-          <DecodeText as="span" text="Built to be" speed={0.045} delay={introDelay + 0.1} className="hero-line" />
-          {/* Whitespace text node between the two block-level .hero-line spans.
-              Purely visual, the blocks already stack — but without it the H1's
-              textContent concatenates to "Built to beunforgettable.", which is
-              exactly what crawlers (and Screaming Frog) index. Collapsed by the
-              block formatting context, so rendering is unchanged. */}
+        <h1 className="hx-hero-title" id="hx-hero-title">
+          <Reveal as="span" className="hx-hero-line" delay={introDelay + 0.1} y={24}>
+            Over 16 Years Of Experience
+          </Reveal>
           {' '}
-          <DecodeText as="span" text="unforgettable." speed={0.045} delay={introDelay + 0.5} className="hero-line hero-line-accent" />
+          <Reveal as="span" className="hx-hero-line" delay={introDelay + 0.4} y={24}>
+            <em>under our belts</em>
+          </Reveal>
         </h1>
-        <Reveal className="hero-sub" delay={introDelay + 1}>
-          <p>
-            Visitors forget a site that blends into the scroll before they have
-            even left the tab. We build brands and interactive 3D experiences
-            fast enough to hold attention, sharp enough to beat the competition,
-            and built only for you — so the click turns into the client.
-          </p>
+        <div className="hx-hero-row">
+          <Reveal as="p" className="hx-hero-lede" delay={introDelay + 0.8} y={20}>
+            Every patch, sticker and logo we make starts as a stitch file. Crystal Digitizing has been writing them
+            for 16 years.
+          </Reveal>
+          <Reveal className="hx-ctas" delay={introDelay + 1} y={20}>
+            <a className="hx-btn" href={CRYSTAL_DIGITIZING_URL} target="_blank" rel="noopener">
+              Explore Crystal Digitizing <span className="hx-arrow" aria-hidden="true">→</span>
+            </a>
+            <a className="hx-link hx-link--ghost" href="/#make">See what we make</a>
+          </Reveal>
+        </div>
+        {/* start: this row sits at the very bottom of the first screen, below the
+            default 88% trigger line, so it must fire on load. */}
+        <Reveal as="ul" className="hx-facts" delay={introDelay + 1.2} y={16} start="top 100%">
+          {HERO_FACTS.map((fact) => <li key={fact}>{fact}</li>)}
+          {/* Points at the scroll thread, which is only drawn from 900px up. */}
+          <li className="hx-thread-copy">FOLLOW THE THREAD ↓</li>
         </Reveal>
-        <Reveal className="hero-cta" delay={introDelay + 1.3}>
-          <div className="hero-cta-row">
-            <Magnetic>
-              <a
-                href="/#contact"
-                className="btn btn-solid"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Start a project <span className="btn-arrow">→</span>
-              </a>
-            </Magnetic>
-            {/* Secondary path for visitors who want proof before a brief.
-                /work, not #motion: Motion opens on a decorative marquee of
-                third-party showcase screenshots that must never read as our
-                client work; /work lists the real projects. */}
-            <Link
-              href="/work"
-              className="btn btn-ghost"
-              onClick={(e) => e.stopPropagation()}
-            >
-              See selected work
-            </Link>
-          </div>
-        </Reveal>
-        {/* Inline proof line under the CTA. Reads from SITE rather than
-            restating the figure, so the homepage and /about (which already
-            renders SITE.projectsShipped) can never drift apart. Deliberately a
-            single mono line rather than a stat block — the deleted Facts.jsx
-            was the stat block, and this is not a reinstatement of it. */}
-        <Reveal className="hero-stat" delay={introDelay + 1.5}>
-          <p>
-            <span className="hero-stat-figure">{SITE.projectsShipped}</span>
-            <span className="hero-stat-sep" aria-hidden="true"> · </span>
-            <span>{SITE.experience} of practice</span>
-          </p>
-        </Reveal>
-      </div>
-      <div className="hero-scroll" aria-hidden="true">
-        <span>scroll</span>
-        <span className="hero-scroll-line" />
       </div>
     </section>
   );

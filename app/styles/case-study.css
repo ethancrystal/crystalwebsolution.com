@@ -204,6 +204,28 @@
   border: 1px solid var(--line);
   border-radius: 6px;
 }
+.post-table-wrap { overflow-x: auto; }
+.post-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.post-table th,
+.post-table td {
+  border: 1px solid var(--line);
+  padding: 0.55rem 0.8rem;
+  text-align: left;
+  vertical-align: top;
+}
+.post-table th {
+  font-family: var(--font-display);
+  color: var(--ink);
+  background: rgba(139, 152, 184, 0.09);
+}
+.post-table td { color: var(--ink); }
+.post-task-item { display: flex; gap: 0.6rem; align-items: flex-start; list-style: none; }
+.post-task-check { margin-top: 0.4em; accent-color: var(--cyan); }
 
 .blog-article-footer {
   max-width: 72ch;

@@ -41,6 +41,7 @@ review (the 2026-09-02 audits alone had five: see
 
 | Plan | Status | Closed by / evidence |
 |---|---|---|
+| [`2026-09-28-portal-workings.md`](2026-09-28-portal-workings.md) | **Planned** (2026-09-28) | Client portal first (phases C1–C4), then employee (E1) and admin (A1). Owner decisions D1–D5 open |
 | [`audit-followups-crm-hardening-3.md`](audit-followups-crm-hardening-3.md) | **In progress** (2026-09-03) | PR 1 docs → v1.27; PR 2 frontend → v1.28; PR 3 migration 0041 → v1.29 |
 | [`refactor-architecture-cleanup-2.md`](refactor-architecture-cleanup-2.md) | **Complete** | v1.17–v1.23 (PRs #165–#169); reports `docs/reports/phase-{1,3,4}-*.md`. Open items carried to plan 3 |
 | [`refactor-architecture-cleanup-1.md`](refactor-architecture-cleanup-1.md) | **Complete** | Phases 0–3: PR #133, #136, v1.09. Phases 4–5 re-scoped into plan v2 and shipped as v1.18/v1.19 |
