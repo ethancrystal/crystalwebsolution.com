@@ -1,3 +1,15 @@
+## v1.131 — 2026-10-26
+
+Weekly SEO goal-monger run: **production domain outage found** (docs only, no site change).
+
+- `www.cdsportswearinc.com` and the apex serve a GoDaddy parking page. Public DNS points at
+  GoDaddy parking IPs, `app.` is NXDOMAIN, MX, TXT and Resend DKIM are gone, and the
+  `cdsportswearinc.com` domains are no longer attached to the Vercel project. The registry
+  record last changed 2026-10-23. Production deploy `2466e00` is `READY`, so the cause is
+  the domain layer.
+- `docs/seo/runs/2026-10-26-goal-monger.md`: evidence table and owner restore checklist.
+- `docs/seo/goals.md`: Recover milestone opened ahead of milestone 2; GSC unavailable this run.
+
 ## v1.127 — 2026-10-19
 
 Real patches on the Capabilities cards (owner-supplied photos, 2026-10-19).
